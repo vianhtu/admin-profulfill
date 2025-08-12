@@ -1,43 +1,60 @@
 <?php
-// login.php
 declare(strict_types=1);
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 
-$pdo = new PDO( "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS, $options);
+$pdo = new PDO(
+        "mysql:host=".DB_HOST.";dbname=".DB_NAME.";charset=utf8mb4",
+        DB_USER, DB_PASS,
+        $options
+);
+
 $err = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $user  = trim($_POST['email-username'] ?? '');
-    $pass  = $_POST['password'] ?? '';
-    $remember = $_POST['remember-me'] ?? false;
+    $user     = trim($_POST['email-username'] ?? '');
+    $pass     = $_POST['password']       ?? '';
+    $remember = isset($_POST['remember-me']);
 
     if ($user === '' || $pass === '') {
         $err = 'Vui lòng điền đầy đủ thông tin.';
     } else {
-        // Lấy user từ DB
-        $stmt = $pdo->prepare('SELECT id, pass FROM authors WHERE email = ?');
-        $stmt->execute([$user]);
-        $row = $stmt->fetch();
+        $stmt = $pdo->prepare(
+                'SELECT id, pass FROM authors WHERE email = :u OR username = :u'
+        );
+        $stmt->execute([':u' => $user]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($row && password_verify($pass, $row['pass'])) {
-            // Tạo JWT
-            $token = JWT::encode(['user_id' => (int)$row['id']], JWT_SECRET, JWT_ALGO);
+            $now    = time();
+            $expire = $remember
+                    ? $now + 60*60*24*30
+                    : $now + JWT_EXPIRE;
 
-            // Đặt cookie
+            $payload = [
+                    'iat'     => $now,
+                    'exp'     => $expire,
+                    'iss'     => $_SERVER['HTTP_HOST'],
+                    'user_id' => (int)$row['id'],
+            ];
+
+            $token = JWT::encode($payload, JWT_SECRET, JWT_ALGO);
+
             setcookie(
                     COOKIE_NAME,
                     $token,
-                    time() + JWT_EXPIRE,
-                    COOKIE_PATH,
-                    COOKIE_DOMAIN,
-                    //COOKIE_SECURE,
-                    COOKIE_HTTPONLY
+                    [
+                            'expires'  => $expire,
+                            'path'     => COOKIE_PATH,
+                            'domain'   => COOKIE_DOMAIN,
+                            'secure'   => COOKIE_SECURE,
+                            'httponly' => COOKIE_HTTPONLY,
+                            'samesite' => 'Lax',
+                    ]
             );
 
-            //header('Location: dashboards.php');
+            header('Location: dashboards.php');
             exit;
         } else {
             $err = 'Tài khoản hoặc mật khẩu không đúng.';
@@ -45,6 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+// Hiển thị form login và $err tại đây
 <!doctype html>
 
 <html
