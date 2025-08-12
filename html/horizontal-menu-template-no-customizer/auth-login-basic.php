@@ -7,22 +7,6 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
-if (!function_exists('jwt_create')) {
-    /**
-     * Tạo JSON Web Token
-     *
-     * @param array   $payload  Dữ liệu muốn mã hoá
-     * @param string  $secret   Khóa bí mật
-     * @param string  $alg      Thuật toán (mặc định HS256)
-     * @return string           Token đã mã hoá
-     */
-    function jwt_create(array $payload, string $secret, string $alg = 'HS256'): string
-    {
-        return JWT::encode($payload, $secret, $alg);
-    }
-}
-
-
 $pdo = new PDO( "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS, $options);
 $err = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -40,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($row && password_verify($pass, $row['pass'])) {
             // Tạo JWT
-            $token = jwt_create(['user_id' => (int)$row['id']]);
+            $token = JWT::encode(['user_id' => (int)$row['id']], JWT_SECRET, JWT_ALGO);
 
             // Đặt cookie
             setcookie(
