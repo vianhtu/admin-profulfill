@@ -149,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               <h4 class="mb-1">Welcome to profulfill.io! 👋</h4>
               <p class="mb-6">Please sign-in to your account and start the adventure</p>
 
-              <form id="formAuthentication" class="mb-4" action="index.html" method="POST">
+              <form id="formAuthentication" class="mb-4" action="" method="POST">
                 <div class="mb-6 form-control-validation">
                   <label for="email" class="form-label">Email or Username</label>
                   <input
