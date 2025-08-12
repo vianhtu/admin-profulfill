@@ -24,3 +24,12 @@ define('COOKIE_DOMAIN', '45.76.185.106'); // ví dụ '.yourdomain.com'
 //define('COOKIE_SECURE', true);        // chỉ HTTPS
 define('COOKIE_HTTPONLY', true);      // JS không thể đọc
 define('COOKIE_SAMESITE', 'Strict');  // ngăn CSRF
+
+/*
+ * Bật/Tắt debug
+ * Đặt thành true trên development, false trên production
+ */
+define('DEBUG', true);
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
