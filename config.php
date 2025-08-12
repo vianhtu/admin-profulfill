@@ -22,7 +22,7 @@ define('COOKIE_NAME', 'rvMoi4c1b_auth_token');
 define('COOKIE_PATH', '/');
 define('COOKIE_DOMAIN', '45.76.185.106'); // ví dụ '.yourdomain.com'
 define('COOKIE_SECURE', true);        // chỉ HTTPS
-define('COOKIE_HTTPONLY', false);      // JS không thể đọc
+define('COOKIE_HTTPONLY', true);      // JS không thể đọc
 define('COOKIE_SAMESITE', 'Strict');  // ngăn CSRF
 
 /*
