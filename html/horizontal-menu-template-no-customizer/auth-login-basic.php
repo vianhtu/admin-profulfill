@@ -1,5 +1,6 @@
 <?php
 // login.php
+declare(strict_types=1);
 require_once __DIR__ . '/config.php';
 
 $pdo = new PDO(
@@ -38,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     COOKIE_HTTPONLY
             );
 
-            header('Location: dashboards.php');
+            //header('Location: dashboards.php');
             exit;
         } else {
             $err = 'Tài khoản hoặc mật khẩu không đúng.';
