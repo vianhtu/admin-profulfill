@@ -7,7 +7,7 @@ $err = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user  = trim($_POST['email-username'] ?? '');
     $pass  = $_POST['password'] ?? '';
-    $token = $_POST['remember-me'] ?? false;
+    $remember = $_POST['remember-me'] ?? false;
 
     if ($user === '' || $pass === '') {
         $err = 'Vui lòng điền đầy đủ thông tin.';
