@@ -84,7 +84,7 @@ function jwt_verify(string $token): ?array {
  */
 function require_auth(): array {
 	if (empty($_COOKIE[COOKIE_NAME])) {
-		header('Location: login.php');
+		header('Location: /html/horizontal-menu-template-no-customizer/auth-login-basic.php');
 		exit;
 	}
 
@@ -100,7 +100,7 @@ function require_auth(): array {
 			//COOKIE_SECURE,
 			COOKIE_HTTPONLY
 		);
-		header('Location: login.php');
+		header('Location: /html/horizontal-menu-template-no-customizer/auth-login-basic.php');
 		exit;
 	}
 
