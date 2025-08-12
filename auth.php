@@ -97,7 +97,7 @@ function require_auth(): array {
 			time() - 3600,
 			COOKIE_PATH,
 			COOKIE_DOMAIN,
-			//COOKIE_SECURE,
+			COOKIE_SECURE,
 			COOKIE_HTTPONLY
 		);
 		header('Location: ./html/horizontal-menu-template-no-customizer/auth-login-basic.php');
