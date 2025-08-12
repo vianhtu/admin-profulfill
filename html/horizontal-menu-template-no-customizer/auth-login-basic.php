@@ -100,11 +100,11 @@
                       </svg>
                     </span>
                   </span>
-                  <span class="app-brand-text demo text-heading fw-bold">Vuexy</span>
+                  <span class="app-brand-text demo text-heading fw-bold">profulfill.io</span>
                 </a>
               </div>
               <!-- /Logo -->
-              <h4 class="mb-1">Welcome to Vuexy! 👋</h4>
+              <h4 class="mb-1">Welcome to profulfill.io! 👋</h4>
               <p class="mb-6">Please sign-in to your account and start the adventure</p>
 
               <form id="formAuthentication" class="mb-4" action="index.html" method="GET">
