@@ -1,3 +1,52 @@
+<?php
+// login.php
+declare(strict_types=1);
+require_once __DIR__ . '/config.php';
+
+$pdo = new PDO(
+        "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",
+        DB_USER,
+        DB_PASS,
+        $options
+);
+
+$err = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $user  = trim($_POST['email-username'] ?? '');
+    $pass  = $_POST['password'] ?? '';
+    $token = $_POST['remember-me'] ?? false;
+
+    if ($user === '' || $pass === '') {
+        $err = 'Vui lòng điền đầy đủ thông tin.';
+    } else {
+        // Lấy user từ DB
+        $stmt = $pdo->prepare('SELECT id, pass FROM authors WHERE email = ?');
+        $stmt->execute([$user]);
+        $row = $stmt->fetch();
+
+        if ($row && password_verify($pass, $row['pass'])) {
+            // Tạo JWT
+            $token = jwt_create(['user_id' => (int)$row['id']]);
+
+            // Đặt cookie
+            setcookie(
+                    COOKIE_NAME,
+                    $token,
+                    time() + JWT_EXPIRE,
+                    COOKIE_PATH,
+                    COOKIE_DOMAIN,
+                    //COOKIE_SECURE,
+                    COOKIE_HTTPONLY
+            );
+
+            header('Location: dashboards.php');
+            exit;
+        } else {
+            $err = 'Tài khoản hoặc mật khẩu không đúng.';
+        }
+    }
+}
+?>
 <!doctype html>
 
 <html
@@ -14,7 +63,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>Demo: Login Basic - Pages | Vuexy - Bootstrap Dashboard PRO</title>
+    <title>Login Basic - Pages | profulfill.io - Bootstrap Dashboard PRO</title>
 
     <meta name="description" content="" />
 
@@ -107,7 +156,7 @@
               <h4 class="mb-1">Welcome to profulfill.io! 👋</h4>
               <p class="mb-6">Please sign-in to your account and start the adventure</p>
 
-              <form id="formAuthentication" class="mb-4" action="index.html" method="GET">
+              <form id="formAuthentication" class="mb-4" action="index.html" method="POST">
                 <div class="mb-6 form-control-validation">
                   <label for="email" class="form-label">Email or Username</label>
                   <input
