@@ -2,7 +2,7 @@
 declare(strict_types=1);
 require __DIR__ . '/../../config.php';
 
-$err  = flash_get('error');
+$err  = flash_get('error') ?? "Please sign-in to your account and start the adventure";
 $info = flash_get('info');
 $csrf = csrf_token();
 echo $err;
@@ -114,7 +114,7 @@ echo $err;
               </div>
               <!-- /Logo -->
               <h4 class="mb-1">Welcome to profulfill.io! 👋</h4>
-              <p class="mb-6">Please sign-in to your account and start the adventure</p>
+              <p class="mb-6"><?= h($err) ?></p>
 
               <form id="formAuthentication" class="mb-4" action="../../auth.php" method="POST">
                   <input type="hidden" name="_csrf" value="<?= h($csrf) ?>">
