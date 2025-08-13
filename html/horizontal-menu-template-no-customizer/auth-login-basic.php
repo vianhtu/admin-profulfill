@@ -1,44 +1,10 @@
 <?php
-// login.php
 declare(strict_types=1);
-require_once __DIR__ . '/../../auth.php';
-$pdo = new PDO( "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS, $options);
-$err = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $user  = trim($_POST['email-username'] ?? '');
-    $pass  = $_POST['password'] ?? '';
-    $remember = $_POST['remember-me'] ?? false;
+require __DIR__ . '/../../../config.php';
 
-    if ($user === '' || $pass === '') {
-        $err = 'Vui lòng điền đầy đủ thông tin.';
-    } else {
-        // Lấy user từ DB
-        $stmt = $pdo->prepare('SELECT id, pass FROM authors WHERE email = ?');
-        $stmt->execute([$user]);
-        $row = $stmt->fetch();
-
-        if ($row && password_verify($pass, $row['pass'])) {
-            // Tạo JWT
-            $token = jwt_create(['user_id' => (int)$row['id']]);
-
-            // Đặt cookie
-            setcookie(
-                    COOKIE_NAME,
-                    $token,
-                    time() + JWT_EXPIRE,
-                    COOKIE_PATH,
-                    COOKIE_DOMAIN,
-                    COOKIE_SECURE,
-                    COOKIE_HTTPONLY
-            );
-
-            //header('Location: dashboards.php');
-            exit;
-        } else {
-            $err = 'Tài khoản hoặc mật khẩu không đúng.';
-        }
-    }
-}
+$err  = flash_get('error');
+$info = flash_get('info');
+$csrf = csrf_token();
 ?>
 <!doctype html>
 
@@ -149,14 +115,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               <h4 class="mb-1">Welcome to profulfill.io! 👋</h4>
               <p class="mb-6">Please sign-in to your account and start the adventure</p>
 
-              <form id="formAuthentication" class="mb-4" action="" method="POST">
-                <div class="mb-6 form-control-validation">
+              <form id="formAuthentication" class="mb-4" action="/auth.php" method="POST">
+                  <input type="hidden" name="_csrf" value="<?= h($csrf) ?>">
+                  <input type="hidden" name="action" value="login">
+                  <div class="mb-6 form-control-validation">
                   <label for="email" class="form-label">Email or Username</label>
                   <input
                     type="text"
                     class="form-control"
                     id="email"
-                    name="email-username"
+                    name="username"
                     placeholder="Enter your email or username"
                     autofocus />
                 </div>

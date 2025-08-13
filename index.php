@@ -1,11 +1,12 @@
 <?php
 // index.php
 declare(strict_types=1);
-require_once __DIR__ . '/auth.php';
+require __DIR__ . '/config.php';
 
-// Nếu tới đây, require_auth() sẽ tự redirect về login khi chưa hợp lệ
-$user = require_auth();
+if (is_logged_in()) {
+	header('Location: /dashboards.php', true, 302);
+	exit;
+}
 
-// Nếu có payload hợp lệ, chuyển tới Dashboard
-header('Location: dashboards.php');
+header('Location: /html/horizontal-menu-template-no-customizer/auth-login-basic.php', true, 302);
 exit;
