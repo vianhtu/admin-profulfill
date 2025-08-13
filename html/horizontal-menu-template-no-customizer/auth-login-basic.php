@@ -115,7 +115,7 @@ $csrf = csrf_token();
               <h4 class="mb-1">Welcome to profulfill.io! 👋</h4>
               <p class="mb-6">Please sign-in to your account and start the adventure</p>
 
-              <form id="formAuthentication" class="mb-4" action="./auth.php" method="POST">
+              <form id="formAuthentication" class="mb-4" action="../../auth.php" method="POST">
                   <input type="hidden" name="_csrf" value="<?= h($csrf) ?>">
                   <input type="hidden" name="action" value="login">
                   <div class="mb-6 form-control-validation">
