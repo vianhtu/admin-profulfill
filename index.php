@@ -8,5 +8,5 @@ if (is_logged_in() || attempt_cookie_login()) {
 	exit;
 }
 
-header('Location: ./html/horizontal-menu-template-no-customizer/auth-login-basic.php', true, 302);
+header('Location: ./html/vertical-menu-template-no-customizer/auth-login-basic.php', true, 302);
 exit;

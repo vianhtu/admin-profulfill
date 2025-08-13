@@ -5,7 +5,7 @@ require __DIR__ . '/config.php';
 if (($_GET['action'] ?? '') === 'logout') {
 	logout_user();
 	flash_set('info', 'Bạn đã đăng xuất.');
-	header('Location: ./html/horizontal-menu-template-no-customizer/auth-login-basic.php');
+	header('Location: ./html/vertical-menu-template-no-customizer/auth-login-basic.php');
 	exit;
 }
 
@@ -17,19 +17,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'login
 
 	if (!csrf_verify($token)) {
 		flash_set('error', 'Phiên không hợp lệ.');
-		header('Location: ./html/horizontal-menu-template-no-customizer/auth-login-basic.php');
+		header('Location: ./html/vertical-menu-template-no-customizer/auth-login-basic.php');
 		exit;
 	}
 	if ($userKey === '' || $password === '') {
 		flash_set('error', 'Nhập đầy đủ thông tin.');
-		header('Location: ./html/horizontal-menu-template-no-customizer/auth-login-basic.php');
+		header('Location: ./html/vertical-menu-template-no-customizer/auth-login-basic.php');
 		exit;
 	}
 
 	$author = find_author_by_login($userKey);
 	if (!$author || !password_verify($password, $author['hash'])) {
 		flash_set('error', 'Sai tên đăng nhập hoặc mật khẩu.');
-		header('Location: ./html/horizontal-menu-template-no-customizer/auth-login-basic.php');
+		header('Location: ./html/vertical-menu-template-no-customizer/auth-login-basic.php');
 		exit;
 	}
 

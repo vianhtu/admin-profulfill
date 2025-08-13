@@ -69,7 +69,7 @@ function require_login(): void {
 	if (!is_logged_in()) {
 		// Thử auto-login bằng cookie trước khi chuyển hướng
 		if (!attempt_cookie_login()) {
-			header('Location: ./html/horizontal-menu-template-no-customizer/auth-login-basic.php');
+			header('Location: ./html/vertical-menu-template-no-customizer/auth-login-basic.php');
 			exit;
 		}
 	}
