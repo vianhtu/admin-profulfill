@@ -1,6 +1,11 @@
 <?php
 declare(strict_types=1);
 require __DIR__ . '/../../config.php';
+// Nếu đã login hoặc cookie hợp lệ → chuyển về dashboards
+if (is_logged_in() || attempt_cookie_login()) {
+    header('Location: /dashboards.php');
+    exit;
+}
 $err  = flash_get('error') ?? "Please sign-in to your account and start the adventure";
 $info = flash_get('info');
 $csrf = csrf_token();
