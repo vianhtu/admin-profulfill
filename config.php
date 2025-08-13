@@ -75,8 +75,25 @@ function require_login(): void {
 	}
 }
 function logout_user(): void {
-	// Xóa cookie nhớ đăng nhập và token DB nếu có
+	if (!empty($_SESSION['auth']['user'])) {
+		// Lấy thông tin user hiện tại
+		$username = $_SESSION['auth']['user'];
+
+		// Xóa tất cả token remember-me của user này
+		$stmt = db()->prepare("
+            DELETE t FROM author_remember_tokens t
+            JOIN authors a ON a.ID = t.author_id
+            WHERE a.username = ? OR a.email = ?
+        ");
+		$stmt->bind_param('ss', $username, $username);
+		$stmt->execute();
+		$stmt->close();
+	}
+
+	// Xóa cookie remember-me
 	clear_remember_cookie();
+
+	// Xóa session
 	$_SESSION = [];
 	if (ini_get('session.use_cookies')) {
 		$p = session_get_cookie_params();
