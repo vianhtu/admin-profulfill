@@ -93,8 +93,10 @@ function find_author_by_login(string $userOrEmail): ?array {
 	$stmt->execute();
 	$stmt->bind_result($id, $username, $hash);
 	if ($stmt->fetch()) {
+		$stmt->close();
 		return ['id' => (int)$id, 'username' => (string)$username, 'hash' => (string)$hash];
 	}
+	$stmt->close();
 	return null;
 }
 function get_username_by_id(int $id): ?string {
@@ -102,7 +104,11 @@ function get_username_by_id(int $id): ?string {
 	$stmt->bind_param('i', $id);
 	$stmt->execute();
 	$stmt->bind_result($username);
-	if ($stmt->fetch()) return (string)$username;
+	if ($stmt->fetch()){
+		$stmt->close();
+		return (string)$username;
+	}
+	$stmt->close();
 	return null;
 }
 
@@ -218,6 +224,7 @@ function delete_remember_selector(string $selector): void {
 	$stmt = db()->prepare("DELETE FROM author_remember_tokens WHERE selector = ? LIMIT 1");
 	$stmt->bind_param('s', $selector);
 	$stmt->execute();
+	$stmt->close();
 }
 
 /**
