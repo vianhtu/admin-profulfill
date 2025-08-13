@@ -113,15 +113,15 @@ $user = $_SESSION['auth']['user'] ?? 'user';
           <ul class="menu-inner py-1">
             <!-- Page -->
             <li class="menu-item active">
-              <a href="" class="menu-link">
+              <a href="javascript:void(0);" class="menu-link">
                   <i class="menu-icon icon-base ti tabler-smart-home"></i>
                   <div data-i18n="Dashboards">Dashboards</div>
               </a>
             </li>
             <li class="menu-item">
-              <a href="page-2.html" class="menu-link">
-                <i class="menu-icon icon-base ti tabler-app-window"></i>
-                <div data-i18n="Page 2">Page 2</div>
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                  <i class="menu-icon icon-base ti tabler-shopping-cart"></i>
+                  <div data-i18n="eCommerce">eCommerce</div>
               </a>
             </li>
           </ul>
