@@ -5,6 +5,7 @@ require __DIR__ . '/../../config.php';
 $err  = flash_get('error');
 $info = flash_get('info');
 $csrf = csrf_token();
+echo $err;
 ?>
 <!doctype html>
 
