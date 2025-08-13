@@ -122,6 +122,13 @@ $user = $_SESSION['auth']['user'] ?? 'user';
               <a href="javascript:void(0);" class="menu-link menu-toggle">
                   <i class="menu-icon icon-base ti tabler-shopping-cart"></i>
                   <div data-i18n="eCommerce">eCommerce</div>
+                  <ul class="menu-sub">
+                      <li class="menu-item">
+                          <a href="javascript:void(0);" class="menu-link menu-toggle">
+                              <div data-i18n="Products">Products</div>
+                          </a>
+                      </li>
+                  </ul>
               </a>
             </li>
           </ul>
