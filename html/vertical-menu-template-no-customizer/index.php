@@ -113,7 +113,7 @@ $user = $_SESSION['auth']['user'] ?? 'user';
           <ul class="menu-inner py-1">
             <!-- Page -->
             <li class="menu-item active">
-              <a href="index.html" class="menu-link">
+              <a href="" class="menu-link">
                   <i class="menu-icon icon-base ti tabler-smart-home"></i>
                   <div data-i18n="Dashboards">Dashboards</div>
               </a>
