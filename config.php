@@ -172,9 +172,11 @@ function attempt_cookie_login(): bool {
 	$stmt->execute();
 	$stmt->bind_result($authorId, $validator_hash_db, $ua_hash_db, $expires_at);
 	if (!$stmt->fetch()) {
+		$stmt->close();
 		clear_remember_cookie();
 		return false;
 	}
+	$stmt->close();
 
 	// Kiểm tra hạn và UA
 	if (strtotime($expires_at) < time() || !hash_equals((string)$ua_hash_db, user_agent_fingerprint())) {
