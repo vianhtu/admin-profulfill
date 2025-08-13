@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'login
 	}
 
 	login_user($username);
-	header('Location: /dashboards.php');
+	header('Location: ./dashboards.php');
 	exit;
 }
 
