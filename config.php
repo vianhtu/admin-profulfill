@@ -120,8 +120,6 @@ function b64url_decode(string $str): string {
  * Tạo token nhớ đăng nhập và set cookie. Xoay vòng token cũ nếu cùng selector.
  */
 function set_remember_cookie(int $authorId): void {
-	$secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
-
 	// 12 bytes ~ 16 chars b64url cho selector, 32 bytes cho validator
 	$selector  = b64url_encode(random_bytes(12));
 	$validator = random_bytes(32);
@@ -141,9 +139,10 @@ function set_remember_cookie(int $authorId): void {
 	setcookie(REMEMBER_COOKIE, $value, [
 		'expires'  => $expires,
 		'path'     => '/',
-		'secure'   => $secure,
+		'secure'   => true,
 		'httponly' => true,
 		'samesite' => 'Lax',
+		'domain'   => '.profulfill.io',
 	]);
 }
 
