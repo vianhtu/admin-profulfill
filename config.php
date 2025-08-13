@@ -53,9 +53,13 @@ function csrf_verify($t): bool {
 }
 
 // ===== DB verify credentials =====
-function verify_credentials(string $username, string $password): bool {
-	$stmt = db()->prepare("SELECT pass FROM authors WHERE username = ? LIMIT 1");
-	$stmt->bind_param('s', $username);
+function verify_credentials(string $userOrEmail, string $password): bool {
+	// Tìm theo username HOẶC email
+	$sql = "SELECT pass FROM authors 
+            WHERE username = ? OR email = ? 
+            LIMIT 1";
+	$stmt = db()->prepare($sql);
+	$stmt->bind_param('ss', $userOrEmail, $userOrEmail);
 	$stmt->execute();
 	$stmt->bind_result($hash);
 	if ($stmt->fetch()) {
