@@ -75,7 +75,7 @@ function is_logged_in(): bool {
 }
 function require_login(): void {
 	if (!is_logged_in()) {
-		header('Location: ../html/horizontal-menu-template-no-customizer/auth-login-basic.php');
+		header('Location: ./html/horizontal-menu-template-no-customizer/auth-login-basic.php');
 		exit;
 	}
 }
