@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'login
 		clear_remember_cookie();
 	}
 
-	header('Location: ./dashboards.php');
+	header('Location: ./html/vertical-menu-template-no-customizer/index.php');
 	exit;
 }
 

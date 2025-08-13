@@ -1,3 +1,10 @@
+<?php
+// dashboards.php$
+declare(strict_types=1);
+require __DIR__ . '/../../config.php';
+require_login();
+$user = $_SESSION['auth']['user'] ?? 'user';
+?>
 <!doctype html>
 
 <html
@@ -163,7 +170,7 @@
                             </div>
                           </div>
                           <div class="flex-grow-1">
-                            <h6 class="mb-0">John Doe</h6>
+                            <h6 class="mb-0"><?= h($user) ?></h6>
                             <small class="text-body-secondary">Admin</small>
                           </div>
                         </div>
@@ -195,7 +202,7 @@
                       <div class="dropdown-divider my-1 mx-n2"></div>
                     </li>
                     <li>
-                      <a class="dropdown-item" href="javascript:void(0);">
+                      <a class="dropdown-item" href="../../auth.php?action=logout">
                         <i class="icon-base ti tabler-power icon-md me-3"></i><span>Log Out</span>
                       </a>
                     </li>
