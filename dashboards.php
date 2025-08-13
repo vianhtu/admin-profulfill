@@ -23,7 +23,7 @@ $user = $_SESSION['auth']['user'] ?? 'user';
 <div class="wrap">
     <header>
         <h1>Xin chào, <?= h($user) ?> 👋</h1>
-        <a class="btn" href="./../../auth.php?action=logout">Đăng xuất</a>
+        <a class="btn" href="./auth.php?action=logout">Đăng xuất</a>
     </header>
 
     <div class="card">
