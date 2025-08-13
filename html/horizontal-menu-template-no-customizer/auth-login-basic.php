@@ -4,7 +4,6 @@ require __DIR__ . '/../../config.php';
 $err  = flash_get('error') ?? "Please sign-in to your account and start the adventure";
 $info = flash_get('info');
 $csrf = csrf_token();
-echo $err;
 ?>
 <!doctype html>
 
