@@ -2,8 +2,10 @@
 // dashboards.php$
 declare(strict_types=1);
 require __DIR__ . '/../../config.php';
+require __DIR__ . '/../../functions.php';
 require_login();
 $user = $_SESSION['auth']['user'] ?? 'user';
+$currentMenu = $_GET['menu'] ?? '';
 ?>
 <!doctype html>
 
@@ -111,92 +113,7 @@ $user = $_SESSION['auth']['user'] ?? 'user';
           <div class="menu-inner-shadow"></div>
 
             <ul class="menu-inner py-1">
-                <!-- Dashboards -->
-                <li class="menu-item active open">
-                    <a href="javascript:void(0);" class="menu-link menu-toggle">
-                        <i class="menu-icon icon-base ti tabler-smart-home"></i>
-                        <div data-i18n="Dashboards">Dashboards</div>
-                        <div class="badge text-bg-danger rounded-pill ms-auto">5</div>
-                    </a>
-                    <ul class="menu-sub">
-                        <li class="menu-item active">
-                            <a href="index.html" class="menu-link">
-                                <div data-i18n="Analytics">Analytics</div>
-                            </a>
-                        </li>
-                        <li class="menu-item">
-                            <a href="dashboards-crm.html" class="menu-link">
-                                <div data-i18n="CRM">CRM</div>
-                            </a>
-                        </li>
-                        <li class="menu-item">
-                            <a href="app-ecommerce-dashboard.html" class="menu-link">
-                                <div data-i18n="eCommerce">eCommerce</div>
-                            </a>
-                        </li>
-                        <li class="menu-item">
-                            <a href="app-logistics-dashboard.html" class="menu-link">
-                                <div data-i18n="Logistics">Logistics</div>
-                            </a>
-                        </li>
-                        <li class="menu-item">
-                            <a href="app-academy-dashboard.html" class="menu-link">
-                                <div data-i18n="Academy">Academy</div>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-
-                <!-- Layouts -->
-                <li class="menu-item">
-                    <a href="javascript:void(0);" class="menu-link menu-toggle">
-                        <i class="menu-icon icon-base ti tabler-shopping-cart"></i>
-                        <div data-i18n="eCommerce">eCommerce</div>
-                    </a>
-
-                    <ul class="menu-sub">
-                        <li class="menu-item">
-                            <a href="index.php?menu=products" class="menu-link">
-                                <div data-i18n="Collapsed menu">Products</div>
-                            </a>
-                        </li>
-                        <li class="menu-item">
-                            <a href="index.php?menu=stores" class="menu-link">
-                                <div data-i18n="Content navbar">Stores</div>
-                            </a>
-                        </li>
-                        <li class="menu-item">
-                            <a href="index.php?menu=types" class="menu-link">
-                                <div data-i18n="Content nav + Sidebar">Types</div>
-                            </a>
-                        </li>
-                        <li class="menu-item">
-                            <a href="index.php?menu=sites" class="menu-link" target="_blank">
-                                <div data-i18n="Horizontal">Sites</div>
-                            </a>
-                        </li>
-                        <li class="menu-item">
-                            <a href="index.php?menu=tags" class="menu-link">
-                                <div data-i18n="Without menu">Tags</div>
-                            </a>
-                        </li>
-                        <li class="menu-item">
-                            <a href="index.php?menu=keywords" class="menu-link">
-                                <div data-i18n="Without navbar">Keywords</div>
-                            </a>
-                        </li>
-                        <li class="menu-item">
-                            <a href="index.php?menu=accounts" class="menu-link">
-                                <div data-i18n="Fluid">Accounts</div>
-                            </a>
-                        </li>
-                        <li class="menu-item">
-                            <a href="index.php?menu=export-settings" class="menu-link">
-                                <div data-i18n="Container">Export Settings</div>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+                <?php renderMenu($currentMenu); ?>
           </ul>
         </aside>
 
