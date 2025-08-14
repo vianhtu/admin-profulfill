@@ -192,12 +192,7 @@ $user = $_SESSION['auth']['user'] ?? 'user';
                         </li>
                         <li class="menu-item">
                             <a href="layouts-container.html" class="menu-link">
-                                <div data-i18n="Container">Container</div>
-                            </a>
-                        </li>
-                        <li class="menu-item">
-                            <a href="layouts-blank.html" class="menu-link">
-                                <div data-i18n="Blank">Blank</div>
+                                <div data-i18n="Container">Xlsx Settings</div>
                             </a>
                         </li>
                     </ul>
