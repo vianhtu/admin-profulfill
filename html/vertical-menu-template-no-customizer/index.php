@@ -150,8 +150,8 @@ $user = $_SESSION['auth']['user'] ?? 'user';
                 <!-- Layouts -->
                 <li class="menu-item">
                     <a href="javascript:void(0);" class="menu-link menu-toggle">
-                        <i class="menu-icon icon-base ti tabler-layout-sidebar"></i>
-                        <div data-i18n="Layouts">Layouts</div>
+                        <i class="menu-icon icon-base ti tabler-shopping-cart"></i>
+                        <div data-i18n="eCommerce">eCommerce</div>
                     </a>
 
                     <ul class="menu-sub">
