@@ -13,7 +13,7 @@ function renderMenu($currentMenu) {
 				'products' => 'Products',
 				'stores' => 'Stores',
 				'types' => 'Types',
-				'sites' => ['label' => 'Sites', 'target' => '_blank'],
+				'sites' => 'Sites',
 				'tags' => 'Tags',
 				'keywords' => 'Keywords',
 				'accounts' => 'Accounts',
