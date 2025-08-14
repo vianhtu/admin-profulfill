@@ -156,42 +156,42 @@ $user = $_SESSION['auth']['user'] ?? 'user';
 
                     <ul class="menu-sub">
                         <li class="menu-item">
-                            <a href="layouts-collapsed-menu.html" class="menu-link">
+                            <a href="/index.php?products" class="menu-link">
                                 <div data-i18n="Collapsed menu">Products</div>
                             </a>
                         </li>
                         <li class="menu-item">
-                            <a href="layouts-content-navbar.html" class="menu-link">
+                            <a href="/index.php?stores" class="menu-link">
                                 <div data-i18n="Content navbar">Stores</div>
                             </a>
                         </li>
                         <li class="menu-item">
-                            <a href="layouts-content-navbar-with-sidebar.html" class="menu-link">
+                            <a href="/index.php?types" class="menu-link">
                                 <div data-i18n="Content nav + Sidebar">Types</div>
                             </a>
                         </li>
                         <li class="menu-item">
-                            <a href="../horizontal-menu-template/" class="menu-link" target="_blank">
+                            <a href="/index.php?sites" class="menu-link" target="_blank">
                                 <div data-i18n="Horizontal">Sites</div>
                             </a>
                         </li>
                         <li class="menu-item">
-                            <a href="layouts-without-menu.html" class="menu-link">
+                            <a href="/index.php?tags" class="menu-link">
                                 <div data-i18n="Without menu">Tags</div>
                             </a>
                         </li>
                         <li class="menu-item">
-                            <a href="layouts-without-navbar.html" class="menu-link">
+                            <a href="/index.php?keywords" class="menu-link">
                                 <div data-i18n="Without navbar">Keywords</div>
                             </a>
                         </li>
                         <li class="menu-item">
-                            <a href="layouts-fluid.html" class="menu-link">
+                            <a href="/index.php?accounts" class="menu-link">
                                 <div data-i18n="Fluid">Accounts</div>
                             </a>
                         </li>
                         <li class="menu-item">
-                            <a href="layouts-container.html" class="menu-link">
+                            <a href="/index.php?export-settings" class="menu-link">
                                 <div data-i18n="Container">Export Settings</div>
                             </a>
                         </li>
