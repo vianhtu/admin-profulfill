@@ -162,32 +162,32 @@ $user = $_SESSION['auth']['user'] ?? 'user';
                         </li>
                         <li class="menu-item">
                             <a href="layouts-content-navbar.html" class="menu-link">
-                                <div data-i18n="Content navbar">Content navbar</div>
+                                <div data-i18n="Content navbar">Stores</div>
                             </a>
                         </li>
                         <li class="menu-item">
                             <a href="layouts-content-navbar-with-sidebar.html" class="menu-link">
-                                <div data-i18n="Content nav + Sidebar">Content nav + Sidebar</div>
+                                <div data-i18n="Content nav + Sidebar">Types</div>
                             </a>
                         </li>
                         <li class="menu-item">
                             <a href="../horizontal-menu-template/" class="menu-link" target="_blank">
-                                <div data-i18n="Horizontal">Horizontal</div>
+                                <div data-i18n="Horizontal">Sites</div>
                             </a>
                         </li>
                         <li class="menu-item">
                             <a href="layouts-without-menu.html" class="menu-link">
-                                <div data-i18n="Without menu">Without menu</div>
+                                <div data-i18n="Without menu">Tags</div>
                             </a>
                         </li>
                         <li class="menu-item">
                             <a href="layouts-without-navbar.html" class="menu-link">
-                                <div data-i18n="Without navbar">Without navbar</div>
+                                <div data-i18n="Without navbar">Keywords</div>
                             </a>
                         </li>
                         <li class="menu-item">
                             <a href="layouts-fluid.html" class="menu-link">
-                                <div data-i18n="Fluid">Fluid</div>
+                                <div data-i18n="Fluid">Accounts</div>
                             </a>
                         </li>
                         <li class="menu-item">
