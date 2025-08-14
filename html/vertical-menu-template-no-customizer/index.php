@@ -53,6 +53,17 @@ $currentMenu = $_GET['menu'] ?? '';
 
     <!-- endbuild -->
 
+      <?php
+      switch ($currentMenu) {
+          case 'products': ?>
+              <link rel="stylesheet" href="../../assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css" />
+              <link rel="stylesheet" href="../../assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css" />
+              <link rel="stylesheet" href="../../assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css" />
+              <link rel="stylesheet" href="../../assets/vendor/libs/select2/select2.css" />
+             <?php break;
+      }
+      ?>
+
     <!-- Page CSS -->
 
     <!-- Helpers -->
@@ -272,11 +283,24 @@ $currentMenu = $_GET['menu'] ?? '';
 
     <script src="../../assets/vendor/libs/hammer/hammer.js"></script>
 
+    <script src="../../assets/vendor/libs/i18n/i18n.js"></script>
+
     <script src="../../assets/vendor/js/menu.js"></script>
 
     <!-- endbuild -->
 
     <!-- Vendors JS -->
+    <?php
+    switch ($currentMenu) {
+        case 'products': ?>
+            <script src="../../assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
+            <script src="../../assets/vendor/libs/select2/select2.js"></script>
+            <script src="../../assets/js/app-ecommerce-product-list.js"></script>
+            <?php break;
+        }
+    ?>
+    }
+    ?>
 
     <!-- Main JS -->
 
