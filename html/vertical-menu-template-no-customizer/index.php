@@ -157,7 +157,7 @@ $user = $_SESSION['auth']['user'] ?? 'user';
                     <ul class="menu-sub">
                         <li class="menu-item">
                             <a href="layouts-collapsed-menu.html" class="menu-link">
-                                <div data-i18n="Collapsed menu">Collapsed menu</div>
+                                <div data-i18n="Collapsed menu">Products</div>
                             </a>
                         </li>
                         <li class="menu-item">
