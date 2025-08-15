@@ -41,8 +41,13 @@ document.addEventListener('DOMContentLoaded', function (e) {
 
   if (dt_product_table) {
     var dt_products = new DataTable(dt_product_table, {
-      ajax: assetsPath + 'json/ecommerce-product-list.json',
-      columns: [
+        serverSide: true,
+        processing: true,
+        ajax: {
+            url: '../../config.php?action=get_products',
+            type: 'POST'
+        },
+        columns: [
         // columns according to JSON
         { data: 'id' },
         { data: 'id', orderable: false, render: DataTable.render.select() },
