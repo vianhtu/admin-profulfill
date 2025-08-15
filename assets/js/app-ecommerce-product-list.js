@@ -57,7 +57,7 @@ function initProductTable(){
                 url: '../../ajax.php?action=get-products',
                 type: 'POST',
                 dataSrc: function (json) {
-                    console.log(json);
+                    //console.log(json);
                     return json.data;
                 }
             },
