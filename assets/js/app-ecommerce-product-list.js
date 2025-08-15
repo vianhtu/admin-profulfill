@@ -46,10 +46,10 @@ document.addEventListener('DOMContentLoaded', function (e) {
         ajax: {
             url: '../../ajax.php?action=get-products',
             type: 'POST',
-            //dataSrc: function (json) {
-                //console.log("📦 Data từ server:", json); // Log toàn bộ object trả về
-                //return json.aaData; // vẫn trả về dữ liệu cho DataTables render
-            //}
+            dataSrc: function (json) {
+                console.log(json);
+                return json.data;
+            }
         },
         columns: [
         // columns according to JSON
