@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
 
             if (image) {
               // For Product image
-              output = `<img src="${assetsPath}img/ecommerce-images/${image}" alt="Product-${id}" class="rounded">`;
+              output = `<img src="${image}" alt="Product-${id}" class="rounded">`;
             } else {
               // For Product badge
               let stateNum = Math.floor(Math.random() * 6);
