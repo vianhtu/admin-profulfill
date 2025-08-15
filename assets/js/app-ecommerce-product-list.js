@@ -13,12 +13,11 @@ async function init() {
         let options = await fetchProductTableFilter();
         categoryObj = options['types'];
         authorsObj = options['authors'];
-        console.error(options);
+        console.log(options);
 
         // 2️⃣ Sau khi có dữ liệu → tạo bảng
         initProductTable();
     } catch (err) {
-        console.error(err);
         alert('Không thể tải danh mục');
     }
 }
