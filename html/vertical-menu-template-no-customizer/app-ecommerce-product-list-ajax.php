@@ -1,6 +1,5 @@
 <?php
 $conn = db();
-
 // Lấy thông số từ DataTables
 $draw = intval($_POST['draw'] ?? 1);
 $start = intval($_POST['start'] ?? 0);
@@ -68,11 +67,11 @@ while ($row = $rs->fetch_assoc()) {
 	//];
 
 	$data[] = [
-		"id" => 1,
-		"product_name" => "iPhone 14 Pro",
+		"id" => $row['ID'],
+		"product_name" => htmlspecialchars($row['title']),
 		"category"=> 2,
 		"stock"=> 1,
-		"sku"=> 19472,
+		"sku"=> htmlspecialchars($row['sku']),
 		"price"=> "$999",
 		"qty"=> 665,
 		"status"=> 3,
