@@ -89,16 +89,14 @@
         <table class="datatables-products table">
             <thead class="border-top">
             <tr>
-                <th></th>
-                <th></th>
+                <th>A</th>
+                <th>B</th>
                 <th>product</th>
                 <th>category</th>
                 <th>stock</th>
                 <th>sku</th>
                 <th>price</th>
                 <th>qty</th>
-                <th>status</th>
-                <th>actions</th>
             </tr>
             </thead>
         </table>
