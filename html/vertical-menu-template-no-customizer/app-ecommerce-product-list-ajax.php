@@ -38,7 +38,7 @@ $rs = $conn->query($sql);
 // Chuẩn bị dữ liệu trả về
 $data = [];
 while ($row = $rs->fetch_assoc()) {
-	//$imgs = json_decode($row['images']);
+	$imgs = json_decode($row['images']);
 	//$firstImg = $imgs['main'];
 	$data[] = [
 		"id" => $row['ID'],
