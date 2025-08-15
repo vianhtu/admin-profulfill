@@ -62,7 +62,7 @@ function getTypes(): array {
 	$conn = db();
 	$stmt = $conn->query("SELECT ID, name FROM type");
 	$types = [];
-	while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+	while ($row = $stmt->fetch_assoc()) {
 		$types[$row['ID']] = [
 			'title' => $row['name']
 		];
