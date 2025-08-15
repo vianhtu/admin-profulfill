@@ -5,14 +5,14 @@
 'use strict';
 
 let categoryObj = {};
-let stockObj = {};
+let authorsObj = {};
 
 async function init() {
     try {
         // 1️⃣ Gọi API trước
         let options = await fetchProductTableFilter();
         categoryObj = options['types'];
-        stockObj = options['authors'];
+        authorsObj = options['authors'];
 
         // 2️⃣ Sau khi có dữ liệu → tạo bảng
         initProductTable();
@@ -194,7 +194,7 @@ function initProductTable(){
                     responsivePriority: 3,
                     render: function (data, type, full, meta) {
                         let stock = full['stock'];
-                        let stockTitle = stockObj[stock].title;
+                        let stockTitle = authorsObj[stock].title;
 
                         return '<span>' + stockTitle + '</span>';
                     }
@@ -638,8 +638,8 @@ function initProductTable(){
                         .sort()
                         .each(function (d) {
                             const option = document.createElement('option');
-                            option.value = stockObj[d].title;
-                            option.textContent = stockObj[d].title;
+                            option.value = authorsObj[d].title;
+                            option.textContent = authorsObj[d].title;
                             select.appendChild(option);
                         });
                 });
