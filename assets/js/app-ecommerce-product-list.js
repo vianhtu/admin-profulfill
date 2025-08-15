@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
         serverSide: true,
         processing: true,
         ajax: {
-            url: '../../ajax.php?action=get_products',
+            url: '../../ajax.php?action=get-products',
             type: 'POST',
             dataSrc: function (json) {
                 console.log("📦 Data từ server:", json); // Log toàn bộ object trả về
