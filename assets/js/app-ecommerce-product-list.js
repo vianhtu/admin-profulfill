@@ -145,41 +145,7 @@ function initProductTable(){
                     render: function (data, type, full, meta) {
                         let category = categoryObj[full['category']].title;
 
-                        if (type === 'display') {
-                            let categoryBadgeObj = {
-                                Household: `
-                  <span class="w-px-30 h-px-30 rounded-circle d-flex justify-content-center align-items-center bg-label-warning me-4">
-                    <i class="icon-base ti tabler-home-2 icon-18px"></i>
-                  </span>`,
-                                Office: `
-                  <span class="w-px-30 h-px-30 rounded-circle d-flex justify-content-center align-items-center bg-label-info me-4">
-                    <i class="icon-base ti tabler-briefcase icon-18px"></i>
-                </span>`,
-                                Electronics: `
-                <span class="w-px-30 h-px-30 rounded-circle d-flex justify-content-center align-items-center bg-label-danger me-4">
-                  <i class="icon-base ti tabler-device-mobile icon-18px"></i>
-                </span>`,
-                                Shoes: `
-                <span class="w-px-30 h-px-30 rounded-circle d-flex justify-content-center align-items-center bg-label-success me-4">
-                  <i class="icon-base ti tabler-shoe icon-18px"></i>
-                </span>`,
-                                Accessories: `
-                <span class="w-px-30 h-px-30 rounded-circle d-flex justify-content-center align-items-center bg-label-secondary me-4">
-                  <i class="icon-base ti tabler-device-watch icon-18px"></i>
-                </span>`,
-                                Game: `
-                <span class="w-px-30 h-px-30 rounded-circle d-flex justify-content-center align-items-center bg-label-primary me-4">
-                  <i class="icon-base ti tabler-device-gamepad-2 icon-18px"></i>
-                  </span>`
-                            };
-
-                            return `
-                <span class="text-truncate d-flex align-items-center text-heading">
-                  ${categoryBadgeObj[category] || ''}${category}
-                </span>`;
-                        } else {
-                            return category;
-                        }
+                        return '<span>' + category + '</span>';
                     }
                 },
                 {
