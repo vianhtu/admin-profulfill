@@ -57,3 +57,16 @@ function renderMenu($currentMenu) {
         HTML;
 	}
 }
+
+function getTypes(): array {
+	$conn = db();
+	$stmt = $conn->query("SELECT ID, name FROM types");
+	$types = [];
+	while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+		$types[$row['ID']] = [
+			'title' => $row['name']
+		];
+	}
+	$stmt->close();
+	return $types;
+}

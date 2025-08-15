@@ -12,7 +12,23 @@ document.addEventListener('DOMContentLoaded', function (e) {
   bodyBg = config.colors.bodyBg;
   headingColor = config.colors.headingColor;
 
-  // Variable declaration for table
+    let types = {};
+
+    fetch('../../ajax.php?action=get-types', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        types = data;
+    })
+    .catch(err => {
+        console.error('Lỗi khi load type:', err);
+    });
+
+    // Variable declaration for table
   const dt_product_table = document.querySelector('.datatables-products'),
     productAdd = 'app-ecommerce-product-add.html',
     statusObj = {
@@ -20,14 +36,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
       2: { title: 'Publish', class: 'bg-label-success' },
       3: { title: 'Inactive', class: 'bg-label-danger' }
     },
-    categoryObj = {
-      0: { title: 'Household' },
-      1: { title: 'Office' },
-      2: { title: 'Electronics' },
-      3: { title: 'Shoes' },
-      4: { title: 'Accessories' },
-      5: { title: 'Game' }
-    },
+    categoryObj = types,
     stockObj = {
       0: { title: 'Out_of_Stock' },
       1: { title: 'In_Stock' }
