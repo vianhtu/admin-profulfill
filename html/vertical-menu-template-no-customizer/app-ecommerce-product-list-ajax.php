@@ -39,7 +39,7 @@ $rs = $conn->query($sql);
 $data = [];
 while ($row = $rs->fetch_assoc()) {
 	$imgs = json_decode($row['images']);
-	$firstImg = $imgs['main'];
+	//$firstImg = $imgs['main'];
 	$data[] = [
 		"id" => $row['ID'],
 		"product_name" => htmlspecialchars($row['title']),
@@ -49,7 +49,7 @@ while ($row = $rs->fetch_assoc()) {
 		"price"=> "$999",
 		"qty"=> 665,
 		"status"=> 3,
-		"image"=> $firstImg,
+		"image"=> $row['images'],
 		"product_brand"=> "Super Retina XDR display footnote Pro Motion technology"
 	];
 }
