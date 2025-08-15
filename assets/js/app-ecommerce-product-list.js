@@ -5,12 +5,14 @@
 'use strict';
 
 let categoryObj = {};
+let stockObj = {};
 
 async function init() {
     try {
         // 1️⃣ Gọi API trước
         let options = await fetchProductTableFilter();
         categoryObj = options['types'];
+        stockObj = options['authors'];
 
         // 2️⃣ Sau khi có dữ liệu → tạo bảng
         initProductTable();
@@ -44,10 +46,6 @@ function initProductTable(){
             1: { title: 'Scheduled', class: 'bg-label-warning' },
             2: { title: 'Publish', class: 'bg-label-success' },
             3: { title: 'Inactive', class: 'bg-label-danger' }
-        },
-        stockObj = {
-            0: { title: 'Out_of_Stock' },
-            1: { title: 'In_Stock' }
         },
         stockFilterValObj = {
             0: { title: 'Out of Stock' },
