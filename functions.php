@@ -60,7 +60,7 @@ function renderMenu($currentMenu) {
 
 function getTypes(): array {
 	$conn = db();
-	$stmt = $conn->query("SELECT ID, name FROM types");
+	$stmt = $conn->query("SELECT ID, name FROM type");
 	$types = [];
 	while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 		$types[$row['ID']] = [
