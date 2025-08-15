@@ -52,18 +52,14 @@ document.addEventListener('DOMContentLoaded', function (e) {
             }
         },
         columns: [
-        // columns according to JSON
-        { data: 'id' },
-        { data: 'id', orderable: false, render: DataTable.render.select() },
-        { data: 'product_name' },
-        { data: 'category' },
-        { data: 'stock' },
-        { data: 'sku' },
-        { data: 'price' },
-        { data: 'quantity' },
-        { data: 'status' },
-        { data: 'id' }
-      ],
+            { data: 'ID' },
+            { data: 'title' },
+            { data: 'status' },
+            { data: 'sku' },
+            { data: 'images', orderable: false, searchable: false },
+            { data: 'badge', orderable: false, searchable: false },
+            { data: 'date' }
+        ],
       columnDefs: [
         {
           // For Responsive
