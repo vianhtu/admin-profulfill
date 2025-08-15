@@ -22,8 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 		case 'get-products':
 			require_once __DIR__ . '/html/vertical-menu-template-no-customizer/app-ecommerce-product-list-ajax.php';
 			break;
-		case 'get-types':
-			echo json_encode(getTypes());
+		case 'get-product-table-filter':
+			echo json_encode(getProductTableFilter());
 			break;
 		case 'check-listing':
 			//require_once __DIR__ . '/action-check-listing.php';

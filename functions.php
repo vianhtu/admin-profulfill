@@ -70,3 +70,23 @@ function getTypes(): array {
 	$stmt->close();
 	return $types;
 }
+
+function getAuthors(): array {
+	$conn = db();
+	$stmt = $conn->query("SELECT ID, username FROM authors");
+	$types = [];
+	while ($row = $stmt->fetch_assoc()) {
+		$types[$row['ID']] = [
+			'title' => $row['username']
+		];
+	}
+	$stmt->close();
+	return $types;
+}
+
+function getProductTableFilter(): array {
+	$options = [];
+	$options['types'] = getTypes();
+	$options['authors'] = getAuthors();
+	return $options;
+}

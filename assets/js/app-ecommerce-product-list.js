@@ -9,7 +9,8 @@ let categoryObj = {};
 async function init() {
     try {
         // 1️⃣ Gọi API trước
-        categoryObj = await fetchTypes();
+        let options = await fetchProductTableFilter();
+        categoryObj = options['types'];
 
         // 2️⃣ Sau khi có dữ liệu → tạo bảng
         initProductTable();
@@ -19,8 +20,8 @@ async function init() {
     }
 }
 
-async function fetchTypes(){
-    const res = await fetch('../../ajax.php?action=get-types', {
+async function fetchProductTableFilter(){
+    const res = await fetch('../../ajax.php?action=get-product-table-filter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
     });
