@@ -28,7 +28,7 @@ if ($searchValue !== '') {
 $totalFiltered = $conn->query("SELECT COUNT(*) AS cnt FROM posts $where")->fetch_assoc()['cnt'];
 
 // Lấy dữ liệu
-$sql = "SELECT ID, title, status, sku, images, badge, date 
+$sql = "SELECT ID, title, status, sku, images, badge, date, type_id 
         FROM posts
         $where
         ORDER BY $orderColumn $orderDir
@@ -43,7 +43,7 @@ while ($row = $rs->fetch_assoc()) {
 	$data[] = [
 		"id" => $row['ID'],
 		"product_name" => htmlspecialchars($row['title']),
-		"category"=> 2,
+		"category"=> $row['type_id'],
 		"stock"=> 1,
 		"sku"=> htmlspecialchars($row['sku']),
 		"price"=> "$999",
