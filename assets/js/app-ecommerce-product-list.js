@@ -196,32 +196,7 @@ function initProductTable(){
                         let stock = full['stock'];
                         let stockTitle = stockObj[stock].title;
 
-                        if (type === 'display') {
-                            let stockSwitchObj = {
-                                Out_of_Stock: `
-                  <label class="switch switch-primary switch-sm">
-                  <input type="checkbox" class="switch-input" id="switch">
-                    <span class="switch-toggle-slider">
-                      <span class="switch-off"></span>
-                    </span>
-                  </label>`,
-                                In_Stock: `
-                  <label class="switch switch-primary switch-sm">
-                    <input type="checkbox" class="switch-input" checked>
-                    <span class="switch-toggle-slider">
-                      <span class="switch-on"></span>
-                    </span>
-                  </label>`
-                            };
-
-                            return `
-                <span class="text-truncate">
-                  ${stockSwitchObj[stockTitle]}
-                  <span class="d-none">${stockTitle}</span>
-                </span>`;
-                        } else {
-                            return stockTitle;
-                        }
+                        return '<span>' + stockTitle + '</span>';
                     }
                 },
                 {
