@@ -57,14 +57,27 @@ while ($row = $rs->fetch_assoc()) {
 		$badgeHTML = '<span class="badge bg-'.$color.'">'.htmlspecialchars($row['badge']).'</span>';
 	}
 
+	//$data[] = [
+		//'ID'     => $row['ID'],
+		//'title'  => htmlspecialchars($row['title']),
+		//'status' => htmlspecialchars($row['status']),
+		//'sku'    => htmlspecialchars($row['sku']),
+		//'images' => $thumb,
+		//'badge'  => $badgeHTML,
+		//'date'   => date('d-m-Y H:i', strtotime($row['date']))
+	//];
+
 	$data[] = [
-		'ID'     => $row['ID'],
-		'title'  => htmlspecialchars($row['title']),
-		'status' => htmlspecialchars($row['status']),
-		'sku'    => htmlspecialchars($row['sku']),
-		'images' => $thumb,
-		'badge'  => $badgeHTML,
-		'date'   => date('d-m-Y H:i', strtotime($row['date']))
+		"id" => 1,
+		"product_name" => "iPhone 14 Pro",
+		"category"=> 2,
+		"stock"=> 1,
+		"sku"=> 19472,
+		"price"=> "$999",
+		"qty"=> 665,
+		"status"=> 3,
+		"image"=> "product-1.png",
+		"product_brand"=> "Super Retina XDR display footnote Pro Motion technology"
 	];
 }
 
