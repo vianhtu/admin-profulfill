@@ -28,7 +28,7 @@ async function fetchProductTableFilter(){
         headers: { 'Content-Type': 'application/json' }
     });
     if (!res.ok) throw new Error('Lỗi lấy danh mục');
-    console.log(res);
+    console.log(res.json());
     return await res.json();
 }
 
