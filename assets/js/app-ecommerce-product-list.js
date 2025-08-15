@@ -45,7 +45,11 @@ document.addEventListener('DOMContentLoaded', function (e) {
         processing: true,
         ajax: {
             url: '../../config.php?action=get_products',
-            type: 'POST'
+            type: 'POST',
+            dataSrc: function (json) {
+                console.log("📦 Data từ server:", json); // Log toàn bộ object trả về
+                return json.aaData; // vẫn trả về dữ liệu cho DataTables render
+            }
         },
         columns: [
         // columns according to JSON
