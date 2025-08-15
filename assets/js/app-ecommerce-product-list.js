@@ -25,6 +25,7 @@ async function fetchTypes(){
         headers: { 'Content-Type': 'application/json' }
     });
     if (!res.ok) throw new Error('Lỗi lấy danh mục');
+    console.log(res);
     return await res.json();
 }
 
