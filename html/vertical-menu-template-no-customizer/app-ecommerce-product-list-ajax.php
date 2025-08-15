@@ -62,7 +62,7 @@ while ($row = $rs->fetch_assoc()) {
 		'title'  => htmlspecialchars($row['title']),
 		'status' => htmlspecialchars($row['status']),
 		'sku'    => htmlspecialchars($row['sku']),
-		'images' => $thumb,
+		'images' => '',//$thumb,
 		'badge'  => $badgeHTML,
 		'date'   => date('d-m-Y H:i', strtotime($row['date']))
 	];
