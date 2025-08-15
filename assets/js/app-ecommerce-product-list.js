@@ -20,7 +20,7 @@ async function init() {
 }
 
 async function fetchTypes(){
-    const res = await fetch('/../../ajax.php?action=get-types', {
+    const res = await fetch('../../ajax.php?action=get-types', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
     });
