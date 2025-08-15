@@ -46,12 +46,7 @@ function initProductTable(){
             1: { title: 'Scheduled', class: 'bg-label-warning' },
             2: { title: 'Publish', class: 'bg-label-success' },
             3: { title: 'Inactive', class: 'bg-label-danger' }
-        },
-        stockFilterValObj = {
-            0: { title: 'Out of Stock' },
-            1: { title: 'In Stock' }
-        };
-
+        }
     // E-commerce Products datatable
 
     if (dt_product_table) {
