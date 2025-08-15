@@ -38,8 +38,8 @@ $rs = $conn->query($sql);
 // Chuẩn bị dữ liệu trả về
 $data = [];
 while ($row = $rs->fetch_assoc()) {
-	$imgs = explode(',', $row['images']);
-	$firstImg = trim($imgs[0]);
+	$imgs = json_decode($row['images']);
+	$firstImg = $imgs['main'];
 	$data[] = [
 		"id" => $row['ID'],
 		"product_name" => htmlspecialchars($row['title']),
