@@ -38,34 +38,8 @@ $rs = $conn->query($sql);
 // Chuẩn bị dữ liệu trả về
 $data = [];
 while ($row = $rs->fetch_assoc()) {
-	$thumb = '';
-	if (!empty($row['images'])) {
-		$imgs = explode(',', $row['images']);
-		$firstImg = trim($imgs[0]);
-		$thumb = '<img src="'.$firstImg.'" alt="img" style="width:50px;height:50px;object-fit:cover;">';
-	}
-
-	$badgeHTML = '';
-	if (!empty($row['badge'])) {
-		$color = match(strtolower($row['badge'])) {
-			'new' => 'success',
-			'sale' => 'danger',
-			'hot' => 'warning',
-			default => 'secondary',
-		};
-		$badgeHTML = '<span class="badge bg-'.$color.'">'.htmlspecialchars($row['badge']).'</span>';
-	}
-
-	//$data[] = [
-		//'ID'     => $row['ID'],
-		//'title'  => htmlspecialchars($row['title']),
-		//'status' => htmlspecialchars($row['status']),
-		//'sku'    => htmlspecialchars($row['sku']),
-		//'images' => $thumb,
-		//'badge'  => $badgeHTML,
-		//'date'   => date('d-m-Y H:i', strtotime($row['date']))
-	//];
-
+	$imgs = explode(',', $row['images']);
+	$firstImg = trim($imgs[0]);
 	$data[] = [
 		"id" => $row['ID'],
 		"product_name" => htmlspecialchars($row['title']),
@@ -75,7 +49,7 @@ while ($row = $rs->fetch_assoc()) {
 		"price"=> "$999",
 		"qty"=> 665,
 		"status"=> 3,
-		"image"=> "product-1.png",
+		"image"=> $firstImg,
 		"product_brand"=> "Super Retina XDR display footnote Pro Motion technology"
 	];
 }
