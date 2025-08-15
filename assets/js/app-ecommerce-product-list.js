@@ -618,7 +618,7 @@ function initProductTable(){
                     const select = document.createElement('select');
                     select.id = 'ProductStock';
                     select.className = 'form-select text-capitalize';
-                    select.innerHTML = '<option value="">Stock</option>';
+                    select.innerHTML = '<option value="">All</option>';
 
                     document.querySelector('.product_stock').appendChild(select);
 
