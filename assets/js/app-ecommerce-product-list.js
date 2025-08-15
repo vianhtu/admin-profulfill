@@ -13,6 +13,7 @@ async function init() {
         let options = await fetchProductTableFilter();
         categoryObj = options['types'];
         authorsObj = options['authors'];
+        console.error(options);
 
         // 2️⃣ Sau khi có dữ liệu → tạo bảng
         initProductTable();
@@ -28,7 +29,6 @@ async function fetchProductTableFilter(){
         headers: { 'Content-Type': 'application/json' }
     });
     if (!res.ok) throw new Error('Lỗi lấy danh mục');
-    console.log(res.json());
     return await res.json();
 }
 
