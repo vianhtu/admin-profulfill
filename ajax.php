@@ -19,8 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 
 	switch ($_GET['action']) {
 		case 'get-products':
-			//require_once __DIR__ . '/action-check-keywords.php';
-			echo json_encode(['error' => $_POST]);
+			require_once __DIR__ . '/html/vertical-menu-template-no-customizer/app-ecommerce-product-list-ajax.php';
 			break;
 		case 'check-listings':
 			//require_once __DIR__ . '/action-check-listings.php';
