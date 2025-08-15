@@ -49,7 +49,7 @@ while ($row = $rs->fetch_assoc()) {
 		"price"=> "$999",
 		"qty"=> 665,
 		"status"=> 3,
-		"image"=> $row['images'],
+		"image"=> $imgs->main,
 		"product_brand"=> "Super Retina XDR display footnote Pro Motion technology"
 	];
 }
