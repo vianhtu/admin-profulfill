@@ -4,22 +4,14 @@
 
 'use strict';
 
-// Datatable (js)
-document.addEventListener('DOMContentLoaded', function (e) {
-  let borderColor, bodyBg, headingColor;
+let types = {};
 
-  borderColor = config.colors.borderColor;
-  bodyBg = config.colors.bodyBg;
-  headingColor = config.colors.headingColor;
-
-    let types = {};
-
-    fetch('../../ajax.php?action=get-types', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
+fetch('../../ajax.php?action=get-types', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    }
+})
     .then(res => res.json())
     .then(data => {
         types = data;
@@ -27,6 +19,14 @@ document.addEventListener('DOMContentLoaded', function (e) {
     .catch(err => {
         console.error('Lỗi khi load type:', err);
     });
+
+// Datatable (js)
+document.addEventListener('DOMContentLoaded', function (e) {
+  let borderColor, bodyBg, headingColor;
+
+  borderColor = config.colors.borderColor;
+  bodyBg = config.colors.bodyBg;
+  headingColor = config.colors.headingColor;
 
     // Variable declaration for table
   const dt_product_table = document.querySelector('.datatables-products'),
