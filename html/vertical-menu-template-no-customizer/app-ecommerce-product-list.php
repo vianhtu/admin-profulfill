@@ -80,9 +80,15 @@
     <div class="card-header border-bottom">
         <h5 class="card-title">Filter</h5>
         <div class="d-flex justify-content-between align-items-center row pt-4 gap-6 gap-md-0 g-md-6">
-            <div class="col-md-4 product_status"></div>
-            <div class="col-md-4 product_category"></div>
-            <div class="col-md-4 product_stock"></div>
+            <div class="col-md-4 product_status">
+                <label for="date_to" class="form-label">Status</label>
+            </div>
+            <div class="col-md-4 product_category">
+                <label for="date_to" class="form-label">Category</label>
+            </div>
+            <div class="col-md-4 product_stock">
+                <label for="date_to" class="form-label">Manager</label>
+            </div>
             <div class="col-md-4 product_from_date">
                 <label for="date_from" class="form-label">From</label>
                 <input type="date" class="form-control" id="minDate" min="2025-01-01">

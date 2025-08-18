@@ -533,7 +533,7 @@ function initProductTable(){
                     const select = document.createElement('select');
                     select.id = 'ProductStatus';
                     select.className = 'form-select text-capitalize';
-                    select.innerHTML = '<option value="">Status</option>';
+                    select.innerHTML = '<option value="">All</option>';
 
                     document.querySelector('.product_status').appendChild(select);
 
@@ -555,7 +555,7 @@ function initProductTable(){
                     const select = document.createElement('select');
                     select.id = 'ProductCategory';
                     select.className = 'form-select text-capitalize';
-                    select.innerHTML = '<option value="">Category</option>';
+                    select.innerHTML = '<option value="">All</option>';
 
                     document.querySelector('.product_category').appendChild(select);
 
@@ -577,7 +577,7 @@ function initProductTable(){
                     const select = document.createElement('select');
                     select.id = 'ProductStock';
                     select.className = 'form-select text-capitalize';
-                    select.innerHTML = '<option value="">Manager</option>';
+                    select.innerHTML = '<option value="">All</option>';
 
                     document.querySelector('.product_stock').appendChild(select);
 
