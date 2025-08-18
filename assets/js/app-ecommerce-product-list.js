@@ -592,6 +592,11 @@ function initProductTable(){
                         select.appendChild(option);
                     });
                 });
+
+                // Gắn sự kiện lọc khi thay đổi giá trị ngày
+                $('#minDate, #maxDate').on('change', () => {
+                    this.api().draw();
+                });
             }
         });
     }
