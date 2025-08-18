@@ -19,6 +19,42 @@ async function init() {
     } catch (err) {
         alert('Không thể tải danh mục');
     }
+
+    $('#storeFilter').select2({
+        theme: 'bootstrap4',            // hoặc 'bootstrap-5' nếu bạn có theme tương ứng
+        placeholder: 'Tìm và chọn...',
+        multiple: true,
+        width: '100%',
+        ajax: {
+            url: '/api/tags',             // Đổi thành endpoint của bạn
+            dataType: 'json',
+            delay: 250,                   // debounce
+            data: function (params) {
+                return {
+                    q: params.term || '',     // từ khóa người dùng gõ
+                    page: params.page || 1    // phân trang (nếu có)
+                };
+            },
+            processResults: function (data, params) {
+                // Kỳ vọng data: { items: [{id, name}], more: boolean }
+                const results = (data.items || []).map(item => ({
+                    id: item.id,
+                    text: item.name
+                }));
+                return {
+                    results: results,
+                    pagination: { more: !!data.more }
+                };
+            },
+            cache: true
+        },
+        minimumInputLength: 1,
+        language: {
+            inputTooShort: () => 'Gõ ít nhất 1 ký tự',
+            searching: () => 'Đang tìm...',
+            noResults: () => 'Không có kết quả'
+        }
+    });
 }
 
 async function fetchProductTableFilter(){
