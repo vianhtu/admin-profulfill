@@ -9,6 +9,13 @@ $orderColumn = $_POST['columns'][$orderColumnIndex]['data'] ?? 'ID';
 $orderDir = ($_POST['order'][0]['dir'] ?? 'asc') === 'desc' ? 'DESC' : 'ASC';
 $searchValue = trim($_POST['search']['value'] ?? '');
 
+//Filter
+$type = $_POST['type'] ?? '';
+$author = $_POST['author'] ?? '';
+$status = $_POST['status'] ?? '';
+//$badge = $_POST['badge'] ?? '';
+//$date = $_POST['date'] ?? '';
+
 // Danh sách cột cho phép sort
 $allowedCols = ['ID','title','status','sku','date','badge'];
 if (!in_array($orderColumn, $allowedCols)) {
@@ -50,7 +57,8 @@ while ($row = $rs->fetch_assoc()) {
 		"qty"=> 665,
 		"status"=> 3,
 		"image"=> $imgs->main,
-		"product_brand"=> "Etsy"
+		"product_brand"=> "Etsy",
+		"post" => $_POST
 	];
 }
 
