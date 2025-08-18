@@ -48,7 +48,7 @@ while ($row = $rs->fetch_assoc()) {
 		"sku"=> htmlspecialchars($row['sku']),
 		"price"=> "$999",
 		"qty"=> 665,
-		"status"=> $row['status'],
+		"status"=> 3,
 		"image"=> $imgs->main,
 		"product_brand"=> "Etsy"
 	];
