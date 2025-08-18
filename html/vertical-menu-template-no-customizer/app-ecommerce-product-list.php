@@ -97,7 +97,13 @@
                 <label for="date_to" class="form-label">To</label>
                 <input type="date" class="form-control" id="maxDate" min="2025-01-01">
             </div>
-            <div class="col-md-4 product_store"></div>
+            <div class="col-md-4 product_store">
+                <label for="storeFilter">Store</label>
+                <select id="storeFilter" class="form-control">
+                    <option value="">All</option>
+                </select>
+
+            </div>
         </div>
     </div>
     <div class="card-datatable">
