@@ -559,17 +559,12 @@ function initProductTable(){
                         const val = select.value ? `^${select.value}$` : '';
                         column.search(val, true, false).draw();
                     });
-
-                    column
-                        .data()
-                        .unique()
-                        .sort()
-                        .each(function (d) {
-                            const option = document.createElement('option');
-                            option.value = categoryObj[d].title;
-                            option.textContent = categoryObj[d].title;
-                            select.appendChild(option);
-                        });
+                    Object.entries(categoryObj).forEach(([key, val]) => {
+                        const option = document.createElement('option');
+                        option.value = val.title;
+                        option.textContent = val.title;
+                        select.appendChild(option);
+                    });
                 });
 
                 // Adding stock filter once table is initialized
