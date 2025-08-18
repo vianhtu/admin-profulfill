@@ -57,8 +57,7 @@ while ($row = $rs->fetch_assoc()) {
 		"qty"=> 665,
 		"status"=> 3,
 		"image"=> $imgs->main,
-		"product_brand"=> "Etsy",
-		"post" => $_POST
+		"product_brand"=> "Etsy"
 	];
 }
 
@@ -67,5 +66,6 @@ echo json_encode([
 	"draw" => $draw,
 	"recordsTotal" => $totalRecords,
 	"recordsFiltered" => $totalFiltered,
-	"data" => $data
+	"data" => $data,
+	"post" => $_POST
 ]);
