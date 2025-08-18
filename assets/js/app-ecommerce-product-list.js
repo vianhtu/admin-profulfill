@@ -21,7 +21,6 @@ async function init() {
     }
 
     $('#storeFilter').select2({
-        theme: 'bootstrap-5',            // hoặc 'bootstrap-5' nếu bạn có theme tương ứng
         placeholder: 'Tìm và chọn...',
         multiple: true,
         width: '100%',
