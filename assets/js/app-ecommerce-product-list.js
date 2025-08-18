@@ -41,9 +41,10 @@ function initProductTable(){
     const dt_product_table = document.querySelector('.datatables-products'),
         productAdd = 'app-ecommerce-product-add.html',
         statusObj = {
-            1: { title: 'Scheduled', class: 'bg-label-warning' },
-            2: { title: 'Publish', class: 'bg-label-success' },
-            3: { title: 'Inactive', class: 'bg-label-danger' }
+            1: { title: 'trademark', class: 'bg-label-warning' },
+            2: { title: 'pending', class: 'bg-label-warning' },
+            3: { title: 'publish', class: 'bg-label-success' },
+            4: { title: 'inactive', class: 'bg-label-danger' }
         }
     // E-commerce Products datatable
 
