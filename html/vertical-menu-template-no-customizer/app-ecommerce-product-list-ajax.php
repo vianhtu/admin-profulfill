@@ -9,10 +9,6 @@ $orderColumn = $_POST['columns'][$orderColumnIndex]['data'] ?? 'ID';
 $orderDir = ($_POST['order'][0]['dir'] ?? 'asc') === 'desc' ? 'DESC' : 'ASC';
 $searchValue = trim($_POST['search']['value'] ?? '');
 
-//Filter
-$filterType = $_POST['columns'][3]['search']['value'] ?? '';
-$filterType = trim($filterType, '^$'); // bỏ ký tự regex
-
 // Danh sách cột cho phép sort
 $allowedCols = ['ID','title','status','sku','date','badge'];
 if (!in_array($orderColumn, $allowedCols)) {
@@ -28,10 +24,20 @@ if ($searchValue !== '') {
 	$whereClauses[] = "(title LIKE '%$searchEsc%' OR sku LIKE '%$searchEsc%' OR status LIKE '%$searchEsc%' OR badge LIKE '%$searchEsc%')";
 }
 // lọc theo type.
+$filterType = $_POST['columns'][3]['search']['value'] ?? '';
+$filterType = trim($filterType, '^$'); // bỏ ký tự regex
 if ($filterType !== '') {
 	$escStock = $conn->real_escape_string($filterType);
 	$whereClauses[] = "type_id = '$escStock'";
 }
+// lọc theo author.
+$filterAuthor = $_POST['columns'][3]['search']['value'] ?? '';
+$filterAuthor = trim($filterAuthor, '^$'); // bỏ ký tự regex
+if ($filterAuthor !== '') {
+	$escStock = $conn->real_escape_string($filterAuthor);
+	$whereClauses[] = "author_id = '$escStock'";
+}
+
 $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
 $totalFiltered = $conn->query("SELECT COUNT(*) AS cnt FROM posts $where")->fetch_assoc()['cnt'];
 
