@@ -593,9 +593,18 @@ function initProductTable(){
                     });
                 });
 
-                // Gắn sự kiện lọc khi thay đổi giá trị ngày
-                $('#minDate, #maxDate').on('change', () => {
-                    this.api().draw();
+                const tableApi = this.api();
+                $('#minDate').on('change', function () {
+                    // Lấy giá trị từ minDate
+                    const minVal = $(this).val();
+                    // Cập nhật minDate cho #maxDate
+                    $('#maxDate').attr('min', minVal || '');
+                    // Vẽ lại bảng
+                    tableApi.draw();
+                });
+
+                $('#maxDate').on('change', function () {
+                    tableApi.draw();
                 });
             }
         });
