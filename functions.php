@@ -90,3 +90,32 @@ function getProductTableFilter(): array {
 	$options['authors'] = getAuthors();
 	return $options;
 }
+
+function getStoresTableFilter(): array {
+	$conn = db();
+	// Lấy dữ liệu POST
+	$q    = isset($_POST['q']) ? trim($_POST['q']) : '';
+	$page = isset($_POST['page']) ? max(1, intval($_POST['page'])) : 1;
+	$perPage = 20;
+
+// Truy vấn có tìm kiếm
+	$sql = "SELECT id, name 
+        FROM store
+        WHERE (:q = '' OR name LIKE :kw)
+        ORDER BY name ASC
+        LIMIT :offset, :limit";
+	$stmt = $conn->prepare($sql);
+	$stmt->bindValue(':q', $q, PDO::PARAM_STR);
+	$stmt->bindValue(':kw', "%$q%", PDO::PARAM_STR);
+	$stmt->bindValue(':offset', ($page - 1) * $perPage, PDO::PARAM_INT);
+	$stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+	$stmt->execute();
+
+	$items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+	// Xác định còn trang sau không
+	$more = count($items) === $perPage;
+	return [
+		'items' => $items,
+		'more'  => $more
+	];
+}

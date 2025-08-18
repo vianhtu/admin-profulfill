@@ -25,8 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 		case 'get-product-table-filter':
 			echo json_encode(getProductTableFilter());
 			break;
-		case 'check-listing':
-			//require_once __DIR__ . '/action-check-listing.php';
+		case 'get-stores':
+			echo json_encode(getStoresTableFilter());
 			break;
 		case 'add-listing':
 			//require_once __DIR__ . '/action-add-listing.php';

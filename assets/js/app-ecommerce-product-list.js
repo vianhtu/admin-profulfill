@@ -25,8 +25,9 @@ async function init() {
         multiple: true,
         width: '100%',
         ajax: {
-            url: '/api/tags',             // Đổi thành endpoint của bạn
+            url: '../../ajax.php?action=get-stores',
             dataType: 'json',
+            type: 'POST',
             delay: 250,                   // debounce
             data: function (params) {
                 return {
