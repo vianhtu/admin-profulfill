@@ -537,17 +537,12 @@ function initProductTable(){
                         const val = select.value ? `^${select.value}$` : '';
                         column.search(val, true, false).draw();
                     });
-                    console.log(column.data().unique().sort());
-                    column
-                        .data()
-                        .unique()
-                        .sort()
-                        .each(function (d) {
-                            const option = document.createElement('option');
-                            option.value = statusObj[d].title;
-                            option.textContent = statusObj[d].title;
-                            select.appendChild(option);
-                        });
+                    Object.entries(statusObj).forEach(([key, val]) => {
+                        const option = document.createElement('option');
+                        option.value = val;
+                        option.textContent = val;
+                        select.appendChild(option);
+                    });
                 });
 
                 // Adding category filter once table is initialized
