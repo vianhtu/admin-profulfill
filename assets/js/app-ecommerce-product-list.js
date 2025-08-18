@@ -13,7 +13,6 @@ async function init() {
         let options = await fetchProductTableFilter();
         categoryObj = options['types'];
         authorsObj = options['authors'];
-        console.log(options);
 
         // 2️⃣ Sau khi có dữ liệu → tạo bảng
         initProductTable();
@@ -56,7 +55,7 @@ function initProductTable(){
                 url: '../../ajax.php?action=get-products',
                 type: 'POST',
                 dataSrc: function (json) {
-                    //console.log(json);
+                    console.log(json);
                     return json.data;
                 }
             },
