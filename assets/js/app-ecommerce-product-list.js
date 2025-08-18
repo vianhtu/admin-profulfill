@@ -640,7 +640,7 @@ function initProductTable(){
                     tableApi.draw();
                 });
 
-                $('#maxDate').on('change', function () {
+                $('#maxDate,#storeFilter').on('change', function () {
                     tableApi.draw();
                 });
             }
