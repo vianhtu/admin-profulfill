@@ -50,7 +50,7 @@ while ($row = $rs->fetch_assoc()) {
 		"qty"=> 665,
 		"status"=> $row['status'],
 		"image"=> $imgs->main,
-		"product_brand"=> ""
+		"product_brand"=> "Etsy"
 	];
 }
 
