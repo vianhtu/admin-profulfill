@@ -99,7 +99,7 @@
             </div>
             <div class="col-md-4 product_store">
                 <label for="storeFilter">Store</label>
-                <select id="storeFilter" class="form-control">
+                <select id="storeFilter" class="form-control" multiple>
                     <option value="">All</option>
                 </select>
 
