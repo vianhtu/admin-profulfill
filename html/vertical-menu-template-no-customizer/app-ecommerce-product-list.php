@@ -83,6 +83,8 @@
             <div class="col-md-4 product_status"></div>
             <div class="col-md-4 product_category"></div>
             <div class="col-md-4 product_stock"></div>
+            <div class="col-md-4 product_from_date"></div>
+            <div class="col-md-4 product_to_date"></div>
         </div>
     </div>
     <div class="card-datatable">
