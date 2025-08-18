@@ -561,7 +561,7 @@ function initProductTable(){
                     });
                     Object.entries(categoryObj).forEach(([key, val]) => {
                         const option = document.createElement('option');
-                        option.value = val.title;
+                        option.value = key;
                         option.textContent = val.title;
                         select.appendChild(option);
                     });
@@ -581,17 +581,12 @@ function initProductTable(){
                         const val = select.value ? `^${select.value}$` : '';
                         column.search(val, true, false).draw();
                     });
-
-                    column
-                        .data()
-                        .unique()
-                        .sort()
-                        .each(function (d) {
-                            const option = document.createElement('option');
-                            option.value = authorsObj[d].title;
-                            option.textContent = authorsObj[d].title;
-                            select.appendChild(option);
-                        });
+                    Object.entries(authorsObj).forEach(([key, val]) => {
+                        const option = document.createElement('option');
+                        option.value = key;
+                        option.textContent = val.title;
+                        select.appendChild(option);
+                    });
                 });
             }
         });
