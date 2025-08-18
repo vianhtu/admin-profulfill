@@ -93,27 +93,33 @@ function getProductTableFilter(): array {
 
 function getStoresTableFilter(): array {
 	$conn = db();
-	// Lấy dữ liệu POST
+	// Lấy giá trị tìm kiếm từ POST
 	$q    = isset($_POST['q']) ? trim($_POST['q']) : '';
 	$page = isset($_POST['page']) ? max(1, intval($_POST['page'])) : 1;
 	$perPage = 20;
+	$offset  = ($page - 1) * $perPage;
 
-// Truy vấn có tìm kiếm
+// Chuẩn bị câu truy vấn (Prepared Statement để chống SQL injection)
 	$sql = "SELECT id, name 
         FROM store
-        WHERE (:q = '' OR name LIKE :kw)
+        WHERE (? = '' OR name LIKE ?)
         ORDER BY name ASC
-        LIMIT :offset, :limit";
+        LIMIT ?, ?";
 	$stmt = $conn->prepare($sql);
-	$stmt->bindValue(':q', $q, PDO::PARAM_STR);
-	$stmt->bindValue(':kw', "%$q%", PDO::PARAM_STR);
-	$stmt->bindValue(':offset', ($page - 1) * $perPage, PDO::PARAM_INT);
-	$stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+
+	$like = "%{$q}%";
+	$stmt->bind_param("ssii", $q, $like, $offset, $perPage);
 	$stmt->execute();
 
-	$items = $stmt->fetchAll(PDO::FETCH_ASSOC);
-	// Xác định còn trang sau không
-	$more = count($items) === $perPage;
+	$result = $stmt->get_result();
+	$items = [];
+	while ($row = $result->fetch_assoc()) {
+		$items[] = $row;
+	}
+	$stmt->close();
+
+	// Kiểm tra còn dữ liệu trang tiếp theo hay không
+	$more = (count($items) === $perPage);
 	return [
 		'items' => $items,
 		'more'  => $more
