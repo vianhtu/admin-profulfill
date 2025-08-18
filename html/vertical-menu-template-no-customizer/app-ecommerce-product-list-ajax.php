@@ -31,7 +31,7 @@ if ($filterType !== '') {
 	$whereClauses[] = "type_id = '$escStock'";
 }
 // lọc theo author.
-$filterAuthor = $_POST['columns'][3]['search']['value'] ?? '';
+$filterAuthor = $_POST['columns'][4]['search']['value'] ?? '';
 $filterAuthor = trim($filterAuthor, '^$'); // bỏ ký tự regex
 if ($filterAuthor !== '') {
 	$escStock = $conn->real_escape_string($filterAuthor);
