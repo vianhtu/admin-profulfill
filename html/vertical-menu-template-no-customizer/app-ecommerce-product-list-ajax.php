@@ -44,6 +44,21 @@ if ($filterAuthor !== '') {
 	$escStock = $conn->real_escape_string($filterAuthor);
 	$whereClauses[] = "author_id = '$escStock'";
 }
+// Lọc theo khoảng ngày
+$minDate = $_POST['minDate'] ?? '';
+$maxDate = $_POST['maxDate'] ?? '';
+
+if ($minDate !== '' && $maxDate !== '') {
+	$escMin = $conn->real_escape_string($minDate);
+	$escMax = $conn->real_escape_string($maxDate);
+	$whereClauses[] = "DATE(`date`) BETWEEN '$escMin' AND '$escMax'";
+} elseif ($minDate !== '') {
+	$escMin = $conn->real_escape_string($minDate);
+	$whereClauses[] = "DATE(`date`) >= '$escMin'";
+} elseif ($maxDate !== '') {
+	$escMax = $conn->real_escape_string($maxDate);
+	$whereClauses[] = "DATE(`date`) <= '$escMax'";
+}
 
 $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
 $totalFiltered = $conn->query("SELECT COUNT(*) AS cnt FROM posts $where")->fetch_assoc()['cnt'];
