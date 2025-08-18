@@ -99,10 +99,8 @@
             </div>
             <div class="col-md-4 product_store">
                 <label for="storeFilter">Store</label>
-                <select id="storeFilter" class="form-control" multiple>
-                    <option value="">All</option>
-                </select>
-
+                <select id="storeFilter" class="form-control" multiple></select>
+                <div class="form-text">Gõ để tìm và chọn nhiều mục.</div>
             </div>
         </div>
     </div>
