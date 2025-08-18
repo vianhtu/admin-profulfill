@@ -55,6 +55,10 @@ function initProductTable(){
             ajax: {
                 url: '../../ajax.php?action=get-products',
                 type: 'POST',
+                data: function (d) {
+                    d.minDate = $('#minDate').val();
+                    d.maxDate = $('#maxDate').val();
+                },
                 dataSrc: function (json) {
                     console.log(json);
                     return json.data;
