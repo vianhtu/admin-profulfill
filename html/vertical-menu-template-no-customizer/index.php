@@ -73,6 +73,29 @@ $currentMenu = $_GET['menu'] ?? '';
     <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
 
     <script src="../../assets/js/config.js"></script>
+  <!-- Các link CSS khác -->
+  <style>
+      /* Khống chế kích thước, tránh overflow */
+      .select2-container {
+          width: 100% !important;
+          max-width: 100% !important;
+          box-sizing: border-box;
+      }
+
+      .select2-selection--multiple {
+          box-sizing: border-box;
+          overflow-x: hidden; /* tránh thanh cuộn ngang khi nhiều tag */
+      }
+
+      .select2-dropdown {
+          box-sizing: border-box;
+      }
+
+      /* Có thể thêm nếu vẫn bị tràn 1-2px do rounding */
+      html, body {
+          overflow-x: hidden;
+      }
+  </style>
   </head>
 
   <body>
