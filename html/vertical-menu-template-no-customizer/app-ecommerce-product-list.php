@@ -91,6 +91,7 @@
                 <label for="date_to" class="form-label">To</label>
                 <input type="date" class="form-control" id="date_to" min="2025-01-01">
             </div>
+            <div class="col-md-4 product_store"></div>
         </div>
     </div>
     <div class="card-datatable">
