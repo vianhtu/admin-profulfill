@@ -59,6 +59,16 @@ if ($minDate !== '' && $maxDate !== '') {
 	$escMax = $conn->real_escape_string($maxDate);
 	$whereClauses[] = "DATE(`date`) <= '$escMax'";
 }
+// lọc theo stores.
+$filterStores = $_POST['stores'] ?? [];
+if (!empty($filterStores) && is_array($filterStores)) {
+	// Ép tất cả sang số nguyên để tránh injection
+	$ids = array_map('intval', $filterStores);
+	$idsStr = implode(',', $ids);
+	if ($idsStr !== '') {
+		$whereClauses[] = "store_id IN ($idsStr)";
+	}
+}
 
 $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
 $totalFiltered = $conn->query("SELECT COUNT(*) AS cnt FROM posts $where")->fetch_assoc()['cnt'];
