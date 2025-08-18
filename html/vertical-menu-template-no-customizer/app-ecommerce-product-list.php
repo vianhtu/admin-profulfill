@@ -99,8 +99,10 @@
                 <input type="date" class="form-control" id="maxDate" min="2025-01-01">
             </div>
             <div class="col-md-4 product_store">
-                <label class="form-label">Store</label>
-                <select id="storeFilter" multiple></select>
+                <div class="select2-parent position-relative">
+                    <label class="form-label">Store</label>
+                    <select id="storeFilter" multiple></select>
+                </div>
             </div>
         </div>
     </div>
