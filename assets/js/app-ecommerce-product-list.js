@@ -94,6 +94,7 @@ function initProductTable(){
                 data: function (d) {
                     d.minDate = $('#minDate').val();
                     d.maxDate = $('#maxDate').val();
+                    d.stores = $('#storeFilter').val();
                 },
                 dataSrc: function (json) {
                     console.log(json);
