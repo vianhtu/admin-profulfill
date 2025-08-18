@@ -539,8 +539,8 @@ function initProductTable(){
                     });
                     Object.entries(statusObj).forEach(([key, val]) => {
                         const option = document.createElement('option');
-                        option.value = val;
-                        option.textContent = val;
+                        option.value = val.title;
+                        option.textContent = val.title;
                         select.appendChild(option);
                     });
                 });
