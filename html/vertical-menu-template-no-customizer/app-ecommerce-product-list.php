@@ -84,11 +84,11 @@
             <div class="col-md-4 product_category"></div>
             <div class="col-md-4 product_stock"></div>
             <div class="col-md-4 product_from_date">
-                <label for="date" class="form-label">From</label>
+                <label for="date_from" class="form-label">From</label>
                 <input type="date" class="form-control" id="date_from" min="2025-01-01">
             </div>
             <div class="col-md-4 product_to_date">
-                <label for="date" class="form-label">To</label>
+                <label for="date_to" class="form-label">To</label>
                 <input type="date" class="form-control" id="date_to" min="2025-01-01">
             </div>
         </div>
