@@ -537,7 +537,7 @@ function initProductTable(){
                         const val = select.value ? `^${select.value}$` : '';
                         column.search(val, true, false).draw();
                     });
-                    console.log(column.data());
+                    console.log(column.data().unique().sort());
                     column
                         .data()
                         .unique()
