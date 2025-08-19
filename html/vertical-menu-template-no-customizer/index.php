@@ -77,18 +77,7 @@ $currentMenu = $_GET['menu'] ?? '';
   <style>
       /* Khống chế kích thước, tránh overflow */
       .select2-container {
-          width: 100% !important;
-          max-width: 100% !important;
-          box-sizing: border-box;
-      }
-
-      .select2-selection--multiple {
-          box-sizing: border-box;
-          overflow-x: hidden; /* tránh thanh cuộn ngang khi nhiều tag */
-      }
-
-      .select2-dropdown {
-          box-sizing: border-box;
+          inline-size: unset!important;
       }
 
       /* Có thể thêm nếu vẫn bị tràn 1-2px do rounding */
