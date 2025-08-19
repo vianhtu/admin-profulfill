@@ -6,6 +6,7 @@
 
 let categoryObj = {};
 let authorsObj = {};
+let sitesObj = {};
 
 async function init() {
     try {
@@ -13,6 +14,7 @@ async function init() {
         let options = await fetchProductTableFilter();
         categoryObj = options['types'];
         authorsObj = options['authors'];
+        sitesObj = options['sites'];
 
         // 2️⃣ Sau khi có dữ liệu → tạo bảng
         initProductTable();
@@ -642,6 +644,11 @@ function initProductTable(){
                 $('#maxDate,#storeFilter').on('change', function () {
                     tableApi.draw();
                 });
+
+                //sites.
+                const typesHTML = '<label class="form-label">Never listed on sites</label>';
+                console.log(sitesObj);
+                $('#product_sites').html(typesHTML);
             }
         });
     }
