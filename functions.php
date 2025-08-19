@@ -109,7 +109,6 @@ function getAuthorsProductInfo(): ?array {
 	$result = $stmt->get_result();
 	$data = $result->fetch_assoc();
 	$stmt->close();
-	var_dump($data);
 	return $data;
 }
 
