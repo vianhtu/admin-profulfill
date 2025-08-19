@@ -13,7 +13,7 @@ $info = getAuthorsProductInfo();
                             <p class="mb-1">Total Products</p>
                             <h4 class="mb-1"><?php echo number_format($info['total_items']); ?></h4>
                             <p class="mb-0">
-                                <span class="me-2"><?php echo number_format($info['total_this_month']); ?></span>
+                                <span class="me-2">this month: <?php echo number_format($info['total_this_month']); ?></span>
                             </p>
                         </div>
                         <span class="avatar me-sm-6">
@@ -31,7 +31,7 @@ $info = getAuthorsProductInfo();
                             <p class="mb-1">Total Pending</p>
                             <h4 class="mb-1"><?php echo number_format($info['pending_items']); ?></h4>
                             <p class="mb-0">
-                                <span class="me-2"><?php echo number_format($info['pending_this_month']); ?></span>
+                                <span class="me-2">this month: <?php echo number_format($info['pending_this_month']); ?></span>
                             </p>
                         </div>
                         <span class="avatar p-2 me-lg-6">
@@ -48,7 +48,7 @@ $info = getAuthorsProductInfo();
                         <div>
                             <p class="mb-1">Your items</p>
                             <h4 class="mb-1"><?php echo number_format($info['author_items']); ?></h4>
-                            <p class="mb-0"><?php echo number_format($info['author_this_month']); ?></p>
+                            <p class="mb-0">this month: <?php echo number_format($info['author_this_month']); ?></p>
                         </div>
                         <span class="avatar p-2 me-sm-6">
                             <span class="avatar-initial rounded"
