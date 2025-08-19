@@ -113,7 +113,7 @@ function getAuthorsProductInfo(): ?array {
     COUNT(CASE WHEN author_id = ? AND MONTH(date) = MONTH(CURRENT_DATE()) AND YEAR(date) = YEAR(CURRENT_DATE()) THEN 1 END) AS author_this_month
     FROM posts";
 	$stmt = db()->prepare($sql);
-	$stmt->bind_param('i', $_SESSION['auth']['user_id']);
+	$stmt->bind_param('ii', $_SESSION['auth']['user_id'],$_SESSION['auth']['user_id']);
 	$stmt->execute();
 	$result = $stmt->get_result();
 	$data = $result->fetch_assoc();
