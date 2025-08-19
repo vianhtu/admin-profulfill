@@ -66,7 +66,7 @@ function initProductTable(){
                     d.sites = getCheckedSites();
                 },
                 dataSrc: function (json) {
-                    console.log(json);
+                    //console.log(json);
                     return json.data;
                 }
             },
