@@ -646,7 +646,7 @@ function initProductTable(){
                 });
 
                 //sites.
-                let typesHTML = '<label class="form-label">Never listed on sites</label>';
+                let typesHTML = '<label class="form-label">Remove listed on sites</label>';
                 $.each(sitesObj, function(key, value) {
                     typesHTML += '<div class="form-check"><input class="form-check-input" type="checkbox" value="'+key+'" id="check'+key+'"><label class="form-check-label">'+value.title+'</label></div>';
                 });
