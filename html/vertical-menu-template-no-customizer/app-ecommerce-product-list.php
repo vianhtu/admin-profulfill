@@ -89,7 +89,10 @@
             <div class="col-md-3 product_stock">
                 <label class="form-label">Manager</label>
             </div>
-
+            <div class="col-md-3 product_store">
+                <label class="form-label">Store</label>
+                <select id="storeFilter" multiple></select>
+            </div>
             <div class="col-md-3 product_from_date">
                 <label class="form-label">From</label>
                 <input type="date" class="form-control" id="minDate" min="2025-01-01">
@@ -97,10 +100,6 @@
             <div class="col-md-3 product_to_date">
                 <label class="form-label">To</label>
                 <input type="date" class="form-control" id="maxDate" min="2025-01-01">
-            </div>
-            <div class="col-md-3 product_store">
-                <label class="form-label">Store</label>
-                <select id="storeFilter" multiple></select>
             </div>
             <div class="col-md-3 product_site">
                 <label class="form-label">Never listed on site</label>
