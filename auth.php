@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'login
 		exit;
 	}
 
-	login_user($author['username']);
+	login_user($author);
 
 	if ($remember) {
 		set_remember_cookie((int)$author['id']);

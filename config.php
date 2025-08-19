@@ -104,14 +104,14 @@ function logout_user(): void {
 
 // ===== Login lookup (email OR username) =====
 function find_author_by_login(string $userOrEmail): ?array {
-	$sql = "SELECT ID, username, pass FROM authors WHERE username = ? OR email = ? LIMIT 1";
+	$sql = "SELECT ID, username, pass, level FROM authors WHERE username = ? OR email = ? LIMIT 1";
 	$stmt = db()->prepare($sql);
 	$stmt->bind_param('ss', $userOrEmail, $userOrEmail);
 	$stmt->execute();
-	$stmt->bind_result($id, $username, $hash);
+	$stmt->bind_result($id, $username, $hash, $level);
 	if ($stmt->fetch()) {
 		$stmt->close();
-		return ['id' => (int)$id, 'username' => (string)$username, 'hash' => (string)$hash];
+		return ['id' => (int)$id, 'username' => (string)$username, 'hash' => (string)$hash, 'level' => (int)$level];
 	}
 	$stmt->close();
 	return null;
