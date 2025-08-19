@@ -63,7 +63,7 @@ $info = getAuthorsProductInfo();
                             <p class="mb-1">Your Profit</p>
                             <h4 class="mb-1"><?php echo number_format($info['author_items'] * 60); ?> vnd</h4>
                             <p class="mb-0">
-                                <span class="me-2">0 vnd paid</span><span class="badge bg-label-danger">-3.5%</span>
+                                <span class="me-2">Paid: -0.0 (vnd)</span>
                             </p>
                         </div>
                         <span class="avatar p-2">
