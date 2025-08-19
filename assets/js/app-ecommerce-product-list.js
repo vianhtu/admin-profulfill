@@ -631,7 +631,10 @@ function initProductTable(){
                     });
                 });
 
+                // Adding date filter once table is initialized
                 const tableApi = this.api();
+                $('.product_from_date').html('<label class="form-label">From</label><input type="date" class="form-control" id="minDate" min="2025-01-01">');
+                $('.product_to_date').html('<label class="form-label">To</label><input type="date" class="form-control" id="maxDate" min="2025-01-01">');
                 $('#minDate').on('change', function () {
                     // Lấy giá trị từ minDate
                     const minVal = $(this).val();
@@ -640,12 +643,11 @@ function initProductTable(){
                     // Vẽ lại bảng
                     tableApi.draw();
                 });
-
                 $('#maxDate,#storeFilter').on('change', function () {
                     tableApi.draw();
                 });
 
-                //sites.
+                // For date range filter
                 let typesHTML = '<div class="mb-2"><label class="form-label">Remove listed on sites</label></div>';
                 $.each(sitesObj, function(key, value) {
                     typesHTML += '<div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" value="'+key+'" id="check'+key+'"><label class="form-check-label">'+value.title+'</label></div>';
