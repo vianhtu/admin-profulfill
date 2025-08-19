@@ -101,7 +101,7 @@
                 <label class="form-label">To</label>
                 <input type="date" class="form-control" id="maxDate" min="2025-01-01">
             </div>
-            <div class="col-md-3 product_site">
+            <div class="col-md-5 product_site">
                 <label class="form-label">Never listed on site</label>
             </div>
         </div>
