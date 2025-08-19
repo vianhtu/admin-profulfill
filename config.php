@@ -58,9 +58,9 @@ function csrf_verify($t): bool {
 function user_agent_fingerprint(): string { return hash('sha256', $_SERVER['HTTP_USER_AGENT'] ?? 'ua'); }
 
 // ===== Auth core =====
-function login_user(string $username): void {
+function login_user(array $username): void {
 	session_regenerate_id(true);
-	$_SESSION['auth'] = ['user'=>$username, 'ua'=>user_agent_fingerprint(), 't'=>time()];
+	$_SESSION['auth'] = ['user'=>$username['username'], 'ua'=>user_agent_fingerprint(), 't'=>time(), 'level'=>$username['level']];
 }
 function is_logged_in(): bool {
 	return !empty($_SESSION['auth']['user']) && hash_equals($_SESSION['auth']['ua'], user_agent_fingerprint());
@@ -116,14 +116,18 @@ function find_author_by_login(string $userOrEmail): ?array {
 	$stmt->close();
 	return null;
 }
-function get_username_by_id(int $id): ?string {
-	$stmt = db()->prepare("SELECT username FROM authors WHERE ID = ? LIMIT 1");
+function get_username_by_id(int $id): ?array {
+	$stmt = db()->prepare("SELECT ID,username,level FROM authors WHERE ID = ? LIMIT 1");
 	$stmt->bind_param('i', $id);
 	$stmt->execute();
-	$stmt->bind_result($username);
+	$stmt->bind_result($author_id, $username, $level);
 	if ($stmt->fetch()){
 		$stmt->close();
-		return (string)$username;
+		return [
+			'id' => $author_id,
+			'username' => $username,
+			'level' => $level
+		];
 	}
 	$stmt->close();
 	return null;
@@ -218,14 +222,14 @@ function attempt_cookie_login(): bool {
 	}
 
 	// Lấy username và đăng nhập
-	$username = get_username_by_id((int)$authorId);
-	if ($username === null) {
+	$user = get_username_by_id((int)$authorId);
+	if ($user === null) {
 		delete_remember_selector($selector);
 		clear_remember_cookie();
 		return false;
 	}
 
-	login_user($username);
+	login_user($user);
 
 	// Xoay vòng token (xóa cũ, tạo mới)
 	delete_remember_selector($selector);
