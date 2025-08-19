@@ -650,7 +650,7 @@ function initProductTable(){
                 $.each(sitesObj, function(key, value) {
                     typesHTML += '<div class="form-check"><input class="form-check-input" type="checkbox" value="${key}" id="check${key}"><label class="form-check-label">${value}</label></div>';
                 });
-                $('#product_sites').html(typesHTML);
+                $('.product_sites').html(typesHTML);
             }
         });
     }
