@@ -108,7 +108,7 @@ function getAuthorsProductInfo(): ?array {
 	$stmt->execute();
 	$result = $stmt->get_result();
 	$stmt->close();
-	var_dump($_SESSION);
+	var_dump($_SESSION['auth']);
 	return $result->fetch_assoc();
 }
 
