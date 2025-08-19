@@ -97,11 +97,16 @@ function getSites(): array {
 	return $types;
 }
 
+function getAuthorsProductInfo(): array {
+	return $_SESSION;
+}
+
 function getProductTableFilter(): array {
 	$options = [];
 	$options['types'] = getTypes();
 	$options['authors'] = getAuthors();
 	$options['sites'] = getSites();
+	$options['authors_info'] = getAuthorsProductInfo();
 	return $options;
 }
 

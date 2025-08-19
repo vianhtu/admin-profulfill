@@ -15,6 +15,7 @@ async function init() {
         categoryObj = options['types'];
         authorsObj = options['authors'];
         sitesObj = options['sites'];
+        console.log(options);
 
         // 2️⃣ Sau khi có dữ liệu → tạo bảng
         initProductTable();
