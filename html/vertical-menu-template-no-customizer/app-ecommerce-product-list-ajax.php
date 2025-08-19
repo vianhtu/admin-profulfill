@@ -86,7 +86,7 @@ $data = [];
 while ($row = $rs->fetch_assoc()) {
 	$imgs = json_decode($row['images']);
 	// Thay thế phần il_###xN bằng il_50xN
-	$updatedUrl = preg_replace('/il_\d+xN/', 'il_50xN', $imgs->main);
+	$updatedUrl = preg_replace('/il_\d+xN/', 'il_100xN', $imgs->main);
 	//$firstImg = $imgs['main'];
 	$data[] = [
 		"id" => $row['ID'],
