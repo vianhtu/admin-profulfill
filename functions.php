@@ -99,9 +99,18 @@ function getSites(): array {
 
 function getAuthorsProductInfo(): ?array {
 	$sql = "SELECT
-        COUNT(*) AS total_items,
-        COUNT(CASE WHEN status = 'pending' THEN 1 END) AS pending_items,
-        COUNT(CASE WHEN author_id = ? THEN 1 END) AS author_items
+    -- Tổng số bài viết
+    COUNT(*) AS total_items,
+    -- Tổng số bài viết đang chờ duyệt
+    COUNT(CASE WHEN status = 'pending' THEN 1 END) AS pending_items,
+    -- Tổng số bài viết của tác giả hiện tại
+    COUNT(CASE WHEN author_id = ? THEN 1 END) AS author_items,
+    -- Tổng số bài viết trong tháng hiện tại
+    COUNT(CASE WHEN MONTH(date) = MONTH(CURRENT_DATE()) AND YEAR(date) = YEAR(CURRENT_DATE()) THEN 1 END) AS total_this_month,
+    -- Tổng số bài viết đang chờ duyệt trong tháng hiện tại
+    COUNT(CASE WHEN status = 'pending' AND MONTH(date) = MONTH(CURRENT_DATE()) AND YEAR(date) = YEAR(CURRENT_DATE()) THEN 1 END) AS pending_this_month,
+    -- Tổng số bài viết của tác giả hiện tại trong tháng hiện tại
+    COUNT(CASE WHEN author_id = ? AND MONTH(date) = MONTH(CURRENT_DATE()) AND YEAR(date) = YEAR(CURRENT_DATE()) THEN 1 END) AS author_this_month
     FROM posts";
 	$stmt = db()->prepare($sql);
 	$stmt->bind_param('i', $_SESSION['auth']['user_id']);
