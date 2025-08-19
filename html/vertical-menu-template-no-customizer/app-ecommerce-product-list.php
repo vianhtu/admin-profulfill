@@ -89,10 +89,7 @@
             <div class="col-md-3 product_stock">
                 <label class="form-label">Manager</label>
             </div>
-            <div class="col-md-3 product_store">
-                <label class="form-label">Store</label>
-                <select id="storeFilter" multiple></select>
-            </div>
+            <div class="col-md-3 product_store"></div>
             <div class="col-md-3 product_from_date"></div>
             <div class="col-md-3 product_to_date"></div>
             <div class="col-md-6 product_sites"></div>
