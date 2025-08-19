@@ -97,8 +97,26 @@ function getSites(): array {
 	return $types;
 }
 
-function getAuthorsProductInfo(): array {
-	return $_SESSION;
+function getAuthorsProductInfo(): ?array {
+	$sql = "SELECT
+        COUNT(*) AS total_items,
+        COUNT(CASE WHEN status = 'pending' THEN 1 END) AS pending_items,
+        COUNT(CASE WHEN author_id = ? THEN 1 END) AS author_items
+    FROM posts";
+	$stmt = db()->prepare($sql);
+	$stmt->bind_param('i', $_SESSION['user_id']);
+	$stmt->execute();
+	$stmt->bind_result($total_items, $pending_items, $author_items);
+	if ($stmt->fetch()) {
+		$stmt->close();
+		return [
+			'total_items' => (int)$total_items,
+			'pending_items' => (int)$pending_items,
+			'author_items' => (int)$author_items
+		];
+	}
+	$stmt->close();
+	return null;
 }
 
 function getProductTableFilter(): array {
@@ -106,7 +124,6 @@ function getProductTableFilter(): array {
 	$options['types'] = getTypes();
 	$options['authors'] = getAuthors();
 	$options['sites'] = getSites();
-	$options['authors_info'] = getAuthorsProductInfo();
 	return $options;
 }
 

@@ -60,7 +60,7 @@ function user_agent_fingerprint(): string { return hash('sha256', $_SERVER['HTTP
 // ===== Auth core =====
 function login_user(array $username): void {
 	session_regenerate_id(true);
-	$_SESSION['auth'] = ['user'=>$username['username'], 'ua'=>user_agent_fingerprint(), 't'=>time(), 'level'=>$username['level']];
+	$_SESSION['auth'] = ['user'=>$username['username'], 'ua'=>user_agent_fingerprint(), 't'=>time(), 'user_id'=> $username['id'], 'level'=>$username['level']];
 }
 function is_logged_in(): bool {
 	return !empty($_SESSION['auth']['user']) && hash_equals($_SESSION['auth']['ua'], user_agent_fingerprint());
