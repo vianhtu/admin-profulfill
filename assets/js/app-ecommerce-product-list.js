@@ -20,13 +20,11 @@ async function init() {
         alert('Không thể tải danh mục');
     }
 
-    const $parent = $('#storeFilter').closest('.select2-parent, .modal, .table-responsive, .form-group');
     $('#storeFilter').select2({
         placeholder: 'Tìm và chọn...',
         multiple: true,
         width: '100%',
         dropdownAutoWidth: true,
-        dropdownParent: $parent.length ? $parent : $(document.body),
         ajax: {
             url: '../../ajax.php?action=get-stores',
             dataType: 'json',
