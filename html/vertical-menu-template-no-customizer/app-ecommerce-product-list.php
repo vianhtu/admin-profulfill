@@ -1,5 +1,4 @@
 <?php
-require __DIR__ . '/../../functions.php';
 $info = getAuthorsProductInfo();
 ?>
 <!-- Product List Widget -->
