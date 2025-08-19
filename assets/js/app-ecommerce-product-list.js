@@ -23,8 +23,8 @@ async function init() {
     $('#storeFilter').select2({
         placeholder: 'Tìm và chọn...',
         multiple: true,
-        width: '100%',
-        dropdownAutoWidth: true,
+        //width: '100%',
+        //dropdownAutoWidth: true,
         ajax: {
             url: '../../ajax.php?action=get-stores',
             dataType: 'json',
