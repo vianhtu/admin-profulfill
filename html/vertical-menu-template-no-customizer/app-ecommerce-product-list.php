@@ -29,7 +29,7 @@ $info = getAuthorsProductInfo();
                             class="d-flex justify-content-between align-items-start card-widget-2 border-end pb-4 pb-sm-0">
                         <div>
                             <p class="mb-1">Total Pending</p>
-                            <h4 class="mb-1">$674,347.12</h4>
+                            <h4 class="mb-1"><?php echo number_format($info['pending_items']); ?></h4>
                             <p class="mb-0">
                                 <span class="me-2">21k orders</span><span class="badge bg-label-success">+12.4%</span>
                             </p>
@@ -47,7 +47,7 @@ $info = getAuthorsProductInfo();
                             class="d-flex justify-content-between align-items-start border-end pb-4 pb-sm-0 card-widget-3">
                         <div>
                             <p class="mb-1">Your items</p>
-                            <h4 class="mb-1">$14,235.12</h4>
+                            <h4 class="mb-1"><?php echo number_format($info['author_items']); ?></h4>
                             <p class="mb-0">6k orders</p>
                         </div>
                         <span class="avatar p-2 me-sm-6">
