@@ -85,6 +85,8 @@ $rs = $conn->query($sql);
 $data = [];
 while ($row = $rs->fetch_assoc()) {
 	$imgs = json_decode($row['images']);
+	// Thay thế phần il_###xN bằng il_50xN
+	$updatedUrl = preg_replace('/il_\d+xN/', 'il_50xN', $imgs->main);
 	//$firstImg = $imgs['main'];
 	$data[] = [
 		"id" => $row['ID'],
@@ -95,7 +97,7 @@ while ($row = $rs->fetch_assoc()) {
 		"price"=> "$999",
 		"qty"=> 665,
 		"status"=> 3,
-		"image"=> $imgs->main,
+		"image"=> $updatedUrl,
 		"product_brand"=> "Etsy"
 	];
 }
