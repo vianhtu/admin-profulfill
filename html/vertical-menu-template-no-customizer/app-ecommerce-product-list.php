@@ -102,6 +102,9 @@
                 <label class="form-label">Store</label>
                 <select id="storeFilter" multiple></select>
             </div>
+            <div class="col-md-4 product_site">
+                <label class="form-label">Never listed on site</label>
+            </div>
         </div>
     </div>
     <div class="card-datatable">
