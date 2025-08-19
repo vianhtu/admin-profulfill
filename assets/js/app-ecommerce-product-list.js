@@ -44,9 +44,10 @@ function initProductTable(){
         productAdd = 'app-ecommerce-product-add.html',
         statusObj = {
             1: { title: 'pending', class: 'bg-label-warning' },
-            2: { title: 'trademark', class: 'bg-label-warning' },
-            3: { title: 'publish', class: 'bg-label-success' },
-            4: { title: 'inactive', class: 'bg-label-danger' }
+            2: { title: 'schedule', class: 'bg-label-warning' },
+            3: { title: 'listed', class: 'bg-label-success' },
+            4: { title: 'inactive', class: 'bg-label-danger' },
+            5: { title: 'trademark', class: 'bg-label-warning' }
         }
     // E-commerce Products datatable
 
