@@ -104,12 +104,13 @@ function getAuthorsProductInfo(): ?array {
         COUNT(CASE WHEN author_id = ? THEN 1 END) AS author_items
     FROM posts";
 	$stmt = db()->prepare($sql);
-	$stmt->bind_param('i', $_SESSION['user_id']);
+	$stmt->bind_param('i', $_SESSION['auth']['user_id']);
 	$stmt->execute();
 	$result = $stmt->get_result();
+	$data = $result->fetch_assoc();
 	$stmt->close();
-	var_dump($_SESSION['auth']['user_id']);
-	return $result->fetch_assoc();
+	var_dump($data);
+	return $data;
 }
 
 function getProductTableFilter(): array {
