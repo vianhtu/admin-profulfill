@@ -75,11 +75,6 @@ $currentMenu = $_GET['menu'] ?? '';
     <script src="../../assets/js/config.js"></script>
   <!-- Các link CSS khác -->
   <style>
-      /* Khống chế kích thước, tránh overflow */
-      .select2-container {
-          inline-size: unset!important;
-      }
-
       /* Có thể thêm nếu vẫn bị tràn 1-2px do rounding */
       html, body {
           overflow-x: hidden;
