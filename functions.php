@@ -84,10 +84,24 @@ function getAuthors(): array {
 	return $types;
 }
 
+function getSites(): array {
+	$conn = db();
+	$stmt = $conn->query("SELECT ID, name FROM site");
+	$types = [];
+	while ($row = $stmt->fetch_assoc()) {
+		$types[$row['ID']] = [
+			'title' => $row['name']
+		];
+	}
+	$stmt->close();
+	return $types;
+}
+
 function getProductTableFilter(): array {
 	$options = [];
 	$options['types'] = getTypes();
 	$options['authors'] = getAuthors();
+	$options['sites'] = getSites();
 	return $options;
 }
 
