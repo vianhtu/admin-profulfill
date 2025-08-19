@@ -61,6 +61,7 @@ function initProductTable(){
                     d.minDate = $('#minDate').val();
                     d.maxDate = $('#maxDate').val();
                     d.stores = $('#storeFilter').val();
+                    d.sites = getCheckedSites();
                 },
                 dataSrc: function (json) {
                     console.log(json);
@@ -695,4 +696,13 @@ function initProductTable(){
 document.addEventListener('DOMContentLoaded', function (e) {
     init();
 });
+
+function getCheckedSites() {
+    const selectedValues = [];
+    // Lấy tất cả checkbox đã được chọn
+    $('.product_sites input.form-check-input:checked').each(function () {
+        selectedValues.push($(this).val());
+    });
+    return selectedValues;
+}
 
