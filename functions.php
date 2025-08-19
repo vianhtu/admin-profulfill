@@ -106,17 +106,9 @@ function getAuthorsProductInfo(): ?array {
 	$stmt = db()->prepare($sql);
 	$stmt->bind_param('i', $_SESSION['user_id']);
 	$stmt->execute();
-	$stmt->bind_result($total_items, $pending_items, $author_items);
-	if ($stmt->fetch()) {
-		$stmt->close();
-		return [
-			'total_items' => (int)$total_items,
-			'pending_items' => (int)$pending_items,
-			'author_items' => (int)$author_items
-		];
-	}
+	$result = $stmt->get_result();
 	$stmt->close();
-	return null;
+	return $result->fetch_assoc();
 }
 
 function getProductTableFilter(): array {
