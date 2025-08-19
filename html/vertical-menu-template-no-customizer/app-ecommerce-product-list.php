@@ -61,7 +61,7 @@ $info = getAuthorsProductInfo();
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <p class="mb-1">Your Profit</p>
-                            <h4 class="mb-1"><?php echo number_format($info['author_items'] * 60); ?></h4>
+                            <h4 class="mb-1"><?php echo number_format($info['author_items'] * 60); ?> vnd</h4>
                             <p class="mb-0">
                                 <span class="me-2">150 orders</span><span class="badge bg-label-danger">-3.5%</span>
                             </p>
