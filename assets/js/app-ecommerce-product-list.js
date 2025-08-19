@@ -651,6 +651,9 @@ function initProductTable(){
                     typesHTML += '<div class="form-check"><input class="form-check-input" type="checkbox" value="'+key+'" id="check'+key+'"><label class="form-check-label">'+value.title+'</label></div>';
                 });
                 $('.product_sites').html(typesHTML);
+                $('.product_sites input').on('change', function() {
+                    tableApi.draw();
+                });
             }
         });
     }
