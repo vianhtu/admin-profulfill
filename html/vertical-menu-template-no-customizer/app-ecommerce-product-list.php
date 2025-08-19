@@ -83,15 +83,9 @@ $info = getAuthorsProductInfo();
     <div class="card-header border-bottom">
         <h5 class="card-title">Filter</h5>
         <div class="d-flex justify-content-between align-items-center row pt-4 gap-6 gap-md-0 g-md-6">
-            <div class="col-md-3 product_status">
-                <label class="form-label">Status</label>
-            </div>
-            <div class="col-md-3 product_category">
-                <label class="form-label">Category</label>
-            </div>
-            <div class="col-md-3 product_stock">
-                <label class="form-label">Manager</label>
-            </div>
+            <div class="col-md-3 product_status"></div>
+            <div class="col-md-3 product_category"></div>
+            <div class="col-md-3 product_stock"></div>
             <div class="col-md-3 product_store"></div>
             <div class="col-md-3 product_from_date"></div>
             <div class="col-md-3 product_to_date"></div>

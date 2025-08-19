@@ -540,7 +540,7 @@ function initProductTable(){
                     select.id = 'ProductStatus';
                     select.className = 'form-select text-capitalize';
                     select.innerHTML = '<option value="">All</option>';
-
+                    $('.product_status').html('<label class="form-label">Status</label>');
                     document.querySelector('.product_status').appendChild(select);
 
                     select.addEventListener('change', function () {
@@ -562,7 +562,7 @@ function initProductTable(){
                     select.id = 'ProductCategory';
                     select.className = 'form-select text-capitalize';
                     select.innerHTML = '<option value="">All</option>';
-
+                    $('.product_category').html('<label class="form-label">Category</label>');
                     document.querySelector('.product_category').appendChild(select);
 
                     select.addEventListener('change', function () {
@@ -584,7 +584,7 @@ function initProductTable(){
                     select.id = 'ProductStock';
                     select.className = 'form-select text-capitalize';
                     select.innerHTML = '<option value="">All</option>';
-
+                    $('.product_stock').html('<label class="form-label">Manager</label>');
                     document.querySelector('.product_stock').appendChild(select);
 
                     select.addEventListener('change', function () {
