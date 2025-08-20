@@ -44,7 +44,7 @@ function renderMenu($currentMenu) {
             </li>";
 		} else {
 			// Không có submenu
-			$link = trim($mainData['link']) === '' ? $currentMenu : $mainData['link'];
+			$link = trim($mainData['link']) === '' ? '' : $mainData['link'];
 			$activeClass = ($currentMenu === $link) ? 'active' : '';
 			echo "<li class='menu-item {$activeClass}'>
                 <a href='index.php?menu={$link}' class='menu-link'>
