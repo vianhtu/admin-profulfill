@@ -3,7 +3,7 @@ function renderMenu($currentMenu) {
 	$menuItems = [
 		'Dashboards' => [
 			'icon' => 'tabler-smart-home',
-			'sub' => ['analytics' => 'Analytics']
+			'link' => 'dashboards'
 		],
 		'eCommerce' => [
 			'icon' => 'tabler-shopping-cart',
