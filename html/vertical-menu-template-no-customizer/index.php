@@ -52,17 +52,11 @@ $currentMenu = $_GET['menu'] ?? '';
     <link rel="stylesheet" href="../../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
 
     <!-- endbuild -->
-
-      <?php
-      switch ($currentMenu) {
-          case 'products': ?>
-              <link rel="stylesheet" href="../../assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css" />
-              <link rel="stylesheet" href="../../assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css" />
-              <link rel="stylesheet" href="../../assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css" />
-              <link rel="stylesheet" href="../../assets/vendor/libs/select2/select2.css" />
-             <?php break;
-      }
-      ?>
+    <link rel="stylesheet" href="../../assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/select2/select2.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/@form-validation/form-validation.css" />
 
     <!-- Page CSS -->
 
@@ -300,14 +294,22 @@ $currentMenu = $_GET['menu'] ?? '';
     <!-- endbuild -->
 
     <!-- Vendors JS -->
+    <script src="../../assets/vendor/libs/moment/moment.js"></script>
+    <script src="../../assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
+    <script src="../../assets/vendor/libs/select2/select2.js"></script>
+    <script src="../../assets/vendor/libs/@form-validation/popular.js"></script>
+    <script src="../../assets/vendor/libs/@form-validation/bootstrap5.js"></script>
+    <script src="../../assets/vendor/libs/@form-validation/auto-focus.js"></script>
+    <script src="../../assets/vendor/libs/cleave-zen/cleave-zen.js"></script>
     <?php
     switch ($currentMenu) {
         case 'products': ?>
-            <script src="../../assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
-            <script src="../../assets/vendor/libs/select2/select2.js"></script>
             <script src="../../assets/js/app-ecommerce-product-list.js"></script>
             <?php break;
-        }
+        case 'users': ?>
+            <script src="../../assets/js/app-user-list.js"></script>
+            <?php break;
+    }
     ?>
     }
     ?>
