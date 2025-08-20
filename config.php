@@ -111,7 +111,8 @@ function find_author_by_login(string $userOrEmail): ?array {
 	$stmt->bind_result($id, $username, $hash, $level, $rule);
 	if ($stmt->fetch()) {
 		$stmt->close();
-		return ['id' => (int)$id, 'username' => (string)$username, 'hash' => (string)$hash, 'level' => (int)$level, 'rule' => json_decode($rule)];
+		$rule = $rule === null ? [] : json_decode($rule);
+		return ['id' => (int)$id, 'username' => (string)$username, 'hash' => (string)$hash, 'level' => (int)$level, 'rule' => $rule];
 	}
 	$stmt->close();
 	return null;
@@ -123,11 +124,12 @@ function get_username_by_id(int $id): ?array {
 	$stmt->bind_result($author_id, $username, $level, $rule);
 	if ($stmt->fetch()){
 		$stmt->close();
+		$rule = $rule === null ? [] : json_decode($rule);
 		return [
 			'id' => $author_id,
 			'username' => $username,
 			'level' => $level,
-			'rule' => json_decode($rule),
+			'rule' => $rule,
 		];
 	}
 	$stmt->close();
