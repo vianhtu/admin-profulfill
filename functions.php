@@ -19,7 +19,8 @@ function renderMenu($currentMenu) {
 				'accounts' => 'Accounts',
 				'export-settings' => 'Export Settings'
 			]
-		]
+		],
+		'Users' => ['icon' => 'tabler-users']
 	];
 
 	foreach ($menuItems as $mainLabel => $mainData) {
