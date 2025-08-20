@@ -48,7 +48,7 @@ $info = getAuthorsProductInfo();
                         <div>
                             <p class="mb-1">Your items</p>
                             <h4 class="mb-1"><?php echo number_format($info['author_items']); ?></h4>
-                            <p class="mb-0">this month: <?php echo number_format($info['author_this_month']); ?></p>
+                            <p class="mb-0">taget: 100K</p>
                         </div>
                         <span class="avatar p-2 me-sm-6">
                             <span class="avatar-initial rounded"
