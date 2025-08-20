@@ -20,7 +20,7 @@ function renderMenu($currentMenu) {
 				'export-settings' => 'Export Settings'
 			]
 		],
-		'Users' => ['icon' => 'tabler-users']
+		'Users' => ['icon' => 'tabler-users', 'sub' => []]
 	];
 
 	foreach ($menuItems as $mainLabel => $mainData) {
