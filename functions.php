@@ -3,19 +3,13 @@ function renderMenu($currentMenu) {
 	$menuItems = [
 		'Dashboards' => [
 			'icon' => 'tabler-smart-home',
-			'link' => 'dashboards'
+			'link' => '' // để trống => mặc định dùng $currentMenu
 		],
 		'eCommerce' => [
 			'icon' => 'tabler-shopping-cart',
 			'sub' => [
 				'products' => 'Products',
-				'stores' => 'Stores',
-				'types' => 'Types',
-				'sites' => 'Sites',
-				'tags' => 'Tags',
-				'keywords' => 'Keywords',
-				'accounts' => 'Accounts',
-				'export-settings' => 'Export Settings'
+				'stores' => 'Stores'
 			]
 		],
 		'Users' => ['icon' => 'tabler-users', 'link' => 'users']
@@ -24,8 +18,8 @@ function renderMenu($currentMenu) {
 	foreach ($menuItems as $mainLabel => $mainData) {
 		$icon = $mainData['icon'];
 
-		// Nếu có submenu
 		if (!empty($mainData['sub'])) {
+			// Có submenu
 			$subMenuHtml = '';
 			$isOpen = false;
 			foreach ($mainData['sub'] as $key => $value) {
@@ -48,10 +42,9 @@ function renderMenu($currentMenu) {
                 </a>
                 <ul class='menu-sub'>{$subMenuHtml}</ul>
             </li>";
-		}
-		// Nếu không có submenu
-		else {
-			$link = $mainData['link'] ?? '#';
+		} else {
+			// Không có submenu
+			$link = trim($mainData['link']) === '' ? $currentMenu : $mainData['link'];
 			$activeClass = ($currentMenu === $link) ? 'active' : '';
 			echo "<li class='menu-item {$activeClass}'>
                 <a href='index.php?menu={$link}' class='menu-link'>
