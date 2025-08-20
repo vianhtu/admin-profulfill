@@ -60,7 +60,7 @@ function user_agent_fingerprint(): string { return hash('sha256', $_SERVER['HTTP
 // ===== Auth core =====
 function login_user(array $username): void {
 	session_regenerate_id(true);
-	$_SESSION['auth'] = ['user'=>$username['username'], 'ua'=>user_agent_fingerprint(), 't'=>time(), 'user_id'=> $username['id'], 'level'=>$username['level']];
+	$_SESSION['auth'] = ['user'=>$username['username'], 'ua'=>user_agent_fingerprint(), 't'=>time(), 'user_id'=> $username['id'], 'level'=>$username['level'], 'rule'=>$username['rule']];
 }
 function is_logged_in(): bool {
 	return !empty($_SESSION['auth']['user']) && hash_equals($_SESSION['auth']['ua'], user_agent_fingerprint());
@@ -104,29 +104,30 @@ function logout_user(): void {
 
 // ===== Login lookup (email OR username) =====
 function find_author_by_login(string $userOrEmail): ?array {
-	$sql = "SELECT ID, username, pass, level FROM authors WHERE username = ? OR email = ? LIMIT 1";
+	$sql = "SELECT ID, username, pass, level, rule FROM authors WHERE username = ? OR email = ? LIMIT 1";
 	$stmt = db()->prepare($sql);
 	$stmt->bind_param('ss', $userOrEmail, $userOrEmail);
 	$stmt->execute();
-	$stmt->bind_result($id, $username, $hash, $level);
+	$stmt->bind_result($id, $username, $hash, $level, $rule);
 	if ($stmt->fetch()) {
 		$stmt->close();
-		return ['id' => (int)$id, 'username' => (string)$username, 'hash' => (string)$hash, 'level' => (int)$level];
+		return ['id' => (int)$id, 'username' => (string)$username, 'hash' => (string)$hash, 'level' => (int)$level, 'rule' => json_decode($rule)];
 	}
 	$stmt->close();
 	return null;
 }
 function get_username_by_id(int $id): ?array {
-	$stmt = db()->prepare("SELECT ID,username,level FROM authors WHERE ID = ? LIMIT 1");
+	$stmt = db()->prepare("SELECT ID,username,level, rule FROM authors WHERE ID = ? LIMIT 1");
 	$stmt->bind_param('i', $id);
 	$stmt->execute();
-	$stmt->bind_result($author_id, $username, $level);
+	$stmt->bind_result($author_id, $username, $level, $rule);
 	if ($stmt->fetch()){
 		$stmt->close();
 		return [
 			'id' => $author_id,
 			'username' => $username,
-			'level' => $level
+			'level' => $level,
+			'rule' => json_decode($rule),
 		];
 	}
 	$stmt->close();
