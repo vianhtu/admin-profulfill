@@ -12,10 +12,10 @@ function renderMenu($currentMenu) {
 				'stores' => 'Stores'
 			]
 		],
-		'Export XLSX' => [
+		'Export' => [
 			'icon' => 'tabler-file-type-xls',
 			'sub' => [
-				'exports' => 'All Exports',
+				'exports_xlsx' => 'XLSX',
 			]
 		],
 		'Users' => ['icon' => 'tabler-users', 'link' => 'users']
