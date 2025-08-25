@@ -91,9 +91,9 @@ $info = getAuthorsProductInfo();
             <div class="col-md-3 product_category"></div>
             <div class="col-md-3 product_stock"></div>
             <div class="col-md-3 product_store"></div>
-            <div class="col-md-3 product_from_date"></div>
-            <div class="col-md-3 product_to_date"></div>
-            <div class="col-md-6 product_sites"></div>
+            <div class="col-md-2 product_from_date"></div>
+            <div class="col-md-2 product_to_date"></div>
+            <div class="col-md-8 product_sites"></div>
         </div>
         </div>
     </div>
