@@ -238,8 +238,8 @@ function initProductTable(){
                 style: 'multi',
                 selector: 'td:nth-child(2)'
             },
-            order: [2, 'asc'],
-            displayLength: 7,
+            order: [2, 'desc'],
+            displayLength: 10,
             layout: {
                 topStart: {
                     rowClass: 'card-header d-flex border-top rounded-0 flex-wrap py-0 flex-column flex-md-row align-items-start',
