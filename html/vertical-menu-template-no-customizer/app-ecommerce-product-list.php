@@ -83,8 +83,9 @@ $info = getAuthorsProductInfo();
     <div class="card-header border-bottom">
         <div class="d-flex align-items-center justify-content-between">
             <h5 class="card-title mb-0">Filter</h5>
-            <button class="btn btn-primary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#filterContent" aria-expanded="false" aria-controls="filterContent">
-                Hiển thị / Ẩn bộ lọc
+            <!-- Nút icon -->
+            <button class="btn btn-outline-secondary p-2" type="button" data-bs-toggle="collapse" data-bs-target="#filterContent" aria-expanded="false" aria-controls="filterContent">
+                <i class="bi bi-funnel"></i> <!-- icon phễu -->
             </button>
         </div>
         <div class="collapse" id="filterContent">
