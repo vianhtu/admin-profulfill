@@ -82,6 +82,7 @@ $info = getAuthorsProductInfo();
 <div class="card">
     <div class="card-header border-bottom">
         <h5 class="card-title">Filter</h5>
+        <div class="collapse" id="filterContent">
         <div class="d-flex justify-content-between align-items-center row pt-4 gap-6 gap-md-0 g-md-6">
             <div class="col-md-3 product_status"></div>
             <div class="col-md-3 product_category"></div>
@@ -91,6 +92,10 @@ $info = getAuthorsProductInfo();
             <div class="col-md-3 product_to_date"></div>
             <div class="col-md-6 product_sites"></div>
         </div>
+        </div>
+        <button class="btn btn-primary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#filterContent" aria-expanded="false" aria-controls="filterContent">
+            Hiển thị / Ẩn bộ lọc
+        </button>
     </div>
     <div class="card-datatable">
         <table class="datatables-products table">
