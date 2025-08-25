@@ -79,6 +79,21 @@ if (!empty($filterStores) && is_array($filterStores)) {
 		$whereClauses[] = "store_id IN ($idsStr)";
 	}
 }
+// lọc theo accounts.
+$filterAccounts = $_POST['accounts'] ?? [];
+if (!empty($filterAccounts) && is_array($filterAccounts)) {
+	// Ép tất cả sang số nguyên để tránh SQL injection
+	$ids = array_map('intval', $filterAccounts);
+	$idsStr = implode(',', $ids);
+	if ($idsStr !== '') {
+		// Lọc các post có account_id nằm trong danh sách
+		$whereClauses[] = "posts.ID IN (
+            SELECT post_id 
+            FROM accounts_relationships
+            WHERE account_id IN ($idsStr)
+        )";
+	}
+}
 
 $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
 $totalFiltered = $conn->query("SELECT COUNT(*) AS cnt FROM posts $where")->fetch_assoc()['cnt'];
