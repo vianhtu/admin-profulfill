@@ -107,7 +107,7 @@ $info = getAuthorsProductInfo();
                 <div class="col-md-3 export_configs"></div>
                 <div class="col-md-2 export_limited"></div>
                 <div class="col-md-2 export_offset"></div>
-                <div class="col-md-2 export_save"></div>
+                <div class="col-md-2 export_save mt-auto"></div>
             </div>
         </div>
     </div>
