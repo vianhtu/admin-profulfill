@@ -94,12 +94,7 @@ if (!empty($filterAccounts) && is_array($filterAccounts)) {
 }
 
 $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
-$totalFiltered = $conn->query("
-		SELECT COUNT(*) AS cnt
-		FROM posts
-	    $joinAccounts
-	    $where
-    ")->fetch_assoc()['cnt'];
+$totalFiltered = $conn->query("SELECT COUNT(*) AS cnt FROM posts $joinAccounts $where")->fetch_assoc()['cnt'];
 
 // Lấy dữ liệu
 $sql = "SELECT ID, title, status, sku, images, badge, date, type_id, author_id 
