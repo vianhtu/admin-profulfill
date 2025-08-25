@@ -104,6 +104,9 @@ $info = getAuthorsProductInfo();
         <div class="collapse" id="ExportContent">
             <div class="d-flex justify-content-between align-items-center row pt-4 gap-6 gap-md-0 g-md-6">
                 <div class="col-md-3 export_accounts"></div>
+                <div class="col-md-3 export_configs"></div>
+                <div class="col-md-3 export_limited"></div>
+                <div class="col-md-3 export_offset"></div>
             </div>
         </div>
     </div>
