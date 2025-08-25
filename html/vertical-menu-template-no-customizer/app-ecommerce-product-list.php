@@ -83,7 +83,7 @@ $info = getAuthorsProductInfo();
     <div class="card-header border-bottom">
         <div class="d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#filterContent" aria-expanded="false" aria-controls="filterContent" style="cursor: pointer;">
             <h5 class="card-title mb-0">Filter</h5>
-            <i class="icon-base ti ti-filter-down"></i> <!-- icon phễu -->
+            <i class="fa-solid fa-filter"></i>
         </div>
         <div class="collapse" id="filterContent">
         <div class="d-flex justify-content-between align-items-center row pt-4 gap-6 gap-md-0 g-md-6">

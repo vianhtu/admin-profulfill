@@ -38,8 +38,7 @@ $currentMenu = $_GET['menu'] ?? '';
       rel="stylesheet" />
 
     <link rel="stylesheet" href="../../assets/vendor/fonts/iconify-icons.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
-
+    <link rel="stylesheet" href="../../assets/vendor/fonts/fontawesome.css" />
     <!-- Core CSS -->
     <!-- build:css assets/vendor/css/theme.css  -->
 
