@@ -137,10 +137,11 @@ function getStoresTableFilter(): array {
 	$offset  = ($page - 1) * $perPage;
 
 // Chuẩn bị câu truy vấn (Prepared Statement để chống SQL injection)
-	$sql = "SELECT id, name 
-        FROM store
-        WHERE (? = '' OR name LIKE ?)
-        ORDER BY name ASC
+	$sql = "SELECT t.id, CONCAT(s.name, ' (', t.name, ')') AS name
+        FROM store AS t
+        JOIN site s ON t.site_id = s.id
+        WHERE (? = '' OR t.name LIKE ?)
+        ORDER BY t.name ASC
         LIMIT ?, ?";
 	$stmt = $conn->prepare($sql);
 
