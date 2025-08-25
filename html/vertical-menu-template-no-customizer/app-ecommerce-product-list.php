@@ -93,8 +93,8 @@ $info = getAuthorsProductInfo();
             <div class="col-md-3 product_store"></div>
             <div class="col-md-2 product_from_date"></div>
             <div class="col-md-2 product_to_date"></div>
-            <div class="col-md-4 product_accounts"></div>
-            <div class="col-md-4 product_sites"></div>
+            <div class="col-md-3 product_accounts"></div>
+            <div class="col-md-5 product_sites"></div>
         </div>
         </div>
     </div>
