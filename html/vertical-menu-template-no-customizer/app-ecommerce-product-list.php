@@ -81,12 +81,9 @@ $info = getAuthorsProductInfo();
 <!-- Product List Table -->
 <div class="card">
     <div class="card-header border-bottom">
-        <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#filterContent" aria-expanded="false" aria-controls="filterContent">
             <h5 class="card-title mb-0">Filter</h5>
-            <!-- Nút icon -->
-            <button class="btn btn-outline-secondary p-2" type="button" data-bs-toggle="collapse" data-bs-target="#filterContent" aria-expanded="false" aria-controls="filterContent">
-                <i class="ti ti-filter-down"></i> <!-- icon phễu -->
-            </button>
+            <i class="ti ti-filter-down"></i> <!-- icon phễu -->
         </div>
         <div class="collapse" id="filterContent">
         <div class="d-flex justify-content-between align-items-center row pt-4 gap-6 gap-md-0 g-md-6">
