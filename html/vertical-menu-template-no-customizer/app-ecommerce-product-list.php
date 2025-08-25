@@ -97,6 +97,10 @@ $info = getAuthorsProductInfo();
             <div class="col-md-5 product_sites"></div>
         </div>
         </div>
+        <div class="d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#ExportContent" aria-expanded="false" aria-controls="ExportContent" style="cursor: pointer;">
+            <h5 class="card-title mb-0">Export</h5>
+            <i class="fa-solid fa-file-export"></i>
+        </div>
     </div>
     <div class="card-datatable">
         <table class="datatables-products table">
