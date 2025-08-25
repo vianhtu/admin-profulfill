@@ -81,7 +81,7 @@ $info = getAuthorsProductInfo();
 <!-- Product List Table -->
 <div class="card">
     <div class="card-header border-bottom">
-        <div class="d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#filterContent" aria-expanded="false" aria-controls="filterContent">
+        <div class="d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#filterContent" aria-expanded="false" aria-controls="filterContent" style="cursor: pointer;">
             <h5 class="card-title mb-0">Filter</h5>
             <i class="ti ti-filter-down"></i> <!-- icon phễu -->
         </div>
