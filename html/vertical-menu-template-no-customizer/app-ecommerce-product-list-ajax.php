@@ -6,7 +6,7 @@ $start = intval($_POST['start'] ?? 0);
 $length = intval($_POST['length'] ?? 10);
 $orderColumnIndex = intval($_POST['order'][0]['column'] ?? 0);
 $orderColumn = $_POST['columns'][$orderColumnIndex]['data'] ?? 'ID';
-$orderDir = ($_POST['order'][0]['dir'] ?? 'asc') === 'desc' ? 'DESC' : 'ASC';
+$orderDir = strtolower($_POST['order'][0]['dir'] ?? 'asc') === 'desc' ? 'DESC' : 'ASC';
 $searchValue = trim($_POST['search']['value'] ?? '');
 
 // Danh sách cột cho phép sort
@@ -80,27 +80,31 @@ if (!empty($filterStores) && is_array($filterStores)) {
 	}
 }
 // lọc theo accounts.
+$joinAccounts = '';
 $filterAccounts = $_POST['accounts'] ?? [];
 if (!empty($filterAccounts) && is_array($filterAccounts)) {
 	// Ép tất cả sang số nguyên để tránh SQL injection
 	$ids = array_map('intval', $filterAccounts);
 	$idsStr = implode(',', $ids);
 	if ($idsStr !== '') {
-		// Lọc các post có account_id nằm trong danh sách
-		$whereClauses[] = "posts.ID IN (
-            SELECT post_id 
-            FROM accounts_relationships
-            WHERE account_id IN ($idsStr)
-        )";
+		// Thêm JOIN để lọc theo account_id
+		$joinAccounts = "INNER JOIN accounts_relationships ar ON ar.post_id = posts.ID";
+		$whereClauses[] = "ar.account_id IN ($idsStr)";
 	}
 }
 
 $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
-$totalFiltered = $conn->query("SELECT COUNT(*) AS cnt FROM posts $where")->fetch_assoc()['cnt'];
+$totalFiltered = $conn->query("
+		SELECT COUNT(*) AS cnt
+		FROM posts
+	    $joinAccounts
+	    $where
+    ")->fetch_assoc()['cnt'];
 
 // Lấy dữ liệu
 $sql = "SELECT ID, title, status, sku, images, badge, date, type_id, author_id 
         FROM posts
+        $joinAccounts
         $where
         ORDER BY $orderColumn $orderDir
         LIMIT $start, $length";
@@ -111,7 +115,10 @@ $data = [];
 while ($row = $rs->fetch_assoc()) {
 	$imgs = json_decode($row['images']);
 	// Thay thế phần il_###xN bằng il_50xN
-	$updatedUrl = preg_replace('/il_\d+xN/', 'il_100xN', $imgs->main);
+	$updatedUrl = '';
+	if ($imgs && isset($imgs->main)) {
+		$updatedUrl = preg_replace('/il_\d+xN/', 'il_100xN', $imgs->main);
+	}
 	//$firstImg = $imgs['main'];
 	$data[] = [
 		"id" => $row['ID'],
