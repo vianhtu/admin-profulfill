@@ -258,7 +258,7 @@ function initProductTable(){
                     features: [
                         {
                             pageLength: {
-                                menu: [7, 10, 25, 50, 100, 500, 1000, 2000],
+                                menu: [10, 25, 50, 100, 500, 1000, 2000],
                                 text: '_MENU_'
                             },
                             buttons: [
