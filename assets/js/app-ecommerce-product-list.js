@@ -601,8 +601,8 @@ function initProductTable(){
                 });
 
                 // Adding store filter once table is initialized
-                $('.product_store').html('<label class="form-label">Store</label><select id="accountsFilter" multiple></select>');
-                $('#accountsFilter').select2({
+                $('.product_store').html('<label class="form-label">Store</label><select id="storeFilter" multiple></select>');
+                $('#storeFilter').select2({
                     placeholder: 'Tìm và chọn...',
                     multiple: true,
                     ajax: {
@@ -638,8 +638,8 @@ function initProductTable(){
                 });
 
                 // Adding accounts filter once table is initialized
-                $('.product_accounts').html('<label class="form-label">Listed Accounts</label><select id="storeFilter" multiple></select>');
-                $('#storeFilter').select2({
+                $('.product_accounts').html('<label class="form-label">Listed Accounts</label><select id="accountsFilter" multiple></select>');
+                $('#accountsFilter').select2({
                     placeholder: 'Tìm và chọn...',
                     multiple: true,
                     ajax: {
