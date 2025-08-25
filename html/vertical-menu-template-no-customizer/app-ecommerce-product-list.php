@@ -81,11 +81,11 @@ $info = getAuthorsProductInfo();
 <!-- Product List Table -->
 <div class="card">
     <div class="card-header border-bottom">
-        <div class="d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target=".multi-collapse" aria-expanded="false" aria-controls="filterContent ExportContent" style="cursor: pointer;">
+        <div class="d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#filterContent" aria-expanded="false" aria-controls="filterContent" style="cursor: pointer;">
             <h5 class="card-title mb-0">Filter</h5>
             <i class="fa-solid fa-filter"></i>
         </div>
-        <div class="collapse multi-collapse" id="filterContent">
+        <div class="collapse" id="filterContent">
             <div class="d-flex justify-content-between align-items-center row pt-4 gap-6 gap-md-0 g-md-6">
                 <div class="col-md-3 product_status"></div>
                 <div class="col-md-3 product_category"></div>
@@ -97,11 +97,11 @@ $info = getAuthorsProductInfo();
                 <div class="col-md-5 product_sites"></div>
             </div>
         </div>
-        <div class="d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target=".multi-collapse" aria-expanded="false" aria-controls="ExportContent filterContent" style="cursor: pointer;">
+        <div class="d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#ExportContent" aria-expanded="false" aria-controls="ExportContent" style="cursor: pointer;">
             <h5 class="card-title mb-0">Export</h5>
             <i class="fa-solid fa-file-export"></i>
         </div>
-        <div class="collapse multi-collapse" id="ExportContent">
+        <div class="collapse" id="ExportContent">
         </div>
     </div>
     <div class="card-datatable">
