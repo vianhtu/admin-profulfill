@@ -44,6 +44,16 @@ if ($filterAuthor !== '') {
 	$escStock = $conn->real_escape_string($filterAuthor);
 	$whereClauses[] = "author_id = '$escStock'";
 }
+// lọc theo sites.
+$filterSites = $_POST['sites'] ?? [];
+if (!empty($filterSites) && is_array($filterSites)) {
+	// Ép tất cả sang số nguyên để tránh injection
+	$ids = array_map('intval', $filterSites);
+	$idsStr = implode(',', $ids);
+	if ($idsStr !== '') {
+		$whereClauses[] = "site_id IN ($idsStr)";
+	}
+}
 // Lọc theo khoảng ngày
 $minDate = $_POST['minDate'] ?? '';
 $maxDate = $_POST['maxDate'] ?? '';
