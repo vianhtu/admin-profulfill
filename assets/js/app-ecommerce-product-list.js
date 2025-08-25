@@ -627,7 +627,7 @@ function initProductTable(){
                 $('.product_sites').html(typesHTML);
 
                 // Export.
-                getMultipleSelect('export_accounts', 'accountsExport', 'Select Account', 'filter-accounts');
+                getMultipleSelect('export_accounts', 'accountsExport', 'Select Account', 'filter-accounts', false);
 
                 $('#maxDate,#storeFilter,#accountsFilter,.product_sites input').on('change', function () {
                     tableApi.draw();
@@ -679,12 +679,12 @@ function getCheckedSites() {
     return selectedValues;
 }
 
-function getMultipleSelect(div_class, select_id, select_label, action) {
+function getMultipleSelect(div_class, select_id, select_label, action, multiple = true) {
     // Adding accounts filter once table is initialized
     $('.'+div_class).html('<label class="form-label">'+select_label+'</label><select id="'+select_id+'" multiple></select>');
     $('#'+select_id).select2({
         placeholder: 'Tìm và chọn...',
-        multiple: true,
+        multiple: multiple,
         ajax: {
             url: '../../ajax.php?action='+action,
             dataType: 'json',
