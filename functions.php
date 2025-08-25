@@ -180,7 +180,7 @@ function getAccountsTableFilter(): array {
 	$stmt = $conn->prepare($sql);
 
 	$like = "%{$q}%";
-	$stmt->bind_param("ssii", $q, $like, $offset, $perPage);
+	$stmt->bind_param("sssii", $q, $like, $like, $offset, $perPage);
 	$stmt->execute();
 
 	$result = $stmt->get_result();
