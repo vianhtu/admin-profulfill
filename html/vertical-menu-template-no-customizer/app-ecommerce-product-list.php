@@ -102,6 +102,9 @@ $info = getAuthorsProductInfo();
             <i class="fa-solid fa-file-export"></i>
         </div>
         <div class="collapse" id="ExportContent">
+            <div class="d-flex justify-content-between align-items-center row pt-4 gap-6 gap-md-0 g-md-6">
+                <div class="col-md-3 export_accounts"></div>
+            </div>
         </div>
     </div>
     <div class="card-datatable">
