@@ -686,7 +686,7 @@ function initProductTable(){
                     // Vẽ lại bảng
                     tableApi.draw();
                 });
-                $('#maxDate,#storeFilter').on('change', function () {
+                $('#maxDate,#storeFilter,#accountsFilter').on('change', function () {
                     tableApi.draw();
                 });
 
