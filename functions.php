@@ -12,6 +12,13 @@ function renderMenu($currentMenu) {
 				'stores' => 'Stores'
 			]
 		],
+		'Export XLSX' => [
+			'icon' => 'fa-solid fa-file-xls',
+			'sub' => [
+				'products' => 'Products',
+				'stores' => 'Stores'
+			]
+		],
 		'Users' => ['icon' => 'tabler-users', 'link' => 'users']
 	];
 
