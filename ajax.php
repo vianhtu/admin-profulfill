@@ -20,10 +20,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 
 	switch ($_GET['action']) {
 		case 'get-products':
-			require_once __DIR__ . '/html/vertical-menu-template-no-customizer/app-ecommerce-product-list-ajax.php';
+			echo json_encode(getProductsTable());
 			break;
 		case 'get-product-table-filter':
-			echo json_encode(getProductTableFilter());
+			echo json_encode(getProductTableFilters());
 			break;
 		case 'filter-stores':
 			echo json_encode(getStoresTableFilter());
