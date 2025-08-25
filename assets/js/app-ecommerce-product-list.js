@@ -653,7 +653,7 @@ function initProductTable(){
                 });
 
                 // For date range filter
-                let typesHTML = '<div class="mb-2"><label class="form-label">Remove listed on sites</label></div>';
+                let typesHTML = '<div class="mb-2"><label class="form-label">From sites</label></div>';
                 $.each(sitesObj, function(key, value) {
                     typesHTML += '<div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" value="'+key+'" id="check'+key+'"><label class="form-check-label">'+value.title+'</label></div>';
                 });
