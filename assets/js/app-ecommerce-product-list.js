@@ -606,7 +606,7 @@ function initProductTable(){
                     placeholder: 'Tìm và chọn...',
                     multiple: true,
                     ajax: {
-                        url: '../../ajax.php?action=get-stores',
+                        url: '../../ajax.php?action=filter-stores',
                         dataType: 'json',
                         type: 'POST',
                         delay: 250,                   // debounce
@@ -643,7 +643,7 @@ function initProductTable(){
                     placeholder: 'Tìm và chọn...',
                     multiple: true,
                     ajax: {
-                        url: '../../ajax.php?action=get-stores',
+                        url: '../../ajax.php?action=filter-accounts',
                         dataType: 'json',
                         type: 'POST',
                         delay: 250,                   // debounce

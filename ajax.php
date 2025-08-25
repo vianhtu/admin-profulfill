@@ -25,11 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 		case 'get-product-table-filter':
 			echo json_encode(getProductTableFilter());
 			break;
-		case 'get-stores':
+		case 'filter-stores':
 			echo json_encode(getStoresTableFilter());
 			break;
-		case 'add-listing':
-			//require_once __DIR__ . '/action-add-listing.php';
+		case 'filter-accounts':
+			echo json_encode(getAccountsTableFilter());
 			break;
 	}
 	exit;

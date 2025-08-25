@@ -162,3 +162,38 @@ function getStoresTableFilter(): array {
 		'more'  => $more
 	];
 }
+
+function getAccountsTableFilter(): array {
+	$conn = db();
+	// Lấy giá trị tìm kiếm từ POST
+	$q    = isset($_POST['q']) ? trim($_POST['q']) : '';
+	$page = isset($_POST['page']) ? max(1, intval($_POST['page'])) : 1;
+	$perPage = 20;
+	$offset  = ($page - 1) * $perPage;
+
+// Chuẩn bị câu truy vấn (Prepared Statement để chống SQL injection)
+	$sql = "SELECT id, name, email, site_id 
+        FROM accounts
+        WHERE (? = '' OR name LIKE ? OR email LIKE ?)
+        ORDER BY site_id ASC
+        LIMIT ?, ?";
+	$stmt = $conn->prepare($sql);
+
+	$like = "%{$q}%";
+	$stmt->bind_param("ssii", $q, $like, $offset, $perPage);
+	$stmt->execute();
+
+	$result = $stmt->get_result();
+	$items = [];
+	while ($row = $result->fetch_assoc()) {
+		$items[] = $row;
+	}
+	$stmt->close();
+
+	// Kiểm tra còn dữ liệu trang tiếp theo hay không
+	$more = (count($items) === $perPage);
+	return [
+		'items' => $items,
+		'more'  => $more
+	];
+}
