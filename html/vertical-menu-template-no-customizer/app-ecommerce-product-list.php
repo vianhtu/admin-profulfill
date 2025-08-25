@@ -81,7 +81,7 @@ $info = getAuthorsProductInfo();
 <!-- Product List Table -->
 <div class="card">
     <div class="card-header border-bottom">
-        <div class="d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#filterContent" aria-expanded="false" aria-controls="filterContent" style="cursor: pointer;">
+        <div class="d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#filterContent" aria-expanded="false" aria-controls="filterContent ExportContent" style="cursor: pointer;">
             <h5 class="card-title mb-0">Filter</h5>
             <i class="fa-solid fa-filter"></i>
         </div>
@@ -97,7 +97,7 @@ $info = getAuthorsProductInfo();
                 <div class="col-md-5 product_sites"></div>
             </div>
         </div>
-        <div class="d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#ExportContent" aria-expanded="false" aria-controls="ExportContent" style="cursor: pointer;">
+        <div class="d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#ExportContent" aria-expanded="false" aria-controls="ExportContent filterContent" style="cursor: pointer;">
             <h5 class="card-title mb-0">Export</h5>
             <i class="fa-solid fa-file-export"></i>
         </div>
