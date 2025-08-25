@@ -620,7 +620,7 @@ function initProductTable(){
                             // Kỳ vọng data: { items: [{id, name}], more: boolean }
                             const results = (data.items || []).map(item => ({
                                 id: item.id,
-                                text: item.name + '('+item.email+')'
+                                text: item.name
                             }));
                             return {
                                 results: results,

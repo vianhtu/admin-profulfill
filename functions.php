@@ -172,7 +172,7 @@ function getAccountsTableFilter(): array {
 	$offset  = ($page - 1) * $perPage;
 
 // Chuẩn bị câu truy vấn (Prepared Statement để chống SQL injection)
-	$sql = "SELECT id, name, email, site_id 
+	$sql = "SELECT id, name
         FROM accounts
         WHERE (? = '' OR name LIKE ? OR email LIKE ?)
         ORDER BY site_id ASC
