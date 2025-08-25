@@ -85,7 +85,7 @@ $info = getAuthorsProductInfo();
             <h5 class="card-title mb-0">Filter</h5>
             <!-- Nút icon -->
             <button class="btn btn-outline-secondary p-2" type="button" data-bs-toggle="collapse" data-bs-target="#filterContent" aria-expanded="false" aria-controls="filterContent">
-                <i class="icon-base ti icon-tabler-filter-2-down"></i> <!-- icon phễu -->
+                <i class="ti ti-filter-down"></i> <!-- icon phễu -->
             </button>
         </div>
         <div class="collapse" id="filterContent">
