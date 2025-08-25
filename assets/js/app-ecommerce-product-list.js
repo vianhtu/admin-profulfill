@@ -631,6 +631,7 @@ function initProductTable(){
 
                 $('.export_limited').html('<label class="form-label">Limited</label><input type="number" class="form-control" id="exportLimited" value="2000" min="0">');
                 $('.export_offset').html('<label class="form-label">Offset</label><input type="number" class="form-control" id="exportOffset" value="0" min="0">');
+                $('.export_save').html('<button class="btn add-new btn-primary" tabindex="1" type="button"><span><i class="icon-base ti tabler-plus me-0 me-sm-1 icon-16px"></i><span class="d-none d-sm-inline-block">Add Product</span></span></button>');
 
                 $('#maxDate,#storeFilter,#accountsFilter,.product_sites input').on('change', function () {
                     tableApi.draw();
