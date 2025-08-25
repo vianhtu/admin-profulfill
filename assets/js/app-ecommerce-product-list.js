@@ -626,6 +626,9 @@ function initProductTable(){
                 });
                 $('.product_sites').html(typesHTML);
 
+                // Export.
+                getMultipleSelect('export_accounts', 'accountsExport', 'Select Account', 'filter-accounts');
+
                 $('#maxDate,#storeFilter,#accountsFilter,.product_sites input').on('change', function () {
                     tableApi.draw();
                 });
