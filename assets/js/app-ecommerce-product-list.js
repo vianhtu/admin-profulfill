@@ -686,9 +686,6 @@ function initProductTable(){
                     // Vẽ lại bảng
                     tableApi.draw();
                 });
-                $('#maxDate,#storeFilter,#accountsFilter').on('change', function () {
-                    tableApi.draw();
-                });
 
                 // For date range filter
                 let typesHTML = '<div class="mb-2"><label class="form-label">From sites</label></div>';
@@ -696,7 +693,8 @@ function initProductTable(){
                     typesHTML += '<div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" value="'+key+'" id="check'+key+'"><label class="form-check-label">'+value.title+'</label></div>';
                 });
                 $('.product_sites').html(typesHTML);
-                $('.product_sites input').on('change', function() {
+
+                $('#maxDate,#storeFilter,#accountsFilter,.product_sites input').on('change', function () {
                     tableApi.draw();
                 });
             }
