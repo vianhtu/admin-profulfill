@@ -13,7 +13,7 @@ function renderMenu($currentMenu) {
 			]
 		],
 		'Export XLSX' => [
-			'icon' => 'ti-file-type-xls',
+			'icon' => 'tabler-file-type-xls',
 			'sub' => [
 				'products' => 'Products',
 				'stores' => 'Stores'
