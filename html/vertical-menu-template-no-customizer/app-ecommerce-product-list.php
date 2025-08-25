@@ -86,20 +86,22 @@ $info = getAuthorsProductInfo();
             <i class="fa-solid fa-filter"></i>
         </div>
         <div class="collapse" id="filterContent">
-        <div class="d-flex justify-content-between align-items-center row pt-4 gap-6 gap-md-0 g-md-6">
-            <div class="col-md-3 product_status"></div>
-            <div class="col-md-3 product_category"></div>
-            <div class="col-md-3 product_stock"></div>
-            <div class="col-md-3 product_store"></div>
-            <div class="col-md-2 product_from_date"></div>
-            <div class="col-md-2 product_to_date"></div>
-            <div class="col-md-3 product_accounts"></div>
-            <div class="col-md-5 product_sites"></div>
-        </div>
+            <div class="d-flex justify-content-between align-items-center row pt-4 gap-6 gap-md-0 g-md-6">
+                <div class="col-md-3 product_status"></div>
+                <div class="col-md-3 product_category"></div>
+                <div class="col-md-3 product_stock"></div>
+                <div class="col-md-3 product_store"></div>
+                <div class="col-md-2 product_from_date"></div>
+                <div class="col-md-2 product_to_date"></div>
+                <div class="col-md-3 product_accounts"></div>
+                <div class="col-md-5 product_sites"></div>
+            </div>
         </div>
         <div class="d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#ExportContent" aria-expanded="false" aria-controls="ExportContent" style="cursor: pointer;">
             <h5 class="card-title mb-0">Export</h5>
             <i class="fa-solid fa-file-export"></i>
+        </div>
+        <div class="collapse" id="ExportContent">
         </div>
     </div>
     <div class="card-datatable">
