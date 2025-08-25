@@ -81,7 +81,12 @@ $info = getAuthorsProductInfo();
 <!-- Product List Table -->
 <div class="card">
     <div class="card-header border-bottom">
-        <h5 class="card-title">Filter</h5>
+        <div class="d-flex align-items-center justify-content-between">
+            <h5 class="card-title mb-0">Filter</h5>
+            <button class="btn btn-primary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#filterContent" aria-expanded="false" aria-controls="filterContent">
+                Hiển thị / Ẩn bộ lọc
+            </button>
+        </div>
         <div class="collapse" id="filterContent">
         <div class="d-flex justify-content-between align-items-center row pt-4 gap-6 gap-md-0 g-md-6">
             <div class="col-md-3 product_status"></div>
@@ -93,9 +98,6 @@ $info = getAuthorsProductInfo();
             <div class="col-md-6 product_sites"></div>
         </div>
         </div>
-        <button class="btn btn-primary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#filterContent" aria-expanded="false" aria-controls="filterContent">
-            Hiển thị / Ẩn bộ lọc
-        </button>
     </div>
     <div class="card-datatable">
         <table class="datatables-products table">
