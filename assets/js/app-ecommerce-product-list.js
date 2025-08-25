@@ -625,12 +625,13 @@ function initProductTable(){
                     typesHTML += '<div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" value="'+key+'" id="check'+key+'"><label class="form-check-label">'+value.title+'</label></div>';
                 });
                 $('.product_sites').html(typesHTML);
-                $('#maxDate,.product_sites input').on('change', function () {
-                    tableApi.draw();
-                });
 
                 // Export.
                 getMultipleSelect('export_accounts', 'accountsExport', 'Select Account', 'filter-accounts', false);
+
+                $('#maxDate,#storeFilter,#accountsFilter,.product_sites input').on('change', function () {
+                    tableApi.draw();
+                });
             }
         });
     }
@@ -714,8 +715,6 @@ function getMultipleSelect(div_class, select_id, select_label, action, multiple 
             searching: () => 'Đang tìm...',
             noResults: () => 'Không có kết quả'
         }
-    }).on('change', function () {
-        tableApi.draw();
     });
 }
 
