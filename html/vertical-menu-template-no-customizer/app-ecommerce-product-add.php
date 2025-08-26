@@ -392,44 +392,13 @@ $options = getProductTableFilters();
             <!-- Pricing Card -->
             <div class="card mb-6">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Pricing</h5>
+                    <h5 class="card-title mb-0">Set To Account</h5>
                 </div>
                 <div class="card-body">
                     <!-- Base Price -->
                     <div class="mb-6">
-                        <label class="form-label" for="ecommerce-product-price">Base Price</label>
-                        <input
-                                type="number"
-                                class="form-control"
-                                id="ecommerce-product-price"
-                                placeholder="Price"
-                                name="productPrice"
-                                aria-label="Product price" />
-                    </div>
-                    <!-- Discounted Price -->
-                    <div class="mb-6">
-                        <label class="form-label" for="ecommerce-product-discount-price">Discounted Price</label>
-                        <input
-                                type="number"
-                                class="form-control"
-                                id="ecommerce-product-discount-price"
-                                placeholder="Discounted Price"
-                                name="productDiscountedPrice"
-                                aria-label="Product discounted price" />
-                    </div>
-                    <!-- Charge tax check box -->
-                    <div class="form-check ms-2 mt-2 mb-4">
-                        <input class="form-check-input" type="checkbox" value="" id="price-charge-tax" checked />
-                        <label class="switch-label" for="price-charge-tax"> Charge tax on this product </label>
-                    </div>
-                    <!-- Instock switch -->
-                    <div class="d-flex justify-content-between align-items-center border-top pt-2">
-                        <span class="mb-0">In stock</span>
-                        <div class="w-25 d-flex justify-content-end">
-                            <div class="form-check form-switch me-n3">
-                                <input type="checkbox" class="form-check-input" checked />
-                            </div>
-                        </div>
+                        <label class="form-label" for="ecommerce-product-price">Select a Account</label>
+                        <select id="export_account" class="select2 form-select" data-placeholder="Select a Account"></select>
                     </div>
                 </div>
             </div>
