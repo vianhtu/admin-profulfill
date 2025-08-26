@@ -6,15 +6,15 @@ $options = getProductTableFilters();
     <div
             class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-6 row-gap-4">
         <div class="d-flex flex-column justify-content-center">
-            <h4 class="mb-1">Add a new Product</h4>
-            <p class="mb-0">Orders placed across your store</p>
+            <h4 class="mb-1">Add a new XLSX</h4>
+            <p class="mb-0">.xlsx</p>
         </div>
         <div class="d-flex align-content-center flex-wrap gap-4">
             <div class="d-flex gap-4">
                 <button class="btn btn-label-secondary">Discard</button>
                 <button class="btn btn-label-primary">Save draft</button>
             </div>
-            <button type="submit" class="btn btn-primary">Publish product</button>
+            <button type="submit" class="btn btn-primary">Publish XLSX</button>
         </div>
     </div>
 
@@ -24,7 +24,7 @@ $options = getProductTableFilters();
             <!-- Product Information -->
             <div class="card mb-6">
                 <div class="card-header">
-                    <h5 class="card-tile mb-0">Product information</h5>
+                    <h5 class="card-tile mb-0">XLSX information</h5>
                 </div>
                 <div class="card-body">
                     <div class="mb-6">
@@ -36,48 +36,6 @@ $options = getProductTableFilters();
                                 placeholder="Product title"
                                 name="productTitle"
                                 aria-label="Product title" />
-                    </div>
-                    <div class="row mb-6">
-                        <div class="col">
-                            <label class="form-label" for="ecommerce-product-sku">SKU</label>
-                            <input
-                                    type="number"
-                                    class="form-control"
-                                    id="ecommerce-product-sku"
-                                    placeholder="SKU"
-                                    name="productSku"
-                                    aria-label="Product SKU" />
-                        </div>
-                        <div class="col">
-                            <label class="form-label" for="ecommerce-product-barcode">Barcode</label>
-                            <input
-                                    type="text"
-                                    class="form-control"
-                                    id="ecommerce-product-barcode"
-                                    placeholder="0123-4567"
-                                    name="productBarcode"
-                                    aria-label="Product barcode" />
-                        </div>
-                    </div>
-                    <!-- Description -->
-                    <div>
-                        <label class="mb-1">Description (Optional)</label>
-                        <div class="form-control p-0">
-                            <div class="comment-toolbar border-0 border-bottom">
-                                <div class="d-flex justify-content-start">
-                                <span class="ql-formats me-0">
-                                  <button class="ql-bold"></button>
-                                  <button class="ql-italic"></button>
-                                  <button class="ql-underline"></button>
-                                  <button class="ql-list" value="ordered"></button>
-                                  <button class="ql-list" value="bullet"></button>
-                                  <button class="ql-link"></button>
-                                  <button class="ql-image"></button>
-                                </span>
-                                </div>
-                            </div>
-                            <div class="comment-editor border-0 pb-6" id="ecommerce-category-description"></div>
-                        </div>
                     </div>
                 </div>
             </div>
