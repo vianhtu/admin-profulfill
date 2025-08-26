@@ -232,6 +232,9 @@ $currentMenu = $_GET['menu'] ?? '';
                   case 'products':
                       include 'app-ecommerce-product-list.php';
                       break;
+                  case 'exports_add':
+                      include 'app-ecommerce-product-add.php';
+                      break;
                   case 'users':
                       include 'app-user-list.php';
                       break;
