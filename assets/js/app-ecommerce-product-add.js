@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
     getMultipleSelect('export_accounts', 'accountsExport', 'Select Account', 'filter-accounts', false);
     $('#export_submit').on('click', function (e) {
         let isValid = true;
-        $('#export-name, #accountsExport, #export_type, #export_site, #export_author').each(function () {
+        $('#export-name, #accountsExport').each(function () {
             const value = $(this).val().trim();
             if (!value) {
                 $(this).addClass('is-invalid').removeClass('is-valid');
