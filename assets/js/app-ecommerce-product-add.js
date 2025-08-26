@@ -99,8 +99,11 @@ document.addEventListener('DOMContentLoaded', function (e) {
 
     getMultipleSelect('export_accounts', 'accountsExport', 'Select Account', 'filter-accounts', false);
     $('#export_submit').on('click', function (e) {
+        e.preventDefault();
+
         let isValid = true;
-        $('#export-name, #accountsExport,#export_type,#export_site,#export_author').each(function () {
+
+        $('#export-name, #accountsExport, #export_type, #export_site, #export_author').each(function () {
             const value = ($(this).val() || '').trim();
             if (!value) {
                 $(this).addClass('is-invalid').removeClass('is-valid');
@@ -108,39 +111,45 @@ document.addEventListener('DOMContentLoaded', function (e) {
             } else {
                 $(this).removeClass('is-invalid').addClass('is-valid');
             }
-
-            if (isValid) {
-                const formData = new FormData();
-                formData.append('author', $('#export_author').val());
-                formData.append('site', $('#export_site').val());
-                formData.append('type', $('#export_type').val());
-                formData.append('account', $('#accountsExport').val());
-                formData.append('name', $('#export-name').val());
-
-                // Lấy file duy nhất từ Dropzone
-                if (myDropzone.files.length > 0) {
-                    formData.append('file', myDropzone.files[0]);
-                } else {
-                    alert('Vui lòng chọn một file.');
-                    return;
-                }
-
-                $.ajax({
-                    url: '/upload-handler.php',
-                    method: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function (response) {
-                        console.log('Thành công:', response);
-                        alert('Upload thành công!');
-                    },
-                    error: function (xhr) {
-                        console.error('Lỗi:', xhr.responseText);
-                        alert('Upload thất bại!');
-                    }
-                });
-            }
         });
+
+        if (isValid) {
+            const formData = new FormData();
+            formData.append('author', $('#export_author').val());
+            formData.append('site', $('#export_site').val());
+            formData.append('type', $('#export_type').val());
+            formData.append('account', $('#accountsExport').val());
+            formData.append('name', $('#export-name').val());
+
+            if (myDropzone && myDropzone.files.length > 0) {
+                formData.append('file', myDropzone.files[0]);
+            } else {
+                alert('Vui lòng chọn một file.');
+                return;
+            }
+
+            $.ajax({
+                url: '/upload-handler.php',
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    console.log('Thành công:', response);
+                    alert('Upload thành công!');
+
+                    // ✅ Xóa file khỏi Dropzone sau khi upload
+                    myDropzone.removeAllFiles();
+
+                    // (Tuỳ chọn) Reset form
+                    $('#myForm')[0].reset();
+                    $('#myForm .is-valid').removeClass('is-valid');
+                },
+                error: function (xhr) {
+                    console.error('Lỗi:', xhr.responseText);
+                    alert('Upload thất bại!');
+                }
+            });
+        }
     });
 });
