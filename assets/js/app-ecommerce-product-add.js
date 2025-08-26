@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
     $('#export_submit').on('click', function (e) {
         let isValid = true;
         $('#export-name, #accountsExport').each(function () {
-            const value = $(this).val().trim();
+            const value = ($(this).val() || '').trim();
             if (!value) {
                 $(this).addClass('is-invalid').removeClass('is-valid');
                 isValid = false;
