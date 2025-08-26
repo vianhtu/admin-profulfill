@@ -57,6 +57,12 @@ $currentMenu = $_GET['menu'] ?? '';
     <link rel="stylesheet" href="../../assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css" />
     <link rel="stylesheet" href="../../assets/vendor/libs/select2/select2.css" />
     <link rel="stylesheet" href="../../assets/vendor/libs/@form-validation/form-validation.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/quill/typography.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/quill/katex.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/quill/editor.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/dropzone/dropzone.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/flatpickr/flatpickr.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/tagify/tagify.css" />
 
     <!-- Page CSS -->
 
@@ -301,6 +307,12 @@ $currentMenu = $_GET['menu'] ?? '';
     <script src="../../assets/vendor/libs/@form-validation/bootstrap5.js"></script>
     <script src="../../assets/vendor/libs/@form-validation/auto-focus.js"></script>
     <script src="../../assets/vendor/libs/cleave-zen/cleave-zen.js"></script>
+    <script src="../../assets/vendor/libs/quill/katex.js"></script>
+    <script src="../../assets/vendor/libs/quill/quill.js"></script>
+    <script src="../../assets/vendor/libs/dropzone/dropzone.js"></script>
+    <script src="../../assets/vendor/libs/jquery-repeater/jquery-repeater.js"></script>
+    <script src="../../assets/vendor/libs/flatpickr/flatpickr.js"></script>
+    <script src="../../assets/vendor/libs/tagify/tagify.js"></script>
     <?php
     switch ($currentMenu) {
         case 'products': ?>
@@ -308,6 +320,9 @@ $currentMenu = $_GET['menu'] ?? '';
             <?php break;
         case 'users': ?>
             <script src="../../assets/js/app-user-list.js"></script>
+            <?php break;
+        case 'exports_add': ?>
+            <script src="../../assets/js/app-ecommerce-product-add.js"></script>
             <?php break;
     }
     ?>
