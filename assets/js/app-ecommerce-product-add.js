@@ -114,6 +114,39 @@ document.addEventListener('DOMContentLoaded', function (e) {
             } else {
                 $(this).removeClass('is-invalid').addClass('is-valid');
             }
+
+            if (isValid) {
+                const formData = new FormData();
+                formData.append('author', $('#export_author').val());
+                formData.append('site', $('#export_site').val());
+                formData.append('type', $('#export_type').val());
+                formData.append('account', $('#accountsExport').val());
+                formData.append('name', $('#export-name').val());
+
+                // Lấy file duy nhất từ Dropzone
+                if (myDropzone.files.length > 0) {
+                    formData.append('file', myDropzone.files[0]);
+                } else {
+                    alert('Vui lòng chọn một file.');
+                    return;
+                }
+
+                $.ajax({
+                    url: '/upload-handler.php',
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        console.log('Thành công:', response);
+                        alert('Upload thành công!');
+                    },
+                    error: function (xhr) {
+                        console.error('Lỗi:', xhr.responseText);
+                        alert('Upload thất bại!');
+                    }
+                });
+            }
         });
     });
 });
