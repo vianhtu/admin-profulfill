@@ -17,7 +17,7 @@ function renderMenu($currentMenu) {
 			'sub' => [
 				'exports_download' => 'Download',
 				'exports_xlsx' => '.Xlsx',
-				'exports_add' => 'Add',
+				'exports_add' => 'Add & Update',
 			]
 		],
 		'Users' => ['icon' => 'tabler-users', 'link' => 'users']
