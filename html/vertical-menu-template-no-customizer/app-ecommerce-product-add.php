@@ -12,9 +12,8 @@ $options = getProductTableFilters();
         <div class="d-flex align-content-center flex-wrap gap-4">
             <div class="d-flex gap-4">
                 <button class="btn btn-label-secondary">Discard</button>
-                <button class="btn btn-label-primary">Save draft</button>
             </div>
-            <button type="submit" class="btn btn-primary">Publish</button>
+            <button id="export_submit" class="btn btn-primary">Publish</button>
         </div>
     </div>
 
