@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
             }
 
             $.ajax({
-                url: '/upload-handler.php',
+                url: '../../ajax.php?action=add-xlsx',
                 method: 'POST',
                 data: formData,
                 processData: false,
