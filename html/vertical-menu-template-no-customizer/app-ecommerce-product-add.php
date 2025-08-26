@@ -444,29 +444,13 @@ $options = getProductTableFilters();
                     <div class="mb-6 col ecommerce-select2-dropdown">
                         <?php renderSelect('export_type', 'Type', $options['types']); ?>
                     </div>
-                    <!-- Collection -->
+                    <!-- Site -->
                     <div class="mb-6 col ecommerce-select2-dropdown">
                         <?php renderSelect('export_site', 'Site', $options['sites']); ?>
                     </div>
-                    <!-- Status -->
+                    <!-- authors -->
                     <div class="mb-6 col ecommerce-select2-dropdown">
-                        <label class="form-label mb-1" for="status-org">Status </label>
-                        <select id="status-org" class="select2 form-select" data-placeholder="Published">
-                            <option value="">Published</option>
-                            <option value="Published">Published</option>
-                            <option value="Scheduled">Scheduled</option>
-                            <option value="Inactive">Inactive</option>
-                        </select>
-                    </div>
-                    <!-- Tags -->
-                    <div>
-                        <label for="ecommerce-product-tags" class="form-label mb-1">Tags</label>
-                        <input
-                                id="ecommerce-product-tags"
-                                class="form-control"
-                                name="ecommerce-product-tags"
-                                value="Normal,Standard,Premium"
-                                aria-label="Product Tags" />
+                        <?php renderSelect('export_author', 'Author', $options['authors']); ?>
                     </div>
                 </div>
             </div>
