@@ -127,6 +127,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
             formData.append('type', $('#export_type').val());
             formData.append('account', $('#accountsExport').val());
             formData.append('name', $('#export-name').val());
+            formData.append('id', $('#export_id').val());
 
             if (myDropzone && myDropzone.files.length > 0) {
                 formData.append('file', myDropzone.files[0]);
