@@ -330,7 +330,6 @@ function getAccountsByID($id): array {
 		WHERE a.id = ?" );
 	$check->bind_param( "i", $id );
 	$check->execute();
-	$check->close();
 	$result = $check->get_result();
 	if ( $result->num_rows > 0 ) {
 		$row = $result->fetch_assoc();
