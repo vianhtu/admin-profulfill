@@ -104,18 +104,15 @@ $(function () {
 
 document.addEventListener('DOMContentLoaded', function (e) {
     getMultipleSelect('export_accounts', 'accountsExport', 'Select Account', 'filter-accounts', false);
-
     $('#export_submit').on('click', function (e) {
-        let inputs = $('#export-name, #accountsExport, #export_type, #export_site, #export_author');
         let isValid = true;
-
-        inputs.forEach(input => {
-            if (!input.value.trim()) {
-                input.classList.add('is-invalid');
+        $('#export-name, #accountsExport, #export_type, #export_site, #export_author').each(function () {
+            const value = $(this).val().trim();
+            if (!value) {
+                $(this).addClass('is-invalid').removeClass('is-valid');
                 isValid = false;
             } else {
-                input.classList.remove('is-invalid');
-                input.classList.add('is-valid');
+                $(this).removeClass('is-invalid').addClass('is-valid');
             }
         });
     });
