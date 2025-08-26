@@ -1,9 +1,28 @@
 <?php
 $options = getProductTableFilters();
-$export_id = $_GET['id'] ?? '';
-$export_data = getXlsxByID($export_id);
+$get_id = $_GET['id'] ?? '';
+$export_data = getXlsxByID($get_id);
+$export_id = '';
+$site_id = '';
+$type_id = '';
+$account_id = '';
+$authors_id = '';
+$name = '';
+$date_create = '';
+$file_name = '';
+$file_dir = '';
+$file_url = '';
 if(!empty($export_data)){
-    var_dump($export_data);
+    $export_id = $export_data['ID'];
+    $site_id = $export_data['site_id'];
+    $type_id = $export_data['type_id'];
+    $account_id = $export_data['accounts_id'];
+    $authors_id = $export_data['authors_id'];
+    $name = $export_data['name'];
+    $date_create = $export_data['date_create'];
+    $file_name = $export_data['file_name'];
+    $file_dir = $export_data['file_dir'];
+    $file_url = $export_data['file_url'];
 }
 ?>
 <div class="app-ecommerce">
@@ -40,6 +59,7 @@ if(!empty($export_data)){
                                 id="export-name"
                                 placeholder="Product title"
                                 name="productTitle"
+                                value="<?= $name ?>"
                                 aria-label="Product title" required/>
                     </div>
                 </div>
@@ -48,7 +68,7 @@ if(!empty($export_data)){
             <!-- Media -->
             <div class="card mb-6">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 card-title">File .xlsx</h5>
+                    <h5 class="mb-0 card-title">File: <?= $file_name ?></h5>
                 </div>
                 <div class="card-body">
                     <form action="/upload" class="dropzone needsclick p-0" id="dropzone-basic">
@@ -130,15 +150,15 @@ if(!empty($export_data)){
                 <div class="card-body">
                     <!-- Type -->
                     <div class="mb-6 col ecommerce-select2-dropdown">
-                        <?php renderSelect('export_type', 'Type', $options['types']); ?>
+                        <?php renderSelect('export_type', 'Type', $options['types'], $type_id); ?>
                     </div>
                     <!-- Site -->
                     <div class="mb-6 col ecommerce-select2-dropdown">
-                        <?php renderSelect('export_site', 'Site', $options['sites']); ?>
+                        <?php renderSelect('export_site', 'Site', $options['sites'], $site_id); ?>
                     </div>
                     <!-- authors -->
                     <div class="mb-6 col ecommerce-select2-dropdown">
-                        <?php renderSelect('export_author', 'Author', $options['authors']); ?>
+                        <?php renderSelect('export_author', 'Author', $options['authors'], $authors_id); ?>
                     </div>
                 </div>
             </div>

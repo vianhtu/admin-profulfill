@@ -65,11 +65,12 @@ function renderMenu($currentMenu) {
 	}
 }
 
-function renderSelect($id, $label, $options) {
+function renderSelect($id, $label, $options, $selected = null) {
 	echo "<label class='form-label mb-1' for='{$id}'>{$label}</label>";
 	echo "<select id='{$id}' class='select2 form-select'>";
 	foreach ($options as $key => $value) {
-		echo "<option value='{$key}'>{$value['title']}</option>";
+		$isSelected = ($selected === $key) ? "selected" : "";
+		echo "<option value='{$key}' {$isSelected}>{$value['title']}</option>";
 	}
 	echo "</select>";
 }
@@ -407,6 +408,7 @@ function addXlsx(): array {
 	$type_id     = $_POST['type'] ?? '';
 	$accounts_id = $_POST['account'] ?? '';
 	$name        = $_POST['name'] ?? '';
+	$authors_id  = $_POST['author'] ?? '';
 	$date_create = date( 'Y-m-d H:i:s' );
 
 	// Nếu có ID, kiểm tra bản ghi
@@ -429,12 +431,12 @@ function addXlsx(): array {
 			// Cập nhật bản ghi
 			$update = $conn->prepare( "
             UPDATE exports SET
-                accounts_id = ?, type_id = ?, site_id = ?,
+                accounts_id = ?, type_id = ?, site_id = ?, authors_id = ?,
                 name = ?, date_create = ?,
                 file_name = ?, file_dir = ?
             WHERE id = ?
         	" );
-			$update->bind_param( "iiissssi", $accounts_id, $type_id, $site_id, $name, $date_create, $originalName, $uniqueName, $id );
+			$update->bind_param( "iiiissssi", $accounts_id, $type_id, $site_id, $authors_id, $name, $date_create, $originalName, $uniqueName, $id );
 
 			if ( $update->execute() ) {
 				return [ 'status' => 'updated', 'id' => $id, 'file' => $uniqueName ];
@@ -446,10 +448,10 @@ function addXlsx(): array {
 
 	// Nếu không có ID hoặc không tìm thấy bản ghi, thêm mới
 	$insert = $conn->prepare( "
-    	INSERT INTO exports (accounts_id, type_id, site_id, name, date_create, file_name, file_dir)
-    	VALUES (?, ?, ?, ?, ?, ?, ?)
+    	INSERT INTO exports (accounts_id, type_id, site_id, authors_id, name, date_create, file_name, file_dir)
+    	VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 	" );
-	$insert->bind_param( "iiissss", $accounts_id, $type_id, $site_id, $name, $date_create, $originalName, $uniqueName );
+	$insert->bind_param( "iiiissss", $accounts_id, $type_id, $site_id, $authors_id, $name, $date_create, $originalName, $uniqueName );
 
 	if ( $insert->execute() ) {
 		return [ 'status' => 'inserted', 'id' => $insert->insert_id, 'file' => $uniqueName ];
