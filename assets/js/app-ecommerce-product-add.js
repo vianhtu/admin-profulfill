@@ -121,17 +121,18 @@ document.addEventListener('DOMContentLoaded', function (e) {
             $spinner.removeClass('d-none');
             $btn.prop('disabled', true);
 
+            let id = $('#export_id').val();
             const formData = new FormData();
             formData.append('author', $('#export_author').val());
             formData.append('site', $('#export_site').val());
             formData.append('type', $('#export_type').val());
             formData.append('account', $('#accountsExport').val());
             formData.append('name', $('#export-name').val());
-            formData.append('id', $('#export_id').val());
+            formData.append('id', id);
 
             if (myDropzone && myDropzone.files.length > 0) {
                 formData.append('file', myDropzone.files[0]);
-            } else {
+            } else if(id === '' || id === null || id === undefined) {
                 alert('Vui lòng chọn một file.');
                 return;
             }
