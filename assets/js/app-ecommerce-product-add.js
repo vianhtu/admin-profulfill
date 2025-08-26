@@ -81,13 +81,13 @@
 
 $(function () {
   // Select2
-  var select2 = $('.select2');
+  var select2 = $('#export_type,#export_site,#export_author');
   if (select2.length) {
     select2.each(function () {
       var $this = $(this);
       $this.wrap('<div class="position-relative"></div>').select2({
         dropdownParent: $this.parent(),
-        placeholder: $this.data('placeholder') // for dynamic placeholder
+        //placeholder: $this.data('placeholder') // for dynamic placeholder
       });
     });
   }
