@@ -357,6 +357,20 @@ function getAccountsTableFilter(): array {
 	];
 }
 
+function getXlsxByID($id): array {
+	$conn = db();
+	$check = $conn->prepare( "SELECT * FROM exports WHERE id = ?" );
+	$check->bind_param( "i", $id );
+	$check->execute();
+	$result = $check->get_result();
+	if ( $result->num_rows > 0 ) {
+		$row = $result->fetch_assoc();
+		return $row;
+	} else {
+		return [];
+	}
+}
+
 function addXlsx(): array {
 	$conn = db();
 
@@ -393,7 +407,6 @@ function addXlsx(): array {
 	$type_id     = $_POST['type'] ?? '';
 	$accounts_id = $_POST['account'] ?? '';
 	$name        = $_POST['name'] ?? '';
-	$query       = json_encode( [ 'file' => $uniqueName ] );
 	$date_create = date( 'Y-m-d H:i:s' );
 
 	// Nếu có ID, kiểm tra bản ghi

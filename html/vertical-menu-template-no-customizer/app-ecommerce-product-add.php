@@ -1,6 +1,13 @@
 <?php
 $options = getProductTableFilters();
 $export_id = $_GET['id'] ?? '';
+$export_data = getXlsxByID($export_id);
+if(empty($export_data)){
+    header("Location: index.php?menu=exports_add");
+    exit;
+} else {
+
+}
 ?>
 <div class="app-ecommerce">
     <input type="hidden" id="export_id" value="<?= $export_id ?>">
