@@ -396,10 +396,7 @@ $options = getProductTableFilters();
                 </div>
                 <div class="card-body">
                     <!-- Base Price -->
-                    <div class="mb-6">
-                        <label class="form-label" for="ecommerce-product-price">Select a Account</label>
-                        <select id="export_account" class="select2 form-select" data-placeholder="Select a Account"></select>
-                    </div>
+                    <div class="mb-6 export_accounts"></div>
                 </div>
             </div>
             <!-- /Pricing Card -->

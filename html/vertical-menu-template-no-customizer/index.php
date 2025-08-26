@@ -301,7 +301,7 @@ $currentMenu = $_GET['menu'] ?? '';
     <script src="../../assets/vendor/js/menu.js"></script>
 
     <!-- endbuild -->
-
+    <script src="../../assets/js/functions.js"></script>
     <!-- Vendors JS -->
     <script src="../../assets/vendor/libs/moment/moment.js"></script>
     <script src="../../assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
