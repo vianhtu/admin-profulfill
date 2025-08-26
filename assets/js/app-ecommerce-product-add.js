@@ -137,6 +137,8 @@ document.addEventListener('DOMContentLoaded', function (e) {
                 success: function (response) {
                     console.log('Thành công:', response);
                     alert('Upload thành công!');
+                    // ✅ Xóa file khỏi Dropzone sau khi upload
+                    myDropzone.removeAllFiles();
                 },
                 error: function (xhr) {
                     console.error('Lỗi:', xhr.responseText);
