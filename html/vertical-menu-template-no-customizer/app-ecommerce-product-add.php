@@ -8,10 +8,7 @@ $type_id = '';
 $account_id = '';
 $authors_id = '';
 $name = '';
-$date_create = '';
 $file_name = '';
-$file_dir = '';
-$file_url = '';
 if(!empty($export_data)){
     $export_id = $export_data['ID'];
     $site_id = $export_data['site_id'];
@@ -19,10 +16,7 @@ if(!empty($export_data)){
     $account_id = $export_data['accounts_id'];
     $authors_id = $export_data['authors_id'];
     $name = $export_data['name'];
-    $date_create = $export_data['date_create'];
     $file_name = $export_data['file_name'];
-    $file_dir = $export_data['file_dir'];
-    $file_url = $export_data['file_url'];
 }
 ?>
 <div class="app-ecommerce">
