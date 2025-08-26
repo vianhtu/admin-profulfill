@@ -5,6 +5,7 @@ $export_data = getXlsxByID($get_id);
 $export_id = '';
 $site_id = '';
 $type_id = '';
+$account = [];
 $account_id = '';
 $authors_id = '';
 $name = '';
@@ -22,7 +23,6 @@ if(!empty($export_data)){
     $text_add = 'Edit';
     $text_button = 'Update';
     $account = getAccountsByID($account_id);
-    var_dump($account);
 }
 ?>
 <div class="app-ecommerce">
@@ -139,7 +139,7 @@ if(!empty($export_data)){
                 <div class="card-body">
                     <!-- Base Price -->
                     <div class="mb-6 export_accounts">
-                        <?php renderSelect('accountsExport', 'Select Account', $options['types'], ''); ?>
+                        <?php renderSelect('accountsExport', 'Select Account', $account, $account_id); ?>
                     </div>
                 </div>
             </div>

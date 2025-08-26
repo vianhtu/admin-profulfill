@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
         });
     }
 
-    getMultipleSelect('export_accounts', 'accountsExport', 'Select Account', 'filter-accounts', false);
+    //getMultipleSelect('export_accounts', 'accountsExport', 'Select Account', 'filter-accounts', false);
 
     $('#export_submit').on('click', function (e) {
         e.preventDefault();
