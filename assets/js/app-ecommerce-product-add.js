@@ -142,10 +142,18 @@ document.addEventListener('DOMContentLoaded', function (e) {
                 processData: false,
                 contentType: false,
                 success: function (response) {
-                    console.log('Thành công:', response);
-                    alert('Upload thành công!');
-                    // ✅ Xóa file khỏi Dropzone sau khi upload
-                    myDropzone.removeAllFiles();
+                    if (response.status === 'inserted' || response.status === 'updated') {
+                        const newId = response.id;
+
+                        // Lấy URL hiện tại và thêm id
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('id', newId);
+
+                        // Reload lại với URL mới
+                        window.location.href = url.toString();
+                    } else {
+                        alert('Upload thất bại: ' + response.message);
+                    }
                 },
                 error: function (xhr) {
                     console.error('Lỗi:', xhr.responseText);
