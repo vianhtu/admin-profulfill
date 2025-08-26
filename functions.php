@@ -67,7 +67,6 @@ function renderMenu($currentMenu) {
 function renderSelect($id, $label, $options) {
 	echo "<label class='form-label mb-1' for='{$id}'>{$label}</label>";
 	echo "<select id='{$id}' class='select2 form-select'>";
-	echo "<option value=''>All</option>";
 	foreach ($options as $key => $value) {
 		echo "<option value='{$key}'>{$value['title']}</option>";
 	}
