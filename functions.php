@@ -375,87 +375,98 @@ function getXlsxByID($id): array {
 function addXlsx(): array {
 	$conn = db();
 
-	if ( ! isset( $_FILES['file'] ) || $_FILES['file']['error'] !== UPLOAD_ERR_OK ) {
-		return [ 'status' => 'error', 'message' => 'Không có file hợp lệ được gửi lên' ];
-	}
+	// Kiểm tra xem có file mới được upload không
+	$fileUploaded = isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK;
+	$originalName = '';
+	$uniqueName   = '';
 
-	$file         = $_FILES['file'];
-	$originalName = $file['name'];
-	$extension    = pathinfo( $originalName, PATHINFO_EXTENSION );
+	// Nếu có file mới, xử lý kiểm tra và lưu
+	if ($fileUploaded) {
+		$file         = $_FILES['file'];
+		$originalName = $file['name'];
+		$extension    = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+		$allowedMime  = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
-	// Kiểm tra định dạng .xlsx
-	$allowedMime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-	if ( $file['type'] !== $allowedMime || strtolower( $extension ) !== 'xlsx' ) {
-		return [ 'status' => 'error', 'message' => 'Chỉ chấp nhận file .xlsx' ];
-	}
+		if ($file['type'] !== $allowedMime || $extension !== 'xlsx') {
+			return ['status' => 'error', 'message' => 'Chỉ chấp nhận file .xlsx'];
+		}
 
-	// Tạo tên file duy nhất
-	$uniqueName = uniqid( 'export_', true ) . '.xlsx';
-	$uploadDir  = __DIR__ . '/xlsx/';
-	$targetPath = $uploadDir . $uniqueName;
+		$uniqueName = uniqid('export_', true) . '.xlsx';
+		$uploadDir  = __DIR__ . '/xlsx/';
+		$targetPath = $uploadDir . $uniqueName;
 
-	if ( ! is_dir( $uploadDir ) ) {
-		mkdir( $uploadDir, 0755, true );
-	}
+		if (!is_dir($uploadDir)) {
+			mkdir($uploadDir, 0755, true);
+		}
 
-	if ( ! move_uploaded_file( $file['tmp_name'], $targetPath ) ) {
-		return [ 'status' => 'error', 'message' => 'Không thể lưu file' ];
+		if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+			return ['status' => 'error', 'message' => 'Không thể lưu file'];
+		}
 	}
 
 	// Dữ liệu từ form
-	$id          = $_POST['id'] ?? null;
-	$site_id     = $_POST['site'] ?? '';
-	$type_id     = $_POST['type'] ?? '';
-	$accounts_id = $_POST['account'] ?? '';
-	$name        = $_POST['name'] ?? '';
-	$authors_id  = $_POST['author'] ?? '';
-	$date_create = date( 'Y-m-d H:i:s' );
+	$id           = $_POST['id'] ?? null;
+	$site_id      = (int) ($_POST['site'] ?? 0);
+	$type_id      = (int) ($_POST['type'] ?? 0);
+	$accounts_id  = (int) ($_POST['account'] ?? 0);
+	$authors_id   = (int) ($_POST['author'] ?? 0);
+	$name         = trim($_POST['name'] ?? '');
+	$date_create  = date('Y-m-d H:i:s');
 
-	// Nếu có ID, kiểm tra bản ghi
-	if ( $id ) {
-		$check = $conn->prepare( "SELECT file_name, file_dir FROM exports WHERE id = ?" );
-		$check->bind_param( "i", $id );
+	// Nếu có ID, kiểm tra bản ghi để cập nhật
+	if ($id) {
+		$check = $conn->prepare("SELECT file_name, file_dir FROM exports WHERE id = ?");
+		$check->bind_param("i", $id);
 		$check->execute();
 		$result = $check->get_result();
 
-		if ( $result->num_rows > 0 ) {
+		if ($result->num_rows > 0) {
 			$row         = $result->fetch_assoc();
 			$oldFileName = $row['file_name'];
 			$oldFileDir  = $row['file_dir'];
 
-			// Nếu tên file gốc khác, xóa file cũ
-			if ( $originalName !== $oldFileName && file_exists( $uploadDir . $oldFileDir ) ) {
-				unlink( $uploadDir . $oldFileDir );
+			// Nếu có file mới và tên khác, xóa file cũ
+			if ($fileUploaded && $originalName !== $oldFileName && file_exists(__DIR__ . '/xlsx/' . $oldFileDir)) {
+				unlink(__DIR__ . '/xlsx/' . $oldFileDir);
+			}
+
+			// Nếu không có file mới, giữ nguyên tên và đường dẫn file cũ
+			if (!$fileUploaded) {
+				$originalName = $oldFileName;
+				$uniqueName   = $oldFileDir;
 			}
 
 			// Cập nhật bản ghi
-			$update = $conn->prepare( "
-            UPDATE exports SET
-                accounts_id = ?, type_id = ?, site_id = ?, authors_id = ?,
-                name = ?, date_create = ?,
-                file_name = ?, file_dir = ?
-            WHERE id = ?
-        	" );
-			$update->bind_param( "iiiissssi", $accounts_id, $type_id, $site_id, $authors_id, $name, $date_create, $originalName, $uniqueName, $id );
+			$update = $conn->prepare("
+                UPDATE exports SET
+                    accounts_id = ?, type_id = ?, site_id = ?, authors_id = ?,
+                    name = ?, date_create = ?, file_name = ?, file_dir = ?
+                WHERE id = ?
+            ");
+			$update->bind_param("iiiissssi", $accounts_id, $type_id, $site_id, $authors_id, $name, $date_create, $originalName, $uniqueName, $id);
 
-			if ( $update->execute() ) {
-				return [ 'status' => 'updated', 'id' => $id, 'file' => $uniqueName ];
+			if ($update->execute()) {
+				return ['status' => 'updated', 'id' => $id, 'file' => $uniqueName];
 			} else {
-				return [ 'status' => 'error', 'message' => 'Lỗi khi cập nhật dữ liệu' ];
+				return ['status' => 'error', 'message' => 'Lỗi khi cập nhật dữ liệu'];
 			}
 		}
 	}
 
 	// Nếu không có ID hoặc không tìm thấy bản ghi, thêm mới
-	$insert = $conn->prepare( "
-    	INSERT INTO exports (accounts_id, type_id, site_id, authors_id, name, date_create, file_name, file_dir)
-    	VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-	" );
-	$insert->bind_param( "iiiissss", $accounts_id, $type_id, $site_id, $authors_id, $name, $date_create, $originalName, $uniqueName );
+	if (!$fileUploaded) {
+		return ['status' => 'error', 'message' => 'Vui lòng chọn file .xlsx để thêm mới'];
+	}
 
-	if ( $insert->execute() ) {
-		return [ 'status' => 'inserted', 'id' => $insert->insert_id, 'file' => $uniqueName ];
+	$insert = $conn->prepare("
+        INSERT INTO exports (accounts_id, type_id, site_id, authors_id, name, date_create, file_name, file_dir)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ");
+	$insert->bind_param("iiiissss", $accounts_id, $type_id, $site_id, $authors_id, $name, $date_create, $originalName, $uniqueName);
+
+	if ($insert->execute()) {
+		return ['status' => 'inserted', 'id' => $insert->insert_id, 'file' => $uniqueName];
 	} else {
-		return [ 'status' => 'error', 'message' => 'Lỗi khi thêm dữ liệu' ];
+		return ['status' => 'error', 'message' => 'Lỗi khi thêm dữ liệu'];
 	}
 }
