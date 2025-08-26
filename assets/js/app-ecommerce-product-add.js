@@ -106,6 +106,17 @@ document.addEventListener('DOMContentLoaded', function (e) {
     getMultipleSelect('export_accounts', 'accountsExport', 'Select Account', 'filter-accounts', false);
 
     $('#export_submit').on('click', function (e) {
-        let export_name = $('#export-name');
+        let inputs = $('#export-name, #accountsExport, #export_type, #export_site, #export_author');
+        let isValid = true;
+
+        inputs.forEach(input => {
+            if (!input.value.trim()) {
+                input.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                input.classList.remove('is-invalid');
+                input.classList.add('is-valid');
+            }
+        });
     });
 });
