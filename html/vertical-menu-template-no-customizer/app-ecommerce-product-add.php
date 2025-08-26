@@ -34,7 +34,7 @@ $options = getProductTableFilters();
                                 id="export-name"
                                 placeholder="Product title"
                                 name="productTitle"
-                                aria-label="Product title" />
+                                aria-label="Product title" required/>
                     </div>
                 </div>
             </div>
@@ -52,7 +52,7 @@ $options = getProductTableFilters();
                             <span class="needsclick btn btn-sm btn-label-primary" id="btnBrowse">Browse file</span>
                         </div>
                         <div class="fallback">
-                            <input name="file" type="file" />
+                            <input name="file" type="file" required/>
                         </div>
                     </form>
                 </div>
