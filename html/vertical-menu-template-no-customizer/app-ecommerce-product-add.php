@@ -24,7 +24,7 @@ $options = getProductTableFilters();
             <!-- Product Information -->
             <div class="card mb-6">
                 <div class="card-header">
-                    <h5 class="card-tile mb-0">XLSX information</h5>
+                    <h5 class="card-tile mb-0">Information</h5>
                 </div>
                 <div class="card-body">
                     <div class="mb-6">
