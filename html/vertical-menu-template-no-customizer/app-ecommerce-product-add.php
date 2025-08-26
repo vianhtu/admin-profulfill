@@ -28,11 +28,11 @@ $options = getProductTableFilters();
                 </div>
                 <div class="card-body">
                     <div class="mb-6">
-                        <label class="form-label" for="ecommerce-product-name">Name</label>
+                        <label class="form-label" for="export-name">Name</label>
                         <input
                                 type="text"
                                 class="form-control"
-                                id="ecommerce-product-name"
+                                id="export-name"
                                 placeholder="Product title"
                                 name="productTitle"
                                 aria-label="Product title" />
