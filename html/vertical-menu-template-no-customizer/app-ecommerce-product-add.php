@@ -1,3 +1,8 @@
+<?php
+$options = [];
+$options['types'] = getTypes();
+$options['authors'] = getAuthors();
+?>
 <div class="app-ecommerce">
     <!-- Add Product -->
     <div
@@ -110,14 +115,7 @@
                             <div data-repeater-item>
                                 <div class="row g-sm-6 mb-6">
                                     <div class="col-sm-4">
-                                        <label class="form-label" for="form-repeater-1-1">Options</label>
-                                        <select id="form-repeater-1-1" class="select2 form-select" data-placeholder="Size">
-                                            <option value="">Size</option>
-                                            <option value="size">Size</option>
-                                            <option value="color">Color</option>
-                                            <option value="weight">Weight</option>
-                                            <option value="smell">Smell</option>
-                                        </select>
+                                        <?php renderSelect('export_type', 'Type', $options['types']); ?> ?>
                                     </div>
 
                                     <div class="col-sm-8">

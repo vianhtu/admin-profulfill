@@ -64,6 +64,16 @@ function renderMenu($currentMenu) {
 	}
 }
 
+function renderSelect($id, $label, $options) {
+	echo "<label class='form-label' for='{$id}'>{$label}</label>";
+	echo "<select id='{$id}' class='select2 form-select'>";
+	echo "<option value=''>Size</option>";
+	foreach ($options as $key => $value) {
+		echo "<option value='{$key}'>{$value->title}</option>";
+	}
+	echo "</select>";
+}
+
 function getTypes(): array {
 	$conn = db();
 	$stmt = $conn->query("SELECT ID, name FROM type");
