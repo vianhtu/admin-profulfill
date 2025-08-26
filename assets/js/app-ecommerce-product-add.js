@@ -6,24 +6,8 @@
 //Javascript to handle the e-commerce product add page
 
 (function () {
-  // Comment editor
-
-  const commentEditor = document.querySelector('.comment-editor');
-
-  if (commentEditor) {
-    new Quill(commentEditor, {
-      modules: {
-        toolbar: '.comment-toolbar'
-      },
-      placeholder: 'Product Description',
-      theme: 'snow'
-    });
-  }
-
   // previewTemplate: Updated Dropzone default previewTemplate
-
   // ! Don't change it unless you really know what you are doing
-
   const previewTemplate = `<div class="dz-preview dz-file-preview">
 <div class="dz-details">
   <div class="dz-thumbnail">
@@ -51,28 +35,9 @@
       previewTemplate: previewTemplate,
       parallelUploads: 1,
       maxFilesize: 5,
-      acceptedFiles: '.jpg,.jpeg,.png,.gif',
+      acceptedFiles: '.xlsx',
       addRemoveLinks: true,
       maxFiles: 1
-    });
-  }
-
-  // Basic Tags
-
-  const tagifyBasicEl = document.querySelector('#ecommerce-product-tags');
-  const TagifyBasic = new Tagify(tagifyBasicEl);
-
-  // Flatpickr
-
-  // Datepicker
-  const date = new Date();
-
-  const productDate = document.querySelector('.product-date');
-
-  if (productDate) {
-    productDate.flatpickr({
-      monthSelectorType: 'static',
-      defaultDate: date
     });
   }
 })();
