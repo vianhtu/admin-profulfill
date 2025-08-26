@@ -83,7 +83,7 @@ $options = getProductTableFilters();
                                     <div class="col-sm-8">
                                         <label class="form-label invisible" for="form-repeater-1-2">Not visible</label>
                                         <input
-                                                type="number"
+                                                type="text"
                                                 id="form-repeater-1-2"
                                                 class="form-control"
                                                 placeholder="Enter size" />
