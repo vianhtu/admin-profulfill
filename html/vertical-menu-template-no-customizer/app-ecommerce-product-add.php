@@ -10,6 +10,7 @@ $authors_id = '';
 $name = '';
 $file_name = '';
 $text_add = 'Add a new';
+$text_button = 'Add';
 if(!empty($export_data)){
     $export_id = $export_data['ID'];
     $site_id = $export_data['site_id'];
@@ -19,6 +20,7 @@ if(!empty($export_data)){
     $name = $export_data['name'];
     $file_name = $export_data['file_name'];
     $text_add = 'Edit';
+    $text_button = 'Update';
 }
 ?>
 <div class="app-ecommerce">
@@ -34,7 +36,7 @@ if(!empty($export_data)){
             <div class="d-flex gap-4">
                 <button class="btn btn-label-secondary">Discard</button>
             </div>
-            <button id="export_submit" class="btn btn-primary waves-effect waves-light"><span class="spinner-border spinner-border-sm me-2 d-none" role="status" id="loading_spinner"></span>Publish</button>
+            <button id="export_submit" class="btn btn-primary waves-effect waves-light"><span class="spinner-border spinner-border-sm me-2 d-none" role="status" id="loading_spinner"></span><?= $text_button ?></button>
         </div>
     </div>
 
