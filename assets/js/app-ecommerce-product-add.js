@@ -5,18 +5,6 @@
 //Jquery to handle the e-commerce product add page
 
 $(function () {
-  // Select2
-  var select2 = $('#export_type,#export_site,#export_author');
-  if (select2.length) {
-    select2.each(function () {
-      var $this = $(this);
-      $this.wrap('<div class="position-relative"></div>').select2({
-        dropdownParent: $this.parent(),
-        //placeholder: $this.data('placeholder') // for dynamic placeholder
-      });
-    });
-  }
-
   var formRepeater = $('.form-repeater');
 
   // Form Repeater
@@ -63,7 +51,17 @@ $(function () {
 });
 
 document.addEventListener('DOMContentLoaded', function (e) {
-
+    // Select2
+    var select2 = $('#export_type,#export_site,#export_author');
+    if (select2.length) {
+        select2.each(function () {
+            var $this = $(this);
+            $this.wrap('<div class="position-relative"></div>').select2({
+                dropdownParent: $this.parent(),
+                //placeholder: $this.data('placeholder') // for dynamic placeholder
+            });
+        });
+    }
     // previewTemplate: Updated Dropzone default previewTemplate
     // ! Don't change it unless you really know what you are doing
     const previewTemplate = `<div class="dz-preview dz-file-preview">
@@ -86,10 +84,10 @@ document.addEventListener('DOMContentLoaded', function (e) {
     // ? Start your code from here
 
     // Basic Dropzone
-
+    let myDropzone;
     const dropzoneBasic = document.querySelector('#dropzone-basic');
     if (dropzoneBasic) {
-        const myDropzone = new Dropzone(dropzoneBasic, {
+        myDropzone = new Dropzone(dropzoneBasic, {
             previewTemplate: previewTemplate,
             parallelUploads: 1,
             maxFilesize: 5,
