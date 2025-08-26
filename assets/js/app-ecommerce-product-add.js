@@ -98,6 +98,9 @@ document.addEventListener('DOMContentLoaded', function (e) {
     }
 
     getMultipleSelect('export_accounts', 'accountsExport', 'Select Account', 'filter-accounts', false);
+    var newOption = new Option('ffff', 1, true, true);
+    $('#accountsExport').append(newOption).trigger('change');
+
     $('#export_submit').on('click', function (e) {
         e.preventDefault();
 
