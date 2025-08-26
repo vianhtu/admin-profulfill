@@ -331,12 +331,14 @@ function getAccountsByID($id): array {
 	$check->bind_param( "i", $id );
 	$check->execute();
 	$result = $check->get_result();
+	$types = [];
 	if ( $result->num_rows > 0 ) {
 		$row = $result->fetch_assoc();
-		return $row;
-	} else {
-		return [];
+		$types[$row['id']] = [
+			'title' => $row['name']
+		];
 	}
+	return $types;
 }
 
 function getAccountsTableFilter(): array {
