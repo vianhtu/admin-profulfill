@@ -322,6 +322,24 @@ function getStoresTableFilter(): array {
 	];
 }
 
+function getAccountsByID($id): array {
+	$conn = db();
+	$check = $conn->prepare( "SELECT a.id, CONCAT(s.name, ' (', a.name, ')') AS name
+		FROM accounts AS a
+		JOIN site s ON a.site_id = s.id
+		WHERE a.id = ?" );
+	$check->bind_param( "i", $id );
+	$check->execute();
+	$check->close();
+	$result = $check->get_result();
+	if ( $result->num_rows > 0 ) {
+		$row = $result->fetch_assoc();
+		return $row;
+	} else {
+		return [];
+	}
+}
+
 function getAccountsTableFilter(): array {
 	$conn = db();
 	// Lấy giá trị tìm kiếm từ POST

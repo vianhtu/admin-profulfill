@@ -21,6 +21,8 @@ if(!empty($export_data)){
     $file_name = $export_data['file_name'];
     $text_add = 'Edit';
     $text_button = 'Update';
+    $account = getAccountsByID($account_id);
+    var_dump($account);
 }
 ?>
 <div class="app-ecommerce">
@@ -136,7 +138,9 @@ if(!empty($export_data)){
                 </div>
                 <div class="card-body">
                     <!-- Base Price -->
-                    <div class="mb-6 export_accounts"></div>
+                    <div class="mb-6 export_accounts">
+                        <?php renderSelect('accountsExport', 'Select Account', $options['types'], ''); ?>
+                    </div>
                 </div>
             </div>
             <!-- /Pricing Card -->
