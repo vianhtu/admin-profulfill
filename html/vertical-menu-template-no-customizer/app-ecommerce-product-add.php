@@ -1,7 +1,5 @@
 <?php
-$options = [];
-$options['types'] = getTypes();
-$options['authors'] = getAuthors();
+$options = getProductTableFilters();
 ?>
 <div class="app-ecommerce">
     <!-- Add Product -->
@@ -442,38 +440,13 @@ $options['authors'] = getAuthors();
                     <h5 class="card-title mb-0">Organize</h5>
                 </div>
                 <div class="card-body">
-                    <!-- Vendor -->
+                    <!-- Type -->
                     <div class="mb-6 col ecommerce-select2-dropdown">
                         <?php renderSelect('export_type', 'Type', $options['types']); ?>
                     </div>
-                    <!-- Category -->
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="mb-6 col ecommerce-select2-dropdown">
-                            <label class="form-label mb-1" for="category-org">
-                                <span>Category</span>
-                            </label>
-                            <select id="category-org" class="select2 form-select" data-placeholder="Select Category">
-                                <option value="">Select Category</option>
-                                <option value="Household">Household</option>
-                                <option value="Management">Management</option>
-                                <option value="Electronics">Electronics</option>
-                                <option value="Office">Office</option>
-                                <option value="Automotive">Automotive</option>
-                            </select>
-                        </div>
-                        <a href="javascript:void(0);" class="fw-medium btn btn-icon btn-label-primary ms-4"
-                        ><i class="icon-base ti tabler-plus icon-md"></i
-                            ></a>
-                    </div>
                     <!-- Collection -->
                     <div class="mb-6 col ecommerce-select2-dropdown">
-                        <label class="form-label mb-1" for="collection">Collection </label>
-                        <select id="collection" class="select2 form-select" data-placeholder="Collection">
-                            <option value="">Collection</option>
-                            <option value="men-clothing">Men's Clothing</option>
-                            <option value="women-clothing">Women's-clothing</option>
-                            <option value="kid-clothing">Kid's-clothing</option>
-                        </select>
+                        <?php renderSelect('export_site', 'Site', $options['sites']); ?>
                     </div>
                     <!-- Status -->
                     <div class="mb-6 col ecommerce-select2-dropdown">
