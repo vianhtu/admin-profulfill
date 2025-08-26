@@ -114,6 +114,13 @@ document.addEventListener('DOMContentLoaded', function (e) {
         });
 
         if (isValid) {
+            const $btn = $(this);
+            const $spinner = $('#loading_spinner');
+
+            // Hiển thị spinner và disable nút
+            $spinner.removeClass('d-none');
+            $btn.prop('disabled', true);
+
             const formData = new FormData();
             formData.append('author', $('#export_author').val());
             formData.append('site', $('#export_site').val());
@@ -143,6 +150,11 @@ document.addEventListener('DOMContentLoaded', function (e) {
                 error: function (xhr) {
                     console.error('Lỗi:', xhr.responseText);
                     alert('Upload thất bại!');
+                },
+                complete: function () {
+                    // Ẩn spinner và bật lại nút
+                    $spinner.addClass('d-none');
+                    $btn.prop('disabled', false);
                 }
             });
         }
