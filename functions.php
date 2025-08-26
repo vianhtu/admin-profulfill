@@ -15,7 +15,8 @@ function renderMenu($currentMenu) {
 		'Export' => [
 			'icon' => 'tabler-file-type-xls',
 			'sub' => [
-				'exports_xlsx' => 'XLSX',
+				'exports_download' => 'Download',
+				'exports_xlsx' => '.xlsx',
 				'exports_add' => 'Add',
 			]
 		],

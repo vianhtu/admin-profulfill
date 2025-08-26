@@ -106,6 +106,6 @@ document.addEventListener('DOMContentLoaded', function (e) {
     getMultipleSelect('export_accounts', 'accountsExport', 'Select Account', 'filter-accounts', false);
 
     $('#export_submit').on('click', function (e) {
-
+        let export_name = $('#export-name');
     });
 });
