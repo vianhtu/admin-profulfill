@@ -115,7 +115,14 @@ $options['authors'] = getAuthors();
                             <div data-repeater-item>
                                 <div class="row g-sm-6 mb-6">
                                     <div class="col-sm-4">
-                                        <?php renderSelect('export_type', 'Type', $options['types']); ?> ?>
+                                        <label class="form-label" for="form-repeater-1-1">Options</label>
+                                        <select id="form-repeater-1-1" class="select2 form-select" data-placeholder="Size">
+                                            <option value="">Size</option>
+                                            <option value="size">Size</option>
+                                            <option value="color">Color</option>
+                                            <option value="weight">Weight</option>
+                                            <option value="smell">Smell</option>
+                                        </select>
                                     </div>
 
                                     <div class="col-sm-8">
@@ -437,13 +444,7 @@ $options['authors'] = getAuthors();
                 <div class="card-body">
                     <!-- Vendor -->
                     <div class="mb-6 col ecommerce-select2-dropdown">
-                        <label class="form-label mb-1" for="vendor"> Vendor </label>
-                        <select id="vendor" class="select2 form-select" data-placeholder="Select Vendor">
-                            <option value="">Select Vendor</option>
-                            <option value="men-clothing">Men's Clothing</option>
-                            <option value="women-clothing">Women's-clothing</option>
-                            <option value="kid-clothing">Kid's-clothing</option>
-                        </select>
+                        <?php renderSelect('export_type', 'Type', $options['types']); ?>
                     </div>
                     <!-- Category -->
                     <div class="d-flex justify-content-between align-items-center">
