@@ -9,6 +9,7 @@ $account_id = '';
 $authors_id = '';
 $name = '';
 $file_name = '';
+$text_add = 'Add a new';
 if(!empty($export_data)){
     $export_id = $export_data['ID'];
     $site_id = $export_data['site_id'];
@@ -17,6 +18,7 @@ if(!empty($export_data)){
     $authors_id = $export_data['authors_id'];
     $name = $export_data['name'];
     $file_name = $export_data['file_name'];
+    $text_add = 'Edit';
 }
 ?>
 <div class="app-ecommerce">
@@ -25,7 +27,7 @@ if(!empty($export_data)){
     <div
             class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-6 row-gap-4">
         <div class="d-flex flex-column justify-content-center">
-            <h4 class="mb-1">Add a new</h4>
+            <h4 class="mb-1"><?= $text_add ?></h4>
             <p class="mb-0">setup .xlsx file & default config.</p>
         </div>
         <div class="d-flex align-content-center flex-wrap gap-4">
