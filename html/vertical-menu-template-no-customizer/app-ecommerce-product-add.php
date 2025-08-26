@@ -43,15 +43,14 @@ $options = getProductTableFilters();
             <!-- Media -->
             <div class="card mb-6">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 card-title">Product Image</h5>
-                    <a href="javascript:void(0);" class="fw-medium">Add media from URL</a>
+                    <h5 class="mb-0 card-title">File .xlsx</h5>
                 </div>
                 <div class="card-body">
                     <form action="/upload" class="dropzone needsclick p-0" id="dropzone-basic">
                         <div class="dz-message needsclick">
-                            <p class="h4 needsclick pt-3 mb-2">Drag and drop your image here</p>
+                            <p class="h4 needsclick pt-3 mb-2">Drag and drop your .xlsx file here</p>
                             <p class="h6 text-body-secondary d-block fw-normal mb-2">or</p>
-                            <span class="needsclick btn btn-sm btn-label-primary" id="btnBrowse">Browse image</span>
+                            <span class="needsclick btn btn-sm btn-label-primary" id="btnBrowse">Browse file</span>
                         </div>
                         <div class="fallback">
                             <input name="file" type="file" />
