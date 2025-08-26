@@ -13,7 +13,7 @@ $options = getProductTableFilters();
             <div class="d-flex gap-4">
                 <button class="btn btn-label-secondary">Discard</button>
             </div>
-            <button id="export_submit" class="btn btn-primary">Publish</button>
+            <button id="export_submit" class="btn btn-primary"><span class="spinner-border spinner-border-sm me-2 d-none" role="status" id="loading_spinner"></span>Publish</button>
         </div>
     </div>
 
