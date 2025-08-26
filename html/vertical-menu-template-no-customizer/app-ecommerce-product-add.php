@@ -62,7 +62,7 @@ $options = getProductTableFilters();
             <!-- Variants -->
             <div class="card mb-6">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Variants</h5>
+                    <h5 class="card-title mb-0">Default</h5>
                 </div>
                 <div class="card-body">
                     <form class="form-repeater">
