@@ -101,9 +101,9 @@ if(!empty($export_data)){
                 <div class="card-body">
                     <form class="form-repeater">
                         <div data-repeater-list="group-a">
+                            <?php foreach ($file_default as $key => $value): ?>
                             <div data-repeater-item>
                                 <div class="row g-sm-6 mb-6 align-items-end">
-                                    <?php foreach ($file_default as $key => $value): ?>
                                     <div class="col-sm-4">
                                         <label class="form-label" for="form-repeater-<?= $key ?>-1">Options</label>
                                         <select id="form-repeater-<?= $key ?>-1" class="select2 form-select" data-placeholder="Select a option">
@@ -130,8 +130,8 @@ if(!empty($export_data)){
                                             </a>
                                         </div>
                                     </div>
-                                    <?php endforeach; ?>
                                 </div>
+                                <?php endforeach; ?>
                             </div>
                         </div>
                         <div>
