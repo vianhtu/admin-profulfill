@@ -52,7 +52,7 @@ function initTable(){
                 url: '../../ajax.php?action=get-xlsx',
                 type: 'POST',
                 data: function (d) {
-                    //d.minDate = $('#minDate').val();
+                    d.accounts = $('#xlsxAccounts').val();
                 },
                 dataSrc: function (json) {
                     return json.data;
@@ -521,11 +521,9 @@ function initTable(){
 
                 // Accounts filter
                 getAjaxSelect2HTML('xlsx_accounts', 'xlsxAccounts', 'Accounts', 'filter-accounts', true);
-                //const column = api.column(8);
                 // Add event listener for filtering
                 $('#xlsxAccounts').on('change', function (){
-                    //const val = $(this).value ? `^${$(this).value}$` : '';
-                    //column.search(val, true, false).draw();
+                    dt_user.draw();
                 });
             }
         });

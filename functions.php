@@ -374,6 +374,17 @@ function getAccountsTable(): array {
 		$whereClauses[] = "authors_id = '$escStock'";
 	}
 
+	// lọc theo accounts.
+	$filterAccounts = $_POST['accounts'] ?? [];
+	if ( ! empty( $filterAccounts ) && is_array( $filterAccounts ) ) {
+		// Ép tất cả sang số nguyên để tránh SQL injection
+		$ids    = array_map( 'intval', $filterAccounts );
+		$idsStr = implode( ',', $ids );
+		if ( $idsStr !== '' ) {
+			$whereClauses[] = "accounts_id IN ($idsStr)";
+		}
+	}
+
 	$where         = $whereClauses ? ' WHERE ' . implode( ' AND ', $whereClauses ) : '';
 	$join          = 'INNER JOIN accounts a ON a.ID = exports.accounts_id';
 	$totalFiltered = $conn->query( "SELECT COUNT(DISTINCT exports.ID) AS cnt FROM exports $join $where" )->fetch_assoc()['cnt'];
