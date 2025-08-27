@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
                 <a href="javascript:;" class="btn btn-text-secondary rounded-pill waves-effect btn-icon delete-record">
                   <i class="icon-base ti tabler-trash icon-22px"></i>
                 </a>
-                <a href="${userView}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon">
+                <a href="index.php?menu=exports_add&id=${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon">
                   <i class="icon-base ti tabler-eye icon-22px"></i>
                 </a>
                 <a href="javascript:;" class="btn btn-text-secondary rounded-pill waves-effect btn-icon dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
