@@ -24,8 +24,8 @@ if(!empty($export_data)){
     $text_add = 'Edit';
     $text_button = 'Update';
     $account = getAccountsByID($account_id);
-    $file_header = getXlsxFileHeader(__DIR__.'/../../xlsx/'.$export_data['file_dir']);
     var_dump(__DIR__.'/../../xlsx/'.$export_data['file_dir']);
+    $file_header = getXlsxFileHeader(__DIR__.'/../../xlsx/'.$export_data['file_dir']);
 }
 ?>
 <div class="app-ecommerce">
