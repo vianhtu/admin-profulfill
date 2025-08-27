@@ -428,7 +428,7 @@ function getXlsxFileHeader(string $filePath, string $sheetName = 'Template', int
 			}
 
 			$headers[] = [
-				'column_letter' => Coordinate::stringFromColumnIndex($col),
+				'column' => Coordinate::stringFromColumnIndex($col),
 				'row' => $headerRowIndex,
 				'value' => $cellValue,
 			];
