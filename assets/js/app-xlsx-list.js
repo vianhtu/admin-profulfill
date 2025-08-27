@@ -127,9 +127,7 @@ function initTable(){
                             '</div>' +
                             '</div>' +
                             '<div class="d-flex flex-column">' +
-                            '<a href="' +
-                            userView +
-                            '" class="text-heading text-truncate"><span class="fw-medium">' +
+                            '<a href="index.php?menu=exports_add&id='+full['id']+'" class="text-heading text-truncate"><span class="fw-medium">' +
                             name +
                             '</span></a>' +
                             '<small>' +
