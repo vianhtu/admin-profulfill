@@ -13,6 +13,8 @@ define('APP_NAME', 'SecureAuthDB');
 define('REMEMBER_COOKIE', 'APPREMEMBER_' . APP_NAME);
 define('REMEMBER_DURATION', 30 * 24 * 60 * 60); // 30 ngày
 
+define('ROOT_DIR', __DIR__);
+
 // ===== DB connection =====
 function db(): mysqli {
 	static $conn;
