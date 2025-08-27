@@ -547,10 +547,10 @@ function initTable(){
 
                 const statusColumn = api.column(6);
                 const uniqueStatusData = Array.from(new Set(statusColumn.data().toArray())).sort();
-                uniqueStatusData.forEach(d => {
+                uniqueStatusData.forEach(([key, val]) => {
                     const option = document.createElement('option');
-                    option.value = statusObj[d]?.title || d;
-                    option.textContent = statusObj[d]?.title || d;
+                    option.value = val.title;
+                    option.textContent = val.title;
                     option.className = 'text-capitalize';
                     statusFilter.appendChild(option);
                 });
