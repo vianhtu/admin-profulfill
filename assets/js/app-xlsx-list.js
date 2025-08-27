@@ -522,7 +522,7 @@ function initTable(){
                     // Populate options based on unique column data
                     Object.entries(options).forEach(([key, val]) => {
                         const option = document.createElement('option');
-                        option.value = val.title;
+                        option.value = key;
                         option.textContent = val.title;
                         select.appendChild(option);
                     });
