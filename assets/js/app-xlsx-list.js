@@ -111,7 +111,7 @@ function initTable(){
                     responsivePriority: 3,
                     render: function (data, type, full, meta) {
                         var name = full['full_name'];
-                        var email = full['email'];
+                        var account_name = full['account_name'];
                         var image = './../../assets/svg/icons/xlsx_icon.svg';
                         var output;
 
@@ -132,7 +132,7 @@ function initTable(){
                             name +
                             '</span></a>' +
                             '<small>' +
-                            email +
+                            account_name +
                             '</small>' +
                             '</div>' +
                             '</div>';
