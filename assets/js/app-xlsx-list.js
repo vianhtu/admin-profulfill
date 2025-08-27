@@ -520,10 +520,10 @@ function initTable(){
                     });
 
                     // Populate options based on unique column data
-                    Object.entries(options).forEach(d => {
+                    Object.entries(options).forEach(([key, val]) => {
                         const option = document.createElement('option');
-                        option.value = d.title;
-                        option.textContent = d.title;
+                        option.value = val.title;
+                        option.textContent = val.title;
                         select.appendChild(option);
                     });
                 };
