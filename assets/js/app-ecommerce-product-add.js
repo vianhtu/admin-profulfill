@@ -52,7 +52,7 @@ $(function () {
 
 document.addEventListener('DOMContentLoaded', function (e) {
     // Select2
-    var select2 = $('#export_type,#export_site,#export_author, .form-repeater .select2');
+    var select2 = $('#export_type,#export_site,#export_author');
     if (select2.length) {
         select2.each(function () {
             var $this = $(this);
@@ -98,6 +98,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
     }
 
     ajaxSelect2('accountsExport', 'filter-accounts', false);
+    ajaxSelect2('form-repeater-1-1', 'filter-accounts', false);
 
     $('#export_submit').on('click', function (e) {
         e.preventDefault();
