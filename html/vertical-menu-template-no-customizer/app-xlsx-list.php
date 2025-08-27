@@ -5,7 +5,7 @@
         <div class="d-flex justify-content-between align-items-center row pt-4 gap-4 gap-md-0">
             <div class="col-md-4 xlsx_type"></div>
             <div class="col-md-4 xlsx_site"></div>
-            <div class="col-md-4 user_status"></div>
+            <div class="col-md-4 xlsx_author"></div>
         </div>
     </div>
     <div class="card-datatable">
@@ -16,8 +16,8 @@
                 <th></th>
                 <th>User</th>
                 <th>Category</th>
-                <th>Site</th>
-                <th>Billing</th>
+                <th>Sites</th>
+                <th>Authors</th>
                 <th>Date</th>
                 <th>Actions</th>
             </tr>
