@@ -33,7 +33,18 @@ document.addEventListener('DOMContentLoaded', function (e) {
   // Users datatable
   if (dt_user_table) {
     const dt_user = new DataTable(dt_user_table, {
-      ajax: assetsPath + 'json/user-list.json', // JSON file to add data
+      serverSide: true,
+      processing: true,
+      ajax: {
+          url: '../../ajax.php?action=get-xlsx',
+          type: 'POST',
+          data: function (d) {
+              //d.minDate = $('#minDate').val();
+          },
+          dataSrc: function (json) {
+              return json.data;
+          }
+      },
       columns: [
         // columns according to JSON
         { data: 'id' },

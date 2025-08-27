@@ -326,6 +326,65 @@ function getStoresTableFilter(): array {
 	];
 }
 
+function getAccountsTable(): array {
+	$conn = db();
+	// Lấy thông số từ DataTables
+	$draw             = intval( $_POST['draw'] ?? 1 );
+	$start            = intval( $_POST['start'] ?? 0 );
+	$length           = intval( $_POST['length'] ?? 10 );
+	$orderColumnIndex = intval( $_POST['order'][0]['column'] ?? 0 );
+	$orderColumn      = $_POST['columns'][ $orderColumnIndex ]['data'] ?? 'ID';
+	$orderDir         = strtolower( $_POST['order'][0]['dir'] ?? 'asc' ) === 'desc' ? 'DESC' : 'ASC';
+	$searchValue      = trim( $_POST['search']['value'] ?? '' );
+
+	// Danh sách cột cho phép sort
+	$allowedCols = ['ID', 'name', 'date_create', 'accounts_id', 'type_id', 'site_id', 'authors_id'];
+	if ( ! in_array( $orderColumn, $allowedCols ) ) {
+		$orderColumn = 'ID';
+	}
+
+	// Tổng số bản ghi
+	$totalRecords = $conn->query( "SELECT COUNT(*) AS cnt FROM exports" )->fetch_assoc()['cnt'];
+	$whereClauses = [];
+	// Lọc theo search
+	if ( $searchValue !== '' ) {
+		$searchEsc      = $conn->real_escape_string( $searchValue );
+		$whereClauses[] = "(name LIKE '%$searchEsc%' OR file_name LIKE '%$searchEsc%')";
+	}
+
+	$where         = $whereClauses ? ' WHERE ' . implode( ' AND ', $whereClauses ) : '';
+	$totalFiltered = $conn->query( "SELECT COUNT(ID) AS cnt FROM exports $where" )->fetch_assoc()['cnt'];
+
+	// Lấy dữ liệu
+	$sql = "SELECT ID, accounts_id, type_id, site_id, authors_id, name, date_create
+        FROM exports
+        $where
+        ORDER BY $orderColumn $orderDir
+        LIMIT $start, $length";
+	$rs  = $conn->query( $sql );
+
+	// Chuẩn bị dữ liệu trả về
+	$data = [];
+	while ( $row = $rs->fetch_assoc() ) {
+		$data[] = [
+			"id"            => $row['ID'],
+			"full_name"     => htmlspecialchars( $row['name'] ),
+			"role"          => $row['type_id'],
+			"current_plan"  => $row['site_id'],
+			"billing"       => $row['authors_id'],
+			"status"        => $row['date_create'],
+		];
+	}
+
+	// Trả JSON
+	return [
+		"draw"            => $draw,
+		"recordsTotal"    => $totalRecords,
+		"recordsFiltered" => $totalFiltered,
+		"data"            => $data
+	];
+}
+
 function getAccountsByID($id): array {
 	$conn = db();
 	$check = $conn->prepare( "SELECT a.id, CONCAT(s.name, ' (', a.name, ')') AS name

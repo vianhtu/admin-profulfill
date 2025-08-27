@@ -31,6 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 		case 'filter-accounts':
 			echo json_encode(getAccountsTableFilter());
 			break;
+		case 'get-xlsx':
+			echo json_encode(getAccountsTable());
+			break;
 		case 'add-xlsx':
 			echo json_encode(addXlsx());
 			break;
