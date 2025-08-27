@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
     }));
 
     // Khởi tạo Select2
-    $('#form-repeater-1-1').select2({
+    $('[data-repeater-item] .form-select').select2({
         data: selectOptions,
         placeholder: 'Chọn một cột',
         allowClear: true
