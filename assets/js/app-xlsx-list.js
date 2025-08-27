@@ -426,7 +426,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
       language: {
         sLengthMenu: '_MENU_',
         search: '',
-        searchPlaceholder: 'Search User',
+        searchPlaceholder: 'Search file',
         paginate: {
           next: '<i class="icon-base ti tabler-chevron-right scaleX-n1-rtl icon-18px"></i>',
           previous: '<i class="icon-base ti tabler-chevron-left scaleX-n1-rtl icon-18px"></i>',
