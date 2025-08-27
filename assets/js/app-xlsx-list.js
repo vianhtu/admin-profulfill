@@ -75,7 +75,7 @@ function initTable(){
                 { data: 'id', orderable: false, render: DataTable.render.select() },
                 { data: 'full_name' },
                 { data: 'type_id' },
-                { data: 'current_plan' },
+                { data: 'site_id' },
                 { data: 'billing' },
                 { data: 'date_create' },
                 { data: 'action' }
@@ -151,19 +151,19 @@ function initTable(){
                     }
                 },
                 {
+                    // Type
                     targets: 3,
                     render: function (data, type, full, meta) {
-                        var role = full['type_id'];
-                        return '<span>' + categoryObj[role].title + '</span>';
+                        var id = full['type_id'];
+                        return '<span>' + categoryObj[id].title + '</span>';
                     }
                 },
                 {
-                    // Plans
+                    // Site
                     targets: 4,
                     render: function (data, type, full, meta) {
-                        const plan = full['current_plan'];
-
-                        return '<span class="text-heading">' + plan + '</span>';
+                        let id = full['site_id'];
+                        return '<span class="text-heading">' + sitesObj[id].title + '</span>';
                     }
                 },
                 {
@@ -527,7 +527,7 @@ function initTable(){
                 createFilter(3, '.xlsx_type', 'xlsxType', 'Type', categoryObj);
 
                 // Plan filter
-                createFilter(4, '.user_plan', 'UserPlan', 'Plan', sitesObj);
+                createFilter(4, '.xlsx_site', 'xlsxSite', 'Site', sitesObj);
 
                 // Status filter
                 createFilter(6, '.user_status', 'FilterTransaction', 'Status', authorsObj);

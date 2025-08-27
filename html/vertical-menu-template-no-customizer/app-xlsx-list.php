@@ -16,7 +16,7 @@
                 <th></th>
                 <th>User</th>
                 <th>Category</th>
-                <th>Plan</th>
+                <th>Site</th>
                 <th>Billing</th>
                 <th>Date</th>
                 <th>Actions</th>

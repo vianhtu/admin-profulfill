@@ -370,7 +370,7 @@ function getAccountsTable(): array {
 			"id"            => $row['ID'],
 			"full_name"     => htmlspecialchars( $row['name'] ),
 			"type_id"       => $row['type_id'],
-			"current_plan"  => $row['site_id'],
+			"site_id"       => $row['site_id'],
 			"billing"       => $row['authors_id'],
 			"date_create"        => $row['date_create'],
 		];
