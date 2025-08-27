@@ -522,9 +522,11 @@ function initTable(){
 
                 // Accounts filter
                 getAjaxSelect2HTML('xlsx_accounts', 'xlsxAccounts', 'Accounts', 'filter-accounts', true);
+                const column = api.column(9);
                 // Add event listener for filtering
                 $('#xlsxAccounts').on('change', function (){
-                    dt_user.draw();
+                    const val = $(this).value ? `^${$(this).value}$` : '';
+                    column.search(val, true, false).draw();
                 });
             }
         });
