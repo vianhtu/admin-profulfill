@@ -235,6 +235,9 @@ $currentMenu = $_GET['menu'] ?? '';
                   case 'exports_add':
                       include 'app-ecommerce-product-add.php';
                       break;
+                  case 'exports_xlsx':
+                      include 'app-xlsx-list.php';
+                      break;
                   case 'users':
                       include 'app-user-list.php';
                       break;
@@ -326,6 +329,9 @@ $currentMenu = $_GET['menu'] ?? '';
             <?php break;
         case 'exports_add': ?>
             <script src="../../assets/js/app-ecommerce-product-add.js"></script>
+            <?php break;
+        case 'exports_xlsx': ?>
+            <script src="../../assets/js/app-xlsx-list.js"></script>
             <?php break;
     }
     ?>
