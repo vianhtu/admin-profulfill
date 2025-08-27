@@ -112,6 +112,7 @@ function initTable(){
                     render: function (data, type, full, meta) {
                         var name = full['full_name'];
                         var account_name = full['account_name'];
+                        var account_site_id = full['account_site_id'];
                         var image = './../../assets/svg/icons/xlsx_icon.svg';
                         var output;
 
@@ -132,6 +133,8 @@ function initTable(){
                             name +
                             '</span></a>' +
                             '<small>' +
+                            sitesObj[account_site_id].title +
+                            ' '+
                             account_name +
                             '</small>' +
                             '</div>' +
