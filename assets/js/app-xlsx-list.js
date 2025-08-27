@@ -544,8 +544,7 @@ function initTable(){
                 getAjaxSelect2HTML('xlsx_accounts', 'xlsxAccounts', 'Accounts', 'filter-accounts', true);
                 // Add event listener for filtering
                 $('#xlsxAccounts').on('change', function (){
-                    const val = select.value ? `^${select.value}$` : '';
-                    column.search(val, true, false).draw();
+                    dt_user.draw();
                 });
             }
         });
