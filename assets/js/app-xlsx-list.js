@@ -510,7 +510,7 @@ function initTable(){
                     select.id = selectId;
                     select.className = 'form-select text-capitalize';
                     select.innerHTML = `<option value="">${defaultOptionText}</option>`;
-                    $(containerClass).html('<label class="form-label">${label}</label>');
+                    $(containerClass).html('<label class="form-label">'+label+'</label>');
                     document.querySelector(containerClass).appendChild(select);
 
                     // Add event listener for filtering
