@@ -115,7 +115,7 @@ function initTable(){
                         var image = './../../assets/svg/icons/xlsx_icon.svg';
                         var output;
 
-                        output = '<img src="' + image + '" alt="Avatar" class="rounded-circle">';
+                        output = '<img src="' + image + '" alt="file.xlsx" class="rounded">';
 
                         // Creates full output for row
                         var row_output =
