@@ -158,14 +158,14 @@ document.addEventListener('DOMContentLoaded', function (e) {
           render: (data, type, full, meta) => {
             return `
               <div class="d-flex align-items-center">
-                <a href="javascript:;" class="btn btn-text-secondary rounded-pill waves-effect btn-icon delete-record">
-                  <i class="icon-base ti tabler-trash icon-22px"></i>
-                </a>
                 <a href="index.php?menu=exports_add&id=${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon">
                   <i class="icon-base ti tabler-edit icon-22px"></i>
                 </a>
                 <a href="javascript:;" class="btn btn-text-secondary rounded-pill waves-effect btn-icon duplicate-record">
                   <i class="icon-base ti tabler-copy-check icon-22px"></i>
+                </a>
+                <a href="javascript:;" class="btn btn-text-secondary rounded-pill waves-effect btn-icon delete-record">
+                  <i class="icon-base ti tabler-trash icon-22px"></i>
                 </a>
               </div>
             `;
