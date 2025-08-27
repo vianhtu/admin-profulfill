@@ -67,8 +67,7 @@ function initTable(){
                 { data: 'site_id' },
                 { data: 'authors_id' },
                 { data: 'date_create' },
-                { data: 'action' },
-                { data: 'accounts_id' }
+                { data: 'action' }
             ],
             columnDefs: [
                 {
@@ -522,11 +521,11 @@ function initTable(){
 
                 // Accounts filter
                 getAjaxSelect2HTML('xlsx_accounts', 'xlsxAccounts', 'Accounts', 'filter-accounts', true);
-                const column = api.column(8);
+                //const column = api.column(8);
                 // Add event listener for filtering
                 $('#xlsxAccounts').on('change', function (){
-                    const val = $(this).value ? `^${$(this).value}$` : '';
-                    column.search(val, true, false).draw();
+                    //const val = $(this).value ? `^${$(this).value}$` : '';
+                    //column.search(val, true, false).draw();
                 });
             }
         });
