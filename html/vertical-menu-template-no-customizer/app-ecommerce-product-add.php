@@ -29,6 +29,7 @@ if(!empty($export_data)){
     $file_header = getXlsxFileHeader(realpath($xlsxDir));
     $file_header = $file_header['headers'] ?? [];
     $file_default = json_decode($export_data['file_default'] ?? '[]', true);
+    var_dump($file_default);
 }
 ?>
 <div class="app-ecommerce">
