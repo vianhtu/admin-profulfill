@@ -43,12 +43,7 @@ function initTable(){
 
     // Variable declaration for table
     const dt_user_table = document.querySelector('.datatables-users'),
-        userView = 'app-user-view-account.html',
-        statusObj = {
-            1: { title: 'Pending', class: 'bg-label-warning' },
-            2: { title: 'Active', class: 'bg-label-success' },
-            3: { title: 'Inactive', class: 'bg-label-secondary' }
-        };
+        userView = 'app-user-view-account.html'
     var select2 = $('.select2');
 
     if (select2.length) {
@@ -79,7 +74,7 @@ function initTable(){
                 { data: 'id' },
                 { data: 'id', orderable: false, render: DataTable.render.select() },
                 { data: 'full_name' },
-                { data: 'role' },
+                { data: 'type_id' },
                 { data: 'current_plan' },
                 { data: 'billing' },
                 { data: 'date_create' },
@@ -158,8 +153,8 @@ function initTable(){
                 {
                     targets: 3,
                     render: function (data, type, full, meta) {
-                        var role = full['role'];
-                        return '<span>' + role + '</span>';
+                        var role = full['type_id'];
+                        return '<span>' + categoryObj[role].title + '</span>';
                     }
                 },
                 {
@@ -528,8 +523,8 @@ function initTable(){
                     });
                 };
 
-                // Role filter
-                createFilter(3, '.user_role', 'UserRole', 'Role', categoryObj);
+                // Type filter
+                createFilter(3, '.xlsx_type', 'xlsxType', 'Type', categoryObj);
 
                 // Plan filter
                 createFilter(4, '.user_plan', 'UserPlan', 'Plan', sitesObj);

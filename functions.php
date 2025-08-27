@@ -369,7 +369,7 @@ function getAccountsTable(): array {
 		$data[] = [
 			"id"            => $row['ID'],
 			"full_name"     => htmlspecialchars( $row['name'] ),
-			"role"          => $row['type_id'],
+			"type_id"       => $row['type_id'],
 			"current_plan"  => $row['site_id'],
 			"billing"       => $row['authors_id'],
 			"date_create"        => $row['date_create'],
