@@ -504,12 +504,12 @@ function initTable(){
                 const api = this.api();
 
                 // Helper function to create a select dropdown and append options
-                const createFilter = (columnIndex, containerClass, selectId, defaultOptionText, label) => {
+                const createFilter = (columnIndex, containerClass, selectId, label, options) => {
                     const column = api.column(columnIndex);
                     const select = document.createElement('select');
                     select.id = selectId;
                     select.className = 'form-select text-capitalize';
-                    select.innerHTML = `<option value="">${defaultOptionText}</option>`;
+                    select.innerHTML = `<option value="">All</option>`;
                     $(containerClass).html('<label class="form-label">'+label+'</label>');
                     document.querySelector(containerClass).appendChild(select);
 
@@ -520,20 +520,19 @@ function initTable(){
                     });
 
                     // Populate options based on unique column data
-                    const uniqueData = Array.from(new Set(column.data().toArray())).sort();
-                    uniqueData.forEach(d => {
+                    Object.entries(options).forEach(d => {
                         const option = document.createElement('option');
-                        option.value = d;
-                        option.textContent = d;
+                        option.value = d.title;
+                        option.textContent = d.title;
                         select.appendChild(option);
                     });
                 };
 
                 // Role filter
-                createFilter(3, '.user_role', 'UserRole', 'Select Role', 'Role');
+                createFilter(3, '.user_role', 'UserRole', 'Role', categoryObj);
 
                 // Plan filter
-                createFilter(4, '.user_plan', 'UserPlan', 'Select Plan', 'Plan');
+                createFilter(4, '.user_plan', 'UserPlan', 'Plan', sitesObj);
 
                 // Status filter
                 const statusFilter = document.createElement('select');
