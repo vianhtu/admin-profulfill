@@ -18,7 +18,7 @@
                 <th>Role</th>
                 <th>Plan</th>
                 <th>Billing</th>
-                <th>Status</th>
+                <th>Date</th>
                 <th>Actions</th>
             </tr>
             </thead>
