@@ -109,11 +109,12 @@ function getRepeaterData() {
     $('.form-repeater').find('[data-repeater-item]').each(function () {
         var selectVal = $(this).find('.form-select').val();
         var inputVal  = $(this).find('input[type="text"]').val();
-
-        data.push({
-            option: selectVal,
-            value: inputVal
-        });
+        if (selectVal !== null && selectVal !== '' && selectVal !== undefined) {
+            data.push({
+                option: selectVal,
+                value: inputVal
+            });
+        }
     });
 
     return data;
@@ -212,6 +213,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
             formData.append('account', $('#accountsExport').val());
             formData.append('name', $('#export-name').val());
             formData.append('id', id);
+            formData.append('options', JSON.stringify(getRepeaterData()));
 
             if (myDropzone && myDropzone.files.length > 0) {
                 formData.append('file', myDropzone.files[0]);
