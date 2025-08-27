@@ -1,8 +1,11 @@
 'use strict';
 
-function getMultipleSelect(div_class, select_id, select_label, action, multiple = true) {
-    // Adding accounts filter once table is initialized
-    $('.'+div_class).html('<label class="form-label">'+select_label+'</label><select id="'+select_id+'" multiple></select>');
+function getAjaxSelect2HTML(div_class, select_id, select_label, action, multiple = false) {
+    $('.'+div_class).html('<label class="form-label">'+select_label+'</label><select id="'+select_id+'"></select>');
+    ajaxSelect2(select_id, action, multiple);
+}
+
+function ajaxSelect2(select_id, action, multiple = false){
     $('#'+select_id).select2({
         placeholder: 'Tìm và chọn...',
         multiple: multiple,

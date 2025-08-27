@@ -601,10 +601,10 @@ function initProductTable(){
                 });
 
                 // Adding store filter once table is initialized
-                getMultipleSelect('product_store', 'storeFilter', 'Store', 'filter-stores');
+                getAjaxSelect2HTML('product_store', 'storeFilter', 'Store', 'filter-stores', true);
 
                 // Adding accounts filter once table is initialized
-                getMultipleSelect('product_accounts', 'accountsFilter', 'Listed Accounts', 'filter-accounts');
+                getAjaxSelect2HTML('product_accounts', 'accountsFilter', 'Listed Accounts', 'filter-accounts', true);
 
                 // Adding date filter once table is initialized
                 const tableApi = this.api();
@@ -627,7 +627,7 @@ function initProductTable(){
                 $('.product_sites').html(typesHTML);
 
                 // Export.
-                getMultipleSelect('export_accounts', 'accountsExport', 'Select Account', 'filter-accounts', false);
+                getAjaxSelect2HTML('export_accounts', 'accountsExport', 'Select Account', 'filter-accounts');
 
                 $('.export_limited').html('<label class="form-label">Limited</label><input type="number" class="form-control" id="exportLimited" value="2000" min="0">');
                 $('.export_offset').html('<label class="form-label">Offset</label><input type="number" class="form-control" id="exportOffset" value="0" min="0">');
