@@ -100,7 +100,7 @@ if(!empty($export_data)){
                     <form class="form-repeater">
                         <div data-repeater-list="group-a">
                             <div data-repeater-item>
-                                <div class="row g-sm-6 mb-6">
+                                <div class="row g-sm-6 mb-6 align-items-center">
                                     <div class="col-sm-4">
                                         <label class="form-label" for="form-repeater-1-1">Options</label>
                                         <select id="form-repeater-1-1" class="select2 form-select" data-placeholder="Select a option">
