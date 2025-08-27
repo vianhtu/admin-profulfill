@@ -2,6 +2,7 @@
 require 'vendor/autoload.php';
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 function renderMenu($currentMenu) {
 	$menuItems = [
 		'Dashboards' => [
@@ -395,38 +396,51 @@ function getXlsxByID($id): array {
 }
 
 function getXlsxFileHeader(string $filePath, string $sheetName = 'Template', int $headerRowIndex = 4): array {
-	// Load file Excel
-	$spreadsheet = IOFactory::load($filePath);
-
-	// Lấy sheet theo tên
-	$sheet = $spreadsheet->getSheetByName($sheetName);
-	if (!$sheet) {
-		return ['status' => 'error', 'message' => "Sheet '$sheetName' không tồn tại."];
+	// Kiểm tra file tồn tại
+	if (!file_exists($filePath)) {
+		return ['status' => 'error', 'message' => "File không tồn tại: $filePath"];
 	}
 
-	// Xác định số cột tối đa
-	$highestColumn = $sheet->getHighestColumn();
-	$highestColumnIndex = Coordinate::columnIndexFromString($highestColumn);
+	try {
+		// Load file Excel
+		$spreadsheet = IOFactory::load($filePath);
 
-	$headers = [];
-
-	// Lặp qua từng cột
-	for ($col = 1; $col <= $highestColumnIndex; $col++) {
-		$cellValue = $sheet->getCellByColumnAndRow($col, $headerRowIndex)->getValue();
-		$columnLetter = Coordinate::stringFromColumnIndex($col);
-
-		if(empty($cellValue) || $cellValue === 'NULL' || $cellValue === 'null'){
-			continue;
+		// Lấy sheet theo tên
+		$sheet = $spreadsheet->getSheetByName($sheetName);
+		if (!$sheet) {
+			return ['status' => 'error', 'message' => "Sheet '$sheetName' không tồn tại."];
 		}
 
-		$headers[] = [
-			'column_letter' => $columnLetter,
-			'row' => $headerRowIndex,
-			'value' => $cellValue,
-		];
-	}
+		// Xác định số cột tối đa
+		$highestColumn = $sheet->getHighestColumn(); // Ví dụ: 'F'
+		$highestColumnIndex = Coordinate::columnIndexFromString($highestColumn);
 
-	return ['status' => 'success', 'headers' => $headers];
+		$headers = [];
+
+		// Lặp qua từng cột
+		for ($col = 1; $col <= $highestColumnIndex; $col++) {
+			// Tạo tọa độ ô (ví dụ: B4, C4...)
+			$cellCoordinate = Coordinate::stringFromColumnIndex($col) . $headerRowIndex;
+			$cellValue = $sheet->getCell($cellCoordinate)->getValue();
+
+			if (empty($cellValue) || strtolower(trim($cellValue)) === 'null') {
+				continue;
+			}
+
+			$headers[] = [
+				'column_letter' => Coordinate::stringFromColumnIndex($col),
+				'row' => $headerRowIndex,
+				'value' => $cellValue,
+			];
+		}
+
+		return ['status' => 'success', 'headers' => $headers];
+
+	} catch (\PhpOffice\PhpSpreadsheet\Reader\Exception $e) {
+		return ['status' => 'error', 'message' => 'Lỗi đọc file Excel: ' . $e->getMessage()];
+	} catch (\Throwable $e) {
+		return ['status' => 'error', 'message' => 'Lỗi không xác định: ' . $e->getMessage()];
+	}
 }
 
 function addXlsx(): array {
