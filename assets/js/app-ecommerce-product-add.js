@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
     // custom header.
     const selectOptions = header_data.map(item => ({
         id: item.column + item.row, // value
-        text: item.value            // hiển thị
+        text: item.column + item.row + ' ' + item.value            // hiển thị
     }));
 
     // Khởi tạo Select2
