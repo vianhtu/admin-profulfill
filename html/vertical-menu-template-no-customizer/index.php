@@ -329,9 +329,6 @@ $currentMenu = $_GET['menu'] ?? '';
             <?php break;
     }
     ?>
-    }
-    ?>
-
     <!-- Main JS -->
 
     <script src="../../assets/js/main.js"></script>
