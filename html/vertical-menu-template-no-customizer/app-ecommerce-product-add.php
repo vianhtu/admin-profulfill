@@ -26,10 +26,13 @@ if(!empty($export_data)){
     $account = getAccountsByID($account_id);
     $xlsxDir = ROOT_DIR . '/xlsx/'.$export_data['file_dir'];
     $file_header = getXlsxFileHeader(realpath($xlsxDir));
-    var_dump($file_header);
+    $file_header = $file_header['data'] ?? [];
 }
 ?>
 <div class="app-ecommerce">
+    <script>
+        const header_data = <?php echo json_encode($file_header, JSON_UNESCAPED_UNICODE); ?>;
+    </script>
     <input type="hidden" id="export_id" value="<?= $export_id ?>">
     <!-- Add Product -->
     <div
@@ -101,7 +104,7 @@ if(!empty($export_data)){
                                     <div class="col-sm-4">
                                         <label class="form-label" for="form-repeater-1-1">Options</label>
                                         <select id="form-repeater-1-1" class="select2 form-select" data-placeholder="Size">
-                                            
+
                                         </select>
                                     </div>
 
