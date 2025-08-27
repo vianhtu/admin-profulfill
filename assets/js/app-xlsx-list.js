@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
         { data: 'role' },
         { data: 'current_plan' },
         { data: 'billing' },
-        { data: 'status' },
+        { data: 'date_create' },
         { data: 'action' }
       ],
       columnDefs: [
