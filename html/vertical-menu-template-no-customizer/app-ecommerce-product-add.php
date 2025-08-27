@@ -131,8 +131,8 @@ if(!empty($export_data)){
                                         </div>
                                     </div>
                                 </div>
-                                <?php endforeach; ?>
                             </div>
+                            <?php endforeach; ?>
                         </div>
                         <div>
                             <button class="btn btn-primary" data-repeater-create>
