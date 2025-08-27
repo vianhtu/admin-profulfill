@@ -483,6 +483,7 @@ function addXlsx(): array {
 	$authors_id   = (int) ($_POST['author'] ?? 0);
 	$name         = trim($_POST['name'] ?? '');
 	$date_create  = date('Y-m-d H:i:s');
+	$xlsx_options = $_POST['options'] ?? '';
 
 	// Nếu có ID, kiểm tra bản ghi để cập nhật
 	if ($id) {
@@ -511,10 +512,10 @@ function addXlsx(): array {
 			$update = $conn->prepare("
                 UPDATE exports SET
                     accounts_id = ?, type_id = ?, site_id = ?, authors_id = ?,
-                    name = ?, date_create = ?, file_name = ?, file_dir = ?
+                    name = ?, date_create = ?, file_name = ?, file_dir = ?, default = ?
                 WHERE id = ?
             ");
-			$update->bind_param("iiiissssi", $accounts_id, $type_id, $site_id, $authors_id, $name, $date_create, $originalName, $uniqueName, $id);
+			$update->bind_param("iiiisssssi", $accounts_id, $type_id, $site_id, $authors_id, $name, $date_create, $originalName, $uniqueName, $xlsx_options, $id);
 
 			if ($update->execute()) {
 				return ['status' => 'updated', 'id' => $id, 'file' => $uniqueName];
@@ -530,10 +531,10 @@ function addXlsx(): array {
 	}
 
 	$insert = $conn->prepare("
-        INSERT INTO exports (accounts_id, type_id, site_id, authors_id, name, date_create, file_name, file_dir)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO exports (accounts_id, type_id, site_id, authors_id, name, date_create, file_name, file_dir, default)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
-	$insert->bind_param("iiiissss", $accounts_id, $type_id, $site_id, $authors_id, $name, $date_create, $originalName, $uniqueName);
+	$insert->bind_param("iiiisssss", $accounts_id, $type_id, $site_id, $authors_id, $name, $date_create, $originalName, $uniqueName, $xlsx_options);
 
 	if ($insert->execute()) {
 		return ['status' => 'inserted', 'id' => $insert->insert_id, 'file' => $uniqueName];
