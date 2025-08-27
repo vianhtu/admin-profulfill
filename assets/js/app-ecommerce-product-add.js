@@ -109,9 +109,11 @@ function getRepeaterData() {
     $('.form-repeater').find('[data-repeater-item]').each(function () {
         var selectVal = $(this).find('.form-select').val();
         var inputVal  = $(this).find('input[type="text"]').val();
+        var selectedText = $(this).find('.form-select option:selected').text();
         if (selectVal !== null && selectVal !== '' && selectVal !== undefined) {
             data.push({
-                option: selectVal,
+                location: selectVal,
+                text :selectedText,
                 value: inputVal
             });
         }
