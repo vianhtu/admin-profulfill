@@ -134,9 +134,9 @@ function initTable(){
                             '</span></a>' +
                             '<small>' +
                             sitesObj[account_site_id].title +
-                            ' '+
+                            ' ('+
                             account_name +
-                            '</small>' +
+                            ')</small>' +
                             '</div>' +
                             '</div>';
                         return row_output;
