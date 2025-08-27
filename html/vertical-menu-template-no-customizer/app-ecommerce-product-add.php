@@ -29,7 +29,6 @@ if(!empty($export_data)){
     $file_header = getXlsxFileHeader(realpath($xlsxDir));
     $file_header = $file_header['headers'] ?? [];
     $file_default = json_decode($export_data['file_default'] ?? '[]', true);
-    var_dump($file_default);
 }
 ?>
 <div class="app-ecommerce">
@@ -108,7 +107,7 @@ if(!empty($export_data)){
                                     <div class="col-sm-4">
                                         <label class="form-label" for="form-repeater-<?= $key ?>-1">Options</label>
                                         <select id="form-repeater-<?= $key ?>-1" class="select2 form-select" data-placeholder="Select a option">
-                                            <option value="<?= $value->option; ?>" selected>Select a option</option>
+                                            <option value="<?= $value['option']; ?>" selected>Select a option</option>
                                         </select>
                                     </div>
 
@@ -118,7 +117,7 @@ if(!empty($export_data)){
                                                 type="text"
                                                 id="form-repeater-<?= $key ?>-2"
                                                 class="form-control"
-                                                value="<?= $value->value; ?>"
+                                                value="<?= $value['value']; ?>"
                                                 placeholder="Enter value" />
                                     </div>
                                     <div class="col-sm-1">
