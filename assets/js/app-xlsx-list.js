@@ -130,19 +130,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
           targets: 3,
           render: function (data, type, full, meta) {
             var role = full['role'];
-            var roleBadgeObj = {
-              Subscriber: '<i class="icon-base ti tabler-crown icon-md text-primary me-2"></i>',
-              Author: '<i class="icon-base ti tabler-edit icon-md text-warning me-2"></i>',
-              Maintainer: '<i class="icon-base ti tabler-user icon-md text-success me-2"></i>',
-              Editor: '<i class="icon-base ti tabler-chart-pie icon-md text-info me-2"></i>',
-              Admin: '<i class="icon-base ti tabler-device-desktop icon-md text-danger me-2"></i>'
-            };
-            return (
-              "<span class='text-truncate d-flex align-items-center text-heading'>" +
-              (roleBadgeObj[role] || '') + // Ensures badge exists for the role
-              role +
-              '</span>'
-            );
+            return '<span>' + role + '</span>';
           }
         },
         {
@@ -159,14 +147,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
           targets: 6,
           render: function (data, type, full, meta) {
             const status = full['status'];
-
-            return (
-              '<span class="badge ' +
-              statusObj[status].class +
-              '" text-capitalized>' +
-              statusObj[status].title +
-              '</span>'
-            );
+            return '<span>' + status + '</span>';
           }
         },
         {
