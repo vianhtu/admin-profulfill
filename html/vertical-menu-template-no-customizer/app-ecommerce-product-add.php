@@ -26,7 +26,7 @@ if(!empty($export_data)){
     $account = getAccountsByID($account_id);
     $xlsxDir = ROOT_DIR . '/xlsx/'.$export_data['file_dir'];
     $file_header = getXlsxFileHeader(realpath($xlsxDir));
-    $file_header = $file_header['data'] ?? [];
+    $file_header = $file_header['headers'] ?? [];
 }
 ?>
 <div class="app-ecommerce">
