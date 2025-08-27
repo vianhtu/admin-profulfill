@@ -187,7 +187,7 @@ function initTable(){
                 style: 'multi',
                 selector: 'td:nth-child(2)'
             },
-            order: [[2, 'desc']],
+            order: [[7, 'desc']],
             layout: {
                 topStart: {
                     rowClass: 'row m-3 my-0 justify-content-between',
