@@ -67,7 +67,8 @@ function initTable(){
                 { data: 'site_id' },
                 { data: 'authors_id' },
                 { data: 'date_create' },
-                { data: 'action' }
+                { data: 'action' },
+                { data: 'accounts_id' }
             ],
             columnDefs: [
                 {
