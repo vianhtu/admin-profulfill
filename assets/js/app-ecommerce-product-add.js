@@ -35,7 +35,7 @@ $(function () {
                 });
             });
 
-            // Refresh lại select2 để thấy trạng thái disable
+            // Refresh lại select2
             $container.find('.form-select').select2();
         }
 
@@ -74,24 +74,31 @@ $(function () {
                     });
                 });
 
-                // Cập nhật trạng thái option khi thêm dòng mới
                 updateSelectOptions($(this).closest('.form-repeater'));
             },
             hide: function (deleteElement) {
                 $(this).slideUp(deleteElement);
-                // Cập nhật lại sau khi xóa dòng
                 setTimeout(() => {
                     updateSelectOptions($(this).closest('.form-repeater'));
                 }, 300);
             }
         });
 
-        // Sự kiện thay đổi select
+        // Xử lý click nút xóa
+        $(document).on('click', '.btn-delete-row', function (e) {
+            e.preventDefault();
+            var $row = $(this).closest('[data-repeater-item]');
+            $row.slideUp(function () {
+                $row.remove();
+                updateSelectOptions(formRepeater);
+            });
+        });
+
+        // Cập nhật khi thay đổi lựa chọn
         $(document).on('change', '.form-repeater .form-select', function () {
             updateSelectOptions($(this).closest('.form-repeater'));
         });
 
-        // Đồng bộ ban đầu
         updateSelectOptions(formRepeater);
     }
 });
