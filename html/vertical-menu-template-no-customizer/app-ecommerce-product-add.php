@@ -101,11 +101,7 @@ if(!empty($export_data)){
                                     <div class="col-sm-4">
                                         <label class="form-label" for="form-repeater-1-1">Options</label>
                                         <select id="form-repeater-1-1" class="select2 form-select" data-placeholder="Size">
-                                            <option value="">Size</option>
-                                            <option value="size">Size</option>
-                                            <option value="color">Color</option>
-                                            <option value="weight">Weight</option>
-                                            <option value="smell">Smell</option>
+                                            
                                         </select>
                                     </div>
 
@@ -115,7 +111,7 @@ if(!empty($export_data)){
                                                 type="text"
                                                 id="form-repeater-1-2"
                                                 class="form-control"
-                                                placeholder="Enter size" />
+                                                placeholder="Enter value" />
                                     </div>
                                 </div>
                             </div>
