@@ -100,7 +100,7 @@ if(!empty($export_data)){
                     <form class="form-repeater">
                         <div data-repeater-list="group-a">
                             <div data-repeater-item>
-                                <div class="row g-sm-6 mb-6 align-items-end">
+                                <div class="row g-sm-6 mb-6 align-items-stretch">
                                     <div class="col-sm-4">
                                         <label class="form-label" for="form-repeater-1-1">Options</label>
                                         <select id="form-repeater-1-1" class="select2 form-select" data-placeholder="Select a option">
@@ -116,8 +116,8 @@ if(!empty($export_data)){
                                                 class="form-control"
                                                 placeholder="Enter value" />
                                     </div>
-                                    <div class="col-sm-1">
-                                        <button data-repeater-delete type="button" class="btn btn-label-danger btn-delete-row">
+                                    <div class="col-sm-1 d-flex">
+                                        <button data-repeater-delete type="button" class="btn btn-label-danger btn-delete-row w-100">
                                             <i class="icon-base ti tabler-trash icon-xs me-2"></i>
                                         </button>
                                     </div>
