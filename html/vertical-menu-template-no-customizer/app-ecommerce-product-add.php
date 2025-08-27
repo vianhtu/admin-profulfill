@@ -24,7 +24,8 @@ if(!empty($export_data)){
     $text_add = 'Edit';
     $text_button = 'Update';
     $account = getAccountsByID($account_id);
-    var_dump(__DIR__.'/../../xlsx/'.$export_data['file_dir']);
+    $xlsxDir = realpath(__DIR__ . '/../../../xlsx');
+    var_dump($xlsxDir);
     $file_header = getXlsxFileHeader(__DIR__.'/../../xlsx/'.$export_data['file_dir']);
 }
 ?>
