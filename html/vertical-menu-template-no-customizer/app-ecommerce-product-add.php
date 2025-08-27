@@ -13,7 +13,7 @@ $file_name = '';
 $text_add = 'Add a new';
 $text_button = 'Add';
 $file_header = [];
-$file_default = [];
+$file_default = ['location'=>'', 'text'=>'', 'value'=>''];
 if(!empty($export_data)){
     $export_id = $export_data['ID'];
     $site_id = $export_data['site_id'];
@@ -28,7 +28,9 @@ if(!empty($export_data)){
     $xlsxDir = ROOT_DIR . '/xlsx/'.$export_data['file_dir'];
     $file_header = getXlsxFileHeader(realpath($xlsxDir));
     $file_header = $file_header['headers'] ?? [];
-    $file_default = json_decode($export_data['file_default'] ?? '[{"location":"", "text":"", "value":""}]', true);
+    if(!empty($export_data['file_default'])){
+        $file_default = json_decode($export_data['file_default']);
+    }
 }
 ?>
 <div class="app-ecommerce">
@@ -107,10 +109,7 @@ if(!empty($export_data)){
                                     <div class="col-sm-4">
                                         <label class="form-label" for="form-repeater-<?= $key ?>-1">Options</label>
                                         <select id="form-repeater-<?= $key ?>-1" class="select2 form-select" data-placeholder="Select a option">
-                                            <option value=""></option>
-                                            <?php if(!empty($value)): ?>
                                             <option value="<?= $value['location']; ?>" selected><?= $value['text']; ?></option>
-                                            <?php endif; ?>
                                         </select>
                                     </div>
 
