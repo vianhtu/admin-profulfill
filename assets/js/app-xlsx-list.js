@@ -115,18 +115,7 @@ function initTable(){
                         var image = '/../../assets/svg/xlsx_icon.svg';
                         var output;
 
-                        if (image) {
-                            // For Avatar image
-                            output = '<img src="' + image + '" alt="Avatar" class="rounded-circle">';
-                        } else {
-                            // For Avatar badge
-                            var stateNum = Math.floor(Math.random() * 6);
-                            var states = ['success', 'danger', 'warning', 'info', 'dark', 'primary', 'secondary'];
-                            var state = states[stateNum];
-                            var initials = (name.match(/\b\w/g) || []).map(char => char.toUpperCase());
-                            initials = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
-                            output = '<span class="avatar-initial rounded-circle bg-label-' + state + '">' + initials + '</span>';
-                        }
+                        output = '<img src="' + image + '" alt="Avatar" class="rounded-circle">';
 
                         // Creates full output for row
                         var row_output =
