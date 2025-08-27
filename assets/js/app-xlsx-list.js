@@ -112,7 +112,7 @@ function initTable(){
                     render: function (data, type, full, meta) {
                         var name = full['full_name'];
                         var email = full['email'];
-                        var image = './../../assets/svg/xlsx_icon.svg';
+                        var image = './../../assets/svg/icons/xlsx_icon.svg';
                         var output;
 
                         output = '<img src="' + image + '" alt="Avatar" class="rounded-circle">';
