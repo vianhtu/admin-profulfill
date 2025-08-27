@@ -15,7 +15,7 @@
             <tr>
                 <th></th>
                 <th></th>
-                <th>User</th>
+                <th>Files</th>
                 <th>Category</th>
                 <th>Sites</th>
                 <th>Authors</th>
