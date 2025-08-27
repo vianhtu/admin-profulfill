@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
 
     ajaxSelect2('accountsExport', 'filter-accounts', false);
 
-    // custom header.
+    // custom header..
     const selectOptions = header_data.map(item => ({
         id: item.column + item.row, // value
         text: item.value            // hiển thị
