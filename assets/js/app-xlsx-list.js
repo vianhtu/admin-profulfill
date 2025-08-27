@@ -535,25 +535,7 @@ function initTable(){
                 createFilter(4, '.user_plan', 'UserPlan', 'Plan', sitesObj);
 
                 // Status filter
-                const statusFilter = document.createElement('select');
-                statusFilter.id = 'FilterTransaction';
-                statusFilter.className = 'form-select text-capitalize';
-                statusFilter.innerHTML = '<option value="">Select Status</option>';
-                document.querySelector('.user_status').appendChild(statusFilter);
-                statusFilter.addEventListener('change', () => {
-                    const val = statusFilter.value ? `^${statusFilter.value}$` : '';
-                    api.column(6).search(val, true, false).draw();
-                });
-
-                const statusColumn = api.column(6);
-                const uniqueStatusData = Array.from(new Set(statusColumn.data().toArray())).sort();
-                uniqueStatusData.forEach(([key, val]) => {
-                    const option = document.createElement('option');
-                    option.value = val.title;
-                    option.textContent = val.title;
-                    option.className = 'text-capitalize';
-                    statusFilter.appendChild(option);
-                });
+                createFilter(6, '.user_status', 'FilterTransaction', 'Status', authorsObj);
             }
         });
 
