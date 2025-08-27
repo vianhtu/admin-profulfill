@@ -375,11 +375,13 @@ function getAccountsTable(): array {
 	}
 
 	$where         = $whereClauses ? ' WHERE ' . implode( ' AND ', $whereClauses ) : '';
-	$totalFiltered = $conn->query( "SELECT COUNT(ID) AS cnt FROM exports $where" )->fetch_assoc()['cnt'];
+	$join          = 'INNER JOIN accounts ar ON a.ID = exports.accounts_id';
+	$totalFiltered = $conn->query( "SELECT COUNT(DISTINCT exports.ID) AS cnt FROM exports $join $where" )->fetch_assoc()['cnt'];
 
 	// Lấy dữ liệu
-	$sql = "SELECT ID, accounts_id, type_id, site_id, authors_id, name, date_create
+	$sql = "SELECT DISTINCT exports.ID, a.site_id AS account_site_id, a.name AS account_name, exports.type_id, exports.site_id, exports.authors_id, exports.name, exports.date_create
         FROM exports
+        $join
         $where
         ORDER BY $orderColumn $orderDir
         LIMIT $start, $length";
@@ -395,6 +397,8 @@ function getAccountsTable(): array {
 			"site_id"       => $row['site_id'],
 			"authors_id"    => $row['authors_id'],
 			"date_create"   => $row['date_create'],
+			"account_site_id"   => $row['account_site_id'],
+			"account_name"   => $row['account_name'],
 		];
 	}
 
