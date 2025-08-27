@@ -28,7 +28,7 @@ if(!empty($export_data)){
     $xlsxDir = ROOT_DIR . '/xlsx/'.$export_data['file_dir'];
     $file_header = getXlsxFileHeader(realpath($xlsxDir));
     $file_header = $file_header['headers'] ?? [];
-    $file_default = json_decode($export_data['file_default'] ?? '[]', true);
+    $file_default = json_decode($export_data['file_default'] ?? '[{"location":"", "text":"", "value":""}]', true);
 }
 ?>
 <div class="app-ecommerce">
