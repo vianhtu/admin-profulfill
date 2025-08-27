@@ -375,7 +375,7 @@ function getAccountsTable(): array {
 	}
 
 	$where         = $whereClauses ? ' WHERE ' . implode( ' AND ', $whereClauses ) : '';
-	$join          = 'INNER JOIN accounts ar ON a.ID = exports.accounts_id';
+	$join          = 'INNER JOIN accounts a ON a.ID = exports.accounts_id';
 	$totalFiltered = $conn->query( "SELECT COUNT(DISTINCT exports.ID) AS cnt FROM exports $join $where" )->fetch_assoc()['cnt'];
 
 	// Lấy dữ liệu
