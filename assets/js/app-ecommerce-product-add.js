@@ -5,49 +5,95 @@
 //Jquery to handle the e-commerce product add page
 
 $(function () {
-  var formRepeater = $('.form-repeater');
+    var formRepeater = $('.form-repeater');
 
-  // Form Repeater
-  // ! Using jQuery each loop to add dynamic id and class for inputs. You may need to improve it based on form fields.
-  // -----------------------------------------------------------------------------------------------------------------
+    if (formRepeater.length) {
+        var row = 2;
+        var col = 1;
 
-  if (formRepeater.length) {
-    var row = 2;
-    var col = 1;
-    formRepeater.on('submit', function (e) {
-      e.preventDefault();
-    });
-    formRepeater.repeater({
-      show: function () {
-        var fromControl = $(this).find('.form-control, .form-select');
-        var formLabel = $(this).find('.form-label');
+        // Hàm cập nhật option disable để tránh trùng
+        function updateSelectOptions($container) {
+            var selectedValues = [];
+            $container.find('.form-select').each(function () {
+                var val = $(this).val();
+                if (val) selectedValues.push(val);
+            });
 
-        fromControl.each(function (i) {
-          var id = 'form-repeater-' + row + '-' + col;
-          $(fromControl[i]).attr('id', id);
-          $(formLabel[i]).attr('for', id);
-          col++;
+            $container.find('.form-select').each(function () {
+                var $select = $(this);
+                $select.find('option').each(function () {
+                    var optionVal = $(this).val();
+                    if (
+                        optionVal &&
+                        selectedValues.includes(optionVal) &&
+                        optionVal !== $select.val()
+                    ) {
+                        $(this).attr('disabled', true);
+                    } else {
+                        $(this).attr('disabled', false);
+                    }
+                });
+            });
+
+            // Refresh lại select2 để thấy trạng thái disable
+            $container.find('.form-select').select2();
+        }
+
+        formRepeater.on('submit', function (e) {
+            e.preventDefault();
         });
 
-        row++;
-        $(this).slideDown();
-        $('.select2-container').remove();
-        $('.select2.form-select').select2({
-          placeholder: 'Placeholder text'
+        formRepeater.repeater({
+            show: function () {
+                var fromControl = $(this).find('.form-control, .form-select');
+                var formLabel = $(this).find('.form-label');
+
+                fromControl.each(function (i) {
+                    var id = 'form-repeater-' + row + '-' + col;
+                    $(fromControl[i]).attr('id', id);
+                    $(formLabel[i]).attr('for', id);
+                    col++;
+                });
+
+                row++;
+                $(this).slideDown();
+
+                // Khởi tạo lại select2
+                $('.select2-container').remove();
+                $('.select2.form-select').select2({
+                    placeholder: 'Placeholder text'
+                });
+                $('.select2-container').css('width', '100%');
+                $('.form-repeater:first .form-select').select2({
+                    dropdownParent: $(this).parent(),
+                    placeholder: 'Placeholder text'
+                });
+                $('.position-relative .select2').each(function () {
+                    $(this).select2({
+                        dropdownParent: $(this).closest('.position-relative')
+                    });
+                });
+
+                // Cập nhật trạng thái option khi thêm dòng mới
+                updateSelectOptions($(this).closest('.form-repeater'));
+            },
+            hide: function (deleteElement) {
+                $(this).slideUp(deleteElement);
+                // Cập nhật lại sau khi xóa dòng
+                setTimeout(() => {
+                    updateSelectOptions($(this).closest('.form-repeater'));
+                }, 300);
+            }
         });
-        $('.select2-container').css('width', '100%');
-        $('.form-repeater:first .form-select').select2({
-          dropdownParent: $(this).parent(),
-          placeholder: 'Placeholder text'
+
+        // Sự kiện thay đổi select
+        $(document).on('change', '.form-repeater .form-select', function () {
+            updateSelectOptions($(this).closest('.form-repeater'));
         });
-        $('.position-relative .select2').each(function () {
-          $(this).select2({
-            dropdownParent: $(this).closest('.position-relative')
-          });
-        });
-      }
-    });
-  }
+
+        // Đồng bộ ban đầu
+        updateSelectOptions(formRepeater);
+    }
 });
 
 document.addEventListener('DOMContentLoaded', function (e) {
