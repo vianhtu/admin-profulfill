@@ -522,7 +522,7 @@ function initTable(){
 
                 // Accounts filter
                 getAjaxSelect2HTML('xlsx_accounts', 'xlsxAccounts', 'Accounts', 'filter-accounts', true);
-                const column = api.column(9);
+                const column = api.column(8);
                 // Add event listener for filtering
                 $('#xlsxAccounts').on('change', function (){
                     const val = $(this).value ? `^${$(this).value}$` : '';
