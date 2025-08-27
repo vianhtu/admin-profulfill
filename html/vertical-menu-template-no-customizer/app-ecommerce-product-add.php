@@ -12,6 +12,7 @@ $name = '';
 $file_name = '';
 $text_add = 'Add a new';
 $text_button = 'Add';
+$file_header = [];
 if(!empty($export_data)){
     $export_id = $export_data['ID'];
     $site_id = $export_data['site_id'];
@@ -23,6 +24,8 @@ if(!empty($export_data)){
     $text_add = 'Edit';
     $text_button = 'Update';
     $account = getAccountsByID($account_id);
+    $file_header = getXlsxFileHeader('/xlsx/'.$export_data['file_dir']);
+    var_dump($file_header);
 }
 ?>
 <div class="app-ecommerce">

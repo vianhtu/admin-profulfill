@@ -1,4 +1,7 @@
 <?php
+require 'vendor/autoload.php';
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 function renderMenu($currentMenu) {
 	$menuItems = [
 		'Dashboards' => [
@@ -389,6 +392,41 @@ function getXlsxByID($id): array {
 	} else {
 		return [];
 	}
+}
+
+function getXlsxFileHeader(string $filePath, string $sheetName = 'Template', int $headerRowIndex = 4): array {
+	// Load file Excel
+	$spreadsheet = IOFactory::load($filePath);
+
+	// Lấy sheet theo tên
+	$sheet = $spreadsheet->getSheetByName($sheetName);
+	if (!$sheet) {
+		return ['status' => 'error', 'message' => "Sheet '$sheetName' không tồn tại."];
+	}
+
+	// Xác định số cột tối đa
+	$highestColumn = $sheet->getHighestColumn();
+	$highestColumnIndex = Coordinate::columnIndexFromString($highestColumn);
+
+	$headers = [];
+
+	// Lặp qua từng cột
+	for ($col = 1; $col <= $highestColumnIndex; $col++) {
+		$cellValue = $sheet->getCellByColumnAndRow($col, $headerRowIndex)->getValue();
+		$columnLetter = Coordinate::stringFromColumnIndex($col);
+
+		if(empty($cellValue) || $cellValue === 'NULL' || $cellValue === 'null'){
+			continue;
+		}
+
+		$headers[] = [
+			'column_letter' => $columnLetter,
+			'row' => $headerRowIndex,
+			'value' => $cellValue,
+		];
+	}
+
+	return ['status' => 'success', 'headers' => $headers];
 }
 
 function addXlsx(): array {
