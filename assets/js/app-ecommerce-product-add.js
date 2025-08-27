@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
 
     ajaxSelect2('accountsExport', 'filter-accounts', false);
 
-    // custom header..
+    // custom header.
     const selectOptions = header_data.map(item => ({
         id: item.column + item.row, // value
         text: item.value            // hiển thị
@@ -111,8 +111,6 @@ document.addEventListener('DOMContentLoaded', function (e) {
         placeholder: 'Chọn một cột',
         allowClear: true
     });
-
-    ajaxSelect2('form-repeater-1-1', 'filter-accounts', false);
 
     $('#export_submit').on('click', function (e) {
         e.preventDefault();
