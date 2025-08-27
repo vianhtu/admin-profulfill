@@ -112,12 +112,12 @@ function initTable(){
                     render: function (data, type, full, meta) {
                         var name = full['full_name'];
                         var email = full['email'];
-                        var image = full['avatar'];
+                        var image = '/../../assets/svg/xlsx_icon.svg';
                         var output;
 
                         if (image) {
                             // For Avatar image
-                            output = '<img src="' + assetsPath + 'img/avatars/' + image + '" alt="Avatar" class="rounded-circle">';
+                            output = '<img src="' + image + '" alt="Avatar" class="rounded-circle">';
                         } else {
                             // For Avatar badge
                             var stateNum = Math.floor(Math.random() * 6);
