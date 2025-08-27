@@ -108,13 +108,18 @@ if(!empty($export_data)){
                                         </select>
                                     </div>
 
-                                    <div class="col-sm-8">
+                                    <div class="col-sm-7">
                                         <label class="form-label invisible" for="form-repeater-1-2">Not visible</label>
                                         <input
                                                 type="text"
                                                 id="form-repeater-1-2"
                                                 class="form-control"
                                                 placeholder="Enter value" />
+                                    </div>
+                                    <div class="col-sm-1">
+                                        <button data-repeater-delete type="button" class="btn btn-label-danger btn-delete-row">
+                                            <i class="icon-base ti tabler-trash icon-xs me-2"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
