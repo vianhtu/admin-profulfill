@@ -117,9 +117,11 @@ if(!empty($export_data)){
                                                 placeholder="Enter value" />
                                     </div>
                                     <div class="col-sm-1">
-                                        <button data-repeater-delete type="button" class="btn btn-primary btn-label-danger btn-delete-row">
-                                            <i class="icon-base ti tabler-trash icon-xs me-2"></i>
-                                        </button>
+                                        <div class="d-flex align-items-center">
+                                            <a href="javascript:;" class="btn btn-text-secondary rounded-pill waves-effect btn-icon btn-delete-row">
+                                                <i class="icon-base ti tabler-trash icon-22px"></i>
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
