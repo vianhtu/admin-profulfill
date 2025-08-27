@@ -163,7 +163,7 @@ function initTable(){
                     }
                 },
                 {
-                    targets: -1,
+                    targets: 7,
                     title: 'Actions',
                     searchable: false,
                     orderable: false,
