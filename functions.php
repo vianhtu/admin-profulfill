@@ -352,6 +352,28 @@ function getAccountsTable(): array {
 		$whereClauses[] = "(name LIKE '%$searchEsc%' OR file_name LIKE '%$searchEsc%')";
 	}
 
+	// lọc theo type.
+	$filterType = $_POST['columns'][3]['search']['value'] ?? '';
+	$filterType = trim( $filterType, '^$' ); // bỏ ký tự regex
+	if ( $filterType !== '' ) {
+		$escStock       = $conn->real_escape_string( $filterType );
+		$whereClauses[] = "type_id = '$escStock'";
+	}
+	// lọc theo author.
+	$filterSite = $_POST['columns'][4]['search']['value'] ?? '';
+	$filterSite = trim( $filterSite, '^$' ); // bỏ ký tự regex
+	if ( $filterSite !== '' ) {
+		$escStock       = $conn->real_escape_string( $filterSite );
+		$whereClauses[] = "site_id = '$escStock'";
+	}
+	// lọc theo author.
+	$filterAuthor = $_POST['columns'][6]['search']['value'] ?? '';
+	$filterAuthor = trim( $filterAuthor, '^$' ); // bỏ ký tự regex
+	if ( $filterAuthor !== '' ) {
+		$escStock       = $conn->real_escape_string( $filterAuthor );
+		$whereClauses[] = "authors_id = '$escStock'";
+	}
+
 	$where         = $whereClauses ? ' WHERE ' . implode( ' AND ', $whereClauses ) : '';
 	$totalFiltered = $conn->query( "SELECT COUNT(ID) AS cnt FROM exports $where" )->fetch_assoc()['cnt'];
 
