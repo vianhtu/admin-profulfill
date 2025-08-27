@@ -13,7 +13,7 @@ $file_name = '';
 $text_add = 'Add a new';
 $text_button = 'Add';
 $file_header = [];
-$file_default = ['location'=>'', 'text'=>'', 'value'=>''];
+$file_default = [['location'=>'', 'text'=>'', 'value'=>'']];
 if(!empty($export_data)){
     $export_id = $export_data['ID'];
     $site_id = $export_data['site_id'];
