@@ -29,7 +29,7 @@ if(!empty($export_data)){
     $file_header = getXlsxFileHeader(realpath($xlsxDir));
     $file_header = $file_header['headers'] ?? [];
     if(!empty($export_data['file_default']) && $export_data['file_default'] != '[]'){
-        $file_default = json_decode($export_data['file_default']);
+        $file_default = json_decode($export_data['file_default'], true);
     }
 }
 ?>
