@@ -116,8 +116,8 @@ if(!empty($export_data)){
                                                 class="form-control"
                                                 placeholder="Enter value" />
                                     </div>
-                                    <div class="col-sm-1 d-flex">
-                                        <button data-repeater-delete type="button" class="btn btn-label-danger btn-delete-row w-100">
+                                    <div class="col-sm-1">
+                                        <button data-repeater-delete type="button" class="btn btn-label-danger btn-delete-row">
                                             <i class="icon-base ti tabler-trash icon-xs me-2"></i>
                                         </button>
                                     </div>
