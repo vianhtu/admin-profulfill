@@ -109,6 +109,7 @@ if(!empty($export_data)){
                                     <div class="col-sm-4">
                                         <label class="form-label" for="form-repeater-<?= $key ?>-1">Options</label>
                                         <select id="form-repeater-<?= $key ?>-1" class="select2 form-select" data-placeholder="Select a option">
+                                            <option value=""></option>
                                             <option value="<?= $value['location']; ?>" selected><?= $value['text']; ?></option>
                                         </select>
                                     </div>
