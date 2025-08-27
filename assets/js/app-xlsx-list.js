@@ -42,18 +42,7 @@ function initTable(){
     headingColor = config.colors.headingColor;
 
     // Variable declaration for table
-    const dt_user_table = document.querySelector('.datatables-users'),
-        userView = 'app-user-view-account.html'
-    var select2 = $('.select2');
-
-    if (select2.length) {
-        var $this = select2;
-        $this.wrap('<div class="position-relative"></div>').select2({
-            placeholder: 'Select Country',
-            dropdownParent: $this.parent()
-        });
-    }
-
+    const dt_user_table = document.querySelector('.datatables-users');
     // Users datatable
     if (dt_user_table) {
         const dt_user = new DataTable(dt_user_table, {
