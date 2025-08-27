@@ -13,6 +13,7 @@ $file_name = '';
 $text_add = 'Add a new';
 $text_button = 'Add';
 $file_header = [];
+$file_default = [];
 if(!empty($export_data)){
     $export_id = $export_data['ID'];
     $site_id = $export_data['site_id'];
@@ -27,6 +28,7 @@ if(!empty($export_data)){
     $xlsxDir = ROOT_DIR . '/xlsx/'.$export_data['file_dir'];
     $file_header = getXlsxFileHeader(realpath($xlsxDir));
     $file_header = $file_header['headers'] ?? [];
+    $file_default = json_decode($export_data['file_default'] ?? '[]', true);
 }
 ?>
 <div class="app-ecommerce">
@@ -101,19 +103,22 @@ if(!empty($export_data)){
                         <div data-repeater-list="group-a">
                             <div data-repeater-item>
                                 <div class="row g-sm-6 mb-6 align-items-end">
+                                    <?php $index = 1; ?>
+                                    <?php foreach ($file_default as $key => $value): ?>
                                     <div class="col-sm-4">
-                                        <label class="form-label" for="form-repeater-1-1">Options</label>
-                                        <select id="form-repeater-1-1" class="select2 form-select" data-placeholder="Select a option">
-                                            <option value="">Select a option</option>
+                                        <label class="form-label" for="form-repeater-<?= $index ?>-1">Options</label>
+                                        <select id="form-repeater-<?= $index ?>-1" class="select2 form-select" data-placeholder="Select a option">
+                                            <option value="<?= $key; ?>">Select a option</option>
                                         </select>
                                     </div>
 
                                     <div class="col-sm-7">
-                                        <label class="form-label invisible" for="form-repeater-1-2">Not visible</label>
+                                        <label class="form-label invisible" for="form-repeater-<?= $index ?>-2">Not visible</label>
                                         <input
                                                 type="text"
-                                                id="form-repeater-1-2"
+                                                id="form-repeater-<?= $index ?>-2"
                                                 class="form-control"
+                                                value="<?= $value ?>"
                                                 placeholder="Enter value" />
                                     </div>
                                     <div class="col-sm-1">
@@ -123,6 +128,8 @@ if(!empty($export_data)){
                                             </a>
                                         </div>
                                     </div>
+                                    <?php $index++; ?>
+                                    <?php endforeach; ?>
                                 </div>
                             </div>
                         </div>
