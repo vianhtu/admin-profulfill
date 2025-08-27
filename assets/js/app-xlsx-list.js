@@ -143,10 +143,10 @@ document.addEventListener('DOMContentLoaded', function (e) {
           }
         },
         {
-          // User Status
+          // Date
           targets: 6,
           render: function (data, type, full, meta) {
-            const status = full['status'];
+            const status = full['date_create'];
             return '<span>' + status + '</span>';
           }
         },
