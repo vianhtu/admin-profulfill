@@ -539,6 +539,9 @@ function initTable(){
 
                 // Status filter
                 createFilter(6, '.xlsx_authors', 'xlsxAuthors', 'Authors', authorsObj);
+
+                // Accounts filter
+                getAjaxSelect2HTML('xlsx_accounts', 'xlsxAccounts', 'Accounts', 'filter-accounts', true);
             }
         });
 
