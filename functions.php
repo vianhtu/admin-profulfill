@@ -512,7 +512,7 @@ function addXlsx(): array {
 			$update = $conn->prepare("
                 UPDATE exports SET
                     accounts_id = ?, type_id = ?, site_id = ?, authors_id = ?,
-                    name = ?, date_create = ?, file_name = ?, file_dir = ?, default = ?
+                    name = ?, date_create = ?, file_name = ?, file_dir = ?, file_default = ?
                 WHERE id = ?
             ");
 			$update->bind_param("iiiisssssi", $accounts_id, $type_id, $site_id, $authors_id, $name, $date_create, $originalName, $uniqueName, $xlsx_options, $id);
@@ -531,7 +531,7 @@ function addXlsx(): array {
 	}
 
 	$insert = $conn->prepare("
-        INSERT INTO exports (accounts_id, type_id, site_id, authors_id, name, date_create, file_name, file_dir, default)
+        INSERT INTO exports (accounts_id, type_id, site_id, authors_id, name, date_create, file_name, file_dir, file_default)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
 	$insert->bind_param("iiiisssss", $accounts_id, $type_id, $site_id, $authors_id, $name, $date_create, $originalName, $uniqueName, $xlsx_options);
