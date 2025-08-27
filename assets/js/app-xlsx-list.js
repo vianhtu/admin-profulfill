@@ -532,13 +532,13 @@ function initTable(){
                 };
 
                 // Type filter
-                createFilter(3, '.xlsx_type', 'xlsxType', 'Types', categoryObj);
+                createFilter(3, '.xlsx_types', 'xlsxTypes', 'Types', categoryObj);
 
                 // Plan filter
-                createFilter(4, '.xlsx_site', 'xlsxSite', 'Sites', sitesObj);
+                createFilter(4, '.xlsx_sites', 'xlsxSites', 'Sites', sitesObj);
 
                 // Status filter
-                createFilter(6, '.xlsx_author', 'xlsxAuthor', 'Authors', authorsObj);
+                createFilter(6, '.xlsx_authors', 'xlsxAuthors', 'Authors', authorsObj);
             }
         });
 
