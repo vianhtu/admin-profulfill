@@ -103,7 +103,7 @@ if(!empty($export_data)){
                                 <div class="row g-sm-6 mb-6">
                                     <div class="col-sm-4">
                                         <label class="form-label" for="form-repeater-1-1">Options</label>
-                                        <select id="form-repeater-1-1" class="select2 form-select" data-placeholder="Size">
+                                        <select id="form-repeater-1-1" class="select2 form-select" data-placeholder="Select a option">
                                             <option value="">Select a option</option>
                                         </select>
                                     </div>
