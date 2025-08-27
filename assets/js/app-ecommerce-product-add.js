@@ -103,6 +103,22 @@ $(function () {
     }
 });
 
+function getRepeaterData() {
+    var data = [];
+    // Mỗi row trong repeater có data-repeater-item
+    $('.form-repeater').find('[data-repeater-item]').each(function () {
+        var selectVal = $(this).find('.form-select').val();
+        var inputVal  = $(this).find('input[type="text"]').val();
+
+        data.push({
+            option: selectVal,
+            value: inputVal
+        });
+    });
+
+    return data;
+}
+
 document.addEventListener('DOMContentLoaded', function (e) {
     // Select2
     var select2 = $('#export_type,#export_site,#export_author');
