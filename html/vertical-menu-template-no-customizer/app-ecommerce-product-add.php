@@ -68,10 +68,10 @@ if(!empty($export_data)){
                                 type="text"
                                 class="form-control"
                                 id="export-name"
-                                placeholder="Product title"
+                                placeholder="File title"
                                 name="productTitle"
                                 value="<?= $name ?>"
-                                aria-label="Product title" required/>
+                                aria-label="File title" required/>
                     </div>
                 </div>
             </div>
