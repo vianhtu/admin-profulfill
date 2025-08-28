@@ -560,6 +560,7 @@ function initTable(){
             })
                 .then(res => res.json())
                 .then(data => {
+                    console.log(data);
                     if (data.status === 'success') {
                         if (action === 'delete') {
                             // Xóa trên DataTable
