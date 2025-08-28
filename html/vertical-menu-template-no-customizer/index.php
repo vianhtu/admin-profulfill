@@ -6,6 +6,10 @@ require __DIR__ . '/../../functions.php';
 require_login();
 $user = $_SESSION['auth']['user'] ?? 'user';
 $currentMenu = $_GET['menu'] ?? '';
+if (empty($_SESSION['csrf_token'])) {
+    // random_bytes(32) tạo chuỗi ngẫu nhiên bảo mật
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 ?>
 <!doctype html>
 
@@ -73,7 +77,10 @@ $currentMenu = $_GET['menu'] ?? '';
     <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
 
     <script src="../../assets/js/config.js"></script>
-  <!-- Các link CSS khác -->
+    <script>
+      window.csrfToken = "<?= $_SESSION['csrf_token'] ?>";
+    </script>
+      <!-- Các link CSS khác -->
   <style>
       /* Có thể thêm nếu vẫn bị tràn 1-2px do rounding */
       html, body {
