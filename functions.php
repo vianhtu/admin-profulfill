@@ -541,6 +541,10 @@ function getXlsxFileHeader(string $filePath, string $sheetName = 'Template', int
 
 function addXlsx(): array {
 	$conn = db();
+	$csrfToken = $_POST['csrf_token'] ?? '';
+	if (!isset($_SESSION['csrf_token']) || $csrfToken !== $_SESSION['csrf_token']) {
+		return ['status' => 'error', 'message' => 'CSRF token không hợp lệ'];
+	}
 
 	// Kiểm tra xem có file mới được upload không
 	$fileUploaded = isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK;

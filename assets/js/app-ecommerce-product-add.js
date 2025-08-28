@@ -216,6 +216,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
             formData.append('name', $('#export-name').val());
             formData.append('id', id);
             formData.append('options', JSON.stringify(getRepeaterData()));
+            formData.append('csrf_token', window.csrfToken);
 
             if (myDropzone && myDropzone.files.length > 0) {
                 formData.append('file', myDropzone.files[0]);
