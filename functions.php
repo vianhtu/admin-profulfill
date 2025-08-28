@@ -676,15 +676,6 @@ function deleteTableRow($table, $row_id): array {
 
 	$sql = "DELETE FROM `$table` WHERE id = ?";
 	$stmt = $conn->prepare($sql);
-
-	if (!$stmt) {
-		return [
-			'success' => false,
-			'affected_rows' => 0,
-			'error' => $conn->error
-		];
-	}
-
 	// 'i' = integer, 's' = string, 'd' = double, 'b' = blob
 	$stmt->bind_param('i', $row_id);
 
