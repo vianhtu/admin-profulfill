@@ -643,6 +643,43 @@ function addXlsx(): array {
 	}
 }
 
+function duplicateXlsx(): array {
+	$conn = db();
+	$id = $_POST['id'] ?? null;
+	$csrfToken = $_POST['csrf_token'] ?? '';
+
+	// 1. Validate input
+	if (!is_numeric($id) || $id <= 0) {
+		return ['status' => 'error', 'message' => 'ID không hợp lệ'];
+	}
+	if (!isset($_SESSION['csrf_token']) || $csrfToken !== $_SESSION['csrf_token']) {
+		return ['status' => 'error', 'message' => 'CSRF token không hợp lệ'];
+	}
+
+	// 2. Lấy dữ liệu gốc
+	$stmt = $conn->prepare("SELECT type_id, site_id, authors_id, accounts_id, name, file_default FROM exports WHERE id = ?");
+	$stmt->bind_param("i", $id);
+	$stmt->execute();
+	$result = $stmt->get_result();
+	if ($result->num_rows <= 0) {
+		return ['status' => 'error', 'message' => 'ID không tồn tại'];
+	}
+	$row = $result->fetch_assoc();
+
+	// 4. Insert bản ghi mới
+	$stmt2 = $conn->prepare("INSERT INTO exports (type_id, site_id, authors_id, accounts_id, name, file_default, date_create) VALUES (?, ?, ?, ?, ?, ?, NOW())");
+	$newFileName = $row['name'] . ' (Copy)';
+	$stmt2->bind_param("iiiiss", $row['type_id'], $row['site_id'], $row['authors_id'], $row['accounts_id'], $newFileName, $row['file_default']);
+	$success = $stmt2->execute();
+
+	if ($success) {
+		$newId = $stmt2->insert_id;
+		return ['status' => 'success', 'message' => 'Nhân bản thành công', 'newRecord' => $newId];
+	}
+
+	return ['status' => 'error', 'message' => 'Không thể nhân bản'];
+}
+
 function deleteXlsx(): array {
 	$conn = db();
 	$id = $_POST['id'] ?? null;

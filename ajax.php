@@ -40,6 +40,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 		case 'delete-xlsx':
 			echo json_encode(deleteXlsx());
 			break;
+		case 'duplicate-xlsx':
+			echo json_encode(duplicateXlsx());
+			break;
 	}
 	exit;
 }

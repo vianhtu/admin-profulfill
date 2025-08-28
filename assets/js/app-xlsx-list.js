@@ -172,7 +172,7 @@ function initTable(){
                 <a href="index.php?menu=exports_add&id=${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon">
                   <i class="icon-base ti tabler-edit icon-22px"></i>
                 </a>
-                <a href="javascript:;" class="btn btn-text-secondary rounded-pill waves-effect btn-icon duplicate-record">
+                <a href="javascript:;" data-id="${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon duplicate-record">
                   <i class="icon-base ti tabler-copy-check icon-22px"></i>
                 </a>
                 <a href="javascript:;" data-id="${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon delete-record">
@@ -528,40 +528,50 @@ function initTable(){
             }
         });
 
-        // Hàm gửi Ajax và xóa hàng trong DataTable
-        function deleteRecord(event) {
+        function handleRecordAction(event) {
             event?.preventDefault();
 
-            // Xác định hàng cần xóa
-            let row = document.querySelector('.dtr-expanded'); // Nếu đang collapsed
+            // Xác định loại hành động: delete hoặc duplicate
+            const deleteBtn = event.target.closest('.delete-record');
+            const duplicateBtn = event.target.closest('.duplicate-record');
+
+            if (!deleteBtn && !duplicateBtn) return;
+
+            const action = deleteBtn ? 'delete' : 'duplicate';
+            const recordId = (deleteBtn || duplicateBtn)?.getAttribute('data-id');
+            if (!recordId) return;
+
+            const confirmMsg = action === 'delete'
+                ? 'Bạn có chắc muốn xóa bản ghi này?'
+                : 'Bạn có chắc muốn nhân bản bản ghi này?';
+            if (!confirm(confirmMsg)) return;
+
+            // Xác định dòng trong DataTable
+            let row = document.querySelector('.dtr-expanded');
             if (event) {
                 row = event.target.closest('tr');
             }
 
-            // Lấy ID từ nút "Delete"
-            const button = event?.target.closest('.delete-record');
-            const recordId = button?.getAttribute('data-id');
-            if (!recordId) return;
-
-            if (!confirm('Bạn có chắc muốn xóa bản ghi này?')) return;
-
-            // Gửi Ajax tới PHP
-            fetch('../../ajax.php?action=delete-xlsx', {
+            // Gửi request Ajax
+            fetch(`../../ajax.php?action=${action}-xlsx`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `id=${encodeURIComponent(recordId)}&csrf_token=${encodeURIComponent(window.csrfToken)}`
             })
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === 'success') {
-                        // Xóa trên DataTable
-                        if (row) {
-                            dt_user.row(row).remove().draw(false);
+                        if (action === 'delete') {
+                            // Xóa trên DataTable
+                            if (row) {
+                                dt_user.row(row).remove().draw(false);
+                            }
+                        } else if (action === 'duplicate' && data.newRecord) {
+                            // Thêm bản ghi mới
+                            dt_user.row.add(data.newRecord).draw(false);
                         }
                     } else {
-                        alert(data.error || 'Không thể xóa dữ liệu');
+                        alert(data.error || `Không thể ${action} dữ liệu`);
                     }
                 })
                 .catch(err => {
@@ -570,17 +580,17 @@ function initTable(){
                 });
         }
 
-        function bindDeleteEvent() {
+        function bindRecordEvents() {
             const userListTable = document.querySelector('.datatables-users');
             const modal = document.querySelector('.dtr-bs-modal');
 
             if (userListTable && userListTable.classList.contains('collapsed')) {
                 if (modal) {
                     modal.addEventListener('click', function (event) {
-                        if (event.target.parentElement.classList.contains('delete-record')) {
-                            deleteRecord();
+                        if (event.target.closest('.delete-record') || event.target.closest('.duplicate-record')) {
+                            handleRecordAction(event);
                             const closeButton = modal.querySelector('.btn-close');
-                            if (closeButton) closeButton.click(); // Simulates a click on the close button
+                            if (closeButton) closeButton.click();
                         }
                     });
                 }
@@ -588,16 +598,16 @@ function initTable(){
                 const tableBody = userListTable?.querySelector('tbody');
                 if (tableBody) {
                     tableBody.addEventListener('click', function (event) {
-                        if (event.target.parentElement.classList.contains('delete-record')) {
-                            deleteRecord(event);
+                        if (event.target.closest('.delete-record') || event.target.closest('.duplicate-record')) {
+                            handleRecordAction(event);
                         }
                     });
                 }
             }
         }
 
-        // Initial event binding
-        bindDeleteEvent();
+        // Initial bind
+        bindRecordEvents();
 
         // Re-bind events when modal is shown or hidden
         document.addEventListener('show.bs.modal', function (event) {
