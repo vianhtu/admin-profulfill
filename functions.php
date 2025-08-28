@@ -641,9 +641,13 @@ function addXlsx(): array {
 
 function deleteXlsx(): array {
 	$id = $_POST['id'] ?? null;
+	$csrfToken = $_POST['csrf_token'] ?? '';
 	// 2. Kiểm tra dữ liệu đầu vào
 	if (!is_numeric($id) || $id <= 0) {
 		return ['status' => 'error', 'message' => 'ID không hợp lệ'];
+	}
+	if (!isset($_SESSION['csrf_token']) || $csrfToken !== $_SESSION['csrf_token']) {
+		return ['status' => 'error', 'message' => 'CSRF token không hợp lệ'];
 	}
 	// 5. Gọi hàm xóa, xử lý lỗi và log
 	try {
