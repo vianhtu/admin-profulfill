@@ -175,7 +175,7 @@ function initTable(){
                 <a href="javascript:;" class="btn btn-text-secondary rounded-pill waves-effect btn-icon duplicate-record">
                   <i class="icon-base ti tabler-copy-check icon-22px"></i>
                 </a>
-                <a href="javascript:;" class="btn btn-text-secondary rounded-pill waves-effect btn-icon delete-record">
+                <a href="javascript:;" data-id="${full['id']}"> class="btn btn-text-secondary rounded-pill waves-effect btn-icon delete-record">
                   <i class="icon-base ti tabler-trash icon-22px"></i>
                 </a>
               </div>
@@ -528,15 +528,46 @@ function initTable(){
             }
         });
 
-        //? The 'delete-record' class is necessary for the functionality of the following code.
+        // Hàm gửi Ajax và xóa hàng trong DataTable
         function deleteRecord(event) {
-            let row = document.querySelector('.dtr-expanded');
+            event?.preventDefault();
+
+            // Xác định hàng cần xóa
+            let row = document.querySelector('.dtr-expanded'); // Nếu đang collapsed
             if (event) {
-                row = event.target.parentElement.closest('tr');
+                row = event.target.closest('tr');
             }
-            if (row) {
-                dt_user.row(row).remove().draw();
-            }
+
+            // Lấy ID từ nút "Delete"
+            const button = event?.target.closest('.delete-record');
+            const recordId = button?.getAttribute('data-id');
+            if (!recordId) return;
+
+            if (!confirm('Bạn có chắc muốn xóa bản ghi này?')) return;
+
+            // Gửi Ajax tới PHP
+            fetch('../../ajax.php?action=delete-xlsx', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `id=${encodeURIComponent(recordId)}&csrf_token=${encodeURIComponent(window.csrfToken)}`
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Xóa trên DataTable
+                        if (row) {
+                            dt_user.row(row).remove().draw(false);
+                        }
+                    } else {
+                        alert(data.message || 'Không thể xóa dữ liệu');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Có lỗi kết nối tới server');
+                });
         }
 
         function bindDeleteEvent() {

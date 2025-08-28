@@ -638,3 +638,33 @@ function addXlsx(): array {
 		return ['status' => 'error', 'message' => 'Lỗi khi thêm dữ liệu'];
 	}
 }
+
+function deleteXlsx(): array {
+	$id = $_POST['id'] ?? null;
+	// 2. Kiểm tra dữ liệu đầu vào
+	if (!is_numeric($id) || $id <= 0) {
+		return ['status' => 'error', 'message' => 'ID không hợp lệ'];
+	}
+	// 5. Gọi hàm xóa, xử lý lỗi và log
+	try {
+		$result = deleteTableRow('exports', (int)$id);
+		if ($result['success'] && $result['affected_rows'] > 0) {
+			return ['status' => 'success', 'message' => 'Xóa dữ liệu thành công'];
+		}
+		return ['status' => 'error', 'message' => 'Không tìm thấy dữ liệu để xóa'];
+	} catch (Throwable $e) {
+		return ['status' => 'error', 'error' => "Xóa exports ID={$id} lỗi: " . $e->getMessage()];
+	}
+}
+
+function deleteTableRow($table, $row_id): array {
+	$conn = db();
+	// Use prepared statements to avoid SQL injection
+	$stmt = $conn->prepare("DELETE FROM `$table` WHERE id = :id");
+	$success = $stmt->execute([':id' => $row_id]);
+
+	return [
+		'success' => $success,
+		'affected_rows' => $stmt->rowCount()
+	];
+}
