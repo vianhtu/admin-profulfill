@@ -543,7 +543,7 @@ function addXlsx(): array {
 	$conn = db();
 	$csrfToken = $_POST['csrf_token'] ?? '';
 	if (!isset($_SESSION['csrf_token']) || $csrfToken !== $_SESSION['csrf_token']) {
-		return ['status' => 'error', 'message' => $_SESSION['csrf_token'].' | '.$csrfToken];
+		return ['status' => 'error', 'message' => 'CSRF token không hợp lệ'];
 	}
 
 	// Kiểm tra xem có file mới được upload không
