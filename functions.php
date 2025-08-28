@@ -640,6 +640,7 @@ function addXlsx(): array {
 }
 
 function deleteXlsx(): array {
+	$conn = db();
 	$id = $_POST['id'] ?? null;
 	$csrfToken = $_POST['csrf_token'] ?? '';
 	// 2. Kiểm tra dữ liệu đầu vào
@@ -649,10 +650,26 @@ function deleteXlsx(): array {
 	if (!isset($_SESSION['csrf_token']) || $csrfToken !== $_SESSION['csrf_token']) {
 		return ['status' => 'error', 'message' => 'CSRF token không hợp lệ'];
 	}
+
+	$check = $conn->prepare("SELECT file_dir FROM exports WHERE id = ?");
+	$check->bind_param("i", $id);
+	$check->execute();
+	$check_result = $check->get_result();
+	if ($check_result->num_rows <= 0) {
+		return ['status' => 'error', 'message' => 'ID không tồn tại'];
+	}
+
 	// 5. Gọi hàm xóa, xử lý lỗi và log
 	try {
-		$result = deleteTableRow('exports', (int)$id);
+		$result = deleteTableRow('exports', $id);
 		if ($result['success'] && $result['affected_rows'] > 0) {
+			// delete file.
+			$row = $check_result->fetch_assoc();
+			$FileDir  = $row['file_dir'];
+			// xóa file
+			if ($FileDir && file_exists(__DIR__ . '/xlsx/' . $FileDir)) {
+				unlink(__DIR__ . '/xlsx/' . $FileDir);
+			}
 			return ['status' => 'success', 'message' => 'Xóa dữ liệu thành công'];
 		}
 		return ['status' => 'error', 'message' => 'Không tìm thấy dữ liệu để xóa'];
