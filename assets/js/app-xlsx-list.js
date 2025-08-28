@@ -555,14 +555,13 @@ function initTable(){
             })
                 .then(res => res.json())
                 .then(data => {
-                    console.log(data);
                     if (data.status === 'success') {
                         // Xóa trên DataTable
                         if (row) {
                             dt_user.row(row).remove().draw(false);
                         }
                     } else {
-                        alert(data.message || 'Không thể xóa dữ liệu');
+                        alert(data.error || 'Không thể xóa dữ liệu');
                     }
                 })
                 .catch(err => {
