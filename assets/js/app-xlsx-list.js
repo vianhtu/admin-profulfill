@@ -568,7 +568,9 @@ function initTable(){
                             }
                         } else if (action === 'duplicate' && data.newRecord) {
                             // Thêm bản ghi mới
-                            dt_user.ajax.reload(null, false);
+                            dt_user.ajax.reload(function() {
+                                dt_user.order([[2, 'desc']]).draw();
+                            }, false);
                         }
                     } else {
                         alert(data.error || `Không thể ${action} dữ liệu`);
