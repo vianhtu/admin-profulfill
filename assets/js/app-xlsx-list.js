@@ -187,7 +187,7 @@ function initTable(){
                 style: 'multi',
                 selector: 'td:nth-child(2)'
             },
-            order: [[2, 'asc']],
+            order: [[2, 'desc']],
             layout: {
                 topStart: {
                     rowClass: 'row m-3 my-0 justify-content-between',
@@ -560,7 +560,6 @@ function initTable(){
             })
                 .then(res => res.json())
                 .then(data => {
-                    console.log(data);
                     if (data.status === 'success') {
                         if (action === 'delete') {
                             // Xóa trên DataTable
@@ -569,7 +568,7 @@ function initTable(){
                             }
                         } else if (action === 'duplicate' && data.newRecord) {
                             // Thêm bản ghi mới
-                            //dt_user.row.add(data.newRecord).draw(false);
+                            dt_user.ajax.reload(null, false);
                         }
                     } else {
                         alert(data.error || `Không thể ${action} dữ liệu`);
