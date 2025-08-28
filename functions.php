@@ -662,13 +662,39 @@ function deleteXlsx(): array {
 }
 
 function deleteTableRow($table, $row_id): array {
-	$conn = db();
-	// Use prepared statements to avoid SQL injection
-	$stmt = $conn->prepare("DELETE FROM `$table` WHERE id = :id");
-	$success = $stmt->execute([':id' => $row_id]);
+	$conn = db(); // Hàm db() trả về đối tượng mysqli
+
+	// 🔒 Xác thực tên bảng để tránh SQL Injection qua $table
+	$allowedTables = ['exports']; // ví dụ whitelist
+	if (!in_array($table, $allowedTables)) {
+		return [
+			'success' => false,
+			'affected_rows' => 0,
+			'error' => 'Bảng không hợp lệ'
+		];
+	}
+
+	$sql = "DELETE FROM `$table` WHERE id = ?";
+	$stmt = $conn->prepare($sql);
+
+	if (!$stmt) {
+		return [
+			'success' => false,
+			'affected_rows' => 0,
+			'error' => $conn->error
+		];
+	}
+
+	// 'i' = integer, 's' = string, 'd' = double, 'b' = blob
+	$stmt->bind_param('i', $row_id);
+
+	$success = $stmt->execute();
+	$affected_rows = $stmt->affected_rows;
+
+	$stmt->close();
 
 	return [
 		'success' => $success,
-		'affected_rows' => $stmt->rowCount()
+		'affected_rows' => $affected_rows
 	];
 }
