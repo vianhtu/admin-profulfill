@@ -569,7 +569,7 @@ function initTable(){
                             }
                         } else if (action === 'duplicate' && data.newRecord) {
                             // Thêm bản ghi mới
-                            dt_user.row.add(data.newRecord).draw(false);
+                            //dt_user.row.add(data.newRecord).draw(false);
                         }
                     } else {
                         alert(data.error || `Không thể ${action} dữ liệu`);
