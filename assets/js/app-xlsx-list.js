@@ -555,7 +555,7 @@ function initTable(){
             })
                 .then(res => res.json())
                 .then(data => {
-                    consoler.log(data);
+                    console.log(data);
                     if (data.status === 'success') {
                         // Xóa trên DataTable
                         if (row) {
