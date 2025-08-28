@@ -175,7 +175,7 @@ function initTable(){
                 <a href="javascript:;" class="btn btn-text-secondary rounded-pill waves-effect btn-icon duplicate-record">
                   <i class="icon-base ti tabler-copy-check icon-22px"></i>
                 </a>
-                <a href="javascript:;" data-id="${full['id']}"> class="btn btn-text-secondary rounded-pill waves-effect btn-icon delete-record">
+                <a href="javascript:;" data-id="${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon delete-record">
                   <i class="icon-base ti tabler-trash icon-22px"></i>
                 </a>
               </div>
