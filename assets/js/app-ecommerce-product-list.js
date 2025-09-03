@@ -629,7 +629,7 @@ function initProductTable(){
                 // Export.
                 getAjaxSelect2HTML('export_accounts', 'exportAccount', 'Export to Account', 'filter-accounts');
                 // file.
-                $('.export_file').html('<label class="form-label">Export File</label><select id="exportFile"></select>');
+                $('.export_file').html('<label class="form-label">Export File</label><select id="exportFile" disabled></select>');
                 $('#exportFile').select2({
                     placeholder: 'Chọn file xuất',
                     allowClear: true
