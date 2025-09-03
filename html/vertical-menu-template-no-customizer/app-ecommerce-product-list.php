@@ -82,7 +82,7 @@ $info = getAuthorsProductInfo();
 <div class="card">
     <div class="card-header border-bottom">
         <h5 class="card-title mb-0">Filter & Export</h5>
-        <div class="row">
+        <div class="d-flex justify-content-between align-items-center row pt-4 gap-4 gap-md-0">
             <div class="col-md-3 product_status"></div>
             <div class="col-md-3 product_category"></div>
             <div class="col-md-3 product_stock"></div>
@@ -92,7 +92,7 @@ $info = getAuthorsProductInfo();
             <div class="col-md-3 product_accounts"></div>
             <div class="col-md-5 product_sites"></div>
         </div>
-        <div class="row">
+        <div class="d-flex justify-content-between align-items-center row pt-4 gap-4 gap-md-0">
             <div class="col-md-3 export_accounts"></div>
             <div class="col-md-3 export_configs"></div>
             <div class="col-md-2 export_limited"></div>
