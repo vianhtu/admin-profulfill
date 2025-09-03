@@ -638,6 +638,10 @@ function initProductTable(){
                     allowClear: true
                 });
                 $('#exportAccount').on('change', function () {
+                    let e_id = $('#exportAccount').val();
+                    if(!e_id){
+                        return;
+                    }
                     $.ajax({
                         url: '../../ajax.php?action=filter-export-file',
                         type: 'POST',
