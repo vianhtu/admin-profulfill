@@ -639,7 +639,8 @@ function initProductTable(){
                         url: '../../ajax.php?action=filter-export-file',
                         type: 'POST',
                         data: {
-                            id: $('#exportAccount').val()
+                            id: $('#exportAccount').val(),
+                            type: $('#ProductCategory').val()
                         },
                     }).done(function(data) {
                         // Xóa option cũ
