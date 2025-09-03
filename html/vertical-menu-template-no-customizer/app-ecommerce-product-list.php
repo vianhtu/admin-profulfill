@@ -97,18 +97,12 @@ $info = getAuthorsProductInfo();
                 <div class="col-md-5 product_sites"></div>
             </div>
         </div>
-        <div class="d-flex align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#ExportContent" aria-expanded="false" aria-controls="ExportContent" style="cursor: pointer;">
-            <h5 class="card-title mb-0"></h5>
-            <i class="fa-solid fa-file-export"></i>
-        </div>
-        <div class="collapse" id="ExportContent">
-            <div class="d-flex justify-content-between align-items-center row pt-4 gap-6 gap-md-0 g-md-6">
-                <div class="col-md-3 export_accounts"></div>
-                <div class="col-md-3 export_configs"></div>
-                <div class="col-md-2 export_limited"></div>
-                <div class="col-md-2 export_offset"></div>
-                <div class="col-md-2 export_save mt-auto"></div>
-            </div>
+        <div class="row">
+            <div class="col-md-3 export_accounts"></div>
+            <div class="col-md-3 export_configs"></div>
+            <div class="col-md-2 export_limited"></div>
+            <div class="col-md-2 export_offset"></div>
+            <div class="col-md-2 export_save mt-auto"></div>
         </div>
     </div>
     <div class="card-datatable">
