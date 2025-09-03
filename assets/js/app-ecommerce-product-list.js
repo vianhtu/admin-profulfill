@@ -643,12 +643,7 @@ function initProductTable(){
                         },
                     }).done(function(response) {
                         let data;
-                        try {
-                            data = JSON.parse(response); // nếu server trả về JSON dạng chuỗi
-                        } catch (e) {
-                            console.error('Không parse được JSON', e);
-                            return;
-                        }
+                        console.log(response)
                         // Xóa option cũ
                         $('#exportFile').empty();
                         $.each(data, function (index, item) {
