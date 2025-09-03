@@ -637,10 +637,18 @@ function initProductTable(){
                 $('#exportAccount').on('change', function () {
                     $.ajax({
                         url: '../../ajax.php?action=filter-export-file',
-                        dataType: 'json',
                         type: 'POST',
-                        delay: 250,
-                    }).done(function(data) {
+                        data: {
+                            id: $('#exportAccount').val()
+                        },
+                    }).done(function(response) {
+                        let data;
+                        try {
+                            data = JSON.parse(response); // nếu server trả về JSON dạng chuỗi
+                        } catch (e) {
+                            console.error('Không parse được JSON', e);
+                            return;
+                        }
                         // Xóa option cũ
                         $('#exportFile').empty();
                         $.each(data, function (index, item) {
@@ -651,7 +659,7 @@ function initProductTable(){
                                 })
                             );
                         });
-
+                        $('#exportFile').prop('disabled', false);
                         // Khởi tạo hoặc refresh Select2
                         $('#exportFile').select2({
                             placeholder: 'Chọn file xuất',
