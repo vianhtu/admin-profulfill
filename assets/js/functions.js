@@ -1,11 +1,11 @@
 'use strict';
 
-function getAjaxSelect2HTML(div_class, select_id, select_label, action, multiple = false, data = {}) {
+function getAjaxSelect2HTML(div_class, select_id, select_label, action, multiple = false) {
     $('.'+div_class).html('<label class="form-label">'+select_label+'</label><select id="'+select_id+'"></select>');
-    ajaxSelect2(select_id, action, multiple, data);
+    ajaxSelect2(select_id, action, multiple);
 }
 
-function ajaxSelect2(select_id, action, multiple = false, data = {}){
+function ajaxSelect2(select_id, action, multiple = false){
     $('#'+select_id).select2({
         placeholder: 'Tìm và chọn...',
         multiple: multiple,
@@ -17,8 +17,7 @@ function ajaxSelect2(select_id, action, multiple = false, data = {}){
             data: function (params) {
                 return {
                     q: params.term || '',     // từ khóa người dùng gõ
-                    page: params.page || 1,    // phân trang (nếu có)
-                    data: data
+                    page: params.page || 1    // phân trang (nếu có)
                 };
             },
             processResults: function (data, params) {
