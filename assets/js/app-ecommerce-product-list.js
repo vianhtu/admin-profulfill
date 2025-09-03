@@ -626,7 +626,9 @@ function initProductTable(){
                 $('.product_sites').html(typesHTML);
 
                 // Export.
-                getAjaxSelect2HTML('export_accounts', 'accountsExport', 'Select Account', 'filter-accounts');
+                getAjaxSelect2HTML('export_accounts', 'exportAccount', 'Select Account', 'export-accounts');
+                // file.
+                getAjaxSelect2HTML('export_file', 'accountFile', 'Select File', 'export-file');
 
                 $('.export_limited').html('<label class="form-label">Limited</label><input type="number" class="form-control" id="exportLimited" value="2000" min="0">');
                 $('.export_offset').html('<label class="form-label">Offset</label><input type="number" class="form-control" id="exportOffset" value="0" min="0">');

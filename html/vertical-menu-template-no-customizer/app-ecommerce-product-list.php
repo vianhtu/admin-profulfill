@@ -94,7 +94,7 @@ $info = getAuthorsProductInfo();
         </div>
         <div class="d-flex justify-content-between align-items-center row pt-4 gap-4 gap-md-0">
             <div class="col-md-3 export_accounts"></div>
-            <div class="col-md-3 export_configs"></div>
+            <div class="col-md-3 export_file"></div>
             <div class="col-md-2 export_limited"></div>
             <div class="col-md-2 export_offset"></div>
             <div class="col-md-2 export_save mt-auto"></div>
