@@ -569,6 +569,9 @@ function initProductTable(){
                     select.addEventListener('change', function () {
                         const val = select.value ? `^${select.value}$` : '';
                         column.search(val, true, false).draw();
+                        // Trigger sự kiện change thủ công
+                        const event = new Event('change');
+                        document.getElementById('exportAccount').dispatchEvent(event);
                     });
                     Object.entries(categoryObj).forEach(([key, val]) => {
                         const option = document.createElement('option');
