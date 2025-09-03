@@ -630,6 +630,10 @@ function initProductTable(){
                 getAjaxSelect2HTML('export_accounts', 'exportAccount', 'Export to Account', 'filter-accounts');
                 // file.
                 $('.export_file').html('<label class="form-label">Export File</label><select id="exportFile"></select>');
+                $('#exportFile').select2({
+                    placeholder: 'Chọn file xuất',
+                    allowClear: true
+                });
                 $('#exportAccount').on('change', function () {
                     $.ajax({
                         url: '../../ajax.php?action=filter-export-file',
