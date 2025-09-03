@@ -87,6 +87,8 @@ $info = getAuthorsProductInfo();
             <div class="col-md-3 product_category"></div>
             <div class="col-md-3 product_stock"></div>
             <div class="col-md-3 product_store"></div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center row pt-4 gap-4 gap-md-0">
             <div class="col-md-2 product_from_date"></div>
             <div class="col-md-2 product_to_date"></div>
             <div class="col-md-3 product_accounts"></div>
