@@ -644,6 +644,10 @@ function initProductTable(){
                     }).done(function(data) {
                         // Xóa option cũ
                         $('#exportFile').empty();
+                        if (!arr || arr.length === 0) {
+                            $('#exportFile').prop('disabled', true);
+                            return;
+                        }
                         $.each(data, function (index, item) {
                             $('#exportFile').append(
                                 $('<option>', {
