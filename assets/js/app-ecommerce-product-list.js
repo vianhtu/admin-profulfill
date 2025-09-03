@@ -64,6 +64,7 @@ function initProductTable(){
                     d.stores = $('#storeFilter').val();
                     d.sites = getCheckedSites();
                     d.accounts = $('#accountsFilter').val();
+                    d.exported = $('#exportAccount').val();
                 },
                 dataSrc: function (json) {
                     //console.log(json);
@@ -626,9 +627,9 @@ function initProductTable(){
                 $('.product_sites').html(typesHTML);
 
                 // Export.
-                getAjaxSelect2HTML('export_accounts', 'exportAccount', 'Export to Account', 'export-accounts');
+                getAjaxSelect2HTML('export_accounts', 'exportAccount', 'Export to Account', 'filter-accounts');
                 // file.
-                getAjaxSelect2HTML('export_file', 'accountFile', 'Export File', 'export-file');
+                getAjaxSelect2HTML('export_file', 'accountFile', 'Export File', 'filter-exported');
 
                 $('.export_limited').html('<label class="form-label">Limited</label><input type="number" class="form-control" id="exportLimited" value="2000" min="0">');
                 $('.export_offset').html('<label class="form-label">Offset</label><input type="number" class="form-control" id="exportOffset" value="0" min="0">');

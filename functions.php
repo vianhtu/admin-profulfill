@@ -477,6 +477,46 @@ function getAccountsTableFilter(): array {
 	];
 }
 
+function getExportTableFilter() {
+	$conn = db();
+	// Lấy giá trị tìm kiếm từ POST
+	$q    = isset($_POST['q']) ? trim($_POST['q']) : '';
+	$page = isset($_POST['page']) ? max(1, intval($_POST['page'])) : 1;
+	$perPage = 20;
+	$offset  = ($page - 1) * $perPage;
+
+	// Chuẩn bị câu truy vấn (Prepared Statement để chống SQL injection)
+	$sql = "SELECT a.id, CONCAT(t.name, ' (', a.name, ')') AS name
+        FROM exports AS a
+        JOIN type t ON a.type_id = t.id
+        WHERE (? = '' OR a.name LIKE ?)
+        ORDER BY a.type_id ASC
+        LIMIT ?, ?";
+	$stmt = $conn->prepare($sql);
+
+	$like = "%{$q}%";
+	$stmt->bind_param("ssii", $q, $like, $offset, $perPage);
+	$stmt->execute();
+
+	$result = $stmt->get_result();
+	$items = [];
+	while ($row = $result->fetch_assoc()) {
+		$items[] = $row;
+	}
+	$stmt->close();
+
+	// Kiểm tra còn dữ liệu trang tiếp theo hay không
+	$more = (count($items) === $perPage);
+	return [
+		'items' => $items,
+		'more'  => $more
+	];
+}
+
+function getTableFilter($table) {
+
+}
+
 function getXlsxByID($id): array {
 	$conn = db();
 	$check = $conn->prepare( "SELECT * FROM exports WHERE id = ?" );
