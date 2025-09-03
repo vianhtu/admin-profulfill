@@ -641,9 +641,7 @@ function initProductTable(){
                         data: {
                             id: $('#exportAccount').val()
                         },
-                    }).done(function(response) {
-                        let data;
-                        console.log(response)
+                    }).done(function(data) {
                         // Xóa option cũ
                         $('#exportFile').empty();
                         $.each(data, function (index, item) {
