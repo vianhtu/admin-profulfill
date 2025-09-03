@@ -629,7 +629,32 @@ function initProductTable(){
                 // Export.
                 getAjaxSelect2HTML('export_accounts', 'exportAccount', 'Export to Account', 'filter-accounts');
                 // file.
-                getAjaxSelect2HTML('export_file', 'accountFile', 'Export File', 'filter-exported');
+                $('.export_file').html('<label class="form-label">Export File</label><select id="exportFile"></select>');
+                $('#exportAccount').on('change', function () {
+                    $.ajax({
+                        url: '../../ajax.php?action=filter-export-file',
+                        dataType: 'json',
+                        type: 'POST',
+                        delay: 250,
+                    }).done(function(data) {
+                        // Xóa option cũ
+                        $('#exportFile').empty();
+                        $.each(data, function (index, item) {
+                            $('#exportFile').append(
+                                $('<option>', {
+                                    value: index,
+                                    text: item
+                                })
+                            );
+                        });
+
+                        // Khởi tạo hoặc refresh Select2
+                        $('#exportFile').select2({
+                            placeholder: 'Chọn file xuất',
+                            allowClear: true
+                        });
+                    });
+                });
 
                 $('.export_limited').html('<label class="form-label">Limited</label><input type="number" class="form-control" id="exportLimited" value="2000" min="0">');
                 $('.export_offset').html('<label class="form-label">Offset</label><input type="number" class="form-control" id="exportOffset" value="0" min="0">');
