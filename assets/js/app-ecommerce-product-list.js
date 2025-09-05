@@ -185,8 +185,10 @@ function initProductTable(){
                     // badge
                     targets: 6,
                     render: function (data, type, full, meta) {
-                        const badge = full['badge'];
-
+                        let badge = full['badge'];
+                        if(badge === 'null'){
+                            badge = '';
+                        }
                         return '<span>' + badge + '</span>';
                     }
                 },
