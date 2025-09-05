@@ -677,6 +677,16 @@ function initProductTable(){
                 $('.export_offset').html('<label class="form-label">Offset</label><input type="number" class="form-control" id="exportOffset" value="0" min="0">');
                 $('.export_save').html('<button class="btn btn-primary w-100" tabindex="1" type="button"><span><span class="spinner-border spinner-border-sm me-2 d-none" role="status" id="loading_spinner"></span><span class="d-none d-sm-inline-block">Save Query</span></span></button>');
 
+                // save query
+                $('.export_save button').on('click', function () {
+                    const $btn = $(this);
+                    const $spinner = $('#loading_spinner');
+
+                    // Hiển thị spinner và disable nút
+                    $spinner.removeClass('d-none');
+                    $btn.prop('disabled', true);
+                });
+
                 $('#maxDate,#storeFilter,#accountsFilter,.product_sites input').on('change', function () {
                     tableApi.draw();
                 });
