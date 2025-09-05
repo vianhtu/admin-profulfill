@@ -103,3 +103,10 @@
   text-align: center;
   margin-top: 1rem;
 }
+/* table */
+td .product-name h6{
+    white-space: nowrap;         /* Không xuống dòng */
+    overflow: hidden;            /* Ẩn phần vượt quá */
+    text-overflow: ellipsis;     /* Hiển thị dấu ... */
+    max-width: 200px;            /* Giới hạn chiều rộng */
+}
