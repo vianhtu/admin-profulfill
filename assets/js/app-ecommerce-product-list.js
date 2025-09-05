@@ -717,7 +717,7 @@ function initProductTable(){
                             manager: $('#ProductStock').val(),
                             accounts: $('#accountsFilter').val(),
                             search: lastPostData.search.value,
-                            orderBy: lastPostData.columns[lastPostData.order[0].columns],
+                            orderBy: lastPostData.columns[lastPostData.order[0].column].data,
                             order: lastPostData.order[0].dir
                         }
                     }
