@@ -44,11 +44,11 @@ function initProductTable(){
     const dt_product_table = document.querySelector('.datatables-products'),
         productAdd = 'app-ecommerce-product-add.html',
         statusObj = {
-            1: { title: 'pending', class: 'bg-label-warning' },
-            2: { title: 'schedule', class: 'bg-label-warning' },
-            3: { title: 'listed', class: 'bg-label-success' },
-            4: { title: 'inactive', class: 'bg-label-danger' },
-            5: { title: 'trademark', class: 'bg-label-warning' }
+            pending: { title: 'pending', class: 'bg-label-primary' },
+            schedule: { title: 'schedule', class: 'bg-label-secondary' },
+            listed: { title: 'listed', class: 'bg-label-success' },
+            inactive: { title: 'inactive', class: 'bg-label-danger' },
+            trademark: { title: 'trademark', class: 'bg-label-warning' }
         }
     // E-commerce Products datatable
 

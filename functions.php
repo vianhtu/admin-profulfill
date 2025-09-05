@@ -267,7 +267,7 @@ function getProductsTable() {
 			"author_id"     => $row['author_id'],
 			"badge"         => $row['badge'],
 			"date"          => $row['date'],
-			"status"        => 3,
+			"status"        => $row['status'],
 			"image"         => $updatedUrl,
 			"product_brand" => "Etsy"
 		];
