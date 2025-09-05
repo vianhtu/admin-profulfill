@@ -688,6 +688,27 @@ function initProductTable(){
                     $spinner.removeClass('d-none');
                     $btn.prop('disabled', true);
                     console.log(lastPostData);
+                    let isValid = true;
+                    $('#exportAccount, #exportFile').each(function () {
+                        const value = ($(this).val() || '').trim();
+                        if (!value) {
+                            $(this).addClass('is-invalid').removeClass('is-valid');
+                            isValid = false;
+                        } else {
+                            $(this).removeClass('is-invalid').addClass('is-valid');
+                        }
+                    });
+                    if(!isValid){
+                        $spinner.addClass('d-none');
+                        $btn.prop('disabled', false);
+                        return;
+                    }
+                    let data = {
+                        offset: $('#exportOffset').val(),
+                        limited: $('#exportLimited').val(),
+                        file: $('#exportFile').val(),
+                        account: $('#exportAccount').val()
+                    }
                 });
 
                 $('#maxDate,#storeFilter,#accountsFilter,.product_sites input').on('change', function () {
