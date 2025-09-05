@@ -804,6 +804,22 @@ function saveExportQuery()
 
         if ($update->execute()) {
             $new_id = $conn->insert_id;
+            // Mảng ID bài viết cần cập nhật
+            $postIds = array_column($products['data'], 'id');
+            $newStatus = 'schedule'; // Trạng thái mới
+            // Chia mảng thành từng nhóm 500 phần tử
+            $chunks = array_chunk($postIds, 500);
+            foreach ($chunks as $chunk) {
+                // Tạo chuỗi ID an toàn
+                $idList = implode(',', array_map('intval', $chunk));
+                // Câu truy vấn cập nhật
+                $sql = "UPDATE posts SET status = ? WHERE id IN ($idList)";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param("s", $newStatus);
+                if (!$stmt->execute()) {
+                    return ['status' => 'error', 'message' => 'Lỗi khi cập nhật items: ' .$stmt->error];
+                }
+            }
             return ['status' => 'inserted', 'id' => $new_id];
         } else {
             return ['status' => 'error', 'message' => 'Lỗi khi thêm dữ liệu'];
