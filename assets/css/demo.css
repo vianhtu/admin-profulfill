@@ -108,5 +108,5 @@ td .product-name h6{
     white-space: nowrap;         /* Không xuống dòng */
     overflow: hidden;            /* Ẩn phần vượt quá */
     text-overflow: ellipsis;     /* Hiển thị dấu ... */
-    max-width: 500px;            /* Giới hạn chiều rộng */
+    max-width: 250px;            /* Giới hạn chiều rộng */
 }
