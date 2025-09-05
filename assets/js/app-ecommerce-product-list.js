@@ -717,11 +717,11 @@ function initProductTable(){
                             manager: $('#ProductStock').val(),
                             accounts: $('#accountsFilter').val(),
                             search: lastPostData.search.value,
-                            orderBy: lastPostData.columns[lastPostData.order.columns],
-                            order: lastPostData.order.dir
+                            orderBy: lastPostData.columns[lastPostData.order[0].columns].data,
+                            order: lastPostData.order[0].dir
                         }
                     }
-                    console.log(lastPostData);
+                    console.log(data);
                 });
 
                 $('#maxDate,#storeFilter,#accountsFilter,.product_sites input').on('change', function () {
