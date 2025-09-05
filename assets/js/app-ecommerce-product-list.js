@@ -695,6 +695,14 @@ function initProductTable(){
                 });
             }
         });
+
+        // Khi bảng vẽ xong, enable nút
+        dt_products.on('draw.dt', function () {
+            $('.export_save button').prop('disabled', false);
+        });
+        dt_products.on('preDraw.dt', function () {
+            $('.export_save button').prop('disabled', true);
+        });
     }
 
     // Filter form control to default size
