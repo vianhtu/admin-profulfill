@@ -714,6 +714,8 @@ function initProductTable(){
                         data: lastPostData,
                     }).done(function(data) {
                         console.log(data);
+                        $spinner.addClass('d-none');
+                        $btn.prop('disabled', false);
                     });
                 });
 
