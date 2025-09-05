@@ -792,7 +792,7 @@ function saveExportQuery()
     if(!empty($products['data'])){
         // Dữ liệu từ form
         $accounts_id  = $_POST['exported'];
-        $authors_id   = $_POST['columns'][4]['search']['value'] ?? '';
+        $authors_id   = $_SESSION['auth']['user_id'];
         $date_create  = date('Y-m-d H:i:s');
         $query        = json_encode($_POST);
         $status       = 'pending';
