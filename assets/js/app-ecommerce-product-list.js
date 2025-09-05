@@ -82,7 +82,7 @@ function initProductTable(){
                 { data: 'type_id' },
                 { data: 'author_id' },
                 { data: 'badge' },
-                { data: 'quantity' },
+                { data: 'date' },
                 { data: 'status' },
                 { data: 'id' }
             ],
@@ -197,7 +197,7 @@ function initProductTable(){
                     targets: 7,
                     responsivePriority: 4,
                     render: function (data, type, full, meta) {
-                        const qty = full['qty'];
+                        const qty = full['date'];
 
                         return '<span>' + qty + '</span>';
                     }

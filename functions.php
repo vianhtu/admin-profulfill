@@ -266,8 +266,7 @@ function getProductsTable() {
 			"type_id"       => $row['type_id'],
 			"author_id"     => $row['author_id'],
 			"badge"         => $row['badge'],
-			"price"         => "$999",
-			"qty"           => 665,
+			"date"          => $row['date'],
 			"status"        => 3,
 			"image"         => $updatedUrl,
 			"product_brand" => "Etsy"

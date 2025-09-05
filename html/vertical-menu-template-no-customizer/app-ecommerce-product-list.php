@@ -113,7 +113,7 @@ $info = getAuthorsProductInfo();
                 <th>category</th>
                 <th>author</th>
                 <th>badge</th>
-                <th>qty</th>
+                <th>date</th>
                 <th>status</th>
                 <th>actions</th>
             </tr>
