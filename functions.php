@@ -241,7 +241,7 @@ function getProductsTable() {
 	$totalFiltered = $conn->query( "SELECT COUNT(DISTINCT posts.ID) AS cnt FROM posts $joinAccounts $where" )->fetch_assoc()['cnt'];
 
 	// Lấy dữ liệu
-	$sql = "SELECT DISTINCT posts.ID, posts.title, posts.status, posts.sku, posts.images, posts.badge, posts.date, posts.type_id, posts.author_id, posts.store_id
+	$sql = "SELECT DISTINCT posts.ID, posts.title, posts.status, posts.sku, posts.images, posts.badge, posts.date, posts.type_id, posts.author_id
         FROM posts
         $joinAccounts
         $where
@@ -265,7 +265,7 @@ function getProductsTable() {
             "sku"           => htmlspecialchars( $row['sku'] ),
 			"type_id"       => $row['type_id'],
 			"author_id"     => $row['author_id'],
-			"store_id"      => $row['store_id'],
+			"badge"         => $row['badge'],
 			"price"         => "$999",
 			"qty"           => 665,
 			"status"        => 3,

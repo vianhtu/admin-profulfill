@@ -81,7 +81,7 @@ function initProductTable(){
                 { data: 'sku' },
                 { data: 'type_id' },
                 { data: 'author_id' },
-                { data: 'store_id' },
+                { data: 'badge' },
                 { data: 'quantity' },
                 { data: 'status' },
                 { data: 'id' }
@@ -182,12 +182,12 @@ function initProductTable(){
                     }
                 },
                 {
-                    // price
+                    // badge
                     targets: 6,
                     render: function (data, type, full, meta) {
-                        const price = full['store_id'];
+                        const badge = full['badge'];
 
-                        return '<span>' + price + '</span>';
+                        return '<span>' + badge + '</span>';
                     }
                 },
                 {
