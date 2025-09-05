@@ -186,7 +186,7 @@ function initProductTable(){
                     targets: 6,
                     render: function (data, type, full, meta) {
                         let badge = full['badge'];
-                        if(badge === 'null'){
+                        if(badge === null){
                             badge = '';
                         }
                         return '<span>' + badge + '</span>';
