@@ -687,7 +687,6 @@ function initProductTable(){
                     // Hiển thị spinner và disable nút
                     $spinner.removeClass('d-none');
                     $btn.prop('disabled', true);
-                    console.log(lastPostData);
                     let isValid = true;
                     $('#exportAccount, #exportFile').each(function () {
                         const value = ($(this).val() || '').trim();
@@ -704,11 +703,25 @@ function initProductTable(){
                         return;
                     }
                     let data = {
-                        offset: $('#exportOffset').val(),
-                        limited: $('#exportLimited').val(),
                         file: $('#exportFile').val(),
-                        account: $('#exportAccount').val()
+                        account: $('#exportAccount').val(),
+                        query : {
+                            offset: $('#exportOffset').val(),
+                            limited: $('#exportLimited').val(),
+                            minDate: $('#minDate').val(),
+                            maxDate: $('#maxDate').val(),
+                            stores: $('#storeFilter').val(),
+                            sites: getCheckedSites(),
+                            status: $('#ProductStatus').val(),
+                            type: $('#ProductCategory').val(),
+                            manager: $('#ProductStock').val(),
+                            accounts: $('#accountsFilter').val(),
+                            search: lastPostData.search.value,
+                            orderBy: lastPostData.columns[lastPostData.order.columns].data,
+                            order: lastPostData.order.dir
+                        }
                     }
+                    console.log(data);
                 });
 
                 $('#maxDate,#storeFilter,#accountsFilter,.product_sites input').on('change', function () {
