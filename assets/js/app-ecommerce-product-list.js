@@ -703,8 +703,8 @@ function initProductTable(){
                         return;
                     }
                     lastPostData.exported = $('#exportAccount').val();
-                    lastPostData.length = $('#exportLimited').val();
-                    lastPostData.start = $('#exportOffset').val();
+                    lastPostData.length = parseInt($('#exportLimited').val());
+                    lastPostData.start = parseInt($('#exportOffset').val());
                     lastPostData.file = $('#exportFile').val();
                     console.log(lastPostData);
                 });
