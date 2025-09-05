@@ -261,7 +261,7 @@ function getProductsTable() {
 		//$firstImg = $imgs['main'];
 		$data[] = [
 			"id"            => $row['ID'],
-			"product_name"  => htmlspecialchars( $row['title'] ),
+			"title"  => htmlspecialchars( $row['title'] ),
 			"category"      => $row['type_id'],
 			"stock"         => $row['author_id'],
 			"sku"           => htmlspecialchars( $row['sku'] ),

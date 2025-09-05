@@ -77,7 +77,7 @@ function initProductTable(){
                 // columns according to JSON
                 { data: 'id' },
                 { data: 'id', orderable: false, render: DataTable.render.select() },
-                { data: 'product_name' },
+                { data: 'title' },
                 { data: 'category' },
                 { data: 'stock' },
                 { data: 'sku' },
@@ -116,7 +116,7 @@ function initProductTable(){
                     targets: 2,
                     responsivePriority: 1,
                     render: function (data, type, full, meta) {
-                        let name = full['product_name'],
+                        let name = full['title'],
                             id = full['id'],
                             productBrand = full['product_brand'],
                             image = full['image'];
@@ -502,7 +502,7 @@ function initProductTable(){
                     display: DataTable.Responsive.display.modal({
                         header: function (row) {
                             const data = row.data();
-                            return 'Details of ' + data['product_name'];
+                            return 'Details of ' + data['title'];
                         }
                     }),
                     type: 'column',
