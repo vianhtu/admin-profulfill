@@ -787,6 +787,26 @@ function deleteTableRow($table, $row_id): array {
 
 function saveExportQuery()
 {
+    $conn = db();
     $products = getProductsTable();
-    return $products;
+    if(!empty($products['data'])){
+        // Dữ liệu từ form
+        $accounts_id  = $_POST['exported'];
+        $authors_id   = $_POST['columns'][4]['search']['value'] ?? '';
+        $date_create  = date('Y-m-d H:i:s');
+        $query        = json_encode($_POST);
+        $status       = 'pending';
+        $total_items = count($products['data']);
+
+        // Cập nhật bản ghi
+        $update = $conn->prepare("INSERT INTO download (query, account_id, author_id, status, date, total_items) VALUES (?, ?, ?, ?, ?, ?);");
+        $update->bind_param("siissi", $query, $accounts_id, $authors_id, $status, $date_create, $total_items);
+
+        if ($update->execute()) {
+            $new_id = $conn->insert_id;
+            return ['status' => 'inserted', 'id' => $new_id];
+        } else {
+            return ['status' => 'error', 'message' => 'Lỗi khi thêm dữ liệu'];
+        }
+    }
 }
