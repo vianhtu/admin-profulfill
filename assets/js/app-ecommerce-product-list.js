@@ -153,7 +153,16 @@ function initProductTable(){
                     }
                 },
                 {
+                    // Sku
                     targets: 3,
+                    render: function (data, type, full, meta) {
+                        const sku = full['sku'];
+
+                        return '<span>' + sku + '</span>';
+                    }
+                },
+                {
+                    targets: 4,
                     responsivePriority: 5,
                     render: function (data, type, full, meta) {
                         let category = categoryObj[full['type_id']].title;
@@ -162,7 +171,7 @@ function initProductTable(){
                     }
                 },
                 {
-                    targets: 4,
+                    targets: 5,
                     orderable: false,
                     responsivePriority: 3,
                     render: function (data, type, full, meta) {
@@ -170,15 +179,6 @@ function initProductTable(){
                         let stockTitle = authorsObj[stock].title;
 
                         return '<span>' + stockTitle + '</span>';
-                    }
-                },
-                {
-                    // Sku
-                    targets: 5,
-                    render: function (data, type, full, meta) {
-                        const sku = full['sku'];
-
-                        return '<span>' + sku + '</span>';
                     }
                 },
                 {
