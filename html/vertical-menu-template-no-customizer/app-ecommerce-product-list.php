@@ -110,7 +110,7 @@ $info = getAuthorsProductInfo();
                 <th></th>
                 <th>product</th>
                 <th>category</th>
-                <th>stock</th>
+                <th>author</th>
                 <th>sku</th>
                 <th>price</th>
                 <th>qty</th>

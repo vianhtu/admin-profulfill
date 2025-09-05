@@ -263,7 +263,7 @@ function getProductsTable() {
 			"id"            => $row['ID'],
 			"title"  => htmlspecialchars( $row['title'] ),
 			"category"      => $row['type_id'],
-			"stock"         => $row['author_id'],
+			"author"         => $row['author_id'],
 			"sku"           => htmlspecialchars( $row['sku'] ),
 			"price"         => "$999",
 			"qty"           => 665,

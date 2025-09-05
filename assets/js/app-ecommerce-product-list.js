@@ -79,7 +79,7 @@ function initProductTable(){
                 { data: 'id', orderable: false, render: DataTable.render.select() },
                 { data: 'title' },
                 { data: 'category' },
-                { data: 'stock' },
+                { data: 'author' },
                 { data: 'sku' },
                 { data: 'price' },
                 { data: 'quantity' },
@@ -166,7 +166,7 @@ function initProductTable(){
                     orderable: false,
                     responsivePriority: 3,
                     render: function (data, type, full, meta) {
-                        let stock = full['stock'];
+                        let stock = full['author'];
                         let stockTitle = authorsObj[stock].title;
 
                         return '<span>' + stockTitle + '</span>';
