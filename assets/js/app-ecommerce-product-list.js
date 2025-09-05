@@ -7,6 +7,7 @@
 let categoryObj = {};
 let authorsObj = {};
 let sitesObj = {};
+let lastPostData = {};
 
 async function init() {
     try {
@@ -65,6 +66,7 @@ function initProductTable(){
                     d.sites = getCheckedSites();
                     d.accounts = $('#accountsFilter').val();
                     d.exported = $('#exportAccount').val();
+                    lastPostData = d;
                 },
                 dataSrc: function (json) {
                     //console.log(json);
@@ -685,7 +687,7 @@ function initProductTable(){
                     // Hiển thị spinner và disable nút
                     $spinner.removeClass('d-none');
                     $btn.prop('disabled', true);
-                    console.log(tableApi);
+                    console.log(lastPostData);
                 });
 
                 $('#maxDate,#storeFilter,#accountsFilter,.product_sites input').on('change', function () {
