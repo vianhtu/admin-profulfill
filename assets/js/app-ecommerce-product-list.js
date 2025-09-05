@@ -187,7 +187,7 @@ function initProductTable(){
                     render: function (data, type, full, meta) {
                         let badge = full['badge'];
                         if(badge === null){
-                            badge = '';
+                            return '<i class="icon-base ti tabler-shopping-cart-off"></i>';
                         }
                         return '<span>' + badge + '</span>';
                     }
