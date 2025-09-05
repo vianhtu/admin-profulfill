@@ -721,7 +721,7 @@ function initProductTable(){
                             order: lastPostData.order.dir
                         }
                     }
-                    console.log(data);
+                    console.log(lastPostData);
                 });
 
                 $('#maxDate,#storeFilter,#accountsFilter,.product_sites input').on('change', function () {
