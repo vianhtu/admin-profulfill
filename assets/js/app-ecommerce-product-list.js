@@ -81,7 +81,7 @@ function initProductTable(){
                 { data: 'sku' },
                 { data: 'type_id' },
                 { data: 'author_id' },
-                { data: 'price' },
+                { data: 'store_id' },
                 { data: 'quantity' },
                 { data: 'status' },
                 { data: 'id' }
@@ -185,7 +185,7 @@ function initProductTable(){
                     // price
                     targets: 6,
                     render: function (data, type, full, meta) {
-                        const price = full['price'];
+                        const price = full['store_id'];
 
                         return '<span>' + price + '</span>';
                     }
