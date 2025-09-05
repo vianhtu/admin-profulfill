@@ -242,7 +242,7 @@ function initProductTable(){
                 style: 'multi',
                 selector: 'td:nth-child(2)'
             },
-            order: [8, 'desc'],
+            order: [7, 'desc'],
             displayLength: 10,
             layout: {
                 topStart: {
