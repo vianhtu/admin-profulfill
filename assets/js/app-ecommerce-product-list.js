@@ -708,7 +708,13 @@ function initProductTable(){
                     lastPostData.length = parseInt($('#exportLimited').val());
                     lastPostData.start = parseInt($('#exportOffset').val());
                     lastPostData.file = $('#exportFile').val();
-                    console.log(lastPostData);
+                    $.ajax({
+                        url: '../../ajax.php?action=save-export-query',
+                        type: 'POST',
+                        data: lastPostData,
+                    }).done(function(data) {
+                        console.log(data);
+                    });
                 });
 
                 $('#maxDate,#storeFilter,#accountsFilter,.product_sites input').on('change', function () {

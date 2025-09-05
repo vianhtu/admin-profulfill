@@ -25,6 +25,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 		case 'get-product-table-filter':
 			echo json_encode(getProductTableFilters());
 			break;
+        case 'get-xlsx':
+            echo json_encode(getAccountsTable());
+            break;
 		case 'filter-stores':
 			echo json_encode(getStoresTableFilter());
 			break;
@@ -33,9 +36,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 			break;
 		case 'filter-export-file':
 			echo json_encode(getExportTableFilter());
-			break;
-		case 'get-xlsx':
-			echo json_encode(getAccountsTable());
 			break;
 		case 'add-xlsx':
 			echo json_encode(addXlsx());
@@ -46,6 +46,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 		case 'duplicate-xlsx':
 			echo json_encode(duplicateXlsx());
 			break;
+        case 'save-export-query':
+            echo json_encode(saveExportQuery());
+            break;
 	}
 	exit;
 }

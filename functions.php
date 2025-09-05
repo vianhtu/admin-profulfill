@@ -142,7 +142,7 @@ function getAuthorsProductInfo(): ?array {
 	return $data;
 }
 
-function getProductsTable() {
+function getProductsTable(): array {
 	$conn = db();
 	// Lấy thông số từ DataTables
 	$draw             = intval( $_POST['draw'] ?? 1 );
@@ -783,4 +783,10 @@ function deleteTableRow($table, $row_id): array {
 		'success' => $success,
 		'affected_rows' => $affected_rows
 	];
+}
+
+function saveExportQuery()
+{
+    $products = getProductsTable();
+    return $products;
 }
