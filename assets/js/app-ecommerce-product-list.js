@@ -702,25 +702,10 @@ function initProductTable(){
                         $btn.prop('disabled', false);
                         return;
                     }
-                    let data = {
-                        file: $('#exportFile').val(),
-                        account: $('#exportAccount').val(),
-                        query : {
-                            offset: $('#exportOffset').val(),
-                            limited: $('#exportLimited').val(),
-                            minDate: $('#minDate').val(),
-                            maxDate: $('#maxDate').val(),
-                            stores: $('#storeFilter').val(),
-                            sites: getCheckedSites(),
-                            status: $('#ProductStatus').val(),
-                            type: $('#ProductCategory').val(),
-                            manager: $('#ProductStock').val(),
-                            accounts: $('#accountsFilter').val(),
-                            search: lastPostData.search.value,
-                            orderBy: lastPostData.columns[lastPostData.order[0].column].data,
-                            order: lastPostData.order[0].dir
-                        }
-                    }
+                    lastPostData.exported = $('#exportAccount').val();
+                    lastPostData.length = $('#exportLimited').val();
+                    lastPostData.start = $('#exportOffset').val();
+                    lastPostData.file = $('#exportFile').val();
                     console.log(lastPostData);
                 });
 
