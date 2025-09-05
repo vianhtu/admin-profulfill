@@ -261,9 +261,9 @@ function getProductsTable() {
 		//$firstImg = $imgs['main'];
 		$data[] = [
 			"id"            => $row['ID'],
-			"title"  => htmlspecialchars( $row['title'] ),
-			"category"      => $row['type_id'],
-			"author"         => $row['author_id'],
+			"title"         => htmlspecialchars( $row['title'] ),
+			"type_id"       => $row['type_id'],
+			"author_id"     => $row['author_id'],
 			"sku"           => htmlspecialchars( $row['sku'] ),
 			"price"         => "$999",
 			"qty"           => 665,

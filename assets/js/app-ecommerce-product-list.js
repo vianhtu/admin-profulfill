@@ -78,8 +78,8 @@ function initProductTable(){
                 { data: 'id' },
                 { data: 'id', orderable: false, render: DataTable.render.select() },
                 { data: 'title' },
-                { data: 'category' },
-                { data: 'author' },
+                { data: 'type_id' },
+                { data: 'author_id' },
                 { data: 'sku' },
                 { data: 'price' },
                 { data: 'quantity' },
@@ -156,7 +156,7 @@ function initProductTable(){
                     targets: 3,
                     responsivePriority: 5,
                     render: function (data, type, full, meta) {
-                        let category = categoryObj[full['category']].title;
+                        let category = categoryObj[full['type_id']].title;
 
                         return '<span>' + category + '</span>';
                     }
@@ -166,7 +166,7 @@ function initProductTable(){
                     orderable: false,
                     responsivePriority: 3,
                     render: function (data, type, full, meta) {
-                        let stock = full['author'];
+                        let stock = full['author_id'];
                         let stockTitle = authorsObj[stock].title;
 
                         return '<span>' + stockTitle + '</span>';
