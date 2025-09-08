@@ -811,6 +811,7 @@ function saveExportQuery(): array
     if ($checkAccount->num_rows === 0) {
         return ['status' => 'error', 'message' => 'Tài khoản không tồn tại'];
     }
+    $checkAccount->close();
 
     // Insert vào bảng download
     $insertDownload = $conn->prepare("
@@ -824,6 +825,7 @@ function saveExportQuery(): array
     }
 
     $new_id = $conn->insert_id;
+    $insertDownload->close();
     $postIds = array_column($products['data'], 'id');
     $newStatus = 'schedule';
 
@@ -844,19 +846,30 @@ function saveExportQuery(): array
             if (!$updatePosts->execute()) {
                 throw new Exception("Lỗi cập nhật trạng thái bài viết: " . $updatePosts->error);
             }
+            $updatePosts->close();
 
             // Chèn vào bảng accounts_relationships (tránh trùng lặp)
-            $values = [];
+            $a_values = []; $d_values = [];
             foreach ($chunk as $post_id) {
-                $values[] = "($account_id, " . intval($post_id) . ")";
+                $a_values[] = "($account_id, " . intval($post_id) . ")";
+                $d_values[] = "($new_id, " . intval($post_id) . ")";
             }
 
             $insertRelationsSql = "
                 INSERT IGNORE INTO accounts_relationships (account_id, post_id)
-                VALUES " . implode(',', $values);
+                VALUES " . implode(',', $a_values);
 
             if (!$conn->query($insertRelationsSql)) {
                 throw new Exception("Lỗi chèn quan hệ tài khoản: " . $conn->error);
+            }
+
+            // Chèn vào bảng download_relationships
+            $insertDownloadRelSql = "
+                INSERT IGNORE INTO download_relationships (download_id, post_id)
+                VALUES " . implode(',', $d_values);
+
+            if (!$conn->query($insertDownloadRelSql)) {
+                throw new Exception("Lỗi chèn quan hệ download: " . $conn->error);
             }
         }
 
