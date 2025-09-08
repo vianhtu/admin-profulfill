@@ -5,7 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dd67acd4-b783-43b8-b6ae-ced4c44e1a52" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/js/app-download-list.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/html/vertical-menu-template-no-customizer/index.php" beforeDir="false" afterPath="$PROJECT_DIR$/html/vertical-menu-template-no-customizer/index.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -49,7 +49,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "disable.download.node.interpreter.editor.notification": "true",
     "git-widget-placeholder": "main",
-    "last_opened_file_path": "C:/Users/thien/OneDrive/Documents/GitHub/admin-profulfill",
+    "last_opened_file_path": "C:/Users/thien/OneDrive/Documents/GitHub/admin-profulfill/assets/js",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -58,6 +58,11 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\thien\OneDrive\Documents\GitHub\admin-profulfill\assets\js" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -79,7 +84,7 @@
       <workItem from="1756872243015" duration="1796000" />
       <workItem from="1756887296900" duration="1557000" />
       <workItem from="1757036124113" duration="14419000" />
-      <workItem from="1757295659608" duration="5106000" />
+      <workItem from="1757295659608" duration="5288000" />
     </task>
     <servers />
   </component>

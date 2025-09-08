@@ -344,7 +344,7 @@ if (empty($_SESSION['csrf_token'])) {
             <script src="../../assets/js/app-xlsx-list.js"></script>
             <?php break;
         case 'exports_download': ?>
-            <script src="../../assets/js/app-xlsx-list.js"></script>
+            <script src="../../assets/js/app-download-list.js"></script>
             <?php break;
     }
     ?>
