@@ -23,6 +23,8 @@
                 <th>Download</th>
                 <th>Total</th>
                 <th>Actions</th>
+                <th style="display:none;"></th>
+                <th style="display:none;"></th>
             </tr>
             </thead>
         </table>
