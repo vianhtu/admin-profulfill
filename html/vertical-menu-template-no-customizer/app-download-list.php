@@ -21,6 +21,7 @@
                 <th>Authors</th>
                 <th>Date</th>
                 <th>Download Date</th>
+                <th>Total Items</th>
                 <th>Actions</th>
             </tr>
             </thead>

@@ -68,6 +68,7 @@ function initTable(){
                 { data: 'authors_id' },
                 { data: 'date'},
                 { data: 'download_date' },
+                { data: 'total_items' },
                 { data: 'action' }
             ],
             columnDefs: [
@@ -169,7 +170,15 @@ function initTable(){
                     }
                 },
                 {
+                    // Total Items
                     targets: 8,
+                    render: function (data, type, full, meta) {
+                        const total_items = full['total_items'];
+                        return '<span>' + total_items + '</span>';
+                    }
+                },
+                {
+                    targets: 9,
                     title: 'Actions',
                     searchable: false,
                     orderable: false,
