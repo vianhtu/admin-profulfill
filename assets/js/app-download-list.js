@@ -560,7 +560,7 @@ function initTable(){
                 createFilter(4, '.xlsx_sites', 'xlsxSites', 'Sites', sitesObj);
 
                 // Authors filter
-                createFilter(6, '.xlsx_authors', 'xlsxAuthors', 'Authors', authorsObj);
+                createFilter(10, '.xlsx_authors', 'xlsxAuthors', 'Authors', authorsObj);
 
                 // Accounts filter
                 getAjaxSelect2HTML('xlsx_accounts', 'xlsxAccounts', 'Accounts', 'filter-accounts', true);
