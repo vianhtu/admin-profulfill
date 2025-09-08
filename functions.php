@@ -794,11 +794,10 @@ function saveExportQuery(): array
         return ['status' => 'error', 'message' => 'Không có sản phẩm nào để xử lý'];
     }
 
-    // Dữ liệu từ form
-    $account_id  = intval($_POST['exported']);
-    $author_id   = intval($_SESSION['auth']['user_id']);
+    // Lấy dữ liệu từ form & session
+    $account_id  = intval($_POST['exported'] ?? 0);
+    $author_id   = intval($_SESSION['auth']['user_id'] ?? 0);
     $date_create = date('Y-m-d H:i:s');
-    $query       = json_encode($_POST);
     $status      = 'schedule';
     $total_items = count($products['data']);
 
@@ -809,16 +808,17 @@ function saveExportQuery(): array
     $checkAccount->store_result();
 
     if ($checkAccount->num_rows === 0) {
+        $checkAccount->close();
         return ['status' => 'error', 'message' => 'Tài khoản không tồn tại'];
     }
     $checkAccount->close();
 
-    // Insert vào bảng download
+    // Thêm bản ghi download
     $insertDownload = $conn->prepare("
-        INSERT INTO download (query, account_id, author_id, status, date, total_items)
+        INSERT INTO download (account_id, author_id, status, date, total_items)
         VALUES (?, ?, ?, ?, ?, ?)
     ");
-    $insertDownload->bind_param("siissi", $query, $account_id, $author_id, $status, $date_create, $total_items);
+    $insertDownload->bind_param("iissi", $account_id, $author_id, $status, $date_create, $total_items);
 
     if (!$insertDownload->execute()) {
         return ['status' => 'error', 'message' => 'Lỗi khi thêm bản ghi download: ' . $insertDownload->error];
@@ -826,9 +826,8 @@ function saveExportQuery(): array
 
     $new_id = $conn->insert_id;
     $insertDownload->close();
-    $postIds = array_column($products['data'], 'id');
-    $newStatus = 'schedule';
 
+    $postIds = array_column($products['data'], 'id');
     if (empty($postIds)) {
         return ['status' => 'error', 'message' => 'Không có bài viết nào để cập nhật'];
     }
@@ -838,37 +837,37 @@ function saveExportQuery(): array
 
     try {
         foreach ($chunks as $chunk) {
-            // Cập nhật trạng thái bài viết
-            $idList = implode(',', array_map('intval', $chunk));
-            $updatePosts = $conn->prepare("UPDATE posts SET status = ? WHERE id IN ($idList)");
-            $updatePosts->bind_param("s", $newStatus);
+            // UPDATE posts với prepared statement và placeholder động
+            $placeholders = implode(',', array_fill(0, count($chunk), '?'));
+            $sqlUpdate = "UPDATE posts SET status = ? WHERE id IN ($placeholders)";
+            $updatePosts = $conn->prepare($sqlUpdate);
+
+            $types = 's' . str_repeat('i', count($chunk));
+            $params = array_merge([$status], array_map('intval', $chunk));
+            $updatePosts->bind_param($types, ...$params);
 
             if (!$updatePosts->execute()) {
                 throw new Exception("Lỗi cập nhật trạng thái bài viết: " . $updatePosts->error);
             }
             $updatePosts->close();
 
-            // Chèn vào bảng accounts_relationships (tránh trùng lặp)
-            $a_values = []; $d_values = [];
+            // Chèn accounts_relationships
+            $a_values = [];
             foreach ($chunk as $post_id) {
                 $a_values[] = "($account_id, " . intval($post_id) . ")";
-                $d_values[] = "($new_id, " . intval($post_id) . ")";
             }
-
-            $insertRelationsSql = "
-                INSERT IGNORE INTO accounts_relationships (account_id, post_id)
-                VALUES " . implode(',', $a_values);
-
-            if (!$conn->query($insertRelationsSql)) {
+            $sqlAccRel = "INSERT IGNORE INTO accounts_relationships (account_id, post_id) VALUES " . implode(',', $a_values);
+            if (!$conn->query($sqlAccRel)) {
                 throw new Exception("Lỗi chèn quan hệ tài khoản: " . $conn->error);
             }
 
-            // Chèn vào bảng download_relationships
-            $insertDownloadRelSql = "
-                INSERT IGNORE INTO download_relationships (download_id, post_id)
-                VALUES " . implode(',', $d_values);
-
-            if (!$conn->query($insertDownloadRelSql)) {
+            // Chèn download_relationships
+            $d_values = [];
+            foreach ($chunk as $post_id) {
+                $d_values[] = "($new_id, " . intval($post_id) . ")";
+            }
+            $sqlDownRel = "INSERT IGNORE INTO download_relationships (download_id, post_id) VALUES " . implode(',', $d_values);
+            if (!$conn->query($sqlDownRel)) {
                 throw new Exception("Lỗi chèn quan hệ download: " . $conn->error);
             }
         }
