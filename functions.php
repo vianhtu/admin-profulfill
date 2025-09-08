@@ -817,12 +817,12 @@ function saveExportQuery()
                 $stmt = $conn->prepare($sql);
                 $stmt->bind_param("s", $newStatus);
                 if (!$stmt->execute()) {
-                    return ['status' => 'error', 'message' => 'Lỗi khi cập nhật items: ' .$stmt->error];
+                    return ['status' => 'error', 'message' => 'error update items status: ' .$stmt->error];
                 }
             }
             return ['status' => 'inserted', 'id' => $new_id];
         } else {
-            return ['status' => 'error', 'message' => 'Lỗi khi thêm dữ liệu'];
+            return ['status' => 'error', 'message' => 'error add query'];
         }
     }
 }
