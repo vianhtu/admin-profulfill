@@ -547,12 +547,12 @@ function getDownloadTable(): array {
         $data[] = [
             "id"            => $row['ID'],
             "full_name"     => $row['name'] . ' (' . $row['date'] . ')',
-            "email"       => $row['email'],
+            "email"         => $row['email'],
             "site_id"       => $row['site_id'],
             "authors_id"    => 1,
             "date_create"   => $row['date'],
             "account_site_id"   => $row['site_id'],
-            "account_name"   => $row['file_name'],
+            "temp_file_name"   => $row['file_name'],
         ];
     }
 
