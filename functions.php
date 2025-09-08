@@ -529,11 +529,11 @@ function getDownloadTable(): array {
     }
 
     $where         = $whereClauses ? ' WHERE ' . implode( ' AND ', $whereClauses ) : '';
-    $join          = 'INNER JOIN accounts a ON a.ID = download.account_id';
+    $join          = 'INNER JOIN exports ON exports.ID = download.exports_id INNER JOIN accounts ON accounts.ID = exports.accounts_id';
     $totalFiltered = $conn->query( "SELECT COUNT(DISTINCT download.ID) AS cnt FROM download $join $where" )->fetch_assoc()['cnt'];
 
     // Lấy dữ liệu
-    $sql = "SELECT DISTINCT download.ID, a.email, a.site_id, a.name, download.author_id, download.status, download.date, download.download_date, download.file_name, download.total_items
+    $sql = "SELECT DISTINCT download.ID, accounts.email, exports.site_id, exports.type_id, accounts.name, download.author_id, download.status, download.date, download.download_date, download.file_name, download.total_items
         FROM download
         $join
         $where
