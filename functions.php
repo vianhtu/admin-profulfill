@@ -884,6 +884,7 @@ function saveExportQuery(): array
 
     // Lấy dữ liệu từ form & session
     $account_id  = intval($_POST['exported'] ?? 0);
+    $exports_id  = intval($_POST['file'] ?? 0);
     $author_id   = intval($_SESSION['auth']['user_id'] ?? 0);
     $date_create = date('Y-m-d H:i:s');
     $status      = 'schedule';
@@ -903,10 +904,10 @@ function saveExportQuery(): array
 
     // Thêm bản ghi download
     $insertDownload = $conn->prepare("
-        INSERT INTO download (account_id, author_id, status, date, total_items)
+        INSERT INTO download (author_id, exports_id, status, date, total_items)
         VALUES (?, ?, ?, ?, ?)
     ");
-    $insertDownload->bind_param("iissi", $account_id, $author_id, $status, $date_create, $total_items);
+    $insertDownload->bind_param("iissi", $author_id, $exports_id, $status, $date_create, $total_items);
 
     if (!$insertDownload->execute()) {
         return ['status' => 'error', 'message' => 'Lỗi khi thêm bản ghi download: ' . $insertDownload->error];
