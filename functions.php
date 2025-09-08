@@ -489,7 +489,7 @@ function getDownloadTable(): array {
     $searchValue      = trim( $_POST['search']['value'] ?? '' );
 
     // Danh sách cột cho phép sort
-    $allowedCols = ['ID', 'exports_id', 'author_id', 'status', 'date', 'download_date'];
+    $allowedCols = ['ID', 'status', 'date', 'download_date'];
     if ( ! in_array( $orderColumn, $allowedCols ) ) {
         $orderColumn = 'ID';
     }
@@ -500,7 +500,7 @@ function getDownloadTable(): array {
     // Lọc theo search
     if ( $searchValue !== '' ) {
         $searchEsc      = $conn->real_escape_string( $searchValue );
-        $whereClauses[] = "(file_name LIKE '%$searchEsc%')";
+        $whereClauses[] = "(exports.file_name LIKE '%$searchEsc%' OR exports.name LIKE '%$searchEsc%' OR accounts.name LIKE '%$searchEsc%')";
     }
 
     // lọc theo status.
@@ -537,7 +537,7 @@ function getDownloadTable(): array {
         FROM download
         $join
         $where
-        ORDER BY $orderColumn $orderDir
+        ORDER BY download.$orderColumn $orderDir
         LIMIT $start, $length";
     $rs  = $conn->query( $sql );
 
