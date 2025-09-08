@@ -18,7 +18,7 @@
                 <th>Files</th>
                 <th>Account</th>
                 <th>Sites</th>
-                <th>Authors</th>
+                <th>Status</th>
                 <th>Date</th>
                 <th>Download</th>
                 <th>Total</th>

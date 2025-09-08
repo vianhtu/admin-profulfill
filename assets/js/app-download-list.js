@@ -41,6 +41,14 @@ function initTable(){
     bodyBg = config.colors.bodyBg;
     headingColor = config.colors.headingColor;
 
+    const statusObj = {
+        pending: { title: 'pending', class: 'bg-label-primary' },
+        schedule: { title: 'schedule', class: 'bg-label-secondary' },
+        listed: { title: 'listed', class: 'bg-label-success' },
+        inactive: { title: 'inactive', class: 'bg-label-danger' },
+        trademark: { title: 'trademark', class: 'bg-label-warning' }
+    }
+
     // Variable declaration for table
     const dt_user_table = document.querySelector('.datatables-users');
     // Users datatable
@@ -65,7 +73,7 @@ function initTable(){
                 { data: 'full_name' },
                 { data: 'email' },
                 { data: 'site_id' },
-                { data: 'authors_id' },
+                { data: 'status' },
                 { data: 'date'},
                 { data: 'download_date' },
                 { data: 'total_items' },
@@ -149,8 +157,14 @@ function initTable(){
                     // author
                     targets: 5,
                     render: function (data, type, full, meta) {
-                        let id = full['authors_id'];
-                        return '<span class="text-heading">' + authorsObj[id].title + '</span>';
+                        const status = full['status'];
+                        return (
+                            '<span class="badge ' +
+                            statusObj[status].class +
+                            '" text-capitalized>' +
+                            statusObj[status].title +
+                            '</span>'
+                        );
                     }
                 },
                 {
