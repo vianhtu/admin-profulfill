@@ -240,7 +240,7 @@ if (empty($_SESSION['csrf_token'])) {
                       include 'app-ecommerce-product-list.php';
                       break;
                   case 'exports_add':
-                      include 'app-ecommerce-product-add.php';
+                      include 'app-exports-add.php';
                       break;
                   case 'exports_xlsx':
                       include 'app-xlsx-list.php';
@@ -335,7 +335,7 @@ if (empty($_SESSION['csrf_token'])) {
             <script src="../../assets/js/app-user-list.js"></script>
             <?php break;
         case 'exports_add': ?>
-            <script src="../../assets/js/app-ecommerce-product-add.js"></script>
+            <script src="../../assets/js/app-exports-add.js"></script>
             <?php break;
         case 'exports_xlsx': ?>
             <script src="../../assets/js/app-xlsx-list.js"></script>
