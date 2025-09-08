@@ -785,44 +785,86 @@ function deleteTableRow($table, $row_id): array {
 	];
 }
 
-function saveExportQuery()
+function saveExportQuery(): array
 {
     $conn = db();
     $products = getProductsTable();
-    if(!empty($products['data'])){
-        // Dữ liệu từ form
-        $accounts_id  = $_POST['exported'];
-        $authors_id   = $_SESSION['auth']['user_id'];
-        $date_create  = date('Y-m-d H:i:s');
-        $query        = json_encode($_POST);
-        $status       = 'pending';
-        $total_items = count($products['data']);
 
-        // Cập nhật bản ghi
-        $update = $conn->prepare("INSERT INTO download (query, account_id, author_id, status, date, total_items) VALUES (?, ?, ?, ?, ?, ?);");
-        $update->bind_param("siissi", $query, $accounts_id, $authors_id, $status, $date_create, $total_items);
+    if (empty($products['data'])) {
+        return ['status' => 'error', 'message' => 'Không có sản phẩm nào để xử lý'];
+    }
 
-        if ($update->execute()) {
-            $new_id = $conn->insert_id;
-            // Mảng ID bài viết cần cập nhật
-            $postIds = array_column($products['data'], 'id');
-            $newStatus = 'schedule'; // Trạng thái mới
-            // Chia mảng thành từng nhóm 500 phần tử
-            $chunks = array_chunk($postIds, 500);
-            foreach ($chunks as $chunk) {
-                // Tạo chuỗi ID an toàn
-                $idList = implode(',', array_map('intval', $chunk));
-                // Câu truy vấn cập nhật
-                $sql = "UPDATE posts SET status = ? WHERE id IN ($idList)";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param("s", $newStatus);
-                if (!$stmt->execute()) {
-                    return ['status' => 'error', 'message' => 'error update items status: ' .$stmt->error];
-                }
+    // Dữ liệu từ form
+    $account_id  = intval($_POST['exported']);
+    $author_id   = intval($_SESSION['auth']['user_id']);
+    $date_create = date('Y-m-d H:i:s');
+    $query       = json_encode($_POST);
+    $status      = 'schedule';
+    $total_items = count($products['data']);
+
+    // Kiểm tra tài khoản tồn tại
+    $checkAccount = $conn->prepare("SELECT id FROM accounts WHERE id = ?");
+    $checkAccount->bind_param("i", $account_id);
+    $checkAccount->execute();
+    $checkAccount->store_result();
+
+    if ($checkAccount->num_rows === 0) {
+        return ['status' => 'error', 'message' => 'Tài khoản không tồn tại'];
+    }
+
+    // Insert vào bảng download
+    $insertDownload = $conn->prepare("
+        INSERT INTO download (query, account_id, author_id, status, date, total_items)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ");
+    $insertDownload->bind_param("siissi", $query, $account_id, $author_id, $status, $date_create, $total_items);
+
+    if (!$insertDownload->execute()) {
+        return ['status' => 'error', 'message' => 'Lỗi khi thêm bản ghi download: ' . $insertDownload->error];
+    }
+
+    $new_id = $conn->insert_id;
+    $postIds = array_column($products['data'], 'id');
+    $newStatus = 'schedule';
+
+    if (empty($postIds)) {
+        return ['status' => 'error', 'message' => 'Không có bài viết nào để cập nhật'];
+    }
+
+    $chunks = array_chunk($postIds, 500);
+    $conn->begin_transaction();
+
+    try {
+        foreach ($chunks as $chunk) {
+            // Cập nhật trạng thái bài viết
+            $idList = implode(',', array_map('intval', $chunk));
+            $updatePosts = $conn->prepare("UPDATE posts SET status = ? WHERE id IN ($idList)");
+            $updatePosts->bind_param("s", $newStatus);
+
+            if (!$updatePosts->execute()) {
+                throw new Exception("Lỗi cập nhật trạng thái bài viết: " . $updatePosts->error);
             }
-            return ['status' => 'inserted', 'id' => $new_id];
-        } else {
-            return ['status' => 'error', 'message' => 'error add query'];
+
+            // Chèn vào bảng accounts_relationships (tránh trùng lặp)
+            $values = [];
+            foreach ($chunk as $post_id) {
+                $values[] = "($account_id, " . intval($post_id) . ")";
+            }
+
+            $insertRelationsSql = "
+                INSERT IGNORE INTO accounts_relationships (account_id, post_id)
+                VALUES " . implode(',', $values);
+
+            if (!$conn->query($insertRelationsSql)) {
+                throw new Exception("Lỗi chèn quan hệ tài khoản: " . $conn->error);
+            }
         }
+
+        $conn->commit();
+        return ['status' => 'inserted', 'id' => $new_id];
+
+    } catch (Exception $e) {
+        $conn->rollback();
+        return ['status' => 'error', 'message' => $e->getMessage()];
     }
 }
