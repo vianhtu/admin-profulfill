@@ -101,7 +101,7 @@ function initTable(){
                     responsivePriority: 3,
                     render: function (data, type, full, meta) {
                         var name = full['full_name'];
-                        var account_name = full['temp_file_name'];
+                        var account_name = full['temp_file_name'] + ' - ' + categoryObj[full['type_id']].title;
                         var account_site_id = full['account_site_id'];
                         var image = './../../assets/svg/icons/xlsx_icon.svg';
                         var output;
