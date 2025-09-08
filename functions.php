@@ -524,7 +524,7 @@ function getDownloadTable(): array {
         $ids    = array_map( 'intval', $filterAccounts );
         $idsStr = implode( ',', $ids );
         if ( $idsStr !== '' ) {
-            $whereClauses[] = "account_id IN ($idsStr)";
+            $whereClauses[] = "exports.accounts_id IN ($idsStr)";
         }
     }
 
