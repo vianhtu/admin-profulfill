@@ -139,6 +139,7 @@ function initTable(){
                 {
                     // Email
                     targets: 3,
+                    orderable: false,
                     render: function (data, type, full, meta) {
                         let email = full['email'];
                         return '<span>' + email + '</span>';
@@ -147,6 +148,7 @@ function initTable(){
                 {
                     // Site
                     targets: 4,
+                    orderable: false,
                     render: function (data, type, full, meta) {
                         let id = full['site_id'];
                         return '<span class="text-heading">' + sitesObj[id].title + '</span>';
