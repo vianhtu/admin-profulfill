@@ -66,6 +66,7 @@ function initTable(){
                 { data: 'email' },
                 { data: 'site_id' },
                 { data: 'authors_id' },
+                { data: 'date'},
                 { data: 'download_date' },
                 { data: 'action' }
             ],
@@ -155,12 +156,20 @@ function initTable(){
                     // Date
                     targets: 6,
                     render: function (data, type, full, meta) {
-                        const status = full['download_date'];
-                        return '<span>' + status + '</span>';
+                        const date = full['date'];
+                        return '<span>' + date + '</span>';
                     }
                 },
                 {
+                    // Download Date
                     targets: 7,
+                    render: function (data, type, full, meta) {
+                        const download_date = full['download_date'];
+                        return '<span>' + download_date + '</span>';
+                    }
+                },
+                {
+                    targets: 8,
                     title: 'Actions',
                     searchable: false,
                     orderable: false,

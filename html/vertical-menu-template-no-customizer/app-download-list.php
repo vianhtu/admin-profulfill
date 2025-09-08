@@ -19,6 +19,7 @@
                 <th>Account</th>
                 <th>Sites</th>
                 <th>Authors</th>
+                <th>Date</th>
                 <th>Download Date</th>
                 <th>Actions</th>
             </tr>
