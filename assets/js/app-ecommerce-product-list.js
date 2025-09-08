@@ -556,6 +556,9 @@ function initProductTable(){
                         const option = document.createElement('option');
                         option.value = val.title;
                         option.textContent = val.title;
+                        if(val.title === 'pending'){
+                            option.selected = true;
+                        }
                         select.appendChild(option);
                     });
                 });
