@@ -503,12 +503,12 @@ function getDownloadTable(): array {
         $whereClauses[] = "(exports.file_name LIKE '%$searchEsc%' OR exports.name LIKE '%$searchEsc%' OR accounts.name LIKE '%$searchEsc%')";
     }
 
-    // lọc theo status.
-    $filterStatus = $_POST['columns'][4]['search']['value'] ?? '';
-    $filterStatus = trim( $filterStatus, '^$' ); // bỏ ký tự regex
-    if ( $filterStatus !== '' ) {
-        $escStatus      = $conn->real_escape_string( $filterStatus );
-        $whereClauses[] = "status = '$escStatus'";
+    // lọc theo site.
+    $filterSite = $_POST['columns'][4]['search']['value'] ?? '';
+    $filterSite = trim( $filterSite, '^$' ); // bỏ ký tự regex
+    if ( $filterSite !== '' ) {
+        $escSite      = $conn->real_escape_string( $filterSite );
+        $whereClauses[] = "exports.site_id = '$escSite'";
     }
     // lọc theo author.
     $filterAuthor = $_POST['columns'][6]['search']['value'] ?? '';
