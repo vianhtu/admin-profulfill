@@ -16,7 +16,7 @@
                 <th></th>
                 <th></th>
                 <th>Files</th>
-                <th>Category</th>
+                <th>Account Email</th>
                 <th>Sites</th>
                 <th>Authors</th>
                 <th>Date</th>

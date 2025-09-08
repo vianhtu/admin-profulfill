@@ -130,7 +130,7 @@ function initTable(){
                     }
                 },
                 {
-                    // Type
+                    // Email
                     targets: 3,
                     render: function (data, type, full, meta) {
                         let email = full['email'];

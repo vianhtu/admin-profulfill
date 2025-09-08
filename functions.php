@@ -548,7 +548,7 @@ function getDownloadTable(): array {
             "id"            => $row['ID'],
             "full_name"     => '',
             "type_id"       => $row['email'],
-            "site_id"       => $row['account_site_id'],
+            "site_id"       => $row['site_id'],
             "authors_id"    => $row['author_id'],
             "date_create"   => $row['date'],
             "account_site_id"   => $row['site_id'],
