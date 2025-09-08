@@ -477,6 +477,94 @@ function getAccountsTableFilter(): array {
 	];
 }
 
+function getDownloadTable(): array {
+    $conn = db();
+    // Lấy thông số từ DataTables
+    $draw             = intval( $_POST['draw'] ?? 1 );
+    $start            = intval( $_POST['start'] ?? 0 );
+    $length           = intval( $_POST['length'] ?? 10 );
+    $orderColumnIndex = intval( $_POST['order'][0]['column'] ?? 0 );
+    $orderColumn      = $_POST['columns'][ $orderColumnIndex ]['data'] ?? 'ID';
+    $orderDir         = strtolower( $_POST['order'][0]['dir'] ?? 'asc' ) === 'desc' ? 'DESC' : 'ASC';
+    $searchValue      = trim( $_POST['search']['value'] ?? '' );
+
+    // Danh sách cột cho phép sort
+    $allowedCols = ['ID', 'account_id', 'author_id', 'status', 'date', 'download_date'];
+    if ( ! in_array( $orderColumn, $allowedCols ) ) {
+        $orderColumn = 'ID';
+    }
+
+    // Tổng số bản ghi
+    $totalRecords = $conn->query( "SELECT COUNT(*) AS cnt FROM download" )->fetch_assoc()['cnt'];
+    $whereClauses = [];
+    // Lọc theo search
+    if ( $searchValue !== '' ) {
+        $searchEsc      = $conn->real_escape_string( $searchValue );
+        $whereClauses[] = "(file_name LIKE '%$searchEsc%')";
+    }
+
+    // lọc theo status.
+    $filterStatus = $_POST['columns'][4]['search']['value'] ?? '';
+    $filterStatus = trim( $filterStatus, '^$' ); // bỏ ký tự regex
+    if ( $filterStatus !== '' ) {
+        $escStatus      = $conn->real_escape_string( $filterStatus );
+        $whereClauses[] = "status = '$escStatus'";
+    }
+    // lọc theo author.
+    $filterAuthor = $_POST['columns'][6]['search']['value'] ?? '';
+    $filterAuthor = trim( $filterAuthor, '^$' ); // bỏ ký tự regex
+    if ( $filterAuthor !== '' ) {
+        $escAuthor       = $conn->real_escape_string( $filterAuthor );
+        $whereClauses[] = "author_id = '$escAuthor'";
+    }
+    // lọc theo accounts.
+    $filterAccounts = $_POST['accounts'] ?? [];
+    if ( ! empty( $filterAccounts ) && is_array( $filterAccounts ) ) {
+        // Ép tất cả sang số nguyên để tránh SQL injection
+        $ids    = array_map( 'intval', $filterAccounts );
+        $idsStr = implode( ',', $ids );
+        if ( $idsStr !== '' ) {
+            $whereClauses[] = "account_id IN ($idsStr)";
+        }
+    }
+
+    $where         = $whereClauses ? ' WHERE ' . implode( ' AND ', $whereClauses ) : '';
+    $join          = 'INNER JOIN accounts a ON a.ID = download.account_id';
+    $totalFiltered = $conn->query( "SELECT COUNT(DISTINCT download.ID) AS cnt FROM download $join $where" )->fetch_assoc()['cnt'];
+
+    // Lấy dữ liệu
+    $sql = "SELECT DISTINCT download.ID, a.site_id AS account_site_id, a.name AS account_name, download.account_id, download.author_id, download.status, download.date, download.download_date, download.file_name, download.total_items
+        FROM download
+        $join
+        $where
+        ORDER BY $orderColumn $orderDir
+        LIMIT $start, $length";
+    $rs  = $conn->query( $sql );
+
+    // Chuẩn bị dữ liệu trả về
+    $data = [];
+    while ( $row = $rs->fetch_assoc() ) {
+        $data[] = [
+            "id"            => $row['ID'],
+            "full_name"     => '',
+            "type_id"       => 0,
+            "site_id"       => $row['account_site_id'],
+            "authors_id"    => $row['author_id'],
+            "date_create"   => $row['date'],
+            "account_site_id"   => $row['account_site_id'],
+            "account_name"   => $row['account_name'],
+        ];
+    }
+
+    // Trả JSON
+    return [
+        "draw"            => $draw,
+        "recordsTotal"    => $totalRecords,
+        "recordsFiltered" => $totalFiltered,
+        "data"            => $data
+    ];
+}
+
 function getExportTableFilter() {
     $conn = db();
     $id   = isset($_POST['id']) ? $_POST['id'] : '';
