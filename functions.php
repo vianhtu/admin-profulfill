@@ -515,7 +515,7 @@ function getDownloadTable(): array {
     $filterAuthor = trim( $filterAuthor, '^$' ); // bỏ ký tự regex
     if ( $filterAuthor !== '' ) {
         $escAuthor       = $conn->real_escape_string( $filterAuthor );
-        $whereClauses[] = "author_id = '$escAuthor'";
+        $whereClauses[] = "download.author_id = '$escAuthor'";
     }
     // lọc theo accounts.
     $filterAccounts = $_POST['accounts'] ?? [];

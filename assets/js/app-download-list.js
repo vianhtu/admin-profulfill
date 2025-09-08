@@ -77,7 +77,9 @@ function initTable(){
                 { data: 'date'},
                 { data: 'download_date' },
                 { data: 'total_items' },
-                { data: 'action' }
+                { data: 'action' },
+                { data: 'author_id' },
+                { data: 'type_id' }
             ],
             columnDefs: [
                 {
@@ -212,6 +214,16 @@ function initTable(){
               </div>
             `;
                     }
+                },
+                {
+                    targets: 10, // chỉ số cột bạn muốn ẩn
+                    visible: false,
+                    searchable: true // vẫn cho phép lọc
+                },
+                {
+                    targets: 11, // chỉ số cột bạn muốn ẩn
+                    visible: false,
+                    searchable: true // vẫn cho phép lọc
                 }
             ],
             select: {
