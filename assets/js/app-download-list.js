@@ -66,7 +66,7 @@ function initTable(){
                 { data: 'email' },
                 { data: 'site_id' },
                 { data: 'authors_id' },
-                { data: 'date_create' },
+                { data: 'download_date' },
                 { data: 'action' }
             ],
             columnDefs: [
@@ -144,7 +144,7 @@ function initTable(){
                     }
                 },
                 {
-                    // Site
+                    // author
                     targets: 5,
                     render: function (data, type, full, meta) {
                         let id = full['authors_id'];
@@ -155,7 +155,7 @@ function initTable(){
                     // Date
                     targets: 6,
                     render: function (data, type, full, meta) {
-                        const status = full['date_create'];
+                        const status = full['download_date'];
                         return '<span>' + status + '</span>';
                     }
                 },
