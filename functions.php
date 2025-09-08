@@ -511,7 +511,7 @@ function getDownloadTable(): array {
         $whereClauses[] = "exports.site_id = '$escSite'";
     }
     // lọc theo author.
-    $filterAuthor = $_POST['columns'][6]['search']['value'] ?? '';
+    $filterAuthor = $_POST['columns'][10]['search']['value'] ?? '';
     $filterAuthor = trim( $filterAuthor, '^$' ); // bỏ ký tự regex
     if ( $filterAuthor !== '' ) {
         $escAuthor       = $conn->real_escape_string( $filterAuthor );
