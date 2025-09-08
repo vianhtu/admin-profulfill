@@ -246,7 +246,7 @@ if (empty($_SESSION['csrf_token'])) {
                       include 'app-xlsx-list.php';
                       break;
                   case 'exports_download':
-                      include 'app-xlsx-list.php';
+                      include 'app-download-list.php';
                       break;
                   case 'users':
                       include 'app-user-list.php';
