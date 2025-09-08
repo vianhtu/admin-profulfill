@@ -502,7 +502,13 @@ function getDownloadTable(): array {
         $searchEsc      = $conn->real_escape_string( $searchValue );
         $whereClauses[] = "(exports.file_name LIKE '%$searchEsc%' OR exports.name LIKE '%$searchEsc%' OR accounts.name LIKE '%$searchEsc%')";
     }
-
+    // lọc theo type.
+    $filterType = $_POST['columns'][11]['search']['value'] ?? '';
+    $filterType = trim( $filterType, '^$' ); // bỏ ký tự regex
+    if ( $filterType !== '' ) {
+        $escType      = $conn->real_escape_string( $filterType );
+        $whereClauses[] = "exports.type_id = '$escType'";
+    }
     // lọc theo site.
     $filterSite = $_POST['columns'][4]['search']['value'] ?? '';
     $filterSite = trim( $filterSite, '^$' ); // bỏ ký tự regex

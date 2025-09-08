@@ -554,7 +554,7 @@ function initTable(){
                 };
 
                 // Type filter
-                createFilter(3, '.xlsx_types', 'xlsxTypes', 'Types', categoryObj);
+                createFilter(11, '.xlsx_types', 'xlsxTypes', 'Types', categoryObj);
 
                 // Sites filter
                 createFilter(4, '.xlsx_sites', 'xlsxSites', 'Sites', sitesObj);
