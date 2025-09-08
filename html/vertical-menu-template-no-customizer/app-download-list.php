@@ -20,8 +20,8 @@
                 <th>Sites</th>
                 <th>Authors</th>
                 <th>Date</th>
-                <th>Download Date</th>
-                <th>Total Items</th>
+                <th>Download</th>
+                <th>Total</th>
                 <th>Actions</th>
             </tr>
             </thead>
