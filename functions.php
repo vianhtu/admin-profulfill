@@ -533,7 +533,7 @@ function getDownloadTable(): array {
     $totalFiltered = $conn->query( "SELECT COUNT(DISTINCT download.ID) AS cnt FROM download $join $where" )->fetch_assoc()['cnt'];
 
     // Lấy dữ liệu
-    $sql = "SELECT DISTINCT download.ID, accounts.email, exports.site_id, exports.type_id, exports.name, download.author_id, download.status, download.date, download.download_date, download.file_name, download.total_items
+    $sql = "SELECT DISTINCT download.ID, accounts.email, exports.site_id, exports.type_id, exports.file_name, exports.name, download.author_id, download.status, download.date, download.download_date, download.file_name, download.total_items
         FROM download
         $join
         $where
@@ -552,7 +552,7 @@ function getDownloadTable(): array {
             "authors_id"    => 1,
             "date_create"   => $row['date'],
             "account_site_id"   => $row['site_id'],
-            "account_name"   => $row['name'],
+            "account_name"   => $row['file_name'],
         ];
     }
 
