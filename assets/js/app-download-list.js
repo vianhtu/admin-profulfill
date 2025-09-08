@@ -63,7 +63,7 @@ function initTable(){
                 { data: 'id' },
                 { data: 'id', orderable: false, render: DataTable.render.select() },
                 { data: 'full_name' },
-                { data: 'type_id' },
+                { data: 'email' },
                 { data: 'site_id' },
                 { data: 'authors_id' },
                 { data: 'date_create' },
@@ -133,8 +133,8 @@ function initTable(){
                     // Type
                     targets: 3,
                     render: function (data, type, full, meta) {
-                        var id = full['type_id'];
-                        return '<span>' + categoryObj[id].title + '</span>';
+                        let email = full['email'];
+                        return '<span>' + email + '</span>';
                     }
                 },
                 {
