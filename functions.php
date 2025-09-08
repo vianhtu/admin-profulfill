@@ -533,7 +533,7 @@ function getDownloadTable(): array {
     $totalFiltered = $conn->query( "SELECT COUNT(DISTINCT download.ID) AS cnt FROM download $join $where" )->fetch_assoc()['cnt'];
 
     // Lấy dữ liệu
-    $sql = "SELECT DISTINCT download.ID, accounts.email, exports.site_id, exports.type_id, exports.file_name, exports.name, download.author_id, download.status, download.date, download.download_date, download.total_items
+    $sql = "SELECT DISTINCT download.ID, accounts.email, exports.site_id, exports.type_id, exports.file_name, exports.name, download.status, download.date, download.download_date, download.total_items
         FROM download
         $join
         $where
@@ -545,17 +545,16 @@ function getDownloadTable(): array {
     $data = [];
     while ( $row = $rs->fetch_assoc() ) {
         $data[] = [
-            "id"            => $row['ID'],
-            "full_name"     => $row['name'],
-            "email"         => $row['email'],
-            "site_id"       => $row['site_id'],
-            "type_id"       => $row['type_id'],
-            "status"    => $row['status'],
-            "date" => $row['date'],
-            "download_date"   => $row['download_date'],
-            "total_items" => $row['total_items'],
-            "account_site_id"   => $row['site_id'],
-            "temp_file_name"   => $row['file_name'],
+            "id"                => $row['ID'],
+            "full_name"         => $row['name'],
+            "email"             => $row['email'],
+            "site_id"           => $row['site_id'],
+            "type_id"           => $row['type_id'],
+            "status"            => $row['status'],
+            "date"              => $row['date'],
+            "download_date"     => $row['download_date'],
+            "total_items"       => $row['total_items'],
+            "temp_file_name"    => $row['file_name']
         ];
     }
 
