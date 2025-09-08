@@ -86,6 +86,10 @@ function initProductTable(){
                 { data: 'status' },
                 { data: 'id' }
             ],
+            searchCols: [
+                null, null, null, null, null, null, null, null,
+                { search: 'pending' }, null
+            ],
             columnDefs: [
                 {
                     // For Responsive

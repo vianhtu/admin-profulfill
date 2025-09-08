@@ -168,7 +168,7 @@ function getProductsTable(): array {
 		$whereClauses[] = "(title LIKE '%$searchEsc%' OR sku LIKE '%$searchEsc%' OR status LIKE '%$searchEsc%' OR badge LIKE '%$searchEsc%')";
 	}
 	// lọc theo status.
-	$filterStatus = $_POST['columns'][8]['search']['value'] ?? 'pending';
+	$filterStatus = $_POST['columns'][8]['search']['value'] ?? '';
 	$filterStatus = trim( $filterStatus, '^$' ); // bỏ ký tự regex
 	if ( $filterStatus !== '' ) {
 		$escStock       = $conn->real_escape_string( $filterStatus );
