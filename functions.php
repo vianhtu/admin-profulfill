@@ -816,7 +816,7 @@ function saveExportQuery(): array
     // Thêm bản ghi download
     $insertDownload = $conn->prepare("
         INSERT INTO download (account_id, author_id, status, date, total_items)
-        VALUES (?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?)
     ");
     $insertDownload->bind_param("iissi", $account_id, $author_id, $status, $date_create, $total_items);
 
