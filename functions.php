@@ -81,7 +81,35 @@ function renderSelect($id, $label, $options, $selected = null) {
 
 function AIProcessProducts(): array
 {
-    return [$_POST];
+    $conn = db();
+    $downloadId = $_POST['id'] ?? 0;
+    $stmt = $conn->prepare("
+        SELECT posts.ID, posts.title, posts.sku, posts.images
+        FROM posts
+        INNER JOIN download_relationships dr ON dr.post_id = posts.ID
+        WHERE dr.download_id = ?
+        AND posts.status = 'schedule'
+        LIMIT 30
+    ");
+
+    // Gắn biến vào dấu ?
+    $stmt->bind_param("i", $downloadId);
+
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+    $products = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $products[] = [
+            'id'     => $row['ID'],
+            'title'  => $row['title'],
+            'sku'    => $row['sku'],
+            'images' => json_decode($row['images'], true)
+        ];
+    }
+
+    return $products;
 }
 
 function getTypes(): array {
