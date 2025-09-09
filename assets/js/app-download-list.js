@@ -116,9 +116,16 @@ function initTable(){
                         var image = './../../assets/svg/icons/xlsx_icon.svg';
                         var output;
 
-                        output = '<img src="' + image + '" alt="file.xlsx" class="rounded">';
+                        var output =
+                            '<div class="position-relative">' +
+                            '<img src="' + image + '" alt="file.xlsx" class="rounded">' +
+                            '<div class="progress-overlay d-none">' + // mặc định ẩn
+                            '<div class="progress" style="height: 4px;">' +
+                            '<div class="progress-bar bg-info" role="progressbar" style="width: 0%;"></div>' +
+                            '</div>' +
+                            '</div>' +
+                            '</div>';
 
-                        // Creates full output for row
                         var row_output =
                             '<div class="d-flex justify-content-start align-items-center user-name">' +
                             '<div class="avatar-wrapper">' +
