@@ -262,9 +262,8 @@ function initTable(){
                                             text: '<i class="icon-base ti tabler-brand-google me-1"></i>Gemini 2.5 Flash',
                                             action: function (e, dt, node, config) {
                                                 const selectedData = dt.rows({ selected: true }).data().toArray();
-
                                                 if (selectedData.length === 0) {
-                                                    alert('Chưa chọn dòng nào!');
+                                                    alert('Chọn một hoặc nhiều file cần sử lý!');
                                                 } else {
                                                     console.log('Dữ liệu các dòng đã chọn:', selectedData);
                                                     alert(`Đã chọn ${selectedData.length} dòng`);
