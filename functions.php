@@ -99,13 +99,14 @@ function AIProcessProducts(): array
 
     $result = $stmt->get_result();
     $products = [];
-
     while ($row = $result->fetch_assoc()) {
+        $imagesArray = json_decode($row['images'], true);
+        $mainImage = $imagesArray['main'] ?? '';
         $products[] = [
             'id'     => $row['ID'],
             'title'  => $row['title'],
             'sku'    => $row['sku'],
-            'images' => json_decode($row['images'], true)
+            'images' => $mainImage
         ];
     }
 
