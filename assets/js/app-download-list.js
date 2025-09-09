@@ -287,7 +287,7 @@ function initTable(){
                                                     progressOverlay.find('.progress-bar').css('width', '60%');
 
                                                     const formData = new FormData();
-                                                    formData.append('id', 1);
+                                                    formData.append('id', 4);
 
                                                     $.ajax({
                                                         url: '../../ajax.php?action=ai-process-products',
