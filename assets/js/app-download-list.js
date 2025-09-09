@@ -259,40 +259,11 @@ function initTable(){
                                     text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-upload icon-xs"></i> <span class="d-none d-sm-inline-block">Export</span></span>',
                                     buttons: [
                                         {
-                                            extend: 'copy',
-                                            text: `<i class="icon-base ti tabler-copy me-1"></i>Copy`,
-                                            className: 'dropdown-item',
-                                            exportOptions: {
-                                                columns: [3, 4, 5, 6, 7],
-                                                format: {
-                                                    body: function (inner, coldex, rowdex) {
-                                                        if (inner.length <= 0) return inner;
-
-                                                        // Parse HTML content
-                                                        const parser = new DOMParser();
-                                                        const doc = parser.parseFromString(inner, 'text/html');
-
-                                                        let text = '';
-
-                                                        // Handle user-name elements specifically
-                                                        const userNameElements = doc.querySelectorAll('.user-name');
-                                                        if (userNameElements.length > 0) {
-                                                            userNameElements.forEach(el => {
-                                                                // Get text from nested structure - try different selectors
-                                                                const nameText =
-                                                                    el.querySelector('.fw-medium')?.textContent ||
-                                                                    el.querySelector('.d-block')?.textContent ||
-                                                                    el.textContent;
-                                                                text += nameText.trim() + ' ';
-                                                            });
-                                                        } else {
-                                                            // Handle other elements (status, role, etc)
-                                                            text = doc.body.textContent || doc.body.innerText;
-                                                        }
-
-                                                        return text.trim();
-                                                    }
-                                                }
+                                            text: 'Gemini 2.5 Flash',
+                                            className: 'btn btn-warning', // Bootstrap 5 style
+                                            action: function (e, dt, node, config) {
+                                                alert('Bạn vừa nhấn nút tùy chỉnh!');
+                                                // Hoặc mở modal, gọi API, v.v.
                                             }
                                         }
                                     ]
