@@ -79,6 +79,11 @@ function renderSelect($id, $label, $options, $selected = null) {
 	echo "</select>";
 }
 
+function AIProcessProducts(): array
+{
+    return [$_POST];
+}
+
 function getTypes(): array {
 	$conn = db();
 	$stmt = $conn->query("SELECT ID, name FROM type");

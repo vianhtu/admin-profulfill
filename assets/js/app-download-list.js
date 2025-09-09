@@ -286,6 +286,26 @@ function initTable(){
                                                     // Tăng tiến độ (ví dụ: giả lập xử lý 60%)
                                                     progressOverlay.find('.progress-bar').css('width', '60%');
 
+                                                    const formData = new FormData();
+                                                    formData.append('id', 1);
+
+                                                    $.ajax({
+                                                        url: '../../ajax.php?action=ai-process-products',
+                                                        method: 'POST',
+                                                        data: formData,
+                                                        processData: false,
+                                                        contentType: false,
+                                                        success: function (response) {
+                                                            console.log(response)
+                                                        },
+                                                        error: function (xhr) {
+
+                                                        },
+                                                        complete: function () {
+
+                                                        }
+                                                    });
+
                                                     // Tuỳ chọn: ẩn sau 3 giây
                                                     setTimeout(() => {
                                                         progressOverlay.addClass('d-none');
