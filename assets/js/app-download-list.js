@@ -256,7 +256,7 @@ function initTable(){
                                 {
                                     extend: 'collection',
                                     className: 'btn btn-label-secondary dropdown-toggle',
-                                    text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-ai icon-xs"></i> <span class="d-none d-sm-inline-block">Export</span></span>',
+                                    text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-upload icon-xs"></i> <span class="d-none d-sm-inline-block">Export</span></span>',
                                     buttons: [
                                         {
                                             text: '<i class="icon-base ti tabler-brand-google me-1"></i>Gemini 2.5 Flash',
