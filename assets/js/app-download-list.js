@@ -114,7 +114,6 @@ function initTable(){
                         var name = full['full_name']  + ' - ' + categoryObj[full['type_id']].title;
                         var account_name = full['temp_file_name'];
                         var image = './../../assets/svg/icons/xlsx_icon.svg';
-                        var output;
 
                         var output =
                             '<div class="position-relative">' +
