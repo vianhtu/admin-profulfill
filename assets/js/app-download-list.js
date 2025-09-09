@@ -261,8 +261,15 @@ function initTable(){
                                         {
                                             text: '<i class="icon-base ti tabler-brand-google me-1"></i>Gemini 2.5 Flash',
                                             action: function (e, dt, node, config) {
-                                                alert('Bạn vừa nhấn nút tùy chỉnh!');
-                                                // Hoặc mở modal, gọi API, v.v.
+                                                const selectedData = dt.rows({ selected: true }).data().toArray();
+
+                                                if (selectedData.length === 0) {
+                                                    alert('Chưa chọn dòng nào!');
+                                                } else {
+                                                    console.log('Dữ liệu các dòng đã chọn:', selectedData);
+                                                    alert(`Đã chọn ${selectedData.length} dòng`);
+                                                    // Bạn có thể xử lý thêm: gửi AJAX, hiển thị modal, v.v.
+                                                }
                                             }
                                         }
                                     ]
