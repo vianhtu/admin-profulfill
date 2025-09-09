@@ -268,14 +268,30 @@ function initTable(){
                                         {
                                             text: '<i class="icon-base ti tabler-brand-google me-1"></i>Gemini 2.5 Flash',
                                             action: function (e, dt, node, config) {
-                                                const selectedData = dt.rows({ selected: true }).data().toArray();
-                                                if (selectedData.length === 0) {
-                                                    alert('Chọn một hoặc nhiều file cần sử lý!');
-                                                } else {
-                                                    console.log('Dữ liệu các dòng đã chọn:', selectedData);
-                                                    alert(`Đã chọn ${selectedData.length} dòng`);
-                                                    // Bạn có thể xử lý thêm: gửi AJAX, hiển thị modal, v.v.
+                                                const selectedRows = dt.rows({ selected: true });
+
+                                                if (selectedRows.count() === 0) {
+                                                    alert('Bạn chưa chọn dòng nào!');
+                                                    return;
                                                 }
+
+                                                selectedRows.nodes().each(function (rowNode) {
+                                                    // Tìm cell chứa progress bar (ví dụ: cột thứ 2)
+                                                    const cell = $(rowNode).find('td').eq(2);
+
+                                                    // Hiển thị progress bar
+                                                    const progressOverlay = cell.find('.progress-overlay');
+                                                    progressOverlay.removeClass('d-none');
+
+                                                    // Tăng tiến độ (ví dụ: giả lập xử lý 60%)
+                                                    progressOverlay.find('.progress-bar').css('width', '60%');
+
+                                                    // Tuỳ chọn: ẩn sau 3 giây
+                                                    setTimeout(() => {
+                                                        progressOverlay.addClass('d-none');
+                                                        progressOverlay.find('.progress-bar').css('width', '0%');
+                                                    }, 3000);
+                                                });
                                             }
                                         }
                                     ]
