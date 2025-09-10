@@ -142,9 +142,9 @@ function AIProcessProducts(): array
 
     $prompt = str_replace("{json}", json_encode($products, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), $prompt);
     $text   = gemini_2_5_flash($prompt);
-    $json   = json_decode($text);
+    //$json   = json_decode($text);
 
-    return [$json];
+    return [$text];
 }
 
 function getAISitePrompt($downloadId)
