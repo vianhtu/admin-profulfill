@@ -117,6 +117,23 @@ function AIProcessProducts(): array
         return [['status' => 'error', 'message' => "Câu lệnh AI rỗng hoặc thiếu {title}/{image}."]];
     }
 
+    // Đếm tổng số sản phẩm cần xử lý
+    $countStmt = $conn->prepare("
+        SELECT COUNT(DISTINCT p.ID) AS total
+        FROM posts p
+        INNER JOIN download_relationships dr ON dr.post_id = p.ID
+        WHERE dr.download_id = ?
+        AND p.status = 'schedule'
+    ");
+    $countStmt->bind_param("i", $downloadId);
+    $countStmt->execute();
+    $countResult = $countStmt->get_result();
+    $total = (int)($countResult->fetch_assoc()['total'] ?? 0);
+
+    if ($total === 0) {
+        return [['status' => 'error', 'message' => "Không có sản phẩm để xử lý."]];
+    }
+
     $stmt = $conn->prepare("
         SELECT DISTINCT p.ID, p.title, p.sku, p.images
         FROM posts p
@@ -130,8 +147,9 @@ function AIProcessProducts(): array
     $result = $stmt->get_result();
 
     $results = [];
-
+    $processed = 0;
     while ($row = $result->fetch_assoc()) {
+        $processed++;
         $mainImage = '';
         if (!empty($row['images'])) {
             $imagesArray = json_decode($row['images'], true);
@@ -149,11 +167,13 @@ function AIProcessProducts(): array
         // Làm sạch markdown nếu có
         $clean = preg_replace('/^```json\s*|\s*```$/', '', trim($raw));
         $json = json_decode($clean, true);
-
+        // Tính % hoàn thành
+        $progress = round(($processed / $total) * 100, 2);
         if (json_last_error() !== JSON_ERROR_NONE) {
             $results[] = [
                 'status' => 'error',
                 'message' => 'Không parse được JSON',
+                'progress' => $progress,
                 'raw' => $raw
             ];
             continue;
@@ -161,7 +181,6 @@ function AIProcessProducts(): array
 
         // Gọi hàm insert vào amazon_listings
         $newId = insertAmazonListingFromAI($downloadId, $row['sku'], $json);
-
         if ($newId) {
             // Cập nhật trạng thái bài viết
             $updateStmt = $conn->prepare("
@@ -176,12 +195,14 @@ function AIProcessProducts(): array
                 $results[] = [
                     'status' => 'success',
                     'message' => "Post ID {$row['ID']} đã được cập nhật trạng thái thành 'listed'.",
+                    'progress' => $progress,
                     'amazon_listing_id' => $newId
                 ];
             } else {
                 $results[] = [
                     'status' => 'warning',
                     'message' => "Insert thành công nhưng không cập nhật được trạng thái post ID {$row['ID']}.",
+                    'progress' => $progress,
                     'amazon_listing_id' => $newId
                 ];
             }
@@ -189,6 +210,7 @@ function AIProcessProducts(): array
             $results[] = [
                 'status' => 'error',
                 'message' => "Không thêm được item vào bảng amazon_listings.",
+                'progress' => $progress,
                 'json' => $json
             ];
         }
