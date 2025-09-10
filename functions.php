@@ -119,7 +119,7 @@ function AIProcessProducts(): array
         return ['status' => 'error', 'message' => "Không tìm thấy {json}."];
     }
 
-    $prompt = str_replace("{json}", json_encode($products), $prompt);
+    $prompt = str_replace("{json}", json_encode($products, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), $prompt);
 
     return [$prompt];
 }
