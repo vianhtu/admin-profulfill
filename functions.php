@@ -82,7 +82,7 @@ function renderSelect($id, $label, $options, $selected = null) {
 	echo "</select>";
 }
 
-function Gemini_2_5_flash(string $prompt): string
+function gemini_2_5_flash(string $prompt): string
 {
     // Thay bằng API key của bạn
     $apiKey = 'AIzaSyALP80h2H1We1RA6Jl5cvFPlbYK0Zh29RE';
@@ -141,7 +141,7 @@ function AIProcessProducts(): array
     }
 
     $prompt = str_replace("{json}", json_encode($products, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), $prompt);
-    $text   = Gemini_2_5_flash($prompt);
+    $text   = gemini_2_5_flash($prompt);
     $json   = json_decode($text);
 
     return [$json];
