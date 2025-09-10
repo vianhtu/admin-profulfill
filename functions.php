@@ -119,7 +119,7 @@ function AIProcessProducts(): array
         INNER JOIN download_relationships dr ON dr.post_id = posts.ID
         WHERE dr.download_id = ?
         AND posts.status = 'schedule'
-        LIMIT 10
+        LIMIT 5
     ");
 
     $stmt->bind_param("i", $downloadId);
@@ -142,8 +142,7 @@ function AIProcessProducts(): array
 
     $prompt = str_replace("{json}", json_encode($products), $prompt);
     $raw   = gemini_2_5_flash($prompt);
-    $clean = preg_replace('/^```json\s*|\s*```$/', '', $raw);
-    $json = json_decode($clean, true);
+    $json = json_decode($raw, true);
 
     return [$json];
 }
