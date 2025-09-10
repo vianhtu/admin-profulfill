@@ -117,22 +117,6 @@ function AIProcessProducts(): array
         return [['status' => 'error', 'message' => "Câu lệnh AI rỗng hoặc thiếu {title}/{image}."]];
     }
 
-    // Đếm tổng số sản phẩm cần xử lý
-    $countStmt = $conn->prepare("
-        SELECT COUNT(DISTINCT p.ID) AS total
-        FROM posts p
-        INNER JOIN download_relationships dr ON dr.post_id = p.ID
-        WHERE dr.download_id = ?
-        AND p.status = 'schedule'
-    ");
-    $countStmt->bind_param("i", $downloadId);
-    $countStmt->execute();
-    $total = (int)($countStmt->get_result()->fetch_assoc()['total'] ?? 0);
-
-    if ($total === 0) {
-        return [['status' => 'error', 'progress' => 0, 'message' => "Không có sản phẩm để xử lý."]];
-    }
-
     // Lấy danh sách sản phẩm cần xử lý
     $stmt = $conn->prepare("
         SELECT DISTINCT p.ID, p.title, p.sku, p.images
@@ -147,12 +131,7 @@ function AIProcessProducts(): array
     $result = $stmt->get_result();
 
     $results = [];
-    $processed = 0;
-
     while ($row = $result->fetch_assoc()) {
-        $processed++;
-        $progress = round(($processed / $total) * 100, 2);
-
         // Lấy ảnh chính
         $mainImage = '';
         if (!empty($row['images'])) {
@@ -177,7 +156,6 @@ function AIProcessProducts(): array
             $results[] = [
                 'status' => 'error',
                 'message' => 'Không parse được JSON',
-                'progress' => $progress,
                 'raw' => $raw
             ];
             continue;
@@ -201,14 +179,12 @@ function AIProcessProducts(): array
                 'message' => $updateStmt->affected_rows > 0
                     ? "Post ID {$row['ID']} đã được cập nhật trạng thái thành 'listed'."
                     : "Insert thành công nhưng không cập nhật được trạng thái post ID {$row['ID']}.",
-                'progress' => $progress,
                 'amazon_listing_id' => $newId
             ];
         } else {
             $results[] = [
                 'status' => 'error',
                 'message' => "Không thêm được item vào bảng amazon_listings.",
-                'progress' => $progress,
                 'json' => $json
             ];
         }

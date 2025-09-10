@@ -24,6 +24,58 @@ async function init() {
     }
 }
 
+function processRow(downloadId, $progressOverlay, $progressBar) {
+    const formData = new FormData();
+    formData.append('id', downloadId);
+
+    $.ajax({
+        url: '../../ajax.php?action=ai-process-products',
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (response) {
+            let res;
+            try {
+                res = typeof response === 'string' ? JSON.parse(response) : response;
+            } catch (e) {
+                console.error('Lỗi parse JSON:', e, response);
+                return;
+            }
+
+            // Nếu backend trả về mảng, lấy phần tử cuối
+            const last = Array.isArray(res) ? res[res.length - 1] : res;
+            const progress = last.progress || 0;
+            const status = last.status || 'error';
+
+            // Cập nhật progress bar
+            $progressBar.css('width', progress + '%')
+                .attr('aria-valuenow', progress)
+                .text(progress + '%');
+
+            // Nếu status != success → dừng lại
+            if (status !== 'success') {
+                console.warn(`Dừng xử lý do status = ${status}`);
+                return;
+            }
+
+            // Nếu chưa xong thì gọi tiếp
+            if (!last.done && progress < 100) {
+                processRow(downloadId, $progressOverlay, $progressBar);
+            } else {
+                // Hoàn tất
+                setTimeout(() => {
+                    $progressOverlay.addClass('d-none');
+                    $progressBar.css('width', '0%').text('');
+                }, 1000);
+            }
+        },
+        error: function (xhr) {
+            console.error('Ajax error:', xhr);
+        }
+    });
+}
+
 async function fetchTableFilter(){
     const res = await fetch('../../ajax.php?action=get-product-table-filter', {
         method: 'POST',
@@ -276,41 +328,17 @@ function initTable(){
                                                 }
 
                                                 selectedRows.nodes().each(function (rowNode) {
-                                                    // Tìm cell chứa progress bar (ví dụ: cột thứ 2)
-                                                    const cell = $(rowNode).find('td').eq(2);
+                                                    const $row = $(rowNode);
+                                                    const rowData = dt.row($row).data();
+                                                    const downloadId = rowData.download_id; // hoặc field tương ứng
 
-                                                    // Hiển thị progress bar
-                                                    const progressOverlay = cell.find('.progress-overlay');
-                                                    progressOverlay.removeClass('d-none');
+                                                    const $cell = $row.find('td').eq(2);
+                                                    const $progressOverlay = $cell.find('.progress-overlay');
+                                                    const $progressBar = $progressOverlay.find('.progress-bar');
 
-                                                    // Tăng tiến độ (ví dụ: giả lập xử lý 60%)
-                                                    progressOverlay.find('.progress-bar').css('width', '60%');
+                                                    $progressOverlay.removeClass('d-none');
 
-                                                    const formData = new FormData();
-                                                    formData.append('id', 4);
-
-                                                    $.ajax({
-                                                        url: '../../ajax.php?action=ai-process-products',
-                                                        method: 'POST',
-                                                        data: formData,
-                                                        processData: false,
-                                                        contentType: false,
-                                                        success: function (response) {
-                                                            console.log(response)
-                                                        },
-                                                        error: function (xhr) {
-
-                                                        },
-                                                        complete: function () {
-
-                                                        }
-                                                    });
-
-                                                    // Tuỳ chọn: ẩn sau 3 giây
-                                                    setTimeout(() => {
-                                                        progressOverlay.addClass('d-none');
-                                                        progressOverlay.find('.progress-bar').css('width', '0%');
-                                                    }, 3000);
+                                                    processRow(downloadId, $progressOverlay, $progressBar);
                                                 });
                                             }
                                         }
