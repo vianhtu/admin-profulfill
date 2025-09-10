@@ -130,6 +130,18 @@ function AIProcessProducts(): array
     $stmt->execute();
     $result = $stmt->get_result();
 
+    // Nếu không có sản phẩm nào → cập nhật download.status = 'ready'
+    if ($result->num_rows === 0) {
+        $updateDownload = $conn->prepare("UPDATE download SET status = 'ready' WHERE ID = ?");
+        $updateDownload->bind_param("i", $downloadId);
+        $updateDownload->execute();
+
+        return [[
+            'status' => 'done',
+            'message' => "Không có sản phẩm để xử lý. Đã cập nhật download ID {$downloadId} thành 'ready'."
+        ]];
+    }
+
     $results = [];
     while ($row = $result->fetch_assoc()) {
         // Lấy ảnh chính
