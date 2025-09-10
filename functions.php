@@ -82,9 +82,18 @@ function renderSelect($id, $label, $options, $selected = null) {
 function AIProcessProducts(): array
 {
     $conn = db();
-    $downloadId = $_POST['id'] ?? 0;
+    $downloadId = (int)$_POST['id'] ?? 0;
+    if(!$downloadId){
+        return ['status' => 'error', 'message' => "Không có download id."];
+    }
+
+    $prompt = getAISitePrompt($downloadId);
+    if(!$prompt){
+        return ['status' => 'error', 'message' => "Câu lệnh AI rỗng."];
+    }
+
     $stmt = $conn->prepare("
-        SELECT posts.ID, posts.title, posts.sku, posts.images
+        SELECT DISTINCT posts.ID, posts.title, posts.images
         FROM posts
         INNER JOIN download_relationships dr ON dr.post_id = posts.ID
         WHERE dr.download_id = ?
@@ -92,25 +101,50 @@ function AIProcessProducts(): array
         LIMIT 30
     ");
 
-    // Gắn biến vào dấu ?
     $stmt->bind_param("i", $downloadId);
-
     $stmt->execute();
-
     $result = $stmt->get_result();
     $products = [];
     while ($row = $result->fetch_assoc()) {
         $imagesArray = json_decode($row['images'], true);
         $mainImage = $imagesArray['main'] ?? '';
         $products[] = [
-            'id'     => $row['ID'],
             'title'  => $row['title'],
-            'sku'    => $row['sku'],
-            'images' => $mainImage
+            'image' => $mainImage
         ];
     }
 
-    return $products;
+    // check {json} in $prompt
+    if(!str_contains($prompt, '{json}')){
+        return ['status' => 'error', 'message' => "Không tìm thấy {json}."];
+    }
+
+    $prompt = str_replace("{json}", json_encode($products), $prompt);
+
+    return $prompt;
+}
+
+function getAISitePrompt($downloadId)
+{
+    $conn = db();
+    $stmt = $conn->prepare("
+        SELECT DISTINCT site.prompt
+        FROM site
+        INNER JOIN exports ON exports.site_id = site.ID
+        INNER JOIN download ON download.exports_id = exports.ID
+        WHERE download.ID = ?
+        LIMIT 1
+    ");
+
+    $stmt->bind_param("i", $downloadId);
+    $stmt->execute();
+    $stmt->bind_result($prompt);
+
+    if ($stmt->fetch()) {
+        return $prompt;
+    } else {
+        return '';
+    }
 }
 
 function getTypes(): array {

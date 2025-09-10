@@ -49,23 +49,23 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "SHELLCHECK.PATH": "C:\\Users\\thien\\AppData\\Roaming\\JetBrains\\PhpStorm2025.2\\plugins\\Shell Script\\shellcheck.exe",
-    "disable.download.node.interpreter.editor.notification": "true",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "C:/Users/thien/OneDrive/Documents/GitHub/admin-profulfill/html/vertical-menu-template-no-customizer",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "yarn",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SHELLCHECK.PATH&quot;: &quot;C:\\Users\\thien\\AppData\\Roaming\\JetBrains\\PhpStorm2025.2\\plugins\\Shell Script\\shellcheck.exe&quot;,
+    &quot;disable.download.node.interpreter.editor.notification&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/thien/OneDrive/Documents/GitHub/admin-profulfill/html/vertical-menu-template-no-customizer&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;yarn&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\thien\OneDrive\Documents\GitHub\admin-profulfill\html\vertical-menu-template-no-customizer" />
@@ -94,7 +94,8 @@
       <workItem from="1756887296900" duration="1557000" />
       <workItem from="1757036124113" duration="14419000" />
       <workItem from="1757295659608" duration="16617000" />
-      <workItem from="1757403616635" duration="9604000" />
+      <workItem from="1757403616635" duration="10146000" />
+      <workItem from="1757467323734" duration="1558000" />
     </task>
     <servers />
   </component>
