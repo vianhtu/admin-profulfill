@@ -131,7 +131,7 @@ function AIProcessProducts(): array
     $total = (int)($countResult->fetch_assoc()['total'] ?? 0);
 
     if ($total === 0) {
-        return [['status' => 'error', 'message' => "Không có sản phẩm để xử lý."]];
+        return [['status' => 'error', 'progress' => 0, 'message' => "Không có sản phẩm để xử lý."]];
     }
 
     $stmt = $conn->prepare("
