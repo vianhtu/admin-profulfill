@@ -121,7 +121,7 @@ function AIProcessProducts(): array
 
     $prompt = str_replace("{json}", json_encode($products), $prompt);
 
-    return $prompt;
+    return [$prompt];
 }
 
 function getAISitePrompt($downloadId)
