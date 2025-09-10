@@ -127,13 +127,13 @@ function AIProcessProducts(): array
     ");
     $countStmt->bind_param("i", $downloadId);
     $countStmt->execute();
-    $countResult = $countStmt->get_result();
-    $total = (int)($countResult->fetch_assoc()['total'] ?? 0);
+    $total = (int)($countStmt->get_result()->fetch_assoc()['total'] ?? 0);
 
     if ($total === 0) {
         return [['status' => 'error', 'progress' => 0, 'message' => "Không có sản phẩm để xử lý."]];
     }
 
+    // Lấy danh sách sản phẩm cần xử lý
     $stmt = $conn->prepare("
         SELECT DISTINCT p.ID, p.title, p.sku, p.images
         FROM posts p
@@ -148,27 +148,31 @@ function AIProcessProducts(): array
 
     $results = [];
     $processed = 0;
+
     while ($row = $result->fetch_assoc()) {
         $processed++;
+        $progress = round(($processed / $total) * 100, 2);
+
+        // Lấy ảnh chính
         $mainImage = '';
         if (!empty($row['images'])) {
             $imagesArray = json_decode($row['images'], true);
             $mainImage = $imagesArray['main'] ?? '';
         }
 
-        // Tạo prompt riêng cho từng sản phẩm
+        // Tạo prompt
         $prompt = strtr($promptTemplate, [
             '{title}' => $row['title'],
             '{image}' => $mainImage
         ]);
 
+        // Gọi AI
         $raw = gemini_2_5_flash($prompt);
 
-        // Làm sạch markdown nếu có
+        // Làm sạch và parse JSON
         $clean = preg_replace('/^```json\s*|\s*```$/', '', trim($raw));
         $json = json_decode($clean, true);
-        // Tính % hoàn thành
-        $progress = round(($processed / $total) * 100, 2);
+
         if (json_last_error() !== JSON_ERROR_NONE) {
             $results[] = [
                 'status' => 'error',
@@ -179,8 +183,9 @@ function AIProcessProducts(): array
             continue;
         }
 
-        // Gọi hàm insert vào amazon_listings
+        // Lưu vào amazon_listings
         $newId = insertAmazonListingFromAI($downloadId, $row['sku'], $json);
+
         if ($newId) {
             // Cập nhật trạng thái bài viết
             $updateStmt = $conn->prepare("
@@ -191,21 +196,14 @@ function AIProcessProducts(): array
             $updateStmt->bind_param("i", $row['ID']);
             $updateStmt->execute();
 
-            if ($updateStmt->affected_rows > 0) {
-                $results[] = [
-                    'status' => 'success',
-                    'message' => "Post ID {$row['ID']} đã được cập nhật trạng thái thành 'listed'.",
-                    'progress' => $progress,
-                    'amazon_listing_id' => $newId
-                ];
-            } else {
-                $results[] = [
-                    'status' => 'warning',
-                    'message' => "Insert thành công nhưng không cập nhật được trạng thái post ID {$row['ID']}.",
-                    'progress' => $progress,
-                    'amazon_listing_id' => $newId
-                ];
-            }
+            $results[] = [
+                'status' => $updateStmt->affected_rows > 0 ? 'success' : 'warning',
+                'message' => $updateStmt->affected_rows > 0
+                    ? "Post ID {$row['ID']} đã được cập nhật trạng thái thành 'listed'."
+                    : "Insert thành công nhưng không cập nhật được trạng thái post ID {$row['ID']}.",
+                'progress' => $progress,
+                'amazon_listing_id' => $newId
+            ];
         } else {
             $results[] = [
                 'status' => 'error',
