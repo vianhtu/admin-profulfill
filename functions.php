@@ -105,50 +105,91 @@ function AIProcessProducts(): array
     $conn = db();
     $downloadId = (int)($_POST['id'] ?? 0);
     if (!$downloadId) {
-        return ['status' => 'error', 'message' => "Không có download id."];
+        return [['status' => 'error', 'message' => "Không có download id."]];
     }
 
     $promptTemplate = getAISitePrompt($downloadId);
-    if (!$promptTemplate || !str_contains($promptTemplate, '{title}') || !str_contains($promptTemplate, '{image}')) {
-        return ['status' => 'error', 'message' => "Câu lệnh AI rỗng hoặc thiếu {json}."];
+    if (
+        !$promptTemplate ||
+        !str_contains($promptTemplate, '{title}') ||
+        !str_contains($promptTemplate, '{image}')
+    ) {
+        return [['status' => 'error', 'message' => "Câu lệnh AI rỗng hoặc thiếu {title}/{image}."]];
     }
 
     $stmt = $conn->prepare("
-        SELECT DISTINCT posts.ID, posts.title, posts.sku, posts.images
-        FROM posts
-        INNER JOIN download_relationships dr ON dr.post_id = posts.ID
+        SELECT DISTINCT p.ID, p.title, p.sku, p.images
+        FROM posts p
+        INNER JOIN download_relationships dr ON dr.post_id = p.ID
         WHERE dr.download_id = ?
-        AND posts.status = 'schedule'
+        AND p.status = 'schedule'
         LIMIT 1
     ");
-
     $stmt->bind_param("i", $downloadId);
     $stmt->execute();
     $result = $stmt->get_result();
 
     $results = [];
+
     while ($row = $result->fetch_assoc()) {
-        $imagesArray = json_decode($row['images'], true);
-        $mainImage = $imagesArray['main'] ?? '';
+        $mainImage = '';
+        if (!empty($row['images'])) {
+            $imagesArray = json_decode($row['images'], true);
+            $mainImage = $imagesArray['main'] ?? '';
+        }
+
         // Tạo prompt riêng cho từng sản phẩm
-        $prompt = str_replace("{title}", $row['title'], $promptTemplate);
-        $prompt = str_replace("{image}", $mainImage, $prompt);
+        $prompt = strtr($promptTemplate, [
+            '{title}' => $row['title'],
+            '{image}' => $mainImage
+        ]);
+
         $raw = gemini_2_5_flash($prompt);
 
         // Làm sạch markdown nếu có
         $clean = preg_replace('/^```json\s*|\s*```$/', '', trim($raw));
         $json = json_decode($clean, true);
 
-        if (json_last_error() === JSON_ERROR_NONE) {
-            // update to amazon_listings.
-            // Gọi hàm insert
-            $newId = insertAmazonListingFromAI($downloadId, $row['sku'], $json);
-            $results[] = $newId;
-        } else {
+        if (json_last_error() !== JSON_ERROR_NONE) {
             $results[] = [
                 'status' => 'error',
                 'message' => 'Không parse được JSON',
                 'raw' => $raw
+            ];
+            continue;
+        }
+
+        // Gọi hàm insert vào amazon_listings
+        $newId = insertAmazonListingFromAI($downloadId, $row['sku'], $json);
+
+        if ($newId) {
+            // Cập nhật trạng thái bài viết
+            $updateStmt = $conn->prepare("
+                UPDATE posts 
+                SET status = 'listed', updated_at = NOW() 
+                WHERE ID = ?
+            ");
+            $updateStmt->bind_param("i", $row['ID']);
+            $updateStmt->execute();
+
+            if ($updateStmt->affected_rows > 0) {
+                $results[] = [
+                    'status' => 'success',
+                    'message' => "Post ID {$row['ID']} đã được cập nhật trạng thái thành 'listed'.",
+                    'amazon_listing_id' => $newId
+                ];
+            } else {
+                $results[] = [
+                    'status' => 'warning',
+                    'message' => "Insert thành công nhưng không cập nhật được trạng thái post ID {$row['ID']}.",
+                    'amazon_listing_id' => $newId
+                ];
+            }
+        } else {
+            $results[] = [
+                'status' => 'error',
+                'message' => "Không thêm được item vào bảng amazon_listings.",
+                'json' => $json
             ];
         }
     }
