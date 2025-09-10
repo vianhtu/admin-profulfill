@@ -103,14 +103,14 @@ function gemini_2_5_flash(string $prompt): string
 function AIProcessProducts(): array
 {
     $conn = db();
-    $downloadId = (int)$_POST['id'] ?? 0;
-    if(!$downloadId){
+    $downloadId = (int)($_POST['id'] ?? 0);
+    if (!$downloadId) {
         return ['status' => 'error', 'message' => "Không có download id."];
     }
 
-    $prompt = getAISitePrompt($downloadId);
-    if(!$prompt){
-        return ['status' => 'error', 'message' => "Câu lệnh AI rỗng."];
+    $promptTemplate = getAISitePrompt($downloadId);
+    if (!$promptTemplate || !str_contains($promptTemplate, '{json}')) {
+        return ['status' => 'error', 'message' => "Câu lệnh AI rỗng hoặc thiếu {json}."];
     }
 
     $stmt = $conn->prepare("
@@ -125,28 +125,37 @@ function AIProcessProducts(): array
     $stmt->bind_param("i", $downloadId);
     $stmt->execute();
     $result = $stmt->get_result();
-    $products = [];
+
+    $results = [];
     while ($row = $result->fetch_assoc()) {
         $imagesArray = json_decode($row['images'], true);
         $mainImage = $imagesArray['main'] ?? '';
-        $products[] = [
-            'title'  => $row['title'],
+
+        $product = [
+            'title' => $row['title'],
             'image' => $mainImage
         ];
+
+        // Tạo prompt riêng cho từng sản phẩm
+        $prompt = str_replace("{json}", json_encode([$product], JSON_UNESCAPED_UNICODE), $promptTemplate);
+        $raw = gemini_2_5_flash($prompt);
+
+        // Làm sạch markdown nếu có
+        $clean = preg_replace('/^```json\s*|\s*```$/', '', trim($raw));
+        $json = json_decode($clean, true);
+
+        if (json_last_error() === JSON_ERROR_NONE) {
+            $results[] = $json;
+        } else {
+            $results[] = [
+                'status' => 'error',
+                'message' => 'Không parse được JSON',
+                'raw' => $raw
+            ];
+        }
     }
 
-    // check {json} in $prompt
-    if(!str_contains($prompt, '{json}')){
-        return ['status' => 'error', 'message' => "Không tìm thấy {json}."];
-    }
-
-    $prompt = str_replace("{json}", json_encode($products), $prompt);
-    $raw   = gemini_2_5_flash($prompt);
-    $clean = preg_replace('/^```json\s*|\s*```$/', '', $raw);
-    $json = json_decode($clean, true);
-
-
-    return [$json];
+    return $results;
 }
 
 function getAISitePrompt($downloadId)
