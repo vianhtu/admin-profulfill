@@ -119,7 +119,7 @@ function AIProcessProducts(): array
         INNER JOIN download_relationships dr ON dr.post_id = posts.ID
         WHERE dr.download_id = ?
         AND posts.status = 'schedule'
-        LIMIT 20
+        LIMIT 10
     ");
 
     $stmt->bind_param("i", $downloadId);
