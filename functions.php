@@ -109,7 +109,7 @@ function AIProcessProducts(): array
     }
 
     $promptTemplate = getAISitePrompt($downloadId);
-    if (!$promptTemplate || !str_contains($promptTemplate, '{json}')) {
+    if (!$promptTemplate || !str_contains($promptTemplate, '{title}') || !str_contains($promptTemplate, '{image}')) {
         return ['status' => 'error', 'message' => "Câu lệnh AI rỗng hoặc thiếu {json}."];
     }
 
@@ -119,7 +119,7 @@ function AIProcessProducts(): array
         INNER JOIN download_relationships dr ON dr.post_id = posts.ID
         WHERE dr.download_id = ?
         AND posts.status = 'schedule'
-        LIMIT 5
+        LIMIT 1
     ");
 
     $stmt->bind_param("i", $downloadId);
@@ -137,7 +137,8 @@ function AIProcessProducts(): array
         ];
 
         // Tạo prompt riêng cho từng sản phẩm
-        $prompt = str_replace("{json}", json_encode([$product], JSON_UNESCAPED_UNICODE), $promptTemplate);
+        $prompt = str_replace("{title}", $row['title'], $promptTemplate);
+        $prompt = str_replace("{image}", $mainImage, $prompt);
         $raw = gemini_2_5_flash($prompt);
 
         // Làm sạch markdown nếu có
