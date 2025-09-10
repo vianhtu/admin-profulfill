@@ -144,7 +144,7 @@ function AIProcessProducts(): array
     $raw   = gemini_2_5_flash($prompt);
     $json = json_decode($raw, true);
 
-    return [$json];
+    return [$raw];
 }
 
 function getAISitePrompt($downloadId)
