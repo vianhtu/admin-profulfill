@@ -114,7 +114,7 @@ function AIProcessProducts(): array
     }
 
     $stmt = $conn->prepare("
-        SELECT DISTINCT posts.ID, posts.title, posts.images
+        SELECT DISTINCT posts.ID, posts.title, posts.sku, posts.images
         FROM posts
         INNER JOIN download_relationships dr ON dr.post_id = posts.ID
         WHERE dr.download_id = ?
@@ -130,12 +130,6 @@ function AIProcessProducts(): array
     while ($row = $result->fetch_assoc()) {
         $imagesArray = json_decode($row['images'], true);
         $mainImage = $imagesArray['main'] ?? '';
-
-        $product = [
-            'title' => $row['title'],
-            'image' => $mainImage
-        ];
-
         // Tạo prompt riêng cho từng sản phẩm
         $prompt = str_replace("{title}", $row['title'], $promptTemplate);
         $prompt = str_replace("{image}", $mainImage, $prompt);
@@ -146,7 +140,10 @@ function AIProcessProducts(): array
         $json = json_decode($clean, true);
 
         if (json_last_error() === JSON_ERROR_NONE) {
-            $results[] = $json;
+            // update to amazon_listings.
+            // Gọi hàm insert
+            $newId = insertAmazonListingFromAI($downloadId, $row['sku'], $json);
+            $results[] = $newId;
         } else {
             $results[] = [
                 'status' => 'error',
@@ -983,6 +980,70 @@ function deleteTableRow($table, $row_id): array {
 		'success' => $success,
 		'affected_rows' => $affected_rows
 	];
+}
+
+function insertAmazonListingFromAI($downloadId, string $sku, array $aiData)
+{
+    $conn = db();
+
+    // Các cột có sẵn trong bảng amazon_listings
+    $tableColumns = [
+        'download_id',
+        'sku',
+        'item_name',
+        'product_description',
+        'copyright_warning',
+        'copyrighted_content',
+        'meta_data',
+        'created_at',
+        'updated_at'
+    ];
+
+    // Map key JSON -> cột DB
+    $mapKeys = [
+        'Item Name' => 'item_name',
+        'Product Description' => 'product_description',
+        'Copyright Warning' => 'copyright_warning',
+        'Copyrighted Content' => 'copyrighted_content'
+    ];
+
+    // Dữ liệu insert ban đầu
+    $insertData = [
+        'download_id' => $downloadId,
+        'sku' => $sku,
+        'created_at' => date('Y-m-d H:i:s'),
+        'updated_at' => date('Y-m-d H:i:s')
+    ];
+
+    $metaData = [];
+
+    // Phân loại field
+    foreach ($aiData as $key => $value) {
+        if (isset($mapKeys[$key])) {
+            $col = $mapKeys[$key];
+            if (in_array($col, $tableColumns)) {
+                $insertData[$col] = $value;
+            }
+        } else {
+            // Không có trong bảng -> đưa vào meta_data
+            $metaData[$key] = $value;
+        }
+    }
+
+    // Lưu meta_data dạng JSON
+    $insertData['meta_data'] = json_encode($metaData, JSON_UNESCAPED_UNICODE);
+
+    // Tạo câu lệnh INSERT
+    $cols = array_keys($insertData);
+    $placeholders = implode(',', array_fill(0, count($cols), '?'));
+    $types = str_repeat('s', count($cols)); // tất cả dạng string, có thể chỉnh theo kiểu dữ liệu
+
+    $sql = "INSERT INTO amazon_listings (" . implode(',', $cols) . ") VALUES ($placeholders)";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param($types, ...array_values($insertData));
+    $stmt->execute();
+
+    return $stmt->insert_id; // trả về ID vừa insert
 }
 
 function saveExportQuery(): array
