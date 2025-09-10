@@ -141,11 +141,11 @@ function AIProcessProducts(): array
     }
 
     $prompt = str_replace("{json}", json_encode($products), $prompt);
-    //$raw   = gemini_2_5_flash($prompt);
-    //$clean = preg_replace('/^```json\s*|\s*```$/', '', $raw);
-    //$json = json_decode($clean, true);
+    $raw   = gemini_2_5_flash($prompt);
+    $clean = preg_replace('/^```json\s*|\s*```$/', '', $raw);
+    $json = json_decode($clean, true);
 
-    return [$prompt];
+    return [$json];
 }
 
 function getAISitePrompt($downloadId)
