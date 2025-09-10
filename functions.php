@@ -3,6 +3,9 @@ require 'vendor/autoload.php';
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use GeminiAPI\Client;
+use GeminiAPI\Resources\ModelName;
+use GeminiAPI\Resources\Parts\TextPart;
 function renderMenu($currentMenu) {
 	$menuItems = [
 		'Dashboards' => [
@@ -79,6 +82,24 @@ function renderSelect($id, $label, $options, $selected = null) {
 	echo "</select>";
 }
 
+function Gemini_2_5_flash(string $prompt): string
+{
+    // Thay bằng API key của bạn
+    $apiKey = 'AIzaSyALP80h2H1We1RA6Jl5cvFPlbYK0Zh29RE';
+
+    // Khởi tạo client
+    $client = new Client($apiKey);
+
+    // Gọi model Gemini 2.5 Flash
+    $response = $client
+        ->withV1BetaVersion()
+        ->generativeModel('gemini-2.5-flash')
+        ->generateContent(new TextPart($prompt));
+
+    // Trả về kết quả
+    return $response->text();
+}
+
 function AIProcessProducts(): array
 {
     $conn = db();
@@ -120,8 +141,10 @@ function AIProcessProducts(): array
     }
 
     $prompt = str_replace("{json}", json_encode($products, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), $prompt);
+    $text   = Gemini_2_5_flash($prompt);
+    $json   = json_decode($text);
 
-    return [$prompt];
+    return [$json];
 }
 
 function getAISitePrompt($downloadId)
