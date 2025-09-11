@@ -32,13 +32,12 @@ function updateProgressBars() {
         var $overlay = $(this);
         if (!$overlay.hasClass('d-none')) {
             // Tìm ID của row (giả sử lưu ở data-id của <tr>)
-            var rowId = $overlay.find('.progress-bar').data('id');
+            var rowId = $overlay.find('.progress-bar').data('id'); console.log(rowId);
             if (rowId) {
                 ids.push(rowId);
             }
         }
     });
-
     if (ids.length === 0) {
         return; // Không có row nào cần cập nhật
     }
