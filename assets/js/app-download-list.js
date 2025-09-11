@@ -129,7 +129,7 @@ function initTable(){
                     $.ajax({
                         url: '../../ajax.php?action=download-xlsx',
                         method: 'POST',
-                        data: { id: 123 },
+                        data: { id: $tr.find('.user-name').data('id') },
                         success: function (response) {
                             console.log('Thành công:', response);
                         },
