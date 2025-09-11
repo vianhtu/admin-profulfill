@@ -110,6 +110,9 @@ function initTable(){
                     return json.data;
                 }
             },
+            drawCallback: function(settings) {
+                updateProgressBars();
+            },
             columns: [
                 // columns according to JSON
                 { data: 'id' },
@@ -419,7 +422,6 @@ function initTable(){
                 $('#xlsxAccounts').on('change', function (){
                     dt_user.draw();
                 });
-                updateProgressBars();
             }
         });
 
