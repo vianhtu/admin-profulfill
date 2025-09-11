@@ -94,11 +94,10 @@ function initTable(){
     headingColor = config.colors.headingColor;
 
     const statusObj = {
-        pending: { title: 'pending', class: 'bg-label-primary' },
         schedule: { title: 'schedule', class: 'bg-label-secondary' },
-        listed: { title: 'listed', class: 'bg-label-success' },
-        inactive: { title: 'inactive', class: 'bg-label-danger' },
-        trademark: { title: 'trademark', class: 'bg-label-warning' }
+        running: { title: 'running', class: 'bg-label-warning' },
+        ready: { title: 'ready', class: 'bg-label-success' },
+        error: { title: 'error', class: 'bg-label-danger' }
     }
 
     // Variable declaration for table
