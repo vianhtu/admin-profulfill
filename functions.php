@@ -100,14 +100,9 @@ function gemini_2_5_flash(string $prompt): string
     return $response->text();
 }
 
-function AIProcessProducts(): array
+function AIProcessProducts($downloadId): array
 {
     $conn = db();
-    $downloadId = (int)($_POST['id'] ?? 0);
-    if (!$downloadId) {
-        return [['status' => 'error', 'message' => "Không có download id."]];
-    }
-
     $promptTemplate = getAISitePrompt($downloadId);
     if (
         !$promptTemplate ||
