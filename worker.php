@@ -14,10 +14,13 @@ while (true) {
         $downloadId = 0; // reset để vòng lặp lấy job mới
     } else {
         // Tìm job mới
-        $sql = "SELECT ID FROM download
+        $sql = "SELECT ID 
+                FROM download
                 WHERE status IN ('schedule', 'running')
+                  AND (locked_at IS NULL OR locked_at < NOW() - INTERVAL 2 MINUTE)
                 ORDER BY id ASC
-                LIMIT 1";
+                LIMIT 1
+                ";
         $result = $conn->query($sql);
 
         if ($result && $result->num_rows > 0) {
