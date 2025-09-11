@@ -51,7 +51,8 @@ function updateProgressBars() {
         success: function (response) {
             // response có thể là mảng [{id:..., progress:..., status:...}, ...]
             response.forEach(function (item) {
-                var $bar = $('#DataTables_Table_0').find('.user-name[data-id="' + item.id + '"] .progress-bar');
+                var $bar = $('#DataTables_Table_0').find('.user-name[data-id="' + item.id + '"]');
+                $bar = $bar.find('.progress-bar');
                 // Cập nhật width và aria-valuenow
                 $bar.css('width', item.progress + '%')
                     .attr('aria-valuenow', item.progress);
