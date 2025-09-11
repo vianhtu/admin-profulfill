@@ -1076,7 +1076,7 @@ function downloadXlsx(): array
                  FROM download
                  INNER JOIN exports ON exports.ID = download.exports_id
                  WHERE download.id = ?
-                 AND download.status = 'ready'";
+                 AND download.status = 'running'"; // ready
     $checkStmt = $conn->prepare($checkSql);
     $checkStmt->bind_param('i', $downloadID);
     $checkStmt->execute();
