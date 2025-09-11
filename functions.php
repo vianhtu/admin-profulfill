@@ -248,7 +248,7 @@ function getProcessProducts(): array
         SELECT 
             dr.download_id,
             COUNT(*) AS total,
-            SUM(CASE WHEN p.status = 'pending' THEN 1 ELSE 0 END) AS pending
+            SUM(CASE WHEN p.status = 'schedule' THEN 1 ELSE 0 END) AS schedule
         FROM download_relationships dr
         JOIN posts p ON p.ID = dr.post_id
         WHERE dr.download_id IN ($placeholders)
@@ -263,13 +263,13 @@ function getProcessProducts(): array
     $data = [];
     while ($row = $result->fetch_assoc()) {
         $total   = (int)$row['total'];
-        $pending = (int)$row['pending'];
+        $schedule = (int)$row['schedule'];
 
         // Tính % hoàn thành
-        $progress = $total > 0 ? round((($total - $pending) / $total) * 100) : 0;
+        $progress = $total > 0 ? round((($total - $schedule) / $total) * 100) : 0;
 
         // Xác định status
-        $status = ($pending > 0) ? 'running' : 'ready';
+        $status = ($schedule > 0) ? 'running' : 'ready';
 
         $data[] = [
             'id'       => (int)$row['download_id'],
