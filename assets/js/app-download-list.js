@@ -165,11 +165,12 @@ function initTable(){
                         var name = full['full_name'] + ' - ' + categoryObj[full['type_id']].title;
                         var account_name = full['temp_file_name'];
                         var image = './../../assets/svg/icons/xlsx_icon.svg';
-
+                        // Nếu status = 'running' thì không thêm class d-none
+                        var progressClass = (full['status'] === 'running') ? '' : 'd-none';
                         var output =
                             '<div class="position-relative">' +
                             '<img src="' + image + '" alt="file.xlsx" class="rounded">' +
-                            '<div class="progress-overlay d-none">' + // mặc định ẩn
+                            '<div class="progress-overlay ' + progressClass + '">' +
                             '<div class="progress" style="height: 4px;">' +
                             '<div class="progress-bar bg-info" role="progressbar" style="width: 0%;"></div>' +
                             '</div>' +
