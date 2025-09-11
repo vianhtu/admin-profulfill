@@ -28,7 +28,7 @@ async function init() {
 function updateProgressBars() {
     // Lấy tất cả các progress overlay đang hiển thị (status = running)
     var ids = [];
-    $('#myTable').find('.progress-overlay').each(function () {
+    $('#DataTables_Table_0').find('.progress-overlay').each(function () {
         var $overlay = $(this);
         if (!$overlay.hasClass('d-none')) {
             // Tìm ID của row (giả sử lưu ở data-id của <tr>)
