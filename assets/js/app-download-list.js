@@ -32,7 +32,7 @@ function updateProgressBars() {
         var $overlay = $(this);
         if (!$overlay.hasClass('d-none')) {
             // Tìm ID của row (giả sử lưu ở data-id của <tr>)
-            var rowId = $overlay.find('.progress-bar').data('id'); console.log(rowId);
+            var rowId = $overlay.find('.progress-bar').data('id');
             if (rowId) {
                 ids.push(rowId);
             }
@@ -44,23 +44,21 @@ function updateProgressBars() {
 
     // Gọi AJAX lấy dữ liệu % tiến trình
     $.ajax({
-        url: '/api/get-progress', // endpoint của bạn
+        url: '../../ajax.php?action=get-process-products', // endpoint của bạn
         method: 'POST',
         data: { ids: ids },
         dataType: 'json',
         success: function (response) {
             // response có thể là mảng [{id:..., progress:..., status:...}, ...]
             response.forEach(function (item) {
-                var $row = $('#myTable').find('tr[data-id="' + item.id + '"]');
-                var $bar = $row.find('.progress-bar');
-
+                var $bar = $('#DataTables_Table_0').find('.progress-bar[data-id="' + item.id + '"]');
                 // Cập nhật width và aria-valuenow
                 $bar.css('width', item.progress + '%')
                     .attr('aria-valuenow', item.progress);
 
                 // Nếu status không còn "running" thì ẩn progress overlay
                 if (item.status !== 'running') {
-                    $row.find('.progress-overlay').addClass('d-none');
+                    $bar.closest('.progress-overlay').addClass('d-none');
                 }
             });
         },

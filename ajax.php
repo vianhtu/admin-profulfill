@@ -31,6 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         case 'get-download':
             echo json_encode(getDownloadTable());
             break;
+        case 'get-process-products':
+            echo json_encode(getProcessProducts());
+            break;
 		case 'filter-stores':
 			echo json_encode(getStoresTableFilter());
 			break;

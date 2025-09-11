@@ -223,6 +223,64 @@ function getAISitePrompt($downloadId)
     }
 }
 
+function getProcessProducts(): array
+{
+    $conn = db();
+
+    // Lấy danh sách ID từ request (form-data hoặc JSON đều hỗ trợ)
+    $ids = [];
+    if ($_SERVER['CONTENT_TYPE'] === 'application/json') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $ids = $input['ids'] ?? [];
+    } else {
+        $ids = $_POST['ids'] ?? [];
+    }
+
+    if (empty($ids) || !is_array($ids)) {
+        return [];
+    }
+
+    // Tạo placeholder cho câu lệnh IN
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $types = str_repeat('i', count($ids));
+
+    $sql = "
+        SELECT 
+            dr.download_id,
+            COUNT(*) AS total,
+            SUM(CASE WHEN p.status = 'pending' THEN 1 ELSE 0 END) AS pending
+        FROM download_relationships dr
+        JOIN posts p ON p.ID = dr.post_id
+        WHERE dr.download_id IN ($placeholders)
+        GROUP BY dr.download_id
+    ";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param($types, ...$ids);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $data = [];
+    while ($row = $result->fetch_assoc()) {
+        $total   = (int)$row['total'];
+        $pending = (int)$row['pending'];
+
+        // Tính % hoàn thành
+        $progress = $total > 0 ? round((($total - $pending) / $total) * 100) : 0;
+
+        // Xác định status
+        $status = ($pending > 0) ? 'running' : 'ready';
+
+        $data[] = [
+            'id'       => (int)$row['download_id'],
+            'progress' => $progress,
+            'status'   => $status
+        ];
+    }
+
+    return $data;
+}
+
 function getTypes(): array {
 	$conn = db();
 	$stmt = $conn->query("SELECT ID, name FROM type");
