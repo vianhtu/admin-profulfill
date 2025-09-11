@@ -60,6 +60,10 @@ function updateProgressBars() {
 
                 // Nếu status không còn "running" thì ẩn progress overlay
                 if (item.status !== 'running') {
+                    let file_status = $bar.closest('tr').find('.file-status');
+                    file_status.text('ready');
+                    file_status.removeClass('bg-label-warning');
+                    file_status.addClass('bg-label-success');
                     $bar.closest('.progress-overlay').addClass('d-none');
                 }
             });
@@ -217,7 +221,7 @@ function initTable(){
                     render: function (data, type, full, meta) {
                         const status = full['status'];
                         return (
-                            '<span class="badge ' +
+                            '<span class="file-status badge ' +
                             statusObj[status].class +
                             '" text-capitalized>' +
                             statusObj[status].title +
