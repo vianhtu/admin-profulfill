@@ -118,12 +118,13 @@ function initTable(){
             drawCallback: function(settings) {
                 updateProgressBars();
                 $('#DataTables_Table_0 .user-name .avatar-wrapper').on('click', function () {
+                    const $icon = $(this);
                     const $container = $(this).find('.position-relative');
                     const $spinner = $container.find('.spinner-border');
-
+                    const $tr = $icon.closest('tr');
                     // Hiện spinner
                     $spinner.removeClass('d-none');
-
+                    $tr.addClass('tr-loading');
                     // Gọi AJAX
                     $.ajax({
                         url: '/your-endpoint', // Thay bằng URL thực tế
@@ -139,6 +140,7 @@ function initTable(){
                         complete: function () {
                             // Ẩn spinner sau khi hoàn tất
                             $spinner.addClass('d-none');
+                            $tr.removeClass('tr-loading');
                         }
                     });
                 });

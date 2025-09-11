@@ -110,3 +110,8 @@ td .product-name h6{
     text-overflow: ellipsis;     /* Hiển thị dấu ... */
     max-width: 250px;            /* Giới hạn chiều rộng */
 }
+
+.tr-loading {
+    opacity: 0.4;
+    transition: opacity 0.3s ease;
+}
