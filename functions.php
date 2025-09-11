@@ -1094,6 +1094,21 @@ function downloadXlsx(): array
         return ['status' => 'error', 'message' => "File không tồn tại: $filePath"];
     }
 
+    try {
+        // Load file Excel
+        $spreadsheet = IOFactory::load($filePath);
+        $sheetName = 'Template';
+        // Lấy sheet theo tên
+        $sheet = $spreadsheet->getSheetByName($sheetName);
+        if (!$sheet) {
+            return ['status' => 'error', 'message' => "Sheet '$sheetName' không tồn tại."];
+        }
+    } catch (\PhpOffice\PhpSpreadsheet\Reader\Exception $e) {
+        return ['status' => 'error', 'message' => 'Lỗi đọc file Excel: ' . $e->getMessage()];
+    } catch (\Throwable $e) {
+        return ['status' => 'error', 'message' => 'Lỗi không xác định: ' . $e->getMessage()];
+    }
+
     // Lấy dữ liệu
     $sql = "SELECT DISTINCT al.item_name, al.product_description, al.meta_data, p.sku, p.images
             FROM amazon_listings AS al
