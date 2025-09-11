@@ -1066,6 +1066,12 @@ function deleteXlsx(): array {
 	}
 }
 
+function downloadXlsx(): array
+{
+    $conn = db();
+    return [];
+}
+
 function deleteTableRow($table, $row_id): array {
 	$conn = db(); // Hàm db() trả về đối tượng mysqli
 

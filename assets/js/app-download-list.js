@@ -170,6 +170,9 @@ function initTable(){
                         var output = (full['status'] === 'running') ?
                             '<div class="position-relative">' +
                             '<img src="' + image + '" alt="file.xlsx" class="rounded">' +
+                            '<div class="position-absolute top-50 start-50 translate-middle d-none spinner-border text-primary" role="status" style="width: 1rem; height: 1rem;">' +
+                            '    <span class="visually-hidden">Loading...</span>' +
+                            '</div>' +
                             '<div class="progress-overlay">' +
                             '<div class="progress" style="height: 4px;">' +
                             '<div class="progress-bar bg-info" role="progressbar" style="width: 0%;" data-id="'+full['id']+'"></div>' +

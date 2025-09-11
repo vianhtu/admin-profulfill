@@ -52,6 +52,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 		case 'duplicate-xlsx':
 			echo json_encode(duplicateXlsx());
 			break;
+        case 'download-xlsx':
+            echo json_encode(downloadXlsx());
+            break;
         case 'save-export-query':
             echo json_encode(saveExportQuery());
             break;
