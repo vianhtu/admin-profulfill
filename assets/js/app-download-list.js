@@ -24,54 +24,49 @@ async function init() {
     }
 }
 
-function processRow(downloadId, $progressOverlay, $progressBar) {
-    const formData = new FormData();
-    formData.append('id', downloadId);
+// Hàm cập nhật progress bar
+function updateProgressBars() {
+    // Lấy tất cả các progress overlay đang hiển thị (status = running)
+    var ids = [];
+    $('#myTable').find('.progress-overlay').each(function () {
+        var $overlay = $(this);
+        if (!$overlay.hasClass('d-none')) {
+            // Tìm ID của row (giả sử lưu ở data-id của <tr>)
+            var rowId = $overlay.closest('tr').data('id');
+            if (rowId) {
+                ids.push(rowId);
+            }
+        }
+    });
 
+    if (ids.length === 0) {
+        return; // Không có row nào cần cập nhật
+    }
+
+    // Gọi AJAX lấy dữ liệu % tiến trình
     $.ajax({
-        url: '../../ajax.php?action=ai-process-products',
+        url: '/api/get-progress', // endpoint của bạn
         method: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
+        data: { ids: ids },
+        dataType: 'json',
         success: function (response) {
-            let res;
-            try {
-                res = typeof response === 'string' ? JSON.parse(response) : response;
-            } catch (e) {
-                console.error('Lỗi parse JSON:', e, response);
-                return;
-            }
+            // response có thể là mảng [{id:..., progress:..., status:...}, ...]
+            response.forEach(function (item) {
+                var $row = $('#myTable').find('tr[data-id="' + item.id + '"]');
+                var $bar = $row.find('.progress-bar');
 
-            // Nếu backend trả về mảng, lấy phần tử cuối
-            const last = Array.isArray(res) ? res[res.length - 1] : res;
-            const progress = last.progress || 0;
-            const status = last.status || 'error';
+                // Cập nhật width và aria-valuenow
+                $bar.css('width', item.progress + '%')
+                    .attr('aria-valuenow', item.progress);
 
-            // Cập nhật progress bar
-            $progressBar.css('width', progress + '%')
-                .attr('aria-valuenow', progress)
-                .text(progress + '%');
-
-            // Nếu status != success → dừng lại
-            if (status !== 'success') {
-                console.warn(`Dừng xử lý do status = ${status}`);
-                return;
-            }
-
-            // Nếu chưa xong thì gọi tiếp
-            if (!last.done && progress < 100) {
-                processRow(downloadId, $progressOverlay, $progressBar);
-            } else {
-                // Hoàn tất
-                setTimeout(() => {
-                    $progressOverlay.addClass('d-none');
-                    $progressBar.css('width', '0%').text('');
-                }, 1000);
-            }
+                // Nếu status không còn "running" thì ẩn progress overlay
+                if (item.status !== 'running') {
+                    $row.find('.progress-overlay').addClass('d-none');
+                }
+            });
         },
-        error: function (xhr) {
-            console.error('Ajax error:', xhr);
+        error: function (xhr, status, error) {
+            console.error('Lỗi khi lấy tiến trình:', error);
         }
     });
 }
