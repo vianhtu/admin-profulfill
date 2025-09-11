@@ -167,7 +167,7 @@ function initTable(){
                             '<img src="' + image + '" alt="file.xlsx" class="rounded">' +
                             '<div class="progress-overlay ' + progressClass + '">' +
                             '<div class="progress" style="height: 4px;">' +
-                            '<div class="progress-bar bg-info" role="progressbar" style="width: 0%;"></div>' +
+                            '<div class="progress-bar bg-info" role="progressbar" style="width: 0%;" data-id="'+full['id']+'"></div>' +
                             '</div>' +
                             '</div>' +
                             '</div>';
