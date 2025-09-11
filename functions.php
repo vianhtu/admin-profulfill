@@ -1085,7 +1085,13 @@ function downloadXlsx(): array
 
     if (!$statusRow) {
         // Không tồn tại hoặc chưa sẵn sàng
-        return [];
+        return ['status' => 'error', 'message' => "Chưa sẵn sàng"];
+    }
+
+    // Kiểm tra và load file .xlxs
+    $filePath = "/xlsx/" . $statusRow['file_dir'];
+    if (!file_exists($filePath)) {
+        return ['status' => 'error', 'message' => "File không tồn tại: $filePath"];
     }
 
     // Lấy dữ liệu
