@@ -53,7 +53,7 @@ function updateProgressBars() {
             response.forEach(function (item) {
                 var $bar = $('#DataTables_Table_0').find('[data-id="' + item.id + '"]');
                 $bar = $bar.find('.progress-bar');
-                console.log($bar);
+                console.log(item);
                 // Cập nhật width và aria-valuenow
                 $bar.css('width', item.progress + '%')
                     .attr('aria-valuenow', item.progress);
