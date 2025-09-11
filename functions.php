@@ -143,7 +143,15 @@ function AIProcessProducts($downloadId): array
         $mainImage = '';
         if (!empty($row['images'])) {
             $imagesArray = json_decode($row['images'], true);
-            $mainImage = $imagesArray['main'] ?? '';
+
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $mainImage = $imagesArray['main'] ?? '';
+
+                if (!empty($mainImage)) {
+                    // Thay thế mọi "il_<số>xN" thành "il_1024xN"
+                    $mainImage = preg_replace('/il_\d+xN/', 'il_1024xN', $mainImage);
+                }
+            }
         }
 
         // Tạo prompt
