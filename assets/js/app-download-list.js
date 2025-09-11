@@ -127,12 +127,11 @@ function initTable(){
                     $tr.addClass('tr-loading');
                     // Gọi AJAX
                     $.ajax({
-                        url: '/your-endpoint', // Thay bằng URL thực tế
-                        method: 'GET',         // hoặc 'POST'
-                        data: { id: 123 },     // dữ liệu gửi đi nếu cần
+                        url: '../../ajax.php?action=download-xlsx',
+                        method: 'POST',
+                        data: { id: 123 },
                         success: function (response) {
                             console.log('Thành công:', response);
-                            // Xử lý dữ liệu ở đây nếu cần
                         },
                         error: function (err) {
                             console.error('Lỗi:', err);
@@ -211,7 +210,7 @@ function initTable(){
                             '</div>';
 
                         var row_output =
-                            '<div class="d-flex justify-content-start align-items-center user-name">' +
+                            '<div class="d-flex justify-content-start align-items-center user-name" data-id="'+full['id']+'">' +
                             '<div class="avatar-wrapper">' +
                             '<div class="avatar avatar-sm me-4">' +
                             output +
