@@ -15,7 +15,7 @@ while (true) {
     } else {
         // Tìm job mới
         $sql = "SELECT ID FROM download
-                WHERE status = 'schedule'
+                WHERE status IN ('schedule', 'running')
                 ORDER BY id ASC
                 LIMIT 1";
         $result = $conn->query($sql);
