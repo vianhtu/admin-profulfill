@@ -418,6 +418,7 @@ function initTable(){
                 $('#xlsxAccounts').on('change', function (){
                     dt_user.draw();
                 });
+                updateProgressBars();
             }
         });
 
