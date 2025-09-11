@@ -1103,6 +1103,26 @@ function downloadXlsx(): array
         if (!$sheet) {
             return ['status' => 'error', 'message' => "Sheet '$sheetName' không tồn tại."];
         }
+
+        // Xác định số cột tối đa
+        $highestColumn = $sheet->getHighestColumn(); // Ví dụ: 'F'
+        $highestColumnIndex = Coordinate::columnIndexFromString($highestColumn);
+
+        $headers = [];
+        $headerRowIndex = 4;
+
+        // Lặp qua từng cột
+        for ($col = 1; $col <= $highestColumnIndex; $col++) {
+            // Tạo tọa độ ô (ví dụ: B4, C4...)
+            $cellCoordinate = Coordinate::stringFromColumnIndex($col) . $headerRowIndex;
+            $cellValue = $sheet->getCell($cellCoordinate)->getValue();
+
+            if (empty($cellValue) || strtolower(trim($cellValue)) === 'null') {
+                continue;
+            }
+
+            $headers[$cellCoordinate] =  $cellValue;
+        }
     } catch (\PhpOffice\PhpSpreadsheet\Reader\Exception $e) {
         return ['status' => 'error', 'message' => 'Lỗi đọc file Excel: ' . $e->getMessage()];
     } catch (\Throwable $e) {
@@ -1154,6 +1174,7 @@ function downloadXlsx(): array
     $updateStmt->execute();
 
     return [
+        'headers' => $headers,
         'status' => 'success',
         'message' => 'File đã được lưu thành công',
         'file_name' => $newFileName,
