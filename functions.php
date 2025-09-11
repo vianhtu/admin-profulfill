@@ -1072,7 +1072,7 @@ function downloadXlsx(): array
     $downloadID = isset($_POST['id']) ? (int)$_POST['id'] : 0;
 
     // Kiểm tra trạng thái trước
-    $checkSql = "SELECT exports.file_default, exports.file_name, exports.file_dir
+    $checkSql = "SELECT exports.file_default, exports.file_name AS t_file, exports.file_dir, download.file_name AS d_file
                  FROM download
                  INNER JOIN exports ON exports.ID = download.exports_id
                  WHERE download.id = ?
@@ -1124,10 +1124,39 @@ function downloadXlsx(): array
         $data[] = $row;
     }
 
-    // Nếu muốn trả kèm thông tin file
+    // Thư mục lưu file export
+    $exportDir = ROOT_DIR . "/export/";
+    if (!is_dir($exportDir)) {
+        mkdir($exportDir, 0777, true);
+    }
+
+    // Nếu có file cũ thì xóa
+    if (!empty($statusRow['d_file'])) {
+        $oldFile = $exportDir . $statusRow['d_file'];
+        if (file_exists($oldFile)) {
+            unlink($oldFile);
+        }
+    }
+
+    // Tạo tên file mới (tránh trùng)
+    $newFileName = 'export_' . $downloadID . '_' . date('Ymd_His') . '_' . $statusRow['t_file'];
+    $newFilePath = $exportDir . $newFileName;
+
+    // Lưu file mới
+    $writer = new Xlsx($spreadsheet);
+    $writer->save($newFilePath);
+
+    // Cập nhật tên file vào DB
+    $updateSql = "UPDATE download SET file_name = ? WHERE id = ?";
+    $updateStmt = $conn->prepare($updateSql);
+    $updateStmt->bind_param('si', $newFileName, $downloadID);
+    $updateStmt->execute();
+
     return [
-        'default_file_info' => $statusRow['file_default'],
-        'items'     => $data
+        'status' => 'success',
+        'message' => 'File đã được lưu thành công',
+        'file_name' => $newFileName,
+        'file_path' => $newFilePath
     ];
 }
 
