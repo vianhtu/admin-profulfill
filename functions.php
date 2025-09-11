@@ -1144,11 +1144,11 @@ function downloadXlsx(): array
     while ($row = $result->fetch_assoc()) {
         // chạy các default headers.
         $default_values = !empty($statusRow['file_default']) ? json_decode($statusRow['file_default'], true) : [];
-        foreach ($default_values as $obj){
-            $location = $obj->location;
-            $text = $obj->text;
+        foreach ($default_values as $args){
+            $location = $args['location'];
+            $text = $args['text'];
             if(isset($headers[$location]) && $headers[$location] === $text){
-                $sheet->setCellValue( $location . $startRow, $obj->value ?? '' );
+                $sheet->setCellValue( $location . $startRow, $args['value'] ?? '' );
             }
         }
         $startRow++;
