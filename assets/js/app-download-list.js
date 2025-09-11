@@ -117,6 +117,31 @@ function initTable(){
             },
             drawCallback: function(settings) {
                 updateProgressBars();
+                $('#DataTables_Table_0 .user-name .avatar-wrapper').on('click', function () {
+                    const $container = $(this).find('.position-relative');
+                    const $spinner = $container.find('.spinner-border');
+
+                    // Hiện spinner
+                    $spinner.removeClass('d-none');
+
+                    // Gọi AJAX
+                    $.ajax({
+                        url: '/your-endpoint', // Thay bằng URL thực tế
+                        method: 'GET',         // hoặc 'POST'
+                        data: { id: 123 },     // dữ liệu gửi đi nếu cần
+                        success: function (response) {
+                            console.log('Thành công:', response);
+                            // Xử lý dữ liệu ở đây nếu cần
+                        },
+                        error: function (err) {
+                            console.error('Lỗi:', err);
+                        },
+                        complete: function () {
+                            // Ẩn spinner sau khi hoàn tất
+                            $spinner.addClass('d-none');
+                        }
+                    });
+                });
             },
             columns: [
                 // columns according to JSON
