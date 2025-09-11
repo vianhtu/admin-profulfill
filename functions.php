@@ -1139,9 +1139,17 @@ function downloadXlsx(): array
     $stmt->execute();
     $result = $stmt->get_result();
 
-    $data = [];
+    // chạy toàn bộ sản phẩm.
     while ($row = $result->fetch_assoc()) {
-        $data[] = $row;
+        // chạy các default headers.
+        $default_values = !empty($statusRow['file_default']) ? json_decode($statusRow['file_default'], true) : [];
+        foreach ($default_values as $obj){
+            $location = $obj->location;
+            $text = $obj->text;
+            if(isset($headers[$location]) && $headers[$location] === $text){
+                $sheet->setCellValue( $location, $obj->value ?? '' );
+            }
+        }
     }
 
     // Thư mục lưu file export
