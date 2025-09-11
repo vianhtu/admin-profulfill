@@ -267,6 +267,7 @@ function getProcessProducts(): array
 
         // Tính % hoàn thành
         $progress = $total > 0 ? round((($total - $schedule) / $total) * 100) : 0;
+        $pending = $total - $schedule;
 
         // Xác định status
         $status = ($schedule > 0) ? 'running' : 'ready';
@@ -274,6 +275,7 @@ function getProcessProducts(): array
         $data[] = [
             'id'       => (int)$row['download_id'],
             'progress' => $progress,
+            'pending'  => $pending,
             'status'   => $status
         ];
     }
