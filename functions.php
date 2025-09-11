@@ -2,9 +2,9 @@
 require 'vendor/autoload.php';
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use GeminiAPI\Client;
-use GeminiAPI\Resources\ModelName;
 use GeminiAPI\Resources\Parts\TextPart;
 function renderMenu($currentMenu) {
 	$menuItems = [
