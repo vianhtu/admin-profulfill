@@ -1126,7 +1126,7 @@ function downloadXlsx(): array
 
     // Nếu muốn trả kèm thông tin file
     return [
-        'file_info' => $statusRow,
+        'default_file_info' => $statusRow['file_default'],
         'items'     => $data
     ];
 }
