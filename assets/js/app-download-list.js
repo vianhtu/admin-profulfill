@@ -49,7 +49,6 @@ function updateProgressBars() {
         data: { ids: ids },
         dataType: 'json',
         success: function (response) {
-            console.log(response);
             // response có thể là mảng [{id:..., progress:..., status:...}, ...]
             response.forEach(function (item) {
                 var $bar = $('#DataTables_Table_0').find('.progress-bar[data-id="' + item.id + '"]');
