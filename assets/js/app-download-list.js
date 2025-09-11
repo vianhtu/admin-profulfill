@@ -554,5 +554,5 @@ function initTable(){
 document.addEventListener('DOMContentLoaded', function (e) {
     init();
     // Chạy ngay khi load và lặp lại mỗi 30 giây
-    setInterval(updateProgressBars, 30000);
+    setInterval(updateProgressBars, 15000);
 });
