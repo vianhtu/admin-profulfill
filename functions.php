@@ -1143,24 +1143,35 @@ function downloadXlsx(): array
     $startRow = 8;
     while ($row = $result->fetch_assoc()) {
         // chạy các default headers.
-        $default_values = !empty($statusRow['file_default']) ? json_decode($statusRow['file_default'], true) : [];
+        $default_values = !empty($statusRow['file_default'])
+            ? json_decode($statusRow['file_default'], true)
+            : [];
+
         $default_values[] = [
-            'location' => 'D',
-            'text'     => 'Item Name',
-            'value'    => $row['item_name']
+            'text'  => 'Item Name',
+            'value' => $row['item_name']
         ];
         $default_values[] = [
-            'location' => 'BV',
-            'text'     => 'Product Description',
-            'value'    => $row['product_description']
+            'text'  => 'Product Description',
+            'value' => $row['product_description']
         ];
-        foreach ($default_values as $args){
-            $colLetter = $args['location'] ?? '';
+
+        foreach ($default_values as $args) {
+            $colLetter  = $args['location'] ?? '';
             $headerText = $args['text'] ?? '';
-            if(isset($headers[$colLetter]) && $headers[$colLetter] === $headerText){
-                $sheet->setCellValue( $colLetter . $startRow, $args['value'] ?? '' );
+
+            // Điều kiện 1: cột tồn tại và header khớp
+            if (isset($headers[$colLetter]) && $headers[$colLetter] === $headerText) {
+                $sheet->setCellValue($colLetter . $startRow, $args['value'] ?? '');
+            } else {
+                // Tìm header khớp duy nhất
+                $header = array_filter($headers, fn($item) => $item === $headerText);
+                if (count($header) === 1) {
+                    $sheet->setCellValue(array_key_first($header) . $startRow, $args['value'] ?? '');
+                }
             }
         }
+
         // chạy thêm dữ liệu từ AI
         $startRow++;
     }
