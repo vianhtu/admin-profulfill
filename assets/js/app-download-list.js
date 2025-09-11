@@ -32,7 +32,7 @@ function updateProgressBars() {
         var $overlay = $(this);
         if (!$overlay.hasClass('d-none')) {
             // Tìm ID của row (giả sử lưu ở data-id của <tr>)
-            var rowId = $overlay.find('.progress-bar').data('id');
+            var rowId = $overlay.closest('.user-name').data('id');
             if (rowId) {
                 ids.push(rowId);
             }
@@ -51,9 +51,7 @@ function updateProgressBars() {
         success: function (response) {
             // response có thể là mảng [{id:..., progress:..., status:...}, ...]
             response.forEach(function (item) {
-                var $bar = $('#DataTables_Table_0').find('[data-id="' + item.id + '"]');
-                $bar = $bar.find('.progress-bar');
-                console.log(item);
+                var $bar = $('#DataTables_Table_0').find('[data-id="' + item.id + '"] .progress-bar');
                 // Cập nhật width và aria-valuenow
                 $bar.css('width', item.progress + '%')
                     .attr('aria-valuenow', item.progress);
