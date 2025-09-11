@@ -1089,7 +1089,7 @@ function downloadXlsx(): array
     }
 
     // Kiểm tra và load file .xlxs
-    $filePath = "/xlsx/" . $statusRow['file_dir'];
+    $filePath = ROOT_DIR . "/xlsx/" . $statusRow['file_dir'];
     if (!file_exists($filePath)) {
         return ['status' => 'error', 'message' => "File không tồn tại: $filePath"];
     }
