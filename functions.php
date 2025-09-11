@@ -1069,7 +1069,7 @@ function deleteXlsx(): array {
 function downloadXlsx(): array
 {
     $conn = db();
-    return [];
+    return [$_POST];
 }
 
 function deleteTableRow($table, $row_id): array {

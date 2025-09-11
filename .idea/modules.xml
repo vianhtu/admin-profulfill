@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/admin-profulfill.iml" filepath="$PROJECT_DIR$/.idea/admin-profulfill.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../profulfill-products-data/.idea/profulfill-products-data.iml" filepath="$PROJECT_DIR$/../profulfill-products-data/.idea/profulfill-products-data.iml" />
     </modules>
   </component>
 </project>
