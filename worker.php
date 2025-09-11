@@ -17,7 +17,7 @@ while (true) {
         $sql = "SELECT ID 
                 FROM download
                 WHERE status IN ('schedule', 'running')
-                  AND (locked_at IS NULL OR locked_at < NOW() - INTERVAL 2 MINUTE)
+                  AND (locked_at IS NULL OR locked_at < NOW() - INTERVAL 1 MINUTE)
                 ORDER BY id ASC
                 LIMIT 1
                 ";

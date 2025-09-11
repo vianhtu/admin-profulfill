@@ -22,7 +22,7 @@ if ($result && $result->num_rows > 0) {
         } else {
             // locked_at có giá trị → kiểm tra quá 2 phút chưa
             $lockedTime = strtotime($row['locked_at']);
-            if (time() - $lockedTime > 120) { // 120 giây = 2 phút
+            if (time() - $lockedTime > 60) { // 60 giây = 1 phút
                 $runWorker = true;
             }
         }
