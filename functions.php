@@ -1069,21 +1069,45 @@ function deleteXlsx(): array {
 function downloadXlsx(): array
 {
     $conn = db();
-    $downloadID = (int)$_POST['id'] ?? 0;
+    $downloadID = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+
+    // Kiểm tra trạng thái trước
+    $checkSql = "SELECT exports.file_default, exports.file_name, exports.file_dir
+                 FROM download
+                 INNER JOIN exports ON exports.ID = download.exports_id
+                 WHERE download.id = ?
+                 AND download.status = 'ready'";
+    $checkStmt = $conn->prepare($checkSql);
+    $checkStmt->bind_param('i', $downloadID);
+    $checkStmt->execute();
+    $checkResult = $checkStmt->get_result();
+    $statusRow = $checkResult->fetch_assoc();
+
+    if (!$statusRow) {
+        // Không tồn tại hoặc chưa sẵn sàng
+        return [];
+    }
+
     // Lấy dữ liệu
     $sql = "SELECT DISTINCT al.item_name, al.product_description, al.meta_data, p.sku, p.images
-        FROM amazon_listings AS al
-        INNER JOIN posts p ON al.sku = p.sku
-        WHERE al.download_id = ?";
+            FROM amazon_listings AS al
+            INNER JOIN posts p ON al.sku = p.sku
+            WHERE al.download_id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param('i', $downloadID);
     $stmt->execute();
     $result = $stmt->get_result();
+
     $data = [];
-    while ( $row = $result->fetch_assoc() ) {
+    while ($row = $result->fetch_assoc()) {
         $data[] = $row;
     }
-    return $data;
+
+    // Nếu muốn trả kèm thông tin file
+    return [
+        'file_info' => $statusRow,
+        'items'     => $data
+    ];
 }
 
 function deleteTableRow($table, $row_id): array {
