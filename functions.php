@@ -1140,6 +1140,7 @@ function downloadXlsx(): array
     $result = $stmt->get_result();
 
     // chạy toàn bộ sản phẩm.
+    $startRow = 8;
     while ($row = $result->fetch_assoc()) {
         // chạy các default headers.
         $default_values = !empty($statusRow['file_default']) ? json_decode($statusRow['file_default'], true) : [];
@@ -1147,9 +1148,10 @@ function downloadXlsx(): array
             $location = $obj->location;
             $text = $obj->text;
             if(isset($headers[$location]) && $headers[$location] === $text){
-                $sheet->setCellValue( $location, $obj->value ?? '' );
+                $sheet->setCellValue( $location . $startRow, $obj->value ?? '' );
             }
         }
+        $startRow++;
     }
 
     // Thư mục lưu file export
