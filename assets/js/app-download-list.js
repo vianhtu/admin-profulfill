@@ -56,7 +56,7 @@ function updateProgressBars() {
                 $bar.css('width', item.progress + '%')
                     .attr('aria-valuenow', item.progress);
 
-                $bar.closest('tr').find('.total-complete').text(item.pending);
+                $bar.closest('tr').find('.total-complete').text(item.pending + '/' + item.total);
 
                 // Nếu status không còn "running" thì ẩn progress overlay
                 if (item.status !== 'running') {

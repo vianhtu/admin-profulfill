@@ -276,6 +276,7 @@ function getProcessProducts(): array
             'id'       => (int)$row['download_id'],
             'progress' => $progress,
             'pending'  => $pending,
+            'total'    => $total,
             'status'   => $status
         ];
     }
