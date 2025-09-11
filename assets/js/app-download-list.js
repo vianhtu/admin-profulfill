@@ -202,7 +202,7 @@ function initTable(){
                             '</div>' : '';
                         var output = '<div class="position-relative">' +
                             '<img src="' + image + '" alt="file.xlsx" class="rounded">' +
-                            '<div class="spinner-border text-success position-absolute" role="status" style="">' +
+                            '<div class="spinner-border text-success position-absolute" role="status" style="top: 50%; left: 50%;--bs-spinner-width: 1rem;--bs-spinner-height: 1rem;">' +
                             '    <span class="visually-hidden">Loading...</span>' +
                             '</div>' +
                             progress +
