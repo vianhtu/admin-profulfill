@@ -314,33 +314,8 @@ function initTable(){
                                 {
                                     extend: 'collection',
                                     className: 'btn btn-label-secondary dropdown-toggle',
-                                    text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-upload icon-xs"></i> <span class="d-none d-sm-inline-block">Export</span></span>',
+                                    text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-upload icon-xs"></i> <span class="d-none d-sm-inline-block">Actions</span></span>',
                                     buttons: [
-                                        {
-                                            text: '<i class="icon-base ti tabler-brand-google me-1"></i>Gemini 2.5 Flash',
-                                            action: function (e, dt, node, config) {
-                                                const selectedRows = dt.rows({ selected: true });
-
-                                                if (selectedRows.count() === 0) {
-                                                    alert('Bạn chưa chọn dòng nào!');
-                                                    return;
-                                                }
-
-                                                selectedRows.nodes().each(function (rowNode) {
-                                                    const $row = $(rowNode);
-                                                    const rowData = dt.row($row).data();
-                                                    const downloadId = rowData.download_id; // hoặc field tương ứng
-
-                                                    const $cell = $row.find('td').eq(2);
-                                                    const $progressOverlay = $cell.find('.progress-overlay');
-                                                    const $progressBar = $progressOverlay.find('.progress-bar');
-
-                                                    $progressOverlay.removeClass('d-none');
-
-                                                    processRow(downloadId, $progressOverlay, $progressBar);
-                                                });
-                                            }
-                                        }
                                     ]
                                 },
                                 {
