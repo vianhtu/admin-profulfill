@@ -1147,9 +1147,10 @@ function downloadXlsx(): array
     $writer->save($newFilePath);
 
     // Cập nhật tên file vào DB
-    $updateSql = "UPDATE download SET file_name = ? WHERE id = ?";
+    $now = date('Y-m-d H:i:s'); // thời gian hiện tại
+    $updateSql = "UPDATE download SET file_name = ?, download_date = ? WHERE id = ?";
     $updateStmt = $conn->prepare($updateSql);
-    $updateStmt->bind_param('si', $newFileName, $downloadID);
+    $updateStmt->bind_param('ssi', $newFileName, $now, $downloadID);
     $updateStmt->execute();
 
     return [
