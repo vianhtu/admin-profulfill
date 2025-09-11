@@ -1145,8 +1145,10 @@ function downloadXlsx(): array
         // chạy các default headers.
         $default_values = !empty($statusRow['file_default']) ? json_decode($statusRow['file_default'], true) : [];
         foreach ($default_values as $args){
-            if(isset($headers[$args['location']]) && $headers[$args['location']] === $args['text']){
-                $sheet->setCellValue( $args['location'] . $startRow, $args['value'] ?? '' );
+            $colLetter = $args['location'] ?? '';
+            $headerText = $args['text'] ?? '';
+            if(isset($headers[$colLetter]) && $headers[$colLetter] === $headerText){
+                $sheet->setCellValue( $colLetter . $startRow, $args['value'] ?? '' );
             }
         }
         $startRow++;
