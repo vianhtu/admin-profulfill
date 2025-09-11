@@ -1069,7 +1069,21 @@ function deleteXlsx(): array {
 function downloadXlsx(): array
 {
     $conn = db();
-    return [$_POST];
+    $downloadID = (int)$_POST['id'] ?? 0;
+    // Lấy dữ liệu
+    $sql = "SELECT DISTINCT al.item_name, al.product_description, al.meta_data, p.sku, p.images
+        FROM amazon_listings AS al
+        INNER JOIN posts p ON al.sku = p.sku
+        WHERE al.download_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param('i', $downloadID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $data = [];
+    while ( $row = $result->fetch_assoc() ) {
+        $data[] = $row;
+    }
+    return $data;
 }
 
 function deleteTableRow($table, $row_id): array {
