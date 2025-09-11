@@ -246,7 +246,7 @@ function initTable(){
                     targets: 8,
                     render: function (data, type, full, meta) {
                         const total_items = full['total_items'];
-                        return '<span>' + total_items + '</span>';
+                        return '<span class="total-complete">' + total_items + '</span>';
                     }
                 },
                 {
