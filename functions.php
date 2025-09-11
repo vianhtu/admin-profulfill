@@ -1121,7 +1121,7 @@ function downloadXlsx(): array
                 continue;
             }
 
-            $headers[$cellCoordinate] =  $cellValue;
+            $headers[Coordinate::stringFromColumnIndex($col)] =  $cellValue;
         }
     } catch (\PhpOffice\PhpSpreadsheet\Reader\Exception $e) {
         return ['status' => 'error', 'message' => 'Lỗi đọc file Excel: ' . $e->getMessage()];
