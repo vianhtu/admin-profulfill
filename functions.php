@@ -1144,6 +1144,16 @@ function downloadXlsx(): array
     while ($row = $result->fetch_assoc()) {
         // chạy các default headers.
         $default_values = !empty($statusRow['file_default']) ? json_decode($statusRow['file_default'], true) : [];
+        $default_values[] = [
+            'location' => 'D',
+            'text'     => 'Item Name',
+            'value'    => $row['item_name']
+        ];
+        $default_values[] = [
+            'location' => 'BV',
+            'text'     => 'Product Description',
+            'value'    => $row['product_description']
+        ];
         foreach ($default_values as $args){
             $colLetter = $args['location'] ?? '';
             $headerText = $args['text'] ?? '';
@@ -1151,6 +1161,7 @@ function downloadXlsx(): array
                 $sheet->setCellValue( $colLetter . $startRow, $args['value'] ?? '' );
             }
         }
+        // chạy thêm dữ liệu từ AI
         $startRow++;
     }
 
