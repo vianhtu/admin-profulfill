@@ -1142,6 +1142,7 @@ function downloadXlsx(): array
     // chạy toàn bộ sản phẩm.
     $startRow = 8; // bắt đầu row.
     $counter  = 0; // đếm số sản phẩm đã xử lý
+    $parentSku = '';
     while ($row = $result->fetch_assoc()) {
         $counter++; // tăng đếm mỗi sản phẩm
         // chạy các default headers.
@@ -1168,6 +1169,7 @@ function downloadXlsx(): array
         // ✅ Nếu là sản phẩm Parent (mỗi 20 sản phẩm)
         $isParent = ($counter === 1) || ($counter % 21 === 0);
         if ($isParent) {
+            $parentSku = $row['sku'];
             $default_values[] = [
                 'text'  => 'Parentage Level', // tên cột trong $headers
                 'value' => 'Parent'
@@ -1176,6 +1178,10 @@ function downloadXlsx(): array
             $default_values[] = [
                 'text'  => 'Parentage Level',
                 'value' => 'Child'
+            ];
+            $default_values[] = [
+                'text'  => 'Parent SKU',
+                'value' => $parentSku
             ];
         }
 
@@ -1193,7 +1199,7 @@ function downloadXlsx(): array
                         $item['value'] = 'Child';
                         break;
                     case 'Parent SKU':
-                        $item['value'] = $row['sku'];
+                        $item['value'] = $parentSku;
                         break;
                 }
             }
