@@ -5,6 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dd67acd4-b783-43b8-b6ae-ced4c44e1a52" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/functions.php" beforeDir="false" afterPath="$PROJECT_DIR$/functions.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../profulfill-products-data/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../profulfill-products-data/.idea/modules.xml" afterDir="false" />
@@ -16,6 +17,11 @@
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ComposerConfigs">
+    <option name="configs">
+      <option value="$PROJECT_DIR$/../profulfill-products-data/composer.json" />
+    </option>
   </component>
   <component name="ComposerSettings" synchronizationState="SYNCHRONIZE">
     <pharConfigPath>$PROJECT_DIR$/composer.json</pharConfigPath>
@@ -53,6 +59,15 @@
       <path value="$PROJECT_DIR$/vendor/symfony/service-contracts" />
       <path value="$PROJECT_DIR$/vendor/psr/container" />
       <path value="$PROJECT_DIR$/vendor/psr/log" />
+      <path value="$PROJECT_DIR$/../profulfill-products-data/vendor/markbaker/matrix" />
+      <path value="$PROJECT_DIR$/../profulfill-products-data/vendor/phpoffice/phpspreadsheet" />
+      <path value="$PROJECT_DIR$/../profulfill-products-data/vendor/markbaker/complex" />
+      <path value="$PROJECT_DIR$/../profulfill-products-data/vendor/composer" />
+      <path value="$PROJECT_DIR$/../profulfill-products-data/vendor/psr/simple-cache" />
+      <path value="$PROJECT_DIR$/../profulfill-products-data/vendor/psr/http-message" />
+      <path value="$PROJECT_DIR$/../profulfill-products-data/vendor/maennchen/zipstream-php" />
+      <path value="$PROJECT_DIR$/../profulfill-products-data/vendor/psr/http-factory" />
+      <path value="$PROJECT_DIR$/../profulfill-products-data/vendor/psr/http-client" />
     </include_path>
   </component>
   <component name="ProjectColorInfo">{
@@ -110,7 +125,8 @@
       <workItem from="1757295659608" duration="16617000" />
       <workItem from="1757403616635" duration="10146000" />
       <workItem from="1757467323734" duration="15781000" />
-      <workItem from="1757553518455" duration="26167000" />
+      <workItem from="1757553518455" duration="27509000" />
+      <workItem from="1757639994750" duration="2585000" />
     </task>
     <servers />
   </component>

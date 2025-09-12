@@ -1140,13 +1140,18 @@ function downloadXlsx(): array
     $result = $stmt->get_result();
 
     // chạy toàn bộ sản phẩm.
-    $startRow = 8;
+    $startRow = 8; // bắt đầu row.
+    $counter  = 0; // đếm số sản phẩm đã xử lý
     while ($row = $result->fetch_assoc()) {
+        $counter++; // tăng đếm mỗi sản phẩm
         // chạy các default headers.
         $default_values = !empty($statusRow['file_default'])
             ? json_decode($statusRow['file_default'], true)
             : [];
 
+        $images = json_decode($statusRow['images'], true);
+
+        // map values.
         $default_values[] = [
             'text'  => 'Item Name',
             'value' => $row['item_name']
@@ -1155,21 +1160,39 @@ function downloadXlsx(): array
             'text'  => 'Product Description',
             'value' => $row['product_description']
         ];
+        $default_values[] = [
+            'text'  => 'Main Image URL',
+            'value' => $images['main'] ?? ''
+        ];
 
-        foreach ($default_values as $args) {
-            $colLetter  = $args['location'] ?? '';
-            $headerText = $args['text'] ?? '';
+        // ✅ Nếu là sản phẩm Parent (mỗi 20 sản phẩm)
+        $isParent = ($counter % 20 === 0);
+        if ($isParent) {
+            $default_values[] = [
+                'text'  => 'Parentage Level', // tên cột trong $headers
+                'value' => 'Parent'
+            ];
+        } else {
+            $default_values[] = [
+                'text'  => 'Parentage Level',
+                'value' => 'Child'
+            ];
+        }
 
-            // Điều kiện 1: cột tồn tại và header khớp
-            if (isset($headers[$colLetter]) && $headers[$colLetter] === $headerText) {
-                $sheet->setCellValue($colLetter . $startRow, $args['value'] ?? '');
-            } else {
-                // Tìm header khớp duy nhất
-                $header = array_filter($headers, fn($item) => $item === $headerText);
-                if (count($header) === 1) {
-                    $sheet->setCellValue(array_key_first($header) . $startRow, $args['value'] ?? '');
+        // Ghi dòng sản phẩm gốc
+        writeRowXlsx($sheet, $headers, $default_values, $startRow);
+
+        // Nếu là Parent → thêm dòng bản sao
+        if ($isParent) {
+            $startRow++;
+            $parentCopy = $default_values;
+            // Ví dụ: sửa SKU
+            foreach ($parentCopy as &$item) {
+                if ($item['text'] === 'SKU') {
+                    $item['value'] .= '-COPY';
                 }
             }
+            writeRowXlsx($sheet, $headers, $parentCopy, $startRow);
         }
 
         // chạy thêm dữ liệu từ AI
@@ -1212,6 +1235,41 @@ function downloadXlsx(): array
         'file_name' => $newFileName,
         'file_path' => $newFilePath
     ];
+}
+
+function writeRowXlsx($sheet, $headers, $values, $rowNum): void
+{
+    foreach ($values as $item) {
+        $text = $item['text'];
+        $value = $item['value'] ?? '';
+
+        // Trường hợp 1: Có location và text tồn tại trong headers
+        if (!empty($item['location']) && isset($headers[$item['location']]) && $headers[$item['location']] === $text) {
+            $sheet->setCellValue($item['location'] . $rowNum, $value);
+            continue;
+        }
+
+        // Tìm tất cả key trong headers có text trùng
+        $matchedKeys = array_keys($headers, $text);
+
+        if (count($matchedKeys) === 1) {
+            // Trường hợp 2: text chỉ xuất hiện 1 lần
+            $sheet->setCellValue($matchedKeys[0] . $rowNum, $value);
+        } elseif (count($matchedKeys) > 1) {
+            // Trường hợp 3: text xuất hiện nhiều lần
+            if (!is_array($value)) {
+                // 3a: value là string → gán vào item đầu tiên
+                $sheet->setCellValue($matchedKeys[0] . $rowNum, $value);
+            } else {
+                // 3b: value là array → gán lần lượt
+                foreach ($matchedKeys as $i => $colKey) {
+                    if (isset($value[$i])) {
+                        $sheet->setCellValue($colKey . $rowNum, $value[$i]);
+                    }
+                }
+            }
+        }
+    }
 }
 
 function deleteTableRow($table, $row_id): array {
