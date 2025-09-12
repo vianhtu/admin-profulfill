@@ -1188,8 +1188,8 @@ function downloadXlsx(): array
             $parentCopy = $default_values;
             // Ví dụ: sửa SKU
             foreach ($parentCopy as &$item) {
-                if ($item['text'] === 'SKU') {
-                    $item['value'] .= '-COPY';
+                if ($item['text'] === 'Parentage Level') {
+                    $item['value'] = 'Child';
                 }
             }
             writeRowXlsx($sheet, $headers, $parentCopy, $startRow);
