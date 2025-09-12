@@ -1166,7 +1166,7 @@ function downloadXlsx(): array
         ];
 
         // ✅ Nếu là sản phẩm Parent (mỗi 20 sản phẩm)
-        $isParent = ($counter === 1) || ($counter % 20 === 0);
+        $isParent = ($counter === 1) || ($counter % 21 === 0);
         if ($isParent) {
             $default_values[] = [
                 'text'  => 'Parentage Level', // tên cột trong $headers
