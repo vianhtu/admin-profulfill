@@ -1149,7 +1149,7 @@ function downloadXlsx(): array
             ? json_decode($statusRow['file_default'], true)
             : [];
 
-        $images = json_decode($statusRow['images'], true);
+        $images = json_decode($row['images'], true);
 
         // map values.
         $default_values[] = [
