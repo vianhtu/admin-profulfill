@@ -1192,14 +1192,15 @@ function downloadXlsx(): array
         if ($isParent) {
             $startRow++;
             $parentCopy = $default_values;
-            // Ví dụ: sửa SKU
+            $parentCopy[] = [
+                'text'  => 'Parent SKU',
+                'value' => $parentSku
+            ];
+            // Ví dụ: sửa
             foreach ($parentCopy as &$item) {
                 switch ($item['text']){
                     case 'Parentage Level':
                         $item['value'] = 'Child';
-                        break;
-                    case 'Parent SKU':
-                        $item['value'] = $parentSku;
                         break;
                 }
             }
