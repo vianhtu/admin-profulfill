@@ -1146,10 +1146,19 @@ function downloadXlsx(): array
     $colorIndex = 1;
     while ($row = $result->fetch_assoc()) {
         $counter++; // tăng đếm mỗi sản phẩm
-        // chạy các default headers.
+        // get default headers value.
         $default_values = !empty($statusRow['file_default']) ? json_decode($statusRow['file_default'], true) : [];
         $images = json_decode($row['images'], true);
-        // map default values.
+        $default_values[] = [
+            'text'  => 'Main Image URL',
+            'value' => $images['main'] ?? ''
+        ];
+        $default_values[] = [
+            'text'  => 'Other Image URL',
+            'value' => $images['images'] ?? []
+        ];
+
+        // map AI values.
         $default_values[] = [
             'text'  => 'Item Name',
             'value' => $row['item_name']
@@ -1158,12 +1167,6 @@ function downloadXlsx(): array
             'text'  => 'Product Description',
             'value' => $row['product_description']
         ];
-        $default_values[] = [
-            'text'  => 'Main Image URL',
-            'value' => $images['main'] ?? ''
-        ];
-
-        // map AI values.
         $meta_data = json_decode($row['meta_data'], true);
         foreach ($meta_data as $key => $meta){
             if($key === 'Main Image URL' || $key === 'Color'){
