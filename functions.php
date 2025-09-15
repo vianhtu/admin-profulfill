@@ -1189,12 +1189,16 @@ function downloadXlsx(): array
             $colorIndex = 1;
             $parentSku = $row['sku'];
             $default_values[] = [
-                'text'  => 'Parentage Level', // tên cột trong $headers
+                'text'  => 'Parentage Level',
                 'value' => 'Parent'
             ];
             $default_values[] = [
-                'text'  => 'Color', // tên cột trong $headers
+                'text'  => 'Color',
                 'value' => ''
+            ];
+            $default_values[] = [
+                'text'  => 'SKU',
+                'value' => $parentSku
             ];
         } else {
             $default_values[] = [
@@ -1206,8 +1210,12 @@ function downloadXlsx(): array
                 'value' => $parentSku
             ];
             $default_values[] = [
-                'text'  => 'Color', // tên cột trong $headers
+                'text'  => 'Color',
                 'value' => 'Color ' . $colorIndex
+            ];
+            $default_values[] = [
+                'text'  => 'SKU',
+                'value' => $row['sku'] . '-' . $parentSku
             ];
         }
 
@@ -1230,6 +1238,9 @@ function downloadXlsx(): array
                         break;
                     case 'Color':
                         $item['value'] = 'Color 1';
+                        break;
+                    case 'SKU':
+                        $item['value'] = $parentSku . '-' . $parentSku;
                         break;
                 }
             }
