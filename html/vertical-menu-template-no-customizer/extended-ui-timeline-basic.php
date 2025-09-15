@@ -9,8 +9,6 @@ $colors = [
         'timeline-point-info',
         'timeline-point-secondary'
 ];
-// Chọn ngẫu nhiên 1 class
-$randomColor = $colors[array_rand($colors)];
 ?>
 <div class="row gy-6">
     <!-- Timeline Basic-->
@@ -20,6 +18,7 @@ $randomColor = $colors[array_rand($colors)];
             <div class="card-body">
                 <ul class="timeline mb-0">
                     <?php foreach ($sms as $value): ?>
+                        <?php $randomColor = $colors[array_rand($colors)]; ?>
                         <li class="timeline-item timeline-item-transparent">
                             <span class="timeline-point <?= $randomColor; ?>"></span>
                             <div class="timeline-event">
