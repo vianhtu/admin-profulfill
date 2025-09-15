@@ -18,6 +18,7 @@ $sms = get_sms();
                                     <small class="text-body-secondary"><?= timeAgo($value['date']) ?></small>
                                 </div>
                                 <p class="mb-2"><?= $value['text']; ?></p>
+                                <p class="mb-2"><?= $value['name']; ?> <?= $value['from_number']; ?></p>
                             </div>
                         </li>
                     <?php endforeach; ?>
