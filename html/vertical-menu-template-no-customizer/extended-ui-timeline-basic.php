@@ -17,7 +17,7 @@ $sms = get_sms();
                                     <h6 class="mb-0">12 Invoices have been paid</h6>
                                     <small class="text-body-secondary">12 min ago</small>
                                 </div>
-                                <p class="mb-2">Invoices have been paid to the company</p>
+                                <p class="mb-2"><?= $value['text']; ?></p>
                                 <div class="d-flex align-items-center mb-2">
                                     <div class="badge bg-lighter rounded d-flex align-items-center">
                                         <img src="../../assets//img/icons/misc/pdf.png" alt="img" width="15" class="me-2" />
@@ -27,7 +27,6 @@ $sms = get_sms();
                             </div>
                         </li>
                     <?php endforeach; ?>
-                    ?>
                 </ul>
             </div>
         </div>
