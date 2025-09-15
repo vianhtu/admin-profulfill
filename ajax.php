@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require __DIR__ . '/config.php';
 require __DIR__ . '/functions.php';
+require __DIR__ . '/functions-telnyx.php';
 header('Content-Type: application/json; charset=utf-8');
 // Nếu chưa login hoặc cookie nhớ đăng nhập không hợp lệ → chặn
 if (!is_logged_in() && !attempt_cookie_login()) {
@@ -13,7 +14,7 @@ if (!is_logged_in() && !attempt_cookie_login()) {
         error_reporting(E_ALL);
         switch ($_GET['action']) {
             case 'hook-telnyx':
-                echo json_encode([]);
+                echo json_encode(hookTelnyx());
                 break;
         }
     } else {
