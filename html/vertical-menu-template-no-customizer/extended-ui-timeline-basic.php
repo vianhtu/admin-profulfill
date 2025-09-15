@@ -3,7 +3,7 @@
     <!-- Timeline Basic-->
     <div class="col-xl-12">
         <div class="card h-100">
-            <h5 class="card-header">Basic</h5>
+            <h5 class="card-header">SMS</h5>
             <div class="card-body">
                 <ul class="timeline mb-0">
                     <li class="timeline-item timeline-item-transparent">
