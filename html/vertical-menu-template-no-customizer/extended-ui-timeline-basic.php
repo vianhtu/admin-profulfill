@@ -1,4 +1,5 @@
 <?php
+require __DIR__ . '/../../functions-telnyx.php';
 $sms = get_sms();
 ?>
 <div class="row gy-6">
