@@ -14,11 +14,11 @@ $sms = get_sms();
                             <span class="timeline-point timeline-point-primary"></span>
                             <div class="timeline-event">
                                 <div class="timeline-header mb-3">
-                                    <h6 class="mb-0"><?= $value['number']; ?></h6>
+                                    <h6 class="mb-0"><?= $value['name']; ?> <?= $value['number']; ?></h6>
                                     <small class="text-body-secondary"><?= timeAgo($value['date']) ?></small>
                                 </div>
                                 <p class="mb-2"><?= $value['text']; ?></p>
-                                <p class="mb-2">from: <?= $value['name']; ?> <?= $value['from_number']; ?></p>
+                                <p class="mb-2">from: <?= $value['from_number']; ?></p>
                             </div>
                         </li>
                     <?php endforeach; ?>
