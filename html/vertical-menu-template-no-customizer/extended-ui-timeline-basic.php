@@ -1,7 +1,7 @@
 <?php ?>
 <div class="row gy-6">
     <!-- Timeline Basic-->
-    <div class="col-xl-6">
+    <div class="col-xl-12">
         <div class="card h-100">
             <h5 class="card-header">Basic</h5>
             <div class="card-body">
