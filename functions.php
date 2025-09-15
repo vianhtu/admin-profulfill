@@ -1281,6 +1281,9 @@ function writeRowXlsx($sheet, $headers, $values, $rowNum): void
 
         if (count($matchedKeys) === 1) {
             // Trường hợp 2: text chỉ xuất hiện 1 lần
+            if(is_array($value)){
+                $value = $value[0];
+            }
             $sheet->setCellValue($matchedKeys[0] . $rowNum, $value);
         } elseif (count($matchedKeys) > 1) {
             // Trường hợp 3: text xuất hiện nhiều lần
