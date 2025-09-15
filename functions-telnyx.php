@@ -83,5 +83,19 @@ function hookTelnyx(): array
 function get_sms(): array
 {
     $conn = db();
-    return [];
+    $sql = "SELECT DISTINCT sms.text, sms.from_number, sms.date, p.number, pc.name
+            FROM sms
+            INNER JOIN phones p ON p.ID = sms.phone_id
+            INNER JOIN phone_carrier pc ON pc.ID = p.carrier_id
+            LIMIT 20";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $smsList = [];
+    while ($row = $result->fetch_assoc()) {
+        $smsList[] = $row;
+    }
+
+    return $smsList;
 }
