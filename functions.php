@@ -1072,9 +1072,10 @@ function downloadXlsx(): array
     $downloadID = isset($_POST['id']) ? (int)$_POST['id'] : 0;
 
     // Kiểm tra trạng thái trước
-    $checkSql = "SELECT exports.file_default, exports.file_name AS t_file, exports.file_dir, download.file_name AS d_file
+    $checkSql = "SELECT accounts.sku, exports.file_default, exports.file_name AS t_file, exports.file_dir, download.file_name AS d_file
                  FROM download
                  INNER JOIN exports ON exports.ID = download.exports_id
+                 INNER JOIN accounts ON accounts.ID = exports.accounts_id
                  WHERE download.id = ?
                  AND download.status = 'ready'"; // ready
     $checkStmt = $conn->prepare($checkSql);
@@ -1185,9 +1186,10 @@ function downloadXlsx(): array
 
         // ✅ Nếu là sản phẩm Parent (mỗi 20 sản phẩm)
         $isParent = ($counter === 1) || ($counter % 21 === 0);
+        $SKU = $statusRow['sku'];
         if ($isParent) {
             $colorIndex = 1;
-            $parentSku = $row['sku'];
+            $SKU .= '-'. $row['sku'];
             $default_values[] = [
                 'text'  => 'Parentage Level',
                 'value' => 'Parent'
@@ -1198,7 +1200,7 @@ function downloadXlsx(): array
             ];
             $default_values[] = [
                 'text'  => 'SKU',
-                'value' => $parentSku
+                'value' => $SKU
             ];
         } else {
             $default_values[] = [
@@ -1207,7 +1209,7 @@ function downloadXlsx(): array
             ];
             $default_values[] = [
                 'text'  => 'Parent SKU',
-                'value' => $parentSku
+                'value' => $SKU
             ];
             $default_values[] = [
                 'text'  => 'Color',
@@ -1215,7 +1217,7 @@ function downloadXlsx(): array
             ];
             $default_values[] = [
                 'text'  => 'SKU',
-                'value' => $parentSku .'-' .$row['sku']
+                'value' => $SKU .'-' .$row['sku']
             ];
         }
 
@@ -1228,7 +1230,7 @@ function downloadXlsx(): array
             $parentCopy = $default_values;
             $parentCopy[] = [
                 'text'  => 'Parent SKU',
-                'value' => $parentSku
+                'value' => $SKU
             ];
             // Ví dụ: sửa
             foreach ($parentCopy as &$item) {
@@ -1240,7 +1242,7 @@ function downloadXlsx(): array
                         $item['value'] = 'Color 1';
                         break;
                     case 'SKU':
-                        $item['value'] = $parentSku . '-' . $parentSku;
+                        $item['value'] = $SKU . '-' . $row['sku'];
                         break;
                 }
             }
