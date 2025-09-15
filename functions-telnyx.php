@@ -87,6 +87,7 @@ function get_sms(): array
             FROM sms
             INNER JOIN phones p ON p.ID = sms.phone_id
             INNER JOIN phone_carrier pc ON pc.ID = p.carrier_id
+            ORDER BY sms.date DESC
             LIMIT 20";
     $stmt = $conn->prepare($sql);
     $stmt->execute();
