@@ -14,7 +14,7 @@ $sms = get_sms();
                             <span class="timeline-point timeline-point-primary"></span>
                             <div class="timeline-event">
                                 <div class="timeline-header mb-3">
-                                    <h6 class="mb-0">12 Invoices have been paid</h6>
+                                    <h6 class="mb-0"><?= $value['number']; ?></h6>
                                     <small class="text-body-secondary"><?= timeAgo($value['date']) ?></small>
                                 </div>
                                 <p class="mb-2"><?= $value['text']; ?></p>
