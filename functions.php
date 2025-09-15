@@ -27,6 +27,13 @@ function renderMenu($currentMenu) {
 				'exports_add' => 'Add & Update',
 			]
 		],
+        'Phones' => [
+            'icon' => 'tabler-device-mobile-message',
+            'sub' => [
+                'phones_numbers' => 'Numbers',
+                'phones_sms' => 'SMS',
+            ]
+        ],
 		'Users' => ['icon' => 'tabler-users', 'link' => 'users']
 	];
 
