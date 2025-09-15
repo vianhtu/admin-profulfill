@@ -1169,6 +1169,9 @@ function downloadXlsx(): array
         // meta_data
         $meta_data = json_decode($row['meta_data'], true);
         foreach ($meta_data as $key => $meta){
+            if($key === 'Main Image URL'){
+                continue;
+            }
             if(!is_array($meta)){
                 $meta = explode(',' , $meta);
             }
