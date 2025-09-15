@@ -5,6 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dd67acd4-b783-43b8-b6ae-ced4c44e1a52" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/functions.php" beforeDir="false" afterPath="$PROJECT_DIR$/functions.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../profulfill-products-data/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../profulfill-products-data/.idea/modules.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../profulfill-products-data/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../profulfill-products-data/.idea/php.xml" afterDir="false" />
@@ -125,7 +126,7 @@
       <workItem from="1757467323734" duration="15781000" />
       <workItem from="1757553518455" duration="27509000" />
       <workItem from="1757639994750" duration="4014000" />
-      <workItem from="1757901371231" duration="7188000" />
+      <workItem from="1757901371231" duration="7858000" />
     </task>
     <servers />
   </component>

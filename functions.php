@@ -1169,6 +1169,10 @@ function downloadXlsx(): array
             'value' => $row['product_description']
         ];
         $meta_data = json_decode($row['meta_data'], true);
+        $default_values[] = [
+            'text'  => 'Color Family',
+            'value' => $meta_data['Color']
+        ];
         // Xóa 2 key
         unset($meta_data['Main Image URL'], $meta_data['Color']);
         foreach ($meta_data as $key => $meta){
