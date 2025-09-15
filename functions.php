@@ -1215,7 +1215,7 @@ function downloadXlsx(): array
             ];
             $default_values[] = [
                 'text'  => 'SKU',
-                'value' => $row['sku'] . '-' . $parentSku
+                'value' => $parentSku .'-' .$row['sku']
             ];
         }
 
