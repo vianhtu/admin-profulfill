@@ -1175,6 +1175,11 @@ function downloadXlsx(): array
             if(!is_array($meta)){
                 $meta = explode(',' , $meta);
             }
+            switch ($key){
+                case 'Generic Keyword':
+                    $meta = splitKeywordsIntoColumns($meta, 5);
+                    break;
+            }
             $default_values[] = [
                 'text'  => $key,
                 'value' => $meta
@@ -1188,6 +1193,10 @@ function downloadXlsx(): array
             $default_values[] = [
                 'text'  => 'Parentage Level', // tên cột trong $headers
                 'value' => 'Parent'
+            ];
+            $default_values[] = [
+                'text'  => 'Style',
+                'value' => ''
             ];
         } else {
             $default_values[] = [
@@ -1490,4 +1499,18 @@ function saveExportQuery(): array
         $conn->rollback();
         return ['status' => 'error', 'message' => $e->getMessage()];
     }
+}
+
+function splitKeywordsIntoColumns(array $keywords, int $numColumns = 5): array {
+    // Khởi tạo mảng rỗng cho các cột
+    $columns = array_fill(0, $numColumns, []);
+
+    // Phân bổ từ khóa vào từng cột theo vòng lặp
+    foreach ($keywords as $index => $keyword) {
+        $columnIndex = $index % $numColumns;
+        $columns[$columnIndex][] = trim($keyword);
+    }
+
+    // Nối các từ khóa trong mỗi cột bằng dấu ;
+    return array_map(fn($col) => implode('; ', $col), $columns);
 }
