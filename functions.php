@@ -1174,7 +1174,7 @@ function downloadXlsx(): array
             'value' => $meta_data['Color']
         ];
         // Xóa 2 key
-        unset($meta_data['Main Image URL'], $meta_data['Color']);
+        unset($meta_data['Main Image URL'], $meta_data['Color'], $meta_data['Wall Art Form']);
         foreach ($meta_data as $key => $meta){
             if(!is_array($meta)){
                 $meta = explode(',' , $meta);
