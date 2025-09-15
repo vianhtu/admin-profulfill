@@ -1168,17 +1168,14 @@ function downloadXlsx(): array
             'value' => $row['product_description']
         ];
         $meta_data = json_decode($row['meta_data'], true);
+        // Xóa 2 key
+        unset($meta_data['Main Image URL'], $meta_data['Color']);
         foreach ($meta_data as $key => $meta){
-            if($key === 'Main Image URL' || $key === 'Color'){
-                continue;
-            }
             if(!is_array($meta)){
                 $meta = explode(',' , $meta);
             }
-            switch ($key){
-                case 'Generic Keyword':
-                    $meta = splitKeywordsIntoColumns($meta, 5);
-                    break;
+            if($key === 'Generic Keyword'){
+                $meta = splitKeywordsIntoColumns($meta, 5);
             }
             $default_values[] = [
                 'text'  => $key,
