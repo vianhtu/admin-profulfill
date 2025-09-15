@@ -251,6 +251,9 @@ if (empty($_SESSION['csrf_token'])) {
                   case 'users':
                       include 'app-user-list.php';
                       break;
+                  case 'phones_sms':
+                      include 'extended-ui-timeline-basic.php';
+                      break;
               }
               ?>
             </div>
