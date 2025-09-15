@@ -15,15 +15,9 @@ $sms = get_sms();
                             <div class="timeline-event">
                                 <div class="timeline-header mb-3">
                                     <h6 class="mb-0">12 Invoices have been paid</h6>
-                                    <small class="text-body-secondary">12 min ago</small>
+                                    <small class="text-body-secondary"><?= timeAgo($value['date']) ?></small>
                                 </div>
                                 <p class="mb-2"><?= $value['text']; ?></p>
-                                <div class="d-flex align-items-center mb-2">
-                                    <div class="badge bg-lighter rounded d-flex align-items-center">
-                                        <img src="../../assets//img/icons/misc/pdf.png" alt="img" width="15" class="me-2" />
-                                        <span class="h6 mb-0 text-body">invoices.pdf</span>
-                                    </div>
-                                </div>
                             </div>
                         </li>
                     <?php endforeach; ?>

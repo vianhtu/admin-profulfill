@@ -1543,3 +1543,27 @@ function splitKeywordsIntoColumns(array $keywords, int $numColumns = 5): array {
     // Nối các từ khóa trong mỗi cột bằng dấu ;
     return array_map(fn($col) => implode('; ', $col), $columns);
 }
+
+function timeAgo(string $datetime): string {
+    $time = strtotime($datetime);
+    $diff = time() - $time;
+
+    if ($diff < 60) return 'Just now';
+
+    $units = [
+        31536000 => 'year',
+        2592000  => 'month',
+        604800   => 'week',
+        86400    => 'day',
+        3600     => 'hour',
+        60       => 'minute',
+        1        => 'second'
+    ];
+
+    foreach ($units as $seconds => $label) {
+        $value = floor($diff / $seconds);
+        if ($value >= 1) {
+            return $value . ' ' . $label . ($value > 1 ? 's' : '') . ' ago';
+        }
+    }
+}
