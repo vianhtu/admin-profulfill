@@ -16,15 +16,18 @@ function hookTelnyx(): array
     $toNumber    = $data['data']['payload']['to'][0]['phone_number'] ?? null;
     $carrierName = $data['data']['payload']['to'][0]['carrier'] ?? null;
     $text        = $data['data']['payload']['text'] ?? null;
-    $date        = $data['data']['payload']['received_at'] ?? null;
+    $dateRaw     = $data['data']['payload']['received_at'] ?? null;
 
     if (!$fromNumber || !$toNumber || !$text) {
         return ['status' => 'error', 'message' => 'Missing required fields'];
     }
 
-    // Nếu không có date thì dùng thời gian hiện tại
-    if (!$date) {
-        $date = date('Y-m-d H:i:s');
+    if ($dateRaw) {
+        // Chuyển về timestamp
+        $dt = new DateTime($dateRaw);
+        $date = $dt->format('Y-m-d H:i:s'); // MySQL datetime format
+    } else {
+        $date = date('Y-m-d H:i:s'); // fallback nếu không có
     }
 
     // --- Lấy carrier_id ---
