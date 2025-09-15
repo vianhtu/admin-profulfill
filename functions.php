@@ -1143,6 +1143,7 @@ function downloadXlsx(): array
     $startRow = 8; // bắt đầu row.
     $counter  = 0; // đếm số sản phẩm đã xử lý
     $parentSku = '';
+    $colorIndex = 2;
     while ($row = $result->fetch_assoc()) {
         $counter++; // tăng đếm mỗi sản phẩm
         // chạy các default headers.
@@ -1169,7 +1170,7 @@ function downloadXlsx(): array
         // meta_data
         $meta_data = json_decode($row['meta_data'], true);
         foreach ($meta_data as $key => $meta){
-            if($key === 'Main Image URL'){
+            if($key === 'Main Image URL' || $key === 'Color'){
                 continue;
             }
             if(!is_array($meta)){
@@ -1189,13 +1190,14 @@ function downloadXlsx(): array
         // ✅ Nếu là sản phẩm Parent (mỗi 20 sản phẩm)
         $isParent = ($counter === 1) || ($counter % 21 === 0);
         if ($isParent) {
+            $colorIndex = 2;
             $parentSku = $row['sku'];
             $default_values[] = [
                 'text'  => 'Parentage Level', // tên cột trong $headers
                 'value' => 'Parent'
             ];
             $default_values[] = [
-                'text'  => 'Style',
+                'text'  => 'Color', // tên cột trong $headers
                 'value' => ''
             ];
         } else {
@@ -1206,6 +1208,10 @@ function downloadXlsx(): array
             $default_values[] = [
                 'text'  => 'Parent SKU',
                 'value' => $parentSku
+            ];
+            $default_values[] = [
+                'text'  => 'Color', // tên cột trong $headers
+                'value' => 'Color' . $colorIndex
             ];
         }
 
@@ -1226,6 +1232,9 @@ function downloadXlsx(): array
                     case 'Parentage Level':
                         $item['value'] = 'Child';
                         break;
+                    case 'Color':
+                        $item['value'] = 'Color 1';
+                        break;
                 }
             }
             writeRowXlsx($sheet, $headers, $parentCopy, $startRow);
@@ -1233,6 +1242,7 @@ function downloadXlsx(): array
 
         // chạy thêm dữ liệu từ AI
         $startRow++;
+        $colorIndex++;
     }
 
     // Thư mục lưu file export
