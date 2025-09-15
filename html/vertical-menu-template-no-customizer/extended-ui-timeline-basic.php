@@ -1,4 +1,6 @@
-<?php ?>
+<?php
+
+?>
 <div class="row gy-6">
     <!-- Timeline Basic-->
     <div class="col-xl-12">

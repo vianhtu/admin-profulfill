@@ -79,3 +79,8 @@ function hookTelnyx(): array
         return ['status' => 'error', 'message' => 'Database insert failed'];
     }
 }
+
+function get_sms(): array
+{
+    $conn = db();
+}
