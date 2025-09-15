@@ -5,8 +5,21 @@ require __DIR__ . '/functions.php';
 header('Content-Type: application/json; charset=utf-8');
 // Nếu chưa login hoặc cookie nhớ đăng nhập không hợp lệ → chặn
 if (!is_logged_in() && !attempt_cookie_login()) {
-	http_response_code(401); // Unauthorized
-	echo json_encode(['error' => 'Bạn chưa đăng nhập']);
+    if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['key']) {
+        // TẮT hiển thị lỗi ra HTML (sai sót debug)
+        ini_set('display_errors', '0');
+        ini_set('log_errors', '1');
+        ini_set('error_log', __DIR__ . '/php_errors.log');
+        error_reporting(E_ALL);
+        switch ($_GET['action']) {
+            case 'hook-telnyx':
+                echo json_encode([]);
+                break;
+        }
+    } else {
+        http_response_code(401); // Unauthorized
+        echo json_encode(['error' => 'Bạn chưa đăng nhập']);
+    }
 	exit;
 }
 
