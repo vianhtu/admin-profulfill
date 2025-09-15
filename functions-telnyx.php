@@ -83,4 +83,5 @@ function hookTelnyx(): array
 function get_sms(): array
 {
     $conn = db();
+    return [];
 }
