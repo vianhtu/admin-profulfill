@@ -1186,10 +1186,9 @@ function downloadXlsx(): array
 
         // ✅ Nếu là sản phẩm Parent (mỗi 20 sản phẩm)
         $isParent = ($counter === 1) || ($counter % 21 === 0);
-        $SKU = $statusRow['sku'];
         if ($isParent) {
             $colorIndex = 1;
-            $SKU .= '-'. $row['sku'];
+            $SKU = $statusRow['sku'] . '-'. $row['sku'];
             $default_values[] = [
                 'text'  => 'Parentage Level',
                 'value' => 'Parent'
