@@ -18,6 +18,7 @@
                 <th>Numbers</th>
                 <th>Status</th>
                 <th>Carriers</th>
+                <th>Notices</th>
                 <th>Actions</th>
             </tr>
             </thead>
