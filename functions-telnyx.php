@@ -68,7 +68,7 @@ function hookTelnyx(): array
     $stmt->close();
 
     // --- Lưu vào bảng sms ---
-    $stmt = $conn->prepare("INSERT INTO sms (phone_id, from_number, text, date) VALUES (?, ?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO sms (phone_id, status, from_number, text, date) VALUES (?, 'pending', ?, ?, ?)");
     $stmt->bind_param("isss", $phoneId, $fromNumber, $text, $date);
 
     if ($stmt->execute()) {
@@ -114,13 +114,13 @@ function getPhonesTable(): array
     $searchValue      = trim( $_POST['search']['value'] ?? '' );
 
     // Danh sách cột cho phép sort
-    $allowedCols = ['ID', 'status', 'date', 'download_date'];
+    $allowedCols = ['ID', 'status', 'date'];
     if ( ! in_array( $orderColumn, $allowedCols ) ) {
         $orderColumn = 'ID';
     }
 
     // Tổng số bản ghi
-    $totalRecords = $conn->query( "SELECT COUNT(*) AS cnt FROM download" )->fetch_assoc()['cnt'];
+    $totalRecords = $conn->query( "SELECT COUNT(*) AS cnt FROM sms" )->fetch_assoc()['cnt'];
     $whereClauses = [];
     // Lọc theo search
     if ( $searchValue !== '' ) {
@@ -160,15 +160,15 @@ function getPhonesTable(): array
     }
 
     $where         = $whereClauses ? ' WHERE ' . implode( ' AND ', $whereClauses ) : '';
-    $join          = 'INNER JOIN exports ON exports.ID = download.exports_id INNER JOIN accounts ON accounts.ID = exports.accounts_id';
-    $totalFiltered = $conn->query( "SELECT COUNT(DISTINCT download.ID) AS cnt FROM download $join $where" )->fetch_assoc()['cnt'];
+    $join          = 'INNER JOIN phones ON phones.ID = sms.phone_id INNER JOIN phone_carrier ON phone_carrier.ID = phones.carrier_id';
+    $totalFiltered = $conn->query( "SELECT COUNT(DISTINCT sms.ID) AS cnt FROM sms $join $where" )->fetch_assoc()['cnt'];
 
     // Lấy dữ liệu
-    $sql = "SELECT DISTINCT download.ID, download.author_id, accounts.email, exports.site_id, exports.type_id, exports.file_name, exports.name, download.status, download.date, download.download_date, download.total_items
-        FROM download
+    $sql = "SELECT DISTINCT sms.ID, sms.text, sms.from_number, sms.date, phones.number, phone_carrier.name
+        FROM sms
         $join
         $where
-        ORDER BY download.$orderColumn $orderDir
+        ORDER BY sms.$orderColumn $orderDir
         LIMIT $start, $length";
     $rs  = $conn->query( $sql );
 
