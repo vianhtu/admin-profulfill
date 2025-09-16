@@ -23,7 +23,7 @@ $colors = [
                             <span class="timeline-point <?= $randomColor; ?>"></span>
                             <div class="timeline-event">
                                 <div class="timeline-header mb-3">
-                                    <h6 class="mb-0"><?= $value['name']; ?> <?= $value['number']; ?></h6>
+                                    <h6 class="mb-0"><i class="icon-base ti tabler-mail-opened icon-22px"></i><?= $value['name']; ?> <?= $value['number']; ?></h6>
                                     <small class="text-body-secondary"><?= timeAgo($value['date']) ?></small>
                                 </div>
                                 <p class="mb-2"><?= $value['text']; ?></p>
