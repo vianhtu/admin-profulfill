@@ -510,7 +510,7 @@ function getProductTableFilters(): array {
 	return $options;
 }
 
-function getOrdersbyHostIDs(): array
+function getMissingOrders(): array
 {
     // Kết nối DB
     $conn = db();
@@ -540,7 +540,10 @@ function getOrdersbyHostIDs(): array
         $existingHostIds[] = $row['host_id'];
     }
 
-    return $existingHostIds;
+    // Tìm đơn chưa có trong DB
+    $missing = array_values(array_diff($orderIds, $existingHostIds));
+
+    return ['missingOrders' => $missing];
 }
 
 function getStoresTableFilter(): array {

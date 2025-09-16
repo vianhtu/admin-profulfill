@@ -16,8 +16,8 @@ if (!is_logged_in() && !attempt_cookie_login()) {
             case 'hook-telnyx':
                 echo json_encode(hookTelnyx());
                 break;
-            case 'check-order-host-id':
-                echo json_encode(getOrdersbyHostIDs());
+            case 'get-missing-orders':
+                echo json_encode(getMissingOrders());
                 break;
         }
     } else {
