@@ -178,8 +178,6 @@ function getPhonesTable(): array
         $data[] = [
             "id"                => $row['ID'],
             "number"            => $row['number'],
-            "email"             => '',
-            "site_id"           => 1,
             "type_id"           => 1,
             "author_id"         => 1,
             "status"            => $row['status'],

@@ -16,8 +16,6 @@
                 <th></th>
                 <th></th>
                 <th>Numbers</th>
-                <th>Account</th>
-                <th>Sites</th>
                 <th>Status</th>
                 <th>Carriers</th>
                 <th>Download</th>
