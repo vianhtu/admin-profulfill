@@ -44,7 +44,7 @@ function updateProgressBars() {
 
     // Gọi AJAX lấy dữ liệu % tiến trình
     $.ajax({
-        url: '../../ajax.php?action=get-process-products', // endpoint của bạn
+        url: '../../ajax.php?action=get-phones', // endpoint của bạn
         method: 'POST',
         data: { ids: ids },
         dataType: 'json',
