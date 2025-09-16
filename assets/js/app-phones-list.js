@@ -69,6 +69,7 @@ function initTable(){
                 },
                 {
                     targets: 2,
+                    orderable: true,
                     responsivePriority: 3,
                     render: function (data, type, full, meta) {
                         var name = full['number'];
@@ -78,6 +79,7 @@ function initTable(){
                 {
                     // status
                     targets: 3,
+                    orderable: true,
                     render: function (data, type, full, meta) {
                         const status = full['status'];
                         return (
@@ -92,6 +94,7 @@ function initTable(){
                 {
                     // Carrier
                     targets: 4,
+                    orderable: true,
                     render: function (data, type, full, meta) {
                         const carrier = full['carrier'];
                         return '<span>' + carrier + '</span>';
