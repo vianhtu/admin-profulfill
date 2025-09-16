@@ -24,56 +24,6 @@ async function init() {
     }
 }
 
-// Hàm cập nhật progress bar
-function updateProgressBars() {
-    // Lấy tất cả các progress overlay đang hiển thị (status = running)
-    var ids = [];
-    $('#DataTables_Table_0').find('.progress-overlay').each(function () {
-        var $overlay = $(this);
-        if (!$overlay.hasClass('d-none')) {
-            // Tìm ID của row (giả sử lưu ở data-id của <tr>)
-            var rowId = $overlay.closest('.user-name').data('id');
-            if (rowId) {
-                ids.push(rowId);
-            }
-        }
-    });
-    if (ids.length === 0) {
-        return; // Không có row nào cần cập nhật
-    }
-
-    // Gọi AJAX lấy dữ liệu % tiến trình
-    $.ajax({
-        url: '../../ajax.php?action=get-phones', // endpoint của bạn
-        method: 'POST',
-        data: { ids: ids },
-        dataType: 'json',
-        success: function (response) {
-            // response có thể là mảng [{id:..., progress:..., status:...}, ...]
-            response.forEach(function (item) {
-                var $bar = $('#DataTables_Table_0').find('[data-id="' + item.id + '"] .progress-bar');
-                // Cập nhật width và aria-valuenow
-                $bar.css('width', item.progress + '%')
-                    .attr('aria-valuenow', item.progress);
-
-                $bar.closest('tr').find('.total-complete').text(item.pending + '/' + item.total);
-
-                // Nếu status không còn "running" thì ẩn progress overlay
-                if (item.status !== 'running') {
-                    let file_status = $bar.closest('tr').find('.file-status');
-                    file_status.text('ready');
-                    file_status.removeClass('bg-label-warning');
-                    file_status.addClass('bg-label-success');
-                    $bar.closest('.progress-overlay').addClass('d-none');
-                }
-            });
-        },
-        error: function (xhr, status, error) {
-            console.error('Lỗi khi lấy tiến trình:', error);
-        }
-    });
-}
-
 async function fetchTableFilter(){
     const res = await fetch('../../ajax.php?action=get-product-table-filter', {
         method: 'POST',
@@ -114,7 +64,6 @@ function initTable(){
                 }
             },
             drawCallback: function(settings) {
-                updateProgressBars();
                 $('#DataTables_Table_0 .user-name .avatar-wrapper').on('click', function () {
                     const $icon = $(this);
                     const $container = $(this).find('.position-relative');
@@ -133,11 +82,6 @@ function initTable(){
                         },
                         error: function (err) {
                             console.error('Lỗi:', err);
-                        },
-                        complete: function () {
-                            // Ẩn spinner sau khi hoàn tất
-                            $spinner.addClass('d-none');
-                            $tr.removeClass('tr-loading');
                         }
                     });
                 });
@@ -443,20 +387,12 @@ function initTable(){
                 };
 
                 // Type filter
-                createFilter(11, '.xlsx_types', 'xlsxTypes', 'Types', categoryObj);
 
                 // Sites filter
-                createFilter(4, '.xlsx_sites', 'xlsxSites', 'Sites', sitesObj);
 
                 // Authors filter
-                createFilter(10, '.xlsx_authors', 'xlsxAuthors', 'Authors', authorsObj);
 
                 // Accounts filter
-                getAjaxSelect2HTML('xlsx_accounts', 'xlsxAccounts', 'Accounts', 'filter-accounts', true);
-                // Add event listener for filtering
-                $('#xlsxAccounts').on('change', function (){
-                    dt_user.draw();
-                });
             }
         });
 
@@ -590,6 +526,4 @@ function initTable(){
 }
 document.addEventListener('DOMContentLoaded', function (e) {
     init();
-    // Chạy ngay khi load và lặp lại mỗi 30 giây
-    setInterval(updateProgressBars, 15000);
 });
