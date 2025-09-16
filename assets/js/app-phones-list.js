@@ -244,7 +244,7 @@ function initTable(){
                     orderable: false,
                     render: function (data, type, full, meta) {
                         let id = full['site_id'];
-                        return '<span class="text-heading">' + sitesObj[id].title + '</span>';
+                        return '<span class="text-heading"></span>';
                     }
                 },
                 {
@@ -252,13 +252,7 @@ function initTable(){
                     targets: 5,
                     render: function (data, type, full, meta) {
                         const status = full['status'];
-                        return (
-                            '<span class="file-status badge ' +
-                            statusObj[status].class +
-                            '" text-capitalized>' +
-                            statusObj[status].title +
-                            '</span>'
-                        );
+                        return '';
                     }
                 },
                 {
