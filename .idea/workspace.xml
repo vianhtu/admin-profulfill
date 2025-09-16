@@ -5,7 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dd67acd4-b783-43b8-b6ae-ced4c44e1a52" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/functions-telnyx.php" beforeDir="false" afterPath="$PROJECT_DIR$/functions-telnyx.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/js/app-phones-list.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/html/vertical-menu-template-no-customizer/app-phones-list.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/html/vertical-menu-template-no-customizer/index.php" beforeDir="false" afterPath="$PROJECT_DIR$/html/vertical-menu-template-no-customizer/index.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../profulfill-products-data/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../profulfill-products-data/.idea/modules.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../profulfill-products-data/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../profulfill-products-data/.idea/php.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../profulfill-products-data/.idea/profulfill-products-data.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../profulfill-products-data/.idea/profulfill-products-data.iml" afterDir="false" />
@@ -76,27 +79,27 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;SHELLCHECK.PATH&quot;: &quot;C:\\Users\\thien\\AppData\\Roaming\\JetBrains\\PhpStorm2025.2\\plugins\\Shell Script\\shellcheck.exe&quot;,
-    &quot;disable.download.node.interpreter.editor.notification&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/thien/OneDrive/Documents/GitHub/admin-profulfill/html/vertical-menu-template-no-customizer&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;yarn&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHELLCHECK.PATH": "C:\\Users\\thien\\AppData\\Roaming\\JetBrains\\PhpStorm2025.2\\plugins\\Shell Script\\shellcheck.exe",
+    "disable.download.node.interpreter.editor.notification": "true",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "C:/Users/thien/OneDrive/Documents/GitHub/admin-profulfill/assets/js",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "yarn",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="C:\Users\thien\OneDrive\Documents\GitHub\admin-profulfill\html\vertical-menu-template-no-customizer" />
       <recent name="C:\Users\thien\OneDrive\Documents\GitHub\admin-profulfill\assets\js" />
+      <recent name="C:\Users\thien\OneDrive\Documents\GitHub\admin-profulfill\html\vertical-menu-template-no-customizer" />
     </key>
   </component>
   <component name="SharedIndexes">
@@ -127,7 +130,8 @@
       <workItem from="1757639994750" duration="4014000" />
       <workItem from="1757901371231" duration="9330000" />
       <workItem from="1757926858450" duration="6936000" />
-      <workItem from="1757951353572" duration="2529000" />
+      <workItem from="1757951353572" duration="2834000" />
+      <workItem from="1757987996652" duration="156000" />
     </task>
     <servers />
   </component>

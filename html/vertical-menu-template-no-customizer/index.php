@@ -254,6 +254,9 @@ if (empty($_SESSION['csrf_token'])) {
                   case 'phones_sms':
                       include 'extended-ui-timeline-basic.php';
                       break;
+                  case 'phones_numbers':
+                      include 'app-phones-list.php';
+                      break;
               }
               ?>
             </div>
@@ -348,6 +351,9 @@ if (empty($_SESSION['csrf_token'])) {
             <?php break;
         case 'exports_download': ?>
             <script src="../../assets/js/app-download-list.js"></script>
+            <?php break;
+        case 'phones_numbers': ?>
+            <script src="../../assets/js/app-phones-list.js"></script>
             <?php break;
     }
     ?>
