@@ -92,8 +92,8 @@ function initTable(){
     headingColor = config.colors.headingColor;
 
     const statusObj = {
-        ready: { title: 'active', class: 'bg-label-success' },
-        error: { title: 'suspend', class: 'bg-label-danger' }
+        active: { title: 'active', class: 'bg-label-success' },
+        suspend: { title: 'suspend', class: 'bg-label-danger' }
     }
 
     // Variable declaration for table
