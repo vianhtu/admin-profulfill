@@ -4,43 +4,12 @@
 
 'use strict';
 
-let categoryObj = {};
-let authorsObj = {};
-let sitesObj = {};
-
 async function init() {
-    try {
-        // 1️⃣ Gọi API trước
-        let options = await fetchTableFilter();
-        categoryObj = options['types'];
-        authorsObj = options['authors'];
-        sitesObj = options['sites'];
-        console.log(options);
-
-        // 2️⃣ Sau khi có dữ liệu → tạo bảng
-        initTable();
-    } catch (err) {
-        alert('Không thể tải danh mục');
-    }
-}
-
-async function fetchTableFilter(){
-    const res = await fetch('../../ajax.php?action=get-product-table-filter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-    });
-    if (!res.ok) throw new Error('Lỗi lấy danh mục');
-    return await res.json();
+    initTable();
 }
 
 // Datatable (js)
 function initTable(){
-    let borderColor, bodyBg, headingColor;
-
-    borderColor = config.colors.borderColor;
-    bodyBg = config.colors.bodyBg;
-    headingColor = config.colors.headingColor;
-
     const statusObj = {
         active: { title: 'active', class: 'bg-label-success' },
         suspend: { title: 'suspend', class: 'bg-label-danger' }
@@ -56,35 +25,10 @@ function initTable(){
             ajax: {
                 url: '../../ajax.php?action=get-phones',
                 type: 'POST',
-                data: function (d) {
-                    d.accounts = $('#xlsxAccounts').val();
-                },
+                data: function (d) {},
                 dataSrc: function (json) {
                     return json.data;
                 }
-            },
-            drawCallback: function(settings) {
-                $('#DataTables_Table_0 .user-name .avatar-wrapper').on('click', function () {
-                    const $icon = $(this);
-                    const $container = $(this).find('.position-relative');
-                    const $spinner = $container.find('.spinner-border');
-                    const $tr = $icon.closest('tr');
-                    // Hiện spinner
-                    $spinner.removeClass('d-none');
-                    $tr.addClass('tr-loading');
-                    // Gọi AJAX
-                    $.ajax({
-                        url: '../../ajax.php?action=download-xlsx',
-                        method: 'POST',
-                        data: { id: $tr.find('.user-name').data('id') },
-                        success: function (response) {
-                            console.log('Thành công:', response);
-                        },
-                        error: function (err) {
-                            console.error('Lỗi:', err);
-                        }
-                    });
-                });
             },
             columns: [
                 // columns according to JSON
@@ -180,18 +124,15 @@ function initTable(){
                     orderable: false,
                     render: (data, type, full, meta) => {
                         return `
-              <div class="d-flex align-items-center">
-                <a href="index.php?menu=exports_add&id=${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon">
-                  <i class="icon-base ti tabler-edit icon-22px"></i>
-                </a>
-                <a href="javascript:;" data-id="${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon duplicate-record">
-                  <i class="icon-base ti tabler-copy-check icon-22px"></i>
-                </a>
-                <a href="javascript:;" data-id="${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon delete-record">
-                  <i class="icon-base ti tabler-trash icon-22px"></i>
-                </a>
-              </div>
-            `;
+                          <div class="d-flex align-items-center">
+                            <a href="index.php?menu=exports_add&id=${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon">
+                              <i class="icon-base ti tabler-edit icon-22px"></i>
+                            </a>
+                            <a href="javascript:;" data-id="${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon delete-record">
+                              <i class="icon-base ti tabler-trash icon-22px"></i>
+                            </a>
+                          </div>
+                        `;
                     }
                 }
             ],
@@ -216,7 +157,7 @@ function initTable(){
                     features: [
                         {
                             search: {
-                                placeholder: 'Search File',
+                                placeholder: 'Search Number',
                                 text: '_INPUT_'
                             }
                         },
@@ -230,7 +171,7 @@ function initTable(){
                                     ]
                                 },
                                 {
-                                    text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-plus icon-xs"></i> <span class="d-none d-sm-inline-block">Add New Record</span></span>',
+                                    text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-plus icon-xs"></i> <span class="d-none d-sm-inline-block">Get New Phone</span></span>',
                                     className: 'add-new btn btn-primary',
                                     action: function () {
                                         window.location.href = 'https://portal.telnyx.com/#/numbers/buy-numbers';
@@ -249,7 +190,7 @@ function initTable(){
             language: {
                 sLengthMenu: '_MENU_',
                 search: '',
-                searchPlaceholder: 'Search file',
+                searchPlaceholder: 'Search Number',
                 paginate: {
                     next: '<i class="icon-base ti tabler-chevron-right scaleX-n1-rtl icon-18px"></i>',
                     previous: '<i class="icon-base ti tabler-chevron-left scaleX-n1-rtl icon-18px"></i>',
@@ -263,7 +204,7 @@ function initTable(){
                     display: DataTable.Responsive.display.modal({
                         header: function (row) {
                             const data = row.data();
-                            return 'Details of ' + data['full_name'];
+                            return 'Details of ' + data['number'];
                         }
                     }),
                     type: 'column',
@@ -295,130 +236,7 @@ function initTable(){
                 }
             },
             initComplete: function () {
-                const api = this.api();
 
-                // Helper function to create a select dropdown and append options
-                const createFilter = (columnIndex, containerClass, selectId, label, options) => {
-                    const column = api.column(columnIndex);
-                    const select = document.createElement('select');
-                    select.id = selectId;
-                    select.className = 'form-select text-capitalize';
-                    select.innerHTML = `<option value="">All</option>`;
-                    $(containerClass).html('<label class="form-label">'+label+'</label>');
-                    document.querySelector(containerClass).appendChild(select);
-
-                    // Add event listener for filtering
-                    select.addEventListener('change', () => {
-                        const val = select.value ? `^${select.value}$` : '';
-                        column.search(val, true, false).draw();
-                    });
-
-                    // Populate options based on unique column data
-                    Object.entries(options).forEach(([key, val]) => {
-                        const option = document.createElement('option');
-                        option.value = key;
-                        option.textContent = val.title;
-                        select.appendChild(option);
-                    });
-                };
-
-                // Type filter
-
-                // Sites filter
-
-                // Authors filter
-
-                // Accounts filter
-            }
-        });
-
-        function handleRecordAction(event) {
-            event?.preventDefault();
-
-            // Xác định loại hành động: delete hoặc duplicate
-            const deleteBtn = event.target.closest('.delete-record');
-            const duplicateBtn = event.target.closest('.duplicate-record');
-
-            if (!deleteBtn && !duplicateBtn) return;
-
-            const action = deleteBtn ? 'delete' : 'duplicate';
-            const recordId = (deleteBtn || duplicateBtn)?.getAttribute('data-id');
-            if (!recordId) return;
-
-            const confirmMsg = action === 'delete'
-                ? 'Bạn có chắc muốn xóa bản ghi này?'
-                : 'Bạn có chắc muốn nhân bản bản ghi này?';
-            if (!confirm(confirmMsg)) return;
-
-            // Xác định dòng trong DataTable
-            let row = document.querySelector('.dtr-expanded');
-            if (event) {
-                row = event.target.closest('tr');
-            }
-
-            // Gửi request Ajax
-            fetch(`../../ajax.php?action=${action}-xlsx`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `id=${encodeURIComponent(recordId)}&csrf_token=${encodeURIComponent(window.csrfToken)}`
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        if (action === 'delete') {
-                            // Xóa trên DataTable
-                            if (row) {
-                                dt_user.row(row).remove().draw(false);
-                            }
-                        } else if (action === 'duplicate' && data.newRecord) {
-                            // Thêm bản ghi mới
-                            dt_user.ajax.reload(function() {
-                                dt_user.order([[2, 'desc']]).draw();
-                            }, false);
-                        }
-                    } else {
-                        alert(data.error || `Không thể ${action} dữ liệu`);
-                    }
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert('Có lỗi kết nối tới server');
-                });
-        }
-
-        function bindRecordEvents() {
-            const userListTable = document.querySelector('.datatables-users');
-            const modal = document.querySelector('.dtr-bs-modal');
-
-            if (userListTable && userListTable.classList.contains('collapsed')) {
-                if (modal) {
-                    modal.addEventListener('click', function (event) {
-                        if (event.target.closest('.delete-record') || event.target.closest('.duplicate-record')) {
-                            handleRecordAction(event);
-                            const closeButton = modal.querySelector('.btn-close');
-                            if (closeButton) closeButton.click();
-                        }
-                    });
-                }
-            } else {
-                const tableBody = userListTable?.querySelector('tbody');
-                if (tableBody) {
-                    tableBody.addEventListener('click', function (event) {
-                        if (event.target.closest('.delete-record') || event.target.closest('.duplicate-record')) {
-                            handleRecordAction(event);
-                        }
-                    });
-                }
-            }
-        }
-
-        // Initial bind
-        bindRecordEvents();
-
-        // Re-bind events when modal is shown or hidden
-        document.addEventListener('show.bs.modal', function (event) {
-            if (event.target.classList.contains('dtr-bs-modal')) {
-                bindDeleteEvent();
             }
         });
     }
