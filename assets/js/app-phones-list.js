@@ -157,7 +157,11 @@ function initTable(){
                     targets: 5,
                     render: function (data, type, full, meta) {
                         const notice = full['notice'];
-                        return '<i class="icon-base ti tabler-mail icon-22px"></i>';
+                        if(!notice){
+                            return '<i class="icon-base ti tabler-mail-opened icon-22px"></i>';
+                        } else {
+                            return '<i class="icon-base ti tabler-mail icon-22px"></i>';
+                        }
                     }
                 },
                 {
