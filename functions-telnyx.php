@@ -83,16 +83,25 @@ function hookTelnyx(): array
 function getSMS(): array
 {
     $conn = db();
-    $id = (int)$_GET['id'] ?? null;
-    $where = $id ? "WHERE sms.phone_id = {$id}" : '';
-    $sql = "SELECT DISTINCT sms.text, sms.from_number, sms.date, p.number, pc.name
+    $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
+
+    $sql = "SELECT sms.text, sms.from_number, sms.date, p.number, pc.name
             FROM sms
             INNER JOIN phones p ON p.ID = sms.phone_id
-            INNER JOIN phone_carrier pc ON pc.ID = p.carrier_id
-            ORDER BY sms.date DESC
-            $where
-            LIMIT 20";
+            INNER JOIN phone_carrier pc ON pc.ID = p.carrier_id";
+
+    if ($id) {
+        $sql .= " WHERE sms.phone_id = ?";
+    }
+
+    $sql .= " ORDER BY sms.date DESC LIMIT 20";
+
     $stmt = $conn->prepare($sql);
+
+    if ($id) {
+        $stmt->bind_param("i", $id);
+    }
+
     $stmt->execute();
     $result = $stmt->get_result();
 
