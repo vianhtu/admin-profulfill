@@ -179,7 +179,8 @@ function getPhonesTable(): array
             "id"                => $row['ID'],
             "number"            => $row['number'],
             "status"            => $row['status'],
-            "carrier"           => $row['name']
+            "carrier"           => $row['name'],
+            "notice"           => '',
         ];
     }
 

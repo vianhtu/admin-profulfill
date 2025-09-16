@@ -93,6 +93,7 @@ function initTable(){
                 { data: 'number' },
                 { data: 'status' },
                 { data: 'carrier'},
+                { data: 'notice'},
                 { data: 'action' },
             ],
             columnDefs: [
@@ -152,7 +153,15 @@ function initTable(){
                     }
                 },
                 {
+                    // notice
                     targets: 5,
+                    render: function (data, type, full, meta) {
+                        const notice = full['notice'];
+                        return '<span>' + notice + '</span>';
+                    }
+                },
+                {
+                    targets: 6,
                     title: 'Actions',
                     searchable: false,
                     orderable: false,
