@@ -91,8 +91,6 @@ function initTable(){
                 { data: 'id' },
                 { data: 'id', orderable: false, render: DataTable.render.select() },
                 { data: 'number' },
-                { data: 'email' },
-                { data: 'site_id' },
                 { data: 'status' },
                 { data: 'carrier'},
                 { data: 'download_date' },
@@ -136,26 +134,8 @@ function initTable(){
                     }
                 },
                 {
-                    // Email
-                    targets: 3,
-                    orderable: false,
-                    render: function (data, type, full, meta) {
-                        let email = full['email'];
-                        return '<span>' + email + '</span>';
-                    }
-                },
-                {
-                    // Site
-                    targets: 4,
-                    orderable: false,
-                    render: function (data, type, full, meta) {
-                        let id = full['site_id'];
-                        return '<span class="text-heading"></span>';
-                    }
-                },
-                {
                     // status
-                    targets: 5,
+                    targets: 3,
                     render: function (data, type, full, meta) {
                         const status = full['status'];
                         return (
@@ -169,7 +149,7 @@ function initTable(){
                 },
                 {
                     // Carrier
-                    targets: 6,
+                    targets: 4,
                     render: function (data, type, full, meta) {
                         const carrier = full['carrier'];
                         return '<span>' + carrier + '</span>';
@@ -177,7 +157,7 @@ function initTable(){
                 },
                 {
                     // Download Date
-                    targets: 7,
+                    targets: 5,
                     render: function (data, type, full, meta) {
                         const download_date = full['download_date'];
                         return '<span>' + download_date + '</span>';
@@ -185,14 +165,14 @@ function initTable(){
                 },
                 {
                     // Total Items
-                    targets: 8,
+                    targets: 6,
                     render: function (data, type, full, meta) {
                         const total_items = full['total_items'];
                         return '<span class="total-complete">' + total_items + '</span>';
                     }
                 },
                 {
-                    targets: 9,
+                    targets: 7,
                     title: 'Actions',
                     searchable: false,
                     orderable: false,
