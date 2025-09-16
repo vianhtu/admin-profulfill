@@ -74,7 +74,10 @@ function initTable(){
                     responsivePriority: 3,
                     render: function (data, type, full, meta) {
                         var name = full['number'];
-                        return '<a href="index.php?menu=phones_sms&id='+full['id']+'" class="text-heading text-truncate"><span class="fw-medium">' + name + '</span></a>';
+                        return '<a href="index.php?menu=phones_sms&id='+full['id']+'" class="text-heading text-truncate">' +
+                            '<span class="fw-medium">' + name + '</span>' +
+                            '</a>' +
+                            '<small>'+ full['latest_sms_text'] +'</small>';
                     }
                 },
                 {

@@ -194,8 +194,8 @@ function getPhonesTable(): array
             "carrier" => $row['name'],
             "notice"  => [
                 'sms_count' => $row['sms_count'],
-                'latest_sms_text' => $row['latest_sms_text'] // thêm tin nhắn mới nhất
             ],
+            'latest_sms_text' => $row['latest_sms_text'],
             "account" => '',
         ];
     }

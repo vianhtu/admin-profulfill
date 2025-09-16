@@ -6,6 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="dd67acd4-b783-43b8-b6ae-ced4c44e1a52" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/js/app-phones-list.js" beforeDir="false" afterPath="$PROJECT_DIR$/assets/js/app-phones-list.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/functions-telnyx.php" beforeDir="false" afterPath="$PROJECT_DIR$/functions-telnyx.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../profulfill-products-data/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../profulfill-products-data/.idea/modules.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../profulfill-products-data/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../profulfill-products-data/.idea/php.xml" afterDir="false" />
@@ -129,7 +130,7 @@
       <workItem from="1757901371231" duration="9330000" />
       <workItem from="1757926858450" duration="6936000" />
       <workItem from="1757951353572" duration="2834000" />
-      <workItem from="1757987996652" duration="9409000" />
+      <workItem from="1757987996652" duration="9566000" />
     </task>
     <servers />
   </component>
