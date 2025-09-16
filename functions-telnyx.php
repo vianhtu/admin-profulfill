@@ -183,7 +183,7 @@ function getPhonesTable(): array
             "type_id"           => 1,
             "author_id"         => 1,
             "status"            => $row['status'],
-            "date"              => $row['name'],
+            "carrier"           => $row['name'],
             "download_date"     => '',
             "total_items"       => '',
             "temp_file_name"    => ''

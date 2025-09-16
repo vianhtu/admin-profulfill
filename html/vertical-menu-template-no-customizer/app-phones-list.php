@@ -19,7 +19,7 @@
                 <th>Account</th>
                 <th>Sites</th>
                 <th>Status</th>
-                <th>Date</th>
+                <th>Carriers</th>
                 <th>Download</th>
                 <th>Total</th>
                 <th>Actions</th>

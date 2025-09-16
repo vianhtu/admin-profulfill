@@ -94,7 +94,7 @@ function initTable(){
                 { data: 'email' },
                 { data: 'site_id' },
                 { data: 'status' },
-                { data: 'date'},
+                { data: 'carrier'},
                 { data: 'download_date' },
                 { data: 'total_items' },
                 { data: 'action' },
@@ -168,11 +168,11 @@ function initTable(){
                     }
                 },
                 {
-                    // Date
+                    // Carrier
                     targets: 6,
                     render: function (data, type, full, meta) {
-                        const date = full['date'];
-                        return '<span>' + date + '</span>';
+                        const carrier = full['carrier'];
+                        return '<span>' + carrier + '</span>';
                     }
                 },
                 {
