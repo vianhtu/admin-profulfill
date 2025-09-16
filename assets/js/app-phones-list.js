@@ -485,12 +485,6 @@ function initTable(){
                 bindDeleteEvent();
             }
         });
-
-        document.addEventListener('hide.bs.modal', function (event) {
-            if (event.target.classList.contains('dtr-bs-modal')) {
-                bindDeleteEvent();
-            }
-        });
     }
 
     // Filter form control to default size
