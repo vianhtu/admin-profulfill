@@ -90,7 +90,7 @@ function initTable(){
                 // columns according to JSON
                 { data: 'id' },
                 { data: 'id', orderable: false, render: DataTable.render.select() },
-                { data: 'full_name' },
+                { data: 'number' },
                 { data: 'email' },
                 { data: 'site_id' },
                 { data: 'status' },
@@ -131,44 +131,8 @@ function initTable(){
                     targets: 2,
                     responsivePriority: 3,
                     render: function (data, type, full, meta) {
-                        var name = full['full_name'] + ' - ' + categoryObj[full['type_id']].title;
-                        var account_name = full['temp_file_name'];
-                        var image = './../../assets/svg/icons/xlsx_icon.svg';
-                        // Nếu status = 'running' thì không thêm class d-none
-                        var progress = full['status'] === 'running' ?
-                            '<div class="progress-overlay">' +
-                            '<div class="progress" style="height: 4px;">' +
-                            '<div class="progress-bar bg-info" role="progressbar" style="width: 0%;"></div>' +
-                            '</div>' +
-                            '</div>' : '';
-                        var output = '<div class="position-relative">' +
-                            '<img src="' + image + '" alt="file.xlsx" class="rounded">' +
-                            '<div class="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center">'+
-                            '<div class="spinner-border text-primary d-none" role="status" style="width: 1rem; height: 1rem;">' +
-                            '    <span class="visually-hidden">Loading...</span>' +
-                            '</div>' +
-                            '</div>' +
-                            progress +
-                            '</div>';
-
-                        var row_output =
-                            '<div class="d-flex justify-content-start align-items-center user-name" data-id="'+full['id']+'">' +
-                            '<div class="avatar-wrapper">' +
-                            '<div class="avatar avatar-sm me-4">' +
-                            output +
-                            '</div>' +
-                            '</div>' +
-                            '<div class="d-flex flex-column">' +
-                            '<a href="#" class="text-heading text-truncate"><span class="fw-medium">' +
-                            name +
-                            '</span></a>' +
-                            '<small>' +
-                            account_name +
-                            '</small>' +
-                            '</div>' +
-                            '</div>';
-
-                        return row_output;
+                        var name = full['number'];
+                        return '<a href="#" class="text-heading text-truncate"><span class="fw-medium">' + name + '</span></a>';
                     }
                 },
                 {

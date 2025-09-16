@@ -177,7 +177,7 @@ function getPhonesTable(): array
     while ( $row = $rs->fetch_assoc() ) {
         $data[] = [
             "id"                => $row['ID'],
-            "full_name"         => $row['number'],
+            "number"            => $row['number'],
             "email"             => '',
             "site_id"           => 1,
             "type_id"           => 1,
