@@ -116,7 +116,7 @@ function initTable(){
                             return '<div class="position-relative d-inline-block">' +
                                 '  <i class="icon-base ti tabler-mail icon-22px"></i>' +
                                 '  <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">' +
-                                     $notice['sms_count'] +
+                                     notice['sms_count'] +
                                 '  </span>' +
                                 '</div>';
                         }
