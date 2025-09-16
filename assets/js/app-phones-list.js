@@ -157,7 +157,7 @@ function initTable(){
                     targets: 5,
                     render: function (data, type, full, meta) {
                         const notice = full['notice'];
-                        return '<span>' + notice + '</span>';
+                        return '<i class="icon-base ti tabler-mail icon-22px"></i>';
                     }
                 },
                 {
