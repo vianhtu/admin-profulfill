@@ -110,16 +110,12 @@ function initTable(){
                     searchable: false,
                     render: function (data, type, full, meta) {
                         const notice = full['notice'];
-                        if(!notice['sms_count']){
-                            return '<i class="icon-base ti tabler-mail-opened icon-22px"></i>';
-                        } else {
-                            return '<div class="position-relative d-inline-block">' +
-                                '  <i class="icon-base ti tabler-mail icon-22px"></i>' +
-                                '  <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.7rem;">' +
-                                     notice['sms_count'] +
-                                '  </span>' +
-                                '</div>';
-                        }
+                        return '<div class="position-relative d-inline-block">' +
+                            '  <i class="icon-base ti tabler-mail icon-22px"></i>' +
+                            '  <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">' +
+                                 notice['sms_count'] +
+                            '  </span>' +
+                            '</div>';
                     }
                 },
                 {
