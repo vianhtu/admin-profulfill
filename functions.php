@@ -522,11 +522,11 @@ function getMissingOrders(): array
         return [];
     }
 
-    $placeholders = implode(',', array_fill(0, count($hostIds), '?'));
+    $placeholders = implode(',', array_fill(0, count($orderIds), '?'));
     $sql = "SELECT host_id FROM orders WHERE host_id IN ($placeholders)";
     $stmt = $conn->prepare($sql);
-    $types = str_repeat('s', count($hostIds));
-    $stmt->bind_param($types, ...$hostIds);
+    $types = str_repeat('s', count($orderIds));
+    $stmt->bind_param($types, ...$orderIds);
     $stmt->execute();
     $result = $stmt->get_result();
 
