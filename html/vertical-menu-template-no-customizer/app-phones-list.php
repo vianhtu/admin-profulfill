@@ -18,11 +18,7 @@
                 <th>Numbers</th>
                 <th>Status</th>
                 <th>Carriers</th>
-                <th>Download</th>
-                <th>Total</th>
                 <th>Actions</th>
-                <th style="display:none;"></th>
-                <th style="display:none;"></th>
             </tr>
             </thead>
         </table>

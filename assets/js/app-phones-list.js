@@ -93,11 +93,7 @@ function initTable(){
                 { data: 'number' },
                 { data: 'status' },
                 { data: 'carrier'},
-                { data: 'download_date' },
-                { data: 'total_items' },
                 { data: 'action' },
-                { data: 'author_id' },
-                { data: 'type_id' }
             ],
             columnDefs: [
                 {
@@ -156,23 +152,7 @@ function initTable(){
                     }
                 },
                 {
-                    // Download Date
                     targets: 5,
-                    render: function (data, type, full, meta) {
-                        const download_date = full['download_date'];
-                        return '<span>' + download_date + '</span>';
-                    }
-                },
-                {
-                    // Total Items
-                    targets: 6,
-                    render: function (data, type, full, meta) {
-                        const total_items = full['total_items'];
-                        return '<span class="total-complete">' + total_items + '</span>';
-                    }
-                },
-                {
-                    targets: 7,
                     title: 'Actions',
                     searchable: false,
                     orderable: false,
@@ -191,16 +171,6 @@ function initTable(){
               </div>
             `;
                     }
-                },
-                {
-                    targets: 10, // chỉ số cột bạn muốn ẩn
-                    visible: false,
-                    searchable: true // vẫn cho phép lọc
-                },
-                {
-                    targets: 11, // chỉ số cột bạn muốn ẩn
-                    visible: false,
-                    searchable: true // vẫn cho phép lọc
                 }
             ],
             select: {
