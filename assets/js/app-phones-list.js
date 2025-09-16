@@ -246,11 +246,17 @@ function initTable(){
                     }
                 },
                 {
-                    // author
+                    // status
                     targets: 5,
                     render: function (data, type, full, meta) {
                         const status = full['status'];
-                        return '';
+                        return (
+                            '<span class="file-status badge ' +
+                            statusObj[status].class +
+                            '" text-capitalized>' +
+                            statusObj[status].title +
+                            '</span>'
+                        );
                     }
                 },
                 {
