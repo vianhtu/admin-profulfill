@@ -113,7 +113,7 @@ function initTable(){
                         if(!notice['sms_count']){
                             return '<i class="icon-base ti tabler-mail-opened icon-22px"></i>';
                         } else {
-                            return '<i class="icon-base ti tabler-mail icon-22px"></i>';
+                            return '<i class="icon-base ti tabler-mail icon-22px"></i><span>'+notice['sms_count']+'</span>';
                         }
                     }
                 },
