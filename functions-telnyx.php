@@ -117,54 +117,86 @@ function getPhonesTable(): array
 {
     $conn = db();
     // Lấy thông số từ DataTables
-    $draw             = intval( $_POST['draw'] ?? 1 );
-    $start            = intval( $_POST['start'] ?? 0 );
-    $length           = intval( $_POST['length'] ?? 10 );
-    $orderColumnIndex = intval( $_POST['order'][0]['column'] ?? 0 );
-    $orderColumn      = $_POST['columns'][ $orderColumnIndex ]['data'] ?? 'ID';
-    $orderDir         = strtolower( $_POST['order'][0]['dir'] ?? 'asc' ) === 'desc' ? 'DESC' : 'ASC';
-    $searchValue      = trim( $_POST['search']['value'] ?? '' );
+    $draw             = intval($_POST['draw'] ?? 1);
+    $start            = intval($_POST['start'] ?? 0);
+    $length           = intval($_POST['length'] ?? 10);
+    $orderColumnIndex = intval($_POST['order'][0]['column'] ?? 0);
+    $orderColumn      = $_POST['columns'][$orderColumnIndex]['data'] ?? 'ID';
+    $orderDir         = strtolower($_POST['order'][0]['dir'] ?? 'asc') === 'desc' ? 'DESC' : 'ASC';
+    $searchValue      = trim($_POST['search']['value'] ?? '');
 
     // Danh sách cột cho phép sort
     $allowedCols = ['ID', 'number', 'status'];
-    if ( ! in_array( $orderColumn, $allowedCols ) ) {
+    if (!in_array($orderColumn, $allowedCols)) {
         $orderColumn = 'ID';
     }
 
     // Tổng số bản ghi
-    $totalRecords = $conn->query( "SELECT COUNT(*) AS cnt FROM phones" )->fetch_assoc()['cnt'];
+    $totalRecords = $conn->query("SELECT COUNT(*) AS cnt FROM phones")->fetch_assoc()['cnt'];
+
     $whereClauses = [];
     // Lọc theo search
-    if ( $searchValue !== '' ) {
-        $searchEsc      = $conn->real_escape_string( $searchValue );
+    if ($searchValue !== '') {
+        $searchEsc      = $conn->real_escape_string($searchValue);
         $whereClauses[] = "phones.number LIKE '%$searchEsc%'";
     }
 
-    $where         = $whereClauses ? ' WHERE ' . implode( ' AND ', $whereClauses ) : '';
-    $join          = "INNER JOIN phone_carrier ON phone_carrier.ID = phones.carrier_id
-                      LEFT JOIN sms ON sms.phone_id = phones.ID AND sms.status = 'pending'";
-    $totalFiltered = $conn->query( "SELECT COUNT(DISTINCT phones.ID) AS cnt FROM phones $join $where" )->fetch_assoc()['cnt'];
+    $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
 
-    // Lấy dữ liệu
-    $sql = "SELECT phones.ID, phones.status, phones.number, phone_carrier.name, COUNT(sms.ID) AS sms_count
+    // JOIN tối ưu: lấy sms mới nhất qua bảng con
+    $join = "
+        INNER JOIN phone_carrier ON phone_carrier.ID = phones.carrier_id
+        LEFT JOIN sms ON sms.phone_id = phones.ID AND sms.status = 'pending'
+        LEFT JOIN (
+            SELECT s1.phone_id, s1.text
+            FROM sms s1
+            INNER JOIN (
+                SELECT phone_id, MAX(date) AS max_date
+                FROM sms
+                GROUP BY phone_id
+            ) m ON m.phone_id = s1.phone_id AND m.max_date = s1.date
+        ) s_latest ON s_latest.phone_id = phones.ID
+    ";
+
+    // Tổng số bản ghi sau khi lọc
+    $totalFiltered = $conn->query("
+        SELECT COUNT(DISTINCT phones.ID) AS cnt
         FROM phones
         $join
         $where
-        GROUP BY phones.ID, phones.status, phones.number, phone_carrier.name
+    ")->fetch_assoc()['cnt'];
+
+    // Lấy dữ liệu
+    $sql = "
+        SELECT 
+            phones.ID, 
+            phones.status, 
+            phones.number, 
+            phone_carrier.name, 
+            COUNT(sms.ID) AS sms_count,
+            s_latest.text AS latest_sms_text
+        FROM phones
+        $join
+        $where
+        GROUP BY phones.ID, phones.status, phones.number, phone_carrier.name, s_latest.text
         ORDER BY phones.$orderColumn $orderDir
-        LIMIT $start, $length";
-    $rs  = $conn->query( $sql );
+        LIMIT $start, $length
+    ";
+    $rs  = $conn->query($sql);
 
     // Chuẩn bị dữ liệu trả về
     $data = [];
-    while ( $row = $rs->fetch_assoc() ) {
+    while ($row = $rs->fetch_assoc()) {
         $data[] = [
-            "id"                => $row['ID'],
-            "number"            => $row['number'],
-            "status"            => $row['status'],
-            "carrier"           => $row['name'],
-            "notice"            => ['sms_count' => $row['sms_count']],
-            "account"           => '',
+            "id"      => $row['ID'],
+            "number"  => $row['number'],
+            "status"  => $row['status'],
+            "carrier" => $row['name'],
+            "notice"  => [
+                'sms_count' => $row['sms_count'],
+                'latest_sms_text' => $row['latest_sms_text'] // thêm tin nhắn mới nhất
+            ],
+            "account" => '',
         ];
     }
 
