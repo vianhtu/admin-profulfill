@@ -522,16 +522,11 @@ function getMissingOrders(): array
         return [];
     }
 
-    // Tạo placeholder cho câu lệnh prepare
-    $placeholders = implode(',', array_fill(0, count($orderIds), '?'));
-
-    // Câu SQL
+    $placeholders = implode(',', array_fill(0, count($hostIds), '?'));
     $sql = "SELECT host_id FROM orders WHERE host_id IN ($placeholders)";
     $stmt = $conn->prepare($sql);
-
-    // Gán kiểu dữ liệu cho bind_param (tất cả là string: 's')
-    $types = str_repeat('s', count($orderIds));
-    $stmt->bind_param($types, ...$orderIds);
+    $types = str_repeat('s', count($hostIds));
+    $stmt->bind_param($types, ...$hostIds);
     $stmt->execute();
     $result = $stmt->get_result();
 
