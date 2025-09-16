@@ -114,13 +114,13 @@ function getPhonesTable(): array
     $searchValue      = trim( $_POST['search']['value'] ?? '' );
 
     // Danh sách cột cho phép sort
-    $allowedCols = ['ID', 'status', 'date'];
+    $allowedCols = ['ID', 'number', 'status'];
     if ( ! in_array( $orderColumn, $allowedCols ) ) {
         $orderColumn = 'ID';
     }
 
     // Tổng số bản ghi
-    $totalRecords = $conn->query( "SELECT COUNT(*) AS cnt FROM sms" )->fetch_assoc()['cnt'];
+    $totalRecords = $conn->query( "SELECT COUNT(*) AS cnt FROM phones" )->fetch_assoc()['cnt'];
     $whereClauses = [];
     // Lọc theo search
     if ( $searchValue !== '' ) {
@@ -160,15 +160,15 @@ function getPhonesTable(): array
     }
 
     $where         = $whereClauses ? ' WHERE ' . implode( ' AND ', $whereClauses ) : '';
-    $join          = 'INNER JOIN phones ON phones.ID = sms.phone_id INNER JOIN phone_carrier ON phone_carrier.ID = phones.carrier_id';
-    $totalFiltered = $conn->query( "SELECT COUNT(DISTINCT sms.ID) AS cnt FROM sms $join $where" )->fetch_assoc()['cnt'];
+    $join          = 'INNER JOIN phone_carrier ON phone_carrier.ID = phones.carrier_id';
+    $totalFiltered = $conn->query( "SELECT COUNT(DISTINCT phones.ID) AS cnt FROM phones $join $where" )->fetch_assoc()['cnt'];
 
     // Lấy dữ liệu
-    $sql = "SELECT DISTINCT sms.ID, sms.text, sms.from_number, sms.date, phones.number, phone_carrier.name
-        FROM sms
+    $sql = "SELECT DISTINCT phones.ID, phones.status, phones.number, phone_carrier.name
+        FROM phones
         $join
         $where
-        ORDER BY sms.$orderColumn $orderDir
+        ORDER BY phones.$orderColumn $orderDir
         LIMIT $start, $length";
     $rs  = $conn->query( $sql );
 
@@ -177,16 +177,16 @@ function getPhonesTable(): array
     while ( $row = $rs->fetch_assoc() ) {
         $data[] = [
             "id"                => $row['ID'],
-            "full_name"         => $row['name'],
-            "email"             => $row['email'],
-            "site_id"           => $row['site_id'],
-            "type_id"           => $row['type_id'],
-            "author_id"         => $row['author_id'],
+            "full_name"         => $row['number'],
+            "email"             => '',
+            "site_id"           => 1,
+            "type_id"           => 1,
+            "author_id"         => 1,
             "status"            => $row['status'],
-            "date"              => $row['date'],
-            "download_date"     => $row['download_date'],
-            "total_items"       => $row['total_items'],
-            "temp_file_name"    => $row['file_name']
+            "date"              => $row['name'],
+            "download_date"     => '',
+            "total_items"       => '',
+            "temp_file_name"    => ''
         ];
     }
 
