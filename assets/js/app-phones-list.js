@@ -167,14 +167,14 @@ function initTable(){
                 },
                 {
                     // account
-                    targets: 5,
+                    targets: 6,
                     render: function (data, type, full, meta) {
                         const account = full['account'];
                         return '';
                     }
                 },
                 {
-                    targets: 6,
+                    targets: 7,
                     title: 'Actions',
                     searchable: false,
                     orderable: false,
