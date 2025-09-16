@@ -510,6 +510,39 @@ function getProductTableFilters(): array {
 	return $options;
 }
 
+function getOrdersbyHostIDs(): array
+{
+    // Kết nối DB
+    $conn = db();
+
+    // Đọc dữ liệu JSON từ body request
+    $input = json_decode(file_get_contents('php://input'), true);
+    $orderIds = $input['orderIds'] ?? [];
+    if (empty($orderIds)) {
+        return [];
+    }
+
+    // Tạo placeholder cho câu lệnh prepare
+    $placeholders = implode(',', array_fill(0, count($orderIds), '?'));
+
+    // Câu SQL
+    $sql = "SELECT host_id FROM orders WHERE host_id IN ($placeholders)";
+    $stmt = $conn->prepare($sql);
+
+    // Gán kiểu dữ liệu cho bind_param (tất cả là string: 's')
+    $types = str_repeat('s', count($orderIds));
+    $stmt->bind_param($types, ...$orderIds);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $existingHostIds = [];
+    while ($row = $result->fetch_assoc()) {
+        $existingHostIds[] = $row['host_id'];
+    }
+
+    return $existingHostIds;
+}
+
 function getStoresTableFilter(): array {
 	$conn = db();
 	// Lấy giá trị tìm kiếm từ POST

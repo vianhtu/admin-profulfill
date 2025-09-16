@@ -6,7 +6,7 @@ require __DIR__ . '/functions-telnyx.php';
 header('Content-Type: application/json; charset=utf-8');
 // Nếu chưa login hoặc cookie nhớ đăng nhập không hợp lệ → chặn
 if (!is_logged_in() && !attempt_cookie_login()) {
-    if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['key']) {
+    if (isset($_GET['action']) && isset($_GET['key'])) {
         // TẮT hiển thị lỗi ra HTML (sai sót debug)
         ini_set('display_errors', '0');
         ini_set('log_errors', '1');
@@ -15,6 +15,9 @@ if (!is_logged_in() && !attempt_cookie_login()) {
         switch ($_GET['action']) {
             case 'hook-telnyx':
                 echo json_encode(hookTelnyx());
+                break;
+            case 'check-order-host-id':
+                echo json_encode(getOrdersbyHostIDs());
                 break;
         }
     } else {
