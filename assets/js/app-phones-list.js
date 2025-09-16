@@ -70,6 +70,7 @@ function initTable(){
                 {
                     targets: 2,
                     orderable: true,
+                    searchable: true,
                     responsivePriority: 3,
                     render: function (data, type, full, meta) {
                         var name = full['number'];
@@ -80,6 +81,7 @@ function initTable(){
                     // status
                     targets: 3,
                     orderable: true,
+                    searchable: false,
                     render: function (data, type, full, meta) {
                         const status = full['status'];
                         return (
@@ -94,7 +96,8 @@ function initTable(){
                 {
                     // Carrier
                     targets: 4,
-                    orderable: true,
+                    orderable: false,
+                    searchable: false,
                     render: function (data, type, full, meta) {
                         const carrier = full['carrier'];
                         return '<span>' + carrier + '</span>';
@@ -103,6 +106,8 @@ function initTable(){
                 {
                     // notice
                     targets: 5,
+                    orderable: false,
+                    searchable: false,
                     render: function (data, type, full, meta) {
                         const notice = full['notice'];
                         if(!notice){
@@ -115,6 +120,8 @@ function initTable(){
                 {
                     // account
                     targets: 6,
+                    orderable: false,
+                    searchable: false,
                     render: function (data, type, full, meta) {
                         const account = full['account'];
                         return '';
