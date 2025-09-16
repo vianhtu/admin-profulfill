@@ -125,38 +125,7 @@ function getPhonesTable(): array
     // Lọc theo search
     if ( $searchValue !== '' ) {
         $searchEsc      = $conn->real_escape_string( $searchValue );
-        $whereClauses[] = "(exports.file_name LIKE '%$searchEsc%' OR exports.name LIKE '%$searchEsc%' OR accounts.name LIKE '%$searchEsc%')";
-    }
-    // lọc theo type.
-    $filterType = $_POST['columns'][11]['search']['value'] ?? '';
-    $filterType = trim( $filterType, '^$' ); // bỏ ký tự regex
-    if ( $filterType !== '' ) {
-        $escType      = $conn->real_escape_string( $filterType );
-        $whereClauses[] = "exports.type_id = '$escType'";
-    }
-    // lọc theo site.
-    $filterSite = $_POST['columns'][4]['search']['value'] ?? '';
-    $filterSite = trim( $filterSite, '^$' ); // bỏ ký tự regex
-    if ( $filterSite !== '' ) {
-        $escSite      = $conn->real_escape_string( $filterSite );
-        $whereClauses[] = "exports.site_id = '$escSite'";
-    }
-    // lọc theo author.
-    $filterAuthor = $_POST['columns'][10]['search']['value'] ?? '';
-    $filterAuthor = trim( $filterAuthor, '^$' ); // bỏ ký tự regex
-    if ( $filterAuthor !== '' ) {
-        $escAuthor       = $conn->real_escape_string( $filterAuthor );
-        $whereClauses[] = "download.author_id = '$escAuthor'";
-    }
-    // lọc theo accounts.
-    $filterAccounts = $_POST['accounts'] ?? [];
-    if ( ! empty( $filterAccounts ) && is_array( $filterAccounts ) ) {
-        // Ép tất cả sang số nguyên để tránh SQL injection
-        $ids    = array_map( 'intval', $filterAccounts );
-        $idsStr = implode( ',', $ids );
-        if ( $idsStr !== '' ) {
-            $whereClauses[] = "exports.accounts_id IN ($idsStr)";
-        }
+        $whereClauses[] = "phones.number LIKE '%$searchEsc%'";
     }
 
     $where         = $whereClauses ? ' WHERE ' . implode( ' AND ', $whereClauses ) : '';
