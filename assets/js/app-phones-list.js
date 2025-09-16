@@ -110,7 +110,7 @@ function initTable(){
                     searchable: false,
                     render: function (data, type, full, meta) {
                         const notice = full['notice'];
-                        if(!notice){
+                        if(!notice['sms_count']){
                             return '<i class="icon-base ti tabler-mail-opened icon-22px"></i>';
                         } else {
                             return '<i class="icon-base ti tabler-mail icon-22px"></i>';

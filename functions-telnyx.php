@@ -129,14 +129,16 @@ function getPhonesTable(): array
     }
 
     $where         = $whereClauses ? ' WHERE ' . implode( ' AND ', $whereClauses ) : '';
-    $join          = 'INNER JOIN phone_carrier ON phone_carrier.ID = phones.carrier_id';
+    $join          = "INNER JOIN phone_carrier ON phone_carrier.ID = phones.carrier_id
+                      LEFT JOIN sms ON sms.phone_id = phones.ID AND sms.status = 'pending'";
     $totalFiltered = $conn->query( "SELECT COUNT(DISTINCT phones.ID) AS cnt FROM phones $join $where" )->fetch_assoc()['cnt'];
 
     // Lấy dữ liệu
-    $sql = "SELECT DISTINCT phones.ID, phones.status, phones.number, phone_carrier.name
+    $sql = "SELECT phones.ID, phones.status, phones.number, phone_carrier.name, COUNT(sms.ID) AS sms_count
         FROM phones
         $join
         $where
+        GROUP BY phones.ID, phones.status, phones.number, phone_carrier.name
         ORDER BY phones.$orderColumn $orderDir
         LIMIT $start, $length";
     $rs  = $conn->query( $sql );
@@ -149,7 +151,7 @@ function getPhonesTable(): array
             "number"            => $row['number'],
             "status"            => $row['status'],
             "carrier"           => $row['name'],
-            "notice"            => '',
+            "notice"            => ['sms_count' => $row['sms_count']],
             "account"           => '',
         ];
     }
