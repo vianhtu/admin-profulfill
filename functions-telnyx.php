@@ -180,7 +180,8 @@ function getPhonesTable(): array
             "number"            => $row['number'],
             "status"            => $row['status'],
             "carrier"           => $row['name'],
-            "notice"           => '',
+            "notice"            => '',
+            "account"           => '',
         ];
     }
 

@@ -94,6 +94,7 @@ function initTable(){
                 { data: 'status' },
                 { data: 'carrier'},
                 { data: 'notice'},
+                { data: 'account'},
                 { data: 'action' },
             ],
             columnDefs: [
@@ -162,6 +163,14 @@ function initTable(){
                         } else {
                             return '<i class="icon-base ti tabler-mail icon-22px"></i>';
                         }
+                    }
+                },
+                {
+                    // account
+                    targets: 5,
+                    render: function (data, type, full, meta) {
+                        const account = full['account'];
+                        return '';
                     }
                 },
                 {

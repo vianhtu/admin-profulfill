@@ -19,6 +19,7 @@
                 <th>Status</th>
                 <th>Carriers</th>
                 <th>Notices</th>
+                <th>Accounts</th>
                 <th>Actions</th>
             </tr>
             </thead>
