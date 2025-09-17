@@ -30,9 +30,9 @@ function getItemsTable(orderItems) {
             '</div>' +
             '<div class="d-flex flex-column">' +
             '<a href="https://www.amazon.com/dp/'+item.ASIN+'" target="_blank">'+
-            '<small class="text-truncate d-none d-sm-block">sku: '+item.SKU+'</small>' +
+            '<small class="text-truncate d-none d-sm-block">ASIN: '+item.ASIN+'</small>' +
             '</a>' +
-            '<small class="text-truncate d-none d-sm-block">qlt: '+item.Quantity+'</small>' +
+            '<small class="text-truncate d-none d-sm-block">SKU: '+item.SKU+'</small>' +
             '</div>'+
             '</div>';
 
