@@ -36,14 +36,13 @@ function getItemsTable(orderItems) {
             '</div>'+
             '</div>';
 
-        let row_custom = '';
+        let row_custom = '<div class="d-flex flex-column" >';
         item.Customizations.forEach(m => {
-            row_custom += '<div class="d-flex flex-column" ></div>';
             m.Modifications.forEach(values => {
                 row_custom += '<small>'+values.Name+': '+ values.Value +'</small>';
             });
-            row_custom += '</div>';
         });
+        row_custom += '</div>';
 
         html += `<tr>
                <td>${row_image}</td>
