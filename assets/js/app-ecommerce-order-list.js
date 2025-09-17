@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
         { data: 'id', orderable: false, render: DataTable.render.select() },
         { data: 'host_id' },
         { data: 'purchase_date' },
-        { data: 'customer' }, //email //avatar
+        { data: 'full_name' }, //email //avatar
         { data: 'payment' },
         { data: 'ship_date' },
         { data: 'delivery_date' }, //method_number
@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
           targets: 4,
           responsivePriority: 1,
           render: function (data, type, full, meta) {
-            return '';
+            return '<h6 class="text-nowrap mb-0">'+full['full_name']+'</h6>';
           }
         },
         {

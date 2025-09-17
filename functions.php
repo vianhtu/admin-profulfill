@@ -557,11 +557,19 @@ function getOrdersTable(): array {
     $data = [];
     while ( $row = $rs->fetch_assoc() ) {
         $data[] = [
-            "id"            => $row['ID'],
-            "host_id"       => $row['host_id'],
-            "purchase_date" => $row['purchase_date'],
-            "delivery_date" => $row['delivery_date'],
-            "ship_date"     => $row['ship_date'],
+            "id"                => $row['ID'],
+            "host_id"           => $row['host_id'],
+            "purchase_date"     => $row['purchase_date'],
+            "delivery_date"     => $row['delivery_date'],
+            "ship_date"         => $row['ship_date'],
+            "full_name"         => $row['full_name'],
+            "phone"             => $row['phone'],
+            "street_address_1"  => $row['street_address_1'],
+            "street_address_2"  => $row['street_address_2'],
+            "city"              => $row['city'],
+            "state"             => $row['state'],
+            "zip_code"          => $row['zip_code'],
+            "country"           => $row['country'],
         ];
     }
 
