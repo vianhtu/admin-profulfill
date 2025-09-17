@@ -25,7 +25,7 @@ function getItemsTable(orderItems) {
                <td>${item.SKU}</td>
                <td>${item.Title}</td>
                <td>${item.Quantity}</td>
-               <td>${item.Price}</td>
+               <td>${item.Amount}</td>
              </tr>`;
     });
 
@@ -433,9 +433,10 @@ document.addEventListener('DOMContentLoaded', function (e) {
       initComplete:function(settings, json) {
           this.api().rows().every(function() {
               const rowData = this.data();
-              console.log(rowData);
-              //this.child(getItemsTable(rowData.Items)).show();
-              //$(this.node()).addClass('shown');
+              const items = JSON.parse(rowData.items);
+              console.log(rowData.items);
+              this.child(getItemsTable(items)).show();
+              $(this.node()).addClass('shown');
           });
       }
       });
