@@ -442,7 +442,6 @@ document.addEventListener('DOMContentLoaded', function (e) {
           this.api().rows().every(function() {
               const rowData = this.data();
               const items = JSON.parse(rowData.items);
-              console.log(rowData.items);
               this.child(getItemsTable(items)).show();
               $(this.node()).addClass('shown');
           });
