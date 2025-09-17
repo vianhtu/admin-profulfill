@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
         {
           targets: 5,
           render: function (data, type, full, meta) {
-            return '<span class="text-nowrap">$'+full['total_price']+'</span>';
+            return '<h6 class="text-nowrap mb-0">$'+full['total_price']+'</h6>';
           }
         },
         {
