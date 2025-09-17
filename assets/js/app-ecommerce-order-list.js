@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
             const items = JSON.parse(full['items']);
             // Creates full output for row
             return '<a href="app-ecommerce-order-details.html">' +
-            '<span>#' + order_id + '</span>' +
+            '<h5 class="text-nowrap mb-0">#' + order_id + '</h5>' +
             '</a>';
           }
         },
