@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
                   row_output += '<div class="d-flex justify-content-start align-items-center product-name">' +
                       '<div class="avatar-wrapper">' +
                       '<div class="avatar avatar me-2 me-sm-4 rounded-2 bg-label-secondary">' +
-                      '<img src="'+item.Image+'" alt="'+item.Title+'" class="rounded" style="cursor:pointer;" onclick="showImageModal(\''+getFullSizeImage(item.Image)+'\')">' +
+                      '<img src="'+item.Image+'" title="'+item.Title+'" alt="'+item.Title+'" class="rounded" style="cursor:pointer;" onclick="showImageModal(\''+getFullSizeImage(item.Image)+'\')">' +
                       '</div>' +
                       '</div>' +
                       '<div class="d-flex flex-column">' +
