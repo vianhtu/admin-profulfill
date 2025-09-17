@@ -86,11 +86,12 @@ document.addEventListener('DOMContentLoaded', function (e) {
             const order_id = full['host_id'];
             const items = JSON.parse(full['items']);
             // Creates full output for row
-            const row_output = '<a href="app-ecommerce-order-details.html"><span>#' + order_id + '</span></a>';
-            console.log(items);
-            Object.keys(items).forEach(key => {
-
-            });
+            let row_output = '<a href="app-ecommerce-order-details.html"><span>#' + order_id + '</span></a>';
+              row_output += '<div class="avatar-wrapper">' +
+                  '<div class="avatar avatar me-2 me-sm-4 rounded-2 bg-label-secondary">' +
+                  '<img src="'+items['Image']+'" alt="" class="rounded">' +
+              '</div>' +
+              '</div>';
             return row_output;
           }
         },
