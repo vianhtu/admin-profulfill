@@ -115,10 +115,10 @@ document.addEventListener('DOMContentLoaded', function (e) {
         { data: 'id', orderable: false, render: DataTable.render.select() },
         { data: 'host_id' },
         { data: 'purchase_date' },
-        { data: 'full_name' }, //email //avatar
         { data: 'total_price' },
         { data: 'ship_date' },
         { data: 'delivery_date' }, //method_number
+        { data: 'full_name' }, //email //avatar
         { data: 'id' }
       ],
       columnDefs: [
@@ -177,26 +177,12 @@ document.addEventListener('DOMContentLoaded', function (e) {
         },
         {
           targets: 4,
-          responsivePriority: 1,
-          render: function (data, type, full, meta) {
-              const street_address_2 = full['street_address_2'] ? '<small class="text-truncate d-none d-sm-block">'+full['street_address_2']+'</small>' : '';
-            return '<div class="d-flex flex-column">' +
-                '<h6 class="text-nowrap mb-0">'+full['full_name']+'</h6>' +
-                '<small class="text-truncate d-none d-sm-block">'+full['street_address_1']+'</small>' +
-                street_address_2 +
-                '<small class="text-truncate d-none d-sm-block">'+full['city']+', '+full['state']+' '+ full['zip_code'] +'</small>' +
-                '<small class="text-truncate d-none d-sm-block">'+full['country']+'</small>' +
-                '</div>';
-          }
-        },
-        {
-          targets: 5,
           render: function (data, type, full, meta) {
             return '<h6 class="text-nowrap mb-0">$'+full['total_price']+'</h6>';
           }
         },
         {
-          targets: 6,
+          targets: 5,
           render: function (data, type, full, meta) {
               const date = new Date(full['ship_date']);
               const formattedDate = date.toLocaleString('en-US', {
@@ -211,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
           }
         },
         {
-          targets: 7,
+          targets: 6,
           render: function (data, type, full, meta) {
               const date = new Date(full['delivery_date']);
               const formattedDate = date.toLocaleString('en-US', {
@@ -225,6 +211,20 @@ document.addEventListener('DOMContentLoaded', function (e) {
               return `<span class="text-nowrap">${formattedDate}</span>`;
           }
         },
+          {
+              targets: 7,
+              responsivePriority: 1,
+              render: function (data, type, full, meta) {
+                  const street_address_2 = full['street_address_2'] ? '<small class="text-truncate d-none d-sm-block">'+full['street_address_2']+'</small>' : '';
+                  return '<div class="d-flex flex-column">' +
+                      '<h6 class="text-nowrap mb-0">'+full['full_name']+'</h6>' +
+                      '<small class="text-truncate d-none d-sm-block">'+full['street_address_1']+'</small>' +
+                      street_address_2 +
+                      '<small class="text-truncate d-none d-sm-block">'+full['city']+', '+full['state']+' '+ full['zip_code'] +'</small>' +
+                      '<small class="text-truncate d-none d-sm-block">'+full['country']+'</small>' +
+                      '</div>';
+              }
+          },
         {
           targets: -1,
           title: 'Actions',
