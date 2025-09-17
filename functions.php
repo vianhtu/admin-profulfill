@@ -571,6 +571,7 @@ function getOrdersTable(): array {
             "zip_code"          => $row['zip_code'],
             "country"           => $row['country'],
             "total_price"       => $row['total_price'],
+            "items"             => $row['items'],
         ];
     }
 

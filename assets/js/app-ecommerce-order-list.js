@@ -84,8 +84,13 @@ document.addEventListener('DOMContentLoaded', function (e) {
           targets: 2,
           render: function (data, type, full, meta) {
             const order_id = full['host_id'];
+            const items = JSON.parse(full['items']);
             // Creates full output for row
             const row_output = '<a href="app-ecommerce-order-details.html"><span>#' + order_id + '</span></a>';
+            Object.keys(items).forEach(key => {
+              console.log(key, items[key]);
+              
+            });
             return row_output;
           }
         },
