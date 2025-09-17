@@ -4,6 +4,13 @@
 
 'use strict';
 
+function showImageModal(src) {
+    const modalImg = document.getElementById('modalImage');
+    modalImg.src = src;
+    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    modal.show();
+}
+
 // Datatable (js)
 
 document.addEventListener('DOMContentLoaded', function (e) {
@@ -93,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
                   row_output += '<div class="d-flex justify-content-start align-items-center product-name">' +
                       '<div class="avatar-wrapper">' +
                       '<div class="avatar avatar me-2 me-sm-4 rounded-2 bg-label-secondary">' +
-                      '<img src="'+item.Image+'" alt="'+item.Title+'" class="rounded">' +
+                      '<img src="'+item.Image+'" alt="'+item.Title+'" class="rounded" style="cursor:pointer;" onclick="showImageModal(\''+item.Image+'\')">' +
                       '</div>' +
                       '</div>' +
                       '<div class="d-flex flex-column">' +
