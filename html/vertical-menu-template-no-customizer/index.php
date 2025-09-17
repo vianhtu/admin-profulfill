@@ -257,6 +257,9 @@ if (empty($_SESSION['csrf_token'])) {
                   case 'phones_numbers':
                       include 'app-phones-list.php';
                       break;
+                  case 'orders':
+                      include 'app-ecommerce-order-list.php';
+                      break;
               }
               ?>
             </div>
@@ -354,6 +357,9 @@ if (empty($_SESSION['csrf_token'])) {
             <?php break;
         case 'phones_numbers': ?>
             <script src="../../assets/js/app-phones-list.js"></script>
+            <?php break;
+        case 'orders': ?>
+            <script src="../../assets/js/app-ecommerce-order-list.js"></script>
             <?php break;
     }
     ?>
