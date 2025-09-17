@@ -45,9 +45,8 @@ function getItemsTable(orderItems) {
         row_custom += '</div>';
 
         html += `<tr>
-               <td class="sub-img">${row_image}</td>
-               <td class="sub-title"><small>${item.Title}</small></td>
-               <td>${row_custom}</td>
+               <td style="max-width: 150px;">${row_image}</td>
+               <td style="max-width: 200px;">${row_custom}</td>
                <td><small>${item.Quantity}</small></td>
                <td><small>${item.Cost.Amount} ${item.Cost.CurrencyCode}</small></td>
              </tr>`;

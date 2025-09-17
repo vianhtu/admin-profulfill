@@ -111,14 +111,6 @@ td .product-name h6{
     max-width: 250px;            /* Giới hạn chiều rộng */
 }
 
-td.sub-img{
-    max-width: 150px;
-}
-
-td.sub-title{
-    max-width: 300px;
-}
-
 .tr-loading {
     opacity: 0.4;
     transition: opacity 0.3s ease;
