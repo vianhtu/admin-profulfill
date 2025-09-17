@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
             let row_output = '<a href="app-ecommerce-order-details.html">' +
                 '<span>#' + order_id + '</span>' +
                 '</a>' +
-                '<div class="d-flex justify-content-start align-items-center product-name"';
+                '<div class="d-flex justify-content-start align-items-center product-name">';
               items.forEach((item, index) => {
                   row_output += '<div class="avatar-wrapper">' +
                       '<div class="avatar avatar me-2 me-sm-4 rounded-2 bg-label-secondary">' +
