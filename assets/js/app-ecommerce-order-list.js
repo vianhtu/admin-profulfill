@@ -49,8 +49,8 @@ document.addEventListener('DOMContentLoaded', function (e) {
         { data: 'purchase_date' },
         { data: 'customer' }, //email //avatar
         { data: 'payment' },
-        { data: 'status' },
-        { data: 'method' }, //method_number
+        { data: 'ship_date' },
+        { data: 'delivery_date' }, //method_number
         { data: 'id' }
       ],
       columnDefs: [

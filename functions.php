@@ -560,6 +560,8 @@ function getOrdersTable(): array {
             "id"            => $row['ID'],
             "host_id"       => $row['host_id'],
             "purchase_date" => $row['purchase_date'],
+            "delivery_date" => $row['delivery_date'],
+            "ship_date"     => $row['ship_date'],
         ];
     }
 
