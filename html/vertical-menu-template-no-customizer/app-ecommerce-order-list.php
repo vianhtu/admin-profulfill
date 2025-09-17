@@ -74,10 +74,10 @@
                 <th></th>
                 <th>order</th>
                 <th>purchase date</th>
-                <th>customers</th>
                 <th>payment</th>
                 <th>ship date</th>
                 <th>delivery date</th>
+                <th>customers</th>
                 <th>actions</th>
             </tr>
             </thead>
