@@ -134,9 +134,18 @@ document.addEventListener('DOMContentLoaded', function (e) {
           }
         },
         {
-          targets: -2,
+          targets: 7,
           render: function (data, type, full, meta) {
-              return '';
+              const date = new Date(full['delivery_date']);
+              const formattedDate = date.toLocaleString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false,
+                  timeZone: 'Asia/Ho_Chi_Minh'
+              });
+              return `<span class="text-nowrap">${formattedDate}</span>`;
           }
         },
         {
