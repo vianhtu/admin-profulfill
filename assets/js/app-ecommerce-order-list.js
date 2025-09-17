@@ -30,17 +30,23 @@ function getItemsTable(orderItems) {
             '</div>' +
             '<div class="d-flex flex-column">' +
             '<a href="https://www.amazon.com/dp/'+item.ASIN+'" target="_blank">'+
-            '<small class="text-truncate d-none d-sm-block">ASIN: '+item.ASIN+'</small>' +
+            '<small>ASIN: '+item.ASIN+'</small>' +
             '</a>' +
-            '<small class="text-truncate d-none d-sm-block">SKU: '+item.SKU+'</small>' +
+            '<small>SKU: '+item.SKU+'</small>' +
             '</div>'+
             '</div>';
 
+        let row_custom = '';
+        item.forEach(custom => {
+            row_custom += '';
+        });
+
         html += `<tr>
                <td>${row_image}</td>
-               <td>${item.Title}</td>
-               <td>${item.Quantity}</td>
-               <td>${item.Cost.Amount} ${item.Cost.CurrencyCode}</td>
+               <td><small>${item.Title}</small></td>
+               <td>${row_custom}</td>
+               <td><small>${item.Quantity}</small></td>
+               <td><small>${item.Cost.Amount} ${item.Cost.CurrencyCode}</small></td>
              </tr>`;
     });
 
