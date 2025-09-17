@@ -931,7 +931,11 @@ function addOrders(): array
 
     // Đọc dữ liệu JSON từ body request
     $input = json_decode(file_get_contents('php://input'), true);
-    return $input;
+    $orders = $input['orders'] ?? [];
+    if (empty($orders)) {
+        return [];
+    }
+    return $orders;
 }
 
 function addXlsx(): array {
