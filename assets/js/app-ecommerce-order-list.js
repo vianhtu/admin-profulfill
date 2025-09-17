@@ -93,13 +93,12 @@ document.addEventListener('DOMContentLoaded', function (e) {
           targets: 3,
           render: function (data, type, full, meta) {
             const date = new Date(full['purchase_date']);
-            const timeX = full['time'].substring(0, 5);
             const formattedDate = date.toLocaleDateString('en-US', {
               month: 'short',
               day: 'numeric',
               year: 'numeric'
             });
-            return `<span class="text-nowrap">${formattedDate}, ${timeX}</span>`;
+            return `<span class="text-nowrap">${formattedDate}</span>`;
           }
         },
         {
