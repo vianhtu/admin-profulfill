@@ -60,7 +60,7 @@ function getItemsRow(orderItems, colCount) {
           <tr>
             <td style="width: 350px">${row_image}</td>
             <td style="width: 50px"><small>${item.Quantity}</small></td>
-            <td><small>${item.Cost.Amount} ${item.Cost.CurrencyCode}</small></td>
+            <td style="width: 100px"><small>${item.Cost.Amount} ${item.Cost.CurrencyCode}</small></td>
             <td>${row_custom}</td>
           </tr>`;
     });
