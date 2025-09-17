@@ -123,7 +123,8 @@ document.addEventListener('DOMContentLoaded', function (e) {
                   day: 'numeric',
                   hour: '2-digit',
                   minute: '2-digit',
-                  hour12: false
+                  hour12: false,
+                  timeZone: 'Asia/Ho_Chi_Minh'
               });
               return `<span class="text-nowrap">${formattedDate}</span>`;
           }
