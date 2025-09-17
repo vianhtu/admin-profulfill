@@ -943,14 +943,18 @@ function addOrders(): array
     foreach ($orders as $order) {
         if (!empty($order['Id'])) {
             $host_id = $conn->real_escape_string($order['Id']);
+            $status = $conn->real_escape_string($order['Status']);
+            $purchase_date = date('Y-m-d H:i:s', (int)$order['purchaseDate']);
+            $delivery_date = date('Y-m-d H:i:s', (int) $order['DeliveryDate']);
+            $ship_date = date('Y-m-d H:i:s', (int) $order['ShipDate']);
             $items = $conn->real_escape_string(json_encode($order['Items'] ?? []));
-            $values[] = "($site_id, $account_id, '$host_id', '$items')";
+            $values[] = "($site_id, $account_id, '$host_id', '$items', '$status','$purchase_date','$delivery_date','$ship_date')";
         }
     }
 
     if (!empty($values)) {
         $sql = "
-            INSERT IGNORE INTO orders (site_id, account_id, host_id, items)
+            INSERT IGNORE INTO orders (site_id, account_id, host_id, items, status, purchase_date, delivery_date, ship_date, total_price)
             VALUES " . implode(',', $values);
 
         $conn->query($sql);
