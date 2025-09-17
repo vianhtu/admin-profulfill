@@ -947,8 +947,9 @@ function addOrders(): array
             $purchase_date = date('Y-m-d H:i:s', (int)$order['purchaseDate']);
             $delivery_date = date('Y-m-d H:i:s', (int) $order['DeliveryDate']);
             $ship_date = date('Y-m-d H:i:s', (int) $order['ShipDate']);
+            $total_price = 19.99;
             $items = $conn->real_escape_string(json_encode($order['Items'] ?? []));
-            $values[] = "($site_id, $account_id, '$host_id', '$items', '$status','$purchase_date','$delivery_date','$ship_date')";
+            $values[] = "($site_id, $account_id, '$host_id', '$items', '$status','$purchase_date','$delivery_date','$ship_date', $total_price)";
         }
     }
 
