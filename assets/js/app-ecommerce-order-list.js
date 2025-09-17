@@ -15,7 +15,23 @@ function getFullSizeImage(url) {
     return url.replace(/_.*\.jpg$/, '.jpg');
 }
 
+// Hàm tạo HTML cho bảng con
+function getItemsTable(orderItems) {
+    let html = '<table class="table table-sm mb-0">';
+    html += '<thead><tr><th>SKU</th><th>Title</th><th>Qty</th><th>Price</th></tr></thead><tbody>';
 
+    orderItems.forEach(item => {
+        html += `<tr>
+               <td>${item.SKU}</td>
+               <td>${item.Title}</td>
+               <td>${item.Quantity}</td>
+               <td>${item.Price}</td>
+             </tr>`;
+    });
+
+    html += '</tbody></table>';
+    return html;
+}
 // Datatable (js)
 
 document.addEventListener('DOMContentLoaded', function (e) {
@@ -413,8 +429,16 @@ document.addEventListener('DOMContentLoaded', function (e) {
             return false;
           }
         }
+      },
+      initComplete:function(settings, json) {
+          this.api().rows().every(function() {
+              const rowData = this.data();
+              console.log(rowData);
+              //this.child(getItemsTable(rowData.Items)).show();
+              //$(this.node()).addClass('shown');
+          });
       }
-    });
+      });
 
     //? The 'delete-record' class is necessary for the functionality of the following code.
     document.addEventListener('click', function (e) {
