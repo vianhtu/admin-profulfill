@@ -109,7 +109,8 @@ document.addEventListener('DOMContentLoaded', function (e) {
           targets: 4,
           responsivePriority: 1,
           render: function (data, type, full, meta) {
-            return '<h6 class="text-nowrap mb-0">'+full['full_name']+'</h6>';
+            return '<h6 class="text-nowrap mb-0">'+full['full_name']+'</h6>' +
+                '<small class="text-truncate d-none d-sm-block">'+full['street_address_1']+'</small>';
           }
         },
         {
