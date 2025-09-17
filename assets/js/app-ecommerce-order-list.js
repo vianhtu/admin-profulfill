@@ -46,7 +46,7 @@ function getItemsTable(orderItems) {
 
         html += `<tr>
                <td>${row_image}</td>
-               <td><small>${item.Title}</small></td>
+               <td class="sub-title"><small>${item.Title}</small></td>
                <td>${row_custom}</td>
                <td><small>${item.Quantity}</small></td>
                <td><small>${item.Cost.Amount} ${item.Cost.CurrencyCode}</small></td>
