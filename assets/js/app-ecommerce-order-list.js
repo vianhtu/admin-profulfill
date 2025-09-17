@@ -15,6 +15,11 @@ function getFullSizeImage(url) {
     return url.replace(/_.*\.jpg$/, '.jpg');
 }
 
+function replaceAmazonImageSize(url, newSize) {
+    // newSize chỉ cần số, ví dụ 200
+    return url.replace(/SX\d+/, `SX${newSize}`);
+}
+
 // Hàm tạo HTML cho bảng con
 function getItemsRow(orderItems, colCount) {
     let html = `<tr class="child-row">
@@ -27,7 +32,7 @@ function getItemsRow(orderItems, colCount) {
           <div class="d-flex justify-content-start align-items-center product-name">
             <div class="avatar-wrapper">
               <div class="avatar avatar me-2 me-sm-4 rounded-2 bg-label-secondary" style="width:80px; height:80px;">
-                <img src="${item.Image}" 
+                <img src="${replaceAmazonImageSize(item.Image, 150)}" 
                      title="${item.Title}" 
                      alt="${item.Title}" 
                      class="rounded img-fluid" 
