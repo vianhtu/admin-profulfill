@@ -37,7 +37,7 @@ function getItemsTable(orderItems) {
             '</div>';
 
         let row_custom = '';
-        item.forEach(custom => {
+        item.Customizations.forEach(custom => {
             row_custom += '';
         });
 
