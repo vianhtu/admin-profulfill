@@ -20,21 +20,22 @@ function getItemsTable(orderItems) {
     let html = '<table class="table mb-0 table-borderless">';
     html += '<thead><tr><th>SKU</th><th>Title</th><th>Qty</th><th>Price</th></tr></thead><tbody>';
 
-    const row_image = '<div class="d-flex justify-content-start align-items-center product-name">' +
-        '<div class="avatar-wrapper">' +
-        '<div class="avatar avatar me-2 me-sm-4 rounded-2 bg-label-secondary">' +
-        '<img src="'+item.Image+'" title="'+item.Title+'" alt="'+item.Title+'" class="rounded" style="cursor:pointer;" onclick="showImageModal(\''+getFullSizeImage(item.Image)+'\')">' +
-        '</div>' +
-        '</div>' +
-        '<div class="d-flex flex-column">' +
-        '<a href="https://www.amazon.com/dp/'+item.ASIN+'" target="_blank">'+
-        '<small class="text-truncate d-none d-sm-block">sku: '+item.SKU+'</small>' +
-        '</a>' +
-        '<small class="text-truncate d-none d-sm-block">qlt: '+item.Quantity+'</small>' +
-        '</div>'+
-        '</div>';
-
     orderItems.forEach(item => {
+
+        const row_image = '<div class="d-flex justify-content-start align-items-center product-name">' +
+            '<div class="avatar-wrapper">' +
+            '<div class="avatar avatar me-2 me-sm-4 rounded-2 bg-label-secondary">' +
+            '<img src="'+item.Image+'" title="'+item.Title+'" alt="'+item.Title+'" class="rounded" style="cursor:pointer;" onclick="showImageModal(\''+getFullSizeImage(item.Image)+'\')">' +
+            '</div>' +
+            '</div>' +
+            '<div class="d-flex flex-column">' +
+            '<a href="https://www.amazon.com/dp/'+item.ASIN+'" target="_blank">'+
+            '<small class="text-truncate d-none d-sm-block">sku: '+item.SKU+'</small>' +
+            '</a>' +
+            '<small class="text-truncate d-none d-sm-block">qlt: '+item.Quantity+'</small>' +
+            '</div>'+
+            '</div>';
+
         html += `<tr>
                <td>${row_image}</td>
                <td>${item.Title}</td>
