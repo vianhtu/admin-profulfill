@@ -87,9 +87,9 @@ document.addEventListener('DOMContentLoaded', function (e) {
             const items = JSON.parse(full['items']);
             // Creates full output for row
             const row_output = '<a href="app-ecommerce-order-details.html"><span>#' + order_id + '</span></a>';
+            console.log(items);
             Object.keys(items).forEach(key => {
-              console.log(key, items[key]);
-              
+
             });
             return row_output;
           }
