@@ -16,43 +16,55 @@ function getFullSizeImage(url) {
 }
 
 // Hàm tạo HTML cho bảng con
-function getItemsTable(orderItems) {
-    let html = '<table class="table mb-0 table-sm table-borderless child-table">';
-    html += '<tbody>';
+function getItemsRow(orderItems, colCount) {
+    let html = `<tr class="child-row">
+                  <td colspan="${colCount}" class="p-0">
+                    <table class="table mb-0 table-sm table-borderless child-table">
+                      <tbody>`;
 
     orderItems.forEach(item => {
+        const row_image = `
+          <div class="d-flex justify-content-start align-items-center product-name">
+            <div class="avatar-wrapper">
+              <div class="avatar avatar me-2 me-sm-4 rounded-2 bg-label-secondary" style="width:80px; height:80px;">
+                <img src="${item.Image}" 
+                     title="${item.Title}" 
+                     alt="${item.Title}" 
+                     class="rounded img-fluid" 
+                     style="cursor:pointer;" 
+                     onclick="showImageModal('${getFullSizeImage(item.Image)}')">
+              </div>
+            </div>
+            <div class="d-flex flex-column">
+              <a href="https://www.amazon.com/dp/${item.ASIN}" target="_blank">
+                <small>ASIN: ${item.ASIN}</small>
+              </a>
+              <small>SKU: ${item.SKU}</small>
+            </div>
+          </div>`;
 
-        const row_image = '<div class="d-flex justify-content-start align-items-center product-name">' +
-            '<div class="avatar-wrapper">' +
-            '<div class="avatar avatar me-2 me-sm-4 rounded-2 bg-label-secondary">' +
-            '<img src="'+item.Image+'" title="'+item.Title+'" alt="'+item.Title+'" class="rounded" style="cursor:pointer;" onclick="showImageModal(\''+getFullSizeImage(item.Image)+'\')">' +
-            '</div>' +
-            '</div>' +
-            '<div class="d-flex flex-column">' +
-            '<a href="https://www.amazon.com/dp/'+item.ASIN+'" target="_blank">'+
-            '<small>ASIN: '+item.ASIN+'</small>' +
-            '</a>' +
-            '<small>SKU: '+item.SKU+'</small>' +
-            '</div>'+
-            '</div>';
-
-        let row_custom = '<div class="d-flex flex-column" >';
+        let row_custom = '<div class="d-flex flex-column">';
         item.Customizations.forEach(m => {
             m.Modifications.forEach(values => {
-                row_custom += '<small>'+values.Name+': '+ values.Value +'</small>';
+                row_custom += `<small>${values.Name}: ${values.Value}</small>`;
             });
         });
         row_custom += '</div>';
 
-        html += `<tr>
-               <td style="max-width: 100px;">${row_image}</td>
-               <td style="max-width: 100px;">${row_custom}</td>
-               <td><small>${item.Quantity}</small></td>
-               <td><small>${item.Cost.Amount} ${item.Cost.CurrencyCode}</small></td>
-             </tr>`;
+        html += `
+          <tr>
+            <td>${row_image}</td>
+            <td>${row_custom}</td>
+            <td><small>${item.Quantity}</small></td>
+            <td><small>${item.Cost.Amount} ${item.Cost.CurrencyCode}</small></td>
+          </tr>`;
     });
 
-    html += '</tbody></table>';
+    html += `     </tbody>
+                </table>
+              </td>
+            </tr>`;
+
     return html;
 }
 // Datatable (js)
@@ -438,10 +450,15 @@ document.addEventListener('DOMContentLoaded', function (e) {
         }
       },
       initComplete:function(settings, json) {
-          this.api().rows().every(function() {
+          const api = this.api();
+          const colCount = api.columns().count();
+
+          api.rows().every(function() {
               const rowData = this.data();
               const items = JSON.parse(rowData.items);
-              this.child(getItemsTable(items)).show();
+
+              // Chèn hàng con ngay sau hàng cha
+              $(this.node()).after(getItemsRow(items, colCount));
               $(this.node()).addClass('shown');
           });
       }

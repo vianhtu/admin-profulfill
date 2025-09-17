@@ -111,6 +111,16 @@ td .product-name h6{
     max-width: 250px;            /* Giới hạn chiều rộng */
 }
 
+.child-row td {
+    background-color: #fafafa;
+    border-top: none;
+    font-size: 0.85rem;
+}
+
+.child-table td, .child-table th {
+    padding: 4px 8px;
+}
+
 .tr-loading {
     opacity: 0.4;
     transition: opacity 0.3s ease;
