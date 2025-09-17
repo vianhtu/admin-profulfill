@@ -33,7 +33,14 @@ document.addEventListener('DOMContentLoaded', function (e) {
 
   if (dt_order_table) {
     const dt_products = new DataTable(dt_order_table, {
-      ajax: assetsPath + 'json/ecommerce-customer-order.json', // JSON file to add data
+      ajax: {
+          url: '../../ajax.php?action=get-orders',
+          type: 'POST',
+          data: function (d) {},
+          dataSrc: function (json) {
+              return json.data;
+          }
+      },
       columns: [
         // columns according to JSON
         { data: 'id' },

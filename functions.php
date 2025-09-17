@@ -516,6 +516,60 @@ function getProductTableFilters(): array {
 	return $options;
 }
 
+function getOrdersTable(): array {
+    $conn = db();
+    // Lấy thông số từ DataTables
+    $draw             = intval( $_POST['draw'] ?? 1 );
+    $start            = intval( $_POST['start'] ?? 0 );
+    $length           = intval( $_POST['length'] ?? 10 );
+    $orderColumnIndex = intval( $_POST['order'][0]['column'] ?? 0 );
+    $orderColumn      = $_POST['columns'][ $orderColumnIndex ]['data'] ?? 'ID';
+    $orderDir         = strtolower( $_POST['order'][0]['dir'] ?? 'asc' ) === 'desc' ? 'DESC' : 'ASC';
+    $searchValue      = trim( $_POST['search']['value'] ?? '' );
+
+    // Danh sách cột cho phép sort
+    $allowedCols = [ 'ID', 'status', 'purchase_date', 'delivery_date', 'ship_date' ];
+    if ( ! in_array( $orderColumn, $allowedCols ) ) {
+        $orderColumn = 'ID';
+    }
+
+    // Tổng số bản ghi
+    $totalRecords = $conn->query( "SELECT COUNT(ID) AS cnt FROM orders" )->fetch_assoc()['cnt'];
+    $whereClauses = [];
+    // Lọc theo search
+    if ( $searchValue !== '' ) {
+        $searchEsc      = $conn->real_escape_string( $searchValue );
+        $whereClauses[] = "(host_id LIKE '%$searchEsc%' OR full_name LIKE '%$searchEsc%' OR phone LIKE '%$searchEsc%' OR items LIKE '%$searchEsc%')";
+    }
+
+    $where         = $whereClauses ? ' WHERE ' . implode( ' AND ', $whereClauses ) : '';
+    $totalFiltered = $conn->query( "SELECT COUNT(ID) AS cnt FROM orders $where" )->fetch_assoc()['cnt'];
+
+    // Lấy dữ liệu
+    $sql = "SELECT *
+        FROM orders
+        $where
+        ORDER BY $orderColumn $orderDir
+        LIMIT $start, $length";
+    $rs  = $conn->query( $sql );
+
+    // Chuẩn bị dữ liệu trả về
+    $data = [];
+    while ( $row = $rs->fetch_assoc() ) {
+        $data[] = [
+            "id"            => $row['ID']
+        ];
+    }
+
+    // Trả JSON
+    return [
+        "draw"            => $draw,
+        "recordsTotal"    => $totalRecords,
+        "recordsFiltered" => $totalFiltered,
+        "data"            => $data
+    ];
+}
+
 function getMissingOrders(): array
 {
     // Kết nối DB
