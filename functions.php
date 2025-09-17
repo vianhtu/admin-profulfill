@@ -935,6 +935,27 @@ function addOrders(): array
     if (empty($orders)) {
         return [];
     }
+
+    // Chuẩn bị dữ liệu insert
+    $values = [];
+    $site_id = 2;
+    $account_id = 0;
+    foreach ($orders as $order) {
+        if (!empty($order['Id'])) {
+            $host_id = $conn->real_escape_string($order['Id']);
+            $items = $conn->real_escape_string(json_encode($order['Items'] ?? []));
+            $values[] = "($site_id, $account_id, '$host_id', '$items')";
+        }
+    }
+
+    if (!empty($values)) {
+        $sql = "
+            INSERT IGNORE INTO orders (site_id, account_id, host_id, items)
+            VALUES " . implode(',', $values);
+
+        $conn->query($sql);
+    }
+
     return $orders;
 }
 
