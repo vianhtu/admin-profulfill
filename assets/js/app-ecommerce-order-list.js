@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
                 '<h6 class="text-nowrap mb-0">'+full['full_name']+'</h6>' +
                 '<small class="text-truncate d-none d-sm-block">'+full['street_address_1']+'</small>' +
                 street_address_2 +
-                '<small class="text-truncate d-none d-sm-block">'+full['city']+','+full['state']+' '+ full['zip_code'] +'</small>' +
+                '<small class="text-truncate d-none d-sm-block">'+full['city']+', '+full['state']+' '+ full['zip_code'] +'</small>' +
                 '</div>';
           }
         },
