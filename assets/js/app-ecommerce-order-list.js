@@ -38,10 +38,9 @@ function getItemsTable(orderItems) {
 
         let row_custom = '';
         item.Customizations.forEach(m => {
-            console.log(m);
-            //Modifications.forEach(values => {
-                //row_custom += '<small>'+values.Name+': '+ values.Value +'</small>';
-            //})
+            m.Modifications.forEach(values => {
+                row_custom += '<small>'+values.Name+': '+ values.Value +'</small>';
+            })
         });
 
         html += `<tr>
