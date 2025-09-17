@@ -15,6 +15,7 @@ function getFullSizeImage(url) {
     return url.replace(/_.*\.jpg$/, '.jpg');
 }
 
+
 // Datatable (js)
 
 document.addEventListener('DOMContentLoaded', function (e) {
@@ -23,6 +24,11 @@ document.addEventListener('DOMContentLoaded', function (e) {
   borderColor = config.colors.borderColor;
   bodyBg = config.colors.bodyBg;
   headingColor = config.colors.headingColor;
+
+  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+    new bootstrap.Tooltip(tooltipTriggerEl);
+  });
 
   // Variable declaration for table
 
@@ -104,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
                   row_output += '<div class="d-flex justify-content-start align-items-center product-name">' +
                       '<div class="avatar-wrapper">' +
                       '<div class="avatar avatar me-2 me-sm-4 rounded-2 bg-label-secondary">' +
-                      '<img src="'+item.Image+'" title="'+item.Title+'" alt="'+item.Title+'" class="rounded" style="cursor:pointer;" onclick="showImageModal(\''+getFullSizeImage(item.Image)+'\')">' +
+                      '<img src="'+item.Image+'" title="'+item.Title+'" alt="'+item.Title+'" class="rounded" style="cursor:pointer;" onclick="showImageModal(\''+getFullSizeImage(item.Image)+'\')" data-bs-toggle="tooltip" data-bs-placement="top">' +
                       '</div>' +
                       '</div>' +
                       '<div class="d-flex flex-column">' +
