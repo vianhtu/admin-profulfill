@@ -129,25 +129,9 @@ document.addEventListener('DOMContentLoaded', function (e) {
             const order_id = full['host_id'];
             const items = JSON.parse(full['items']);
             // Creates full output for row
-            let row_output = '<a href="app-ecommerce-order-details.html">' +
-                '<span>#' + order_id + '</span>' +
-                '</a>';
-              items.forEach((item, index) => {
-                  row_output += '<div class="d-flex justify-content-start align-items-center product-name">' +
-                      '<div class="avatar-wrapper">' +
-                      '<div class="avatar avatar me-2 me-sm-4 rounded-2 bg-label-secondary">' +
-                      '<img src="'+item.Image+'" title="'+item.Title+'" alt="'+item.Title+'" class="rounded" style="cursor:pointer;" onclick="showImageModal(\''+getFullSizeImage(item.Image)+'\')">' +
-                      '</div>' +
-                      '</div>' +
-                      '<div class="d-flex flex-column">' +
-                      '<a href="https://www.amazon.com/dp/'+item.ASIN+'" target="_blank">'+
-                      '<small class="text-truncate d-none d-sm-block">sku: '+item.SKU+'</small>' +
-                      '</a>' +
-                      '<small class="text-truncate d-none d-sm-block">qlt: '+item.Quantity+'</small>' +
-                      '</div>'+
-                      '</div>';
-              });
-            return row_output;
+            return '<a href="app-ecommerce-order-details.html">' +
+            '<span>#' + order_id + '</span>' +
+            '</a>';
           }
         },
         {
