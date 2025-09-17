@@ -97,8 +97,8 @@ document.addEventListener('DOMContentLoaded', function (e) {
                       '</div>' +
                       '</div>' +
                       '<div class="d-flex flex-column">' +
-                      '<small class="text-truncate d-none d-sm-block">SKU:'+item.SKU+'</small>' +
-                      '<small class="text-truncate d-none d-sm-block">QLT:'+item.Quantity+'</small>' +
+                      '<small class="text-truncate d-none d-sm-block">sku: '+item.SKU+'</small>' +
+                      '<small class="text-truncate d-none d-sm-block">qlt: '+item.Quantity+'</small>' +
                       '</div>'+
                       '</div>';
               });
