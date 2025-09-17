@@ -75,7 +75,7 @@ if (typeof TemplateCustomizer !== 'undefined') {
     lang: localStorage.getItem('templateCustomizer-' + templateName + '--Lang') || 'en', // Set default language here
     // defaultPrimaryColor: '#D11BB4',
     // defaultSkin: 1,
-     defaultTheme: 'dark',
+    //defaultTheme: 'dark',
     // defaultSemiDark: true,
     // defaultContentLayout: 'wide',
     // defaultHeaderType: 'static',
