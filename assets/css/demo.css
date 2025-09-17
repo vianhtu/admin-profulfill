@@ -115,3 +115,7 @@ td .product-name h6{
     opacity: 0.4;
     transition: opacity 0.3s ease;
 }
+
+.datatables-order tr:not(.dt-hasChild){
+    border-top-style: hidden;
+}
