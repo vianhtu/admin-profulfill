@@ -58,7 +58,7 @@ function getItemsRow(orderItems, colCount) {
 
         html += `
           <tr>
-            <td style="width: 100px">${row_image}</td>
+            <td style="width: 350px">${row_image}</td>
             <td><small>${item.Quantity}</small></td>
             <td><small>${item.Cost.Amount} ${item.Cost.CurrencyCode}</small></td>
             <td>${row_custom}</td>
