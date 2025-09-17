@@ -115,9 +115,17 @@ document.addEventListener('DOMContentLoaded', function (e) {
           }
         },
         {
-          targets: -3,
+          targets: 6,
           render: function (data, type, full, meta) {
-            return '';
+              const date = new Date(full['ship_date']);
+              const formattedDate = date.toLocaleString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false
+              });
+              return `<span class="text-nowrap">${formattedDate}</span>`;
           }
         },
         {
