@@ -59,9 +59,9 @@ function getItemsRow(orderItems, colCount) {
         html += `
           <tr>
             <td>${row_image}</td>
-            <td>${row_custom}</td>
             <td><small>${item.Quantity}</small></td>
             <td><small>${item.Cost.Amount} ${item.Cost.CurrencyCode}</small></td>
+            <td>${row_custom}</td>
           </tr>`;
     });
 
