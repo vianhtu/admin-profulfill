@@ -17,7 +17,7 @@ function getFullSizeImage(url) {
 
 // Hàm tạo HTML cho bảng con
 function getItemsTable(orderItems) {
-    let html = '<table class="table mb-0 table-borderless">';
+    let html = '<table class="table mb-0 table-sm table-borderless child-table">';
     html += '<tbody>';
 
     orderItems.forEach(item => {
