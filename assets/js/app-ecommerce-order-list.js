@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
         { data: 'host_id' },
         { data: 'purchase_date' },
         { data: 'full_name' }, //email //avatar
-        { data: 'payment' },
+        { data: 'total_price' },
         { data: 'ship_date' },
         { data: 'delivery_date' }, //method_number
         { data: 'id' }
@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
         {
           targets: 5,
           render: function (data, type, full, meta) {
-            return '';
+            return '<span class="text-nowrap">'+full['total_price']+'</span>';
           }
         },
         {
