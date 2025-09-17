@@ -38,9 +38,11 @@ function getItemsTable(orderItems) {
 
         let row_custom = '';
         item.Customizations.forEach(m => {
+            row_custom += '<div class="d-flex flex-column" ></div>';
             m.Modifications.forEach(values => {
                 row_custom += '<small>'+values.Name+': '+ values.Value +'</small>';
-            })
+            });
+            row_custom += '</div>';
         });
 
         html += `<tr>
