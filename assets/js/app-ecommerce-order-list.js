@@ -117,8 +117,9 @@ document.addEventListener('DOMContentLoaded', function (e) {
         { data: 'purchase_date' },
         { data: 'total_price' },
         { data: 'ship_date' },
-        { data: 'delivery_date' }, //method_number
-        { data: 'full_name' }, //email //avatar
+        { data: 'delivery_date' },
+        { data: 'status' },
+        { data: 'full_name' },
         { data: 'id' }
       ],
       columnDefs: [
@@ -213,6 +214,12 @@ document.addEventListener('DOMContentLoaded', function (e) {
         },
           {
               targets: 7,
+              render: function (data, type, full, meta) {
+                  return '';
+              }
+          },
+          {
+              targets: 8,
               responsivePriority: 1,
               render: function (data, type, full, meta) {
                   const street_address_2 = full['street_address_2'] ? '<small class="text-truncate d-none d-sm-block">'+full['street_address_2']+'</small>' : '';
