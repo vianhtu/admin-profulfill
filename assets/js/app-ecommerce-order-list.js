@@ -86,14 +86,22 @@ document.addEventListener('DOMContentLoaded', function (e) {
             const order_id = full['host_id'];
             const items = JSON.parse(full['items']);
             // Creates full output for row
-            let row_output = '<a href="app-ecommerce-order-details.html"><span>#' + order_id + '</span></a>';
+            let row_output = '<a href="app-ecommerce-order-details.html">' +
+                '<span>#' + order_id + '</span>' +
+                '</a>' +
+                '<div class="d-flex justify-content-start align-items-center product-name"';
               items.forEach((item, index) => {
                   row_output += '<div class="avatar-wrapper">' +
                       '<div class="avatar avatar me-2 me-sm-4 rounded-2 bg-label-secondary">' +
                       '<img src="'+item.Image+'" alt="'+item.Title+'" class="rounded">' +
                       '</div>' +
+                      '</div>' +
+                      '<div class="d-flex flex-column">' +
+                      '<small class="text-truncate d-none d-sm-block">SKU:'+item.SKU+'</small>' +
+                      '<small class="text-truncate d-none d-sm-block">QLT:'+item.Quantity+'</small>' +
                       '</div>';
               });
+              row_output += '</div>';
             return row_output;
           }
         },
