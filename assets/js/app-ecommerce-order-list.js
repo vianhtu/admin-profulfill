@@ -45,8 +45,8 @@ document.addEventListener('DOMContentLoaded', function (e) {
         // columns according to JSON
         { data: 'id' },
         { data: 'id', orderable: false, render: DataTable.render.select() },
-        { data: 'order' },
-        { data: 'date' },
+        { data: 'host_id' },
+        { data: 'purchase_date' },
         { data: 'customer' }, //email //avatar
         { data: 'payment' },
         { data: 'status' },
@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
           // Order ID
           targets: 2,
           render: function (data, type, full, meta) {
-            const order_id = full['order'];
+            const order_id = full['host_id'];
             // Creates full output for row
             const row_output = '<a href="app-ecommerce-order-details.html"><span>#' + order_id + '</span></a>';
             return row_output;
@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
         {
           targets: 3,
           render: function (data, type, full, meta) {
-            const date = new Date(full.date);
+            const date = new Date(full['purchase_date']);
             const timeX = full['time'].substring(0, 5);
             const formattedDate = date.toLocaleDateString('en-US', {
               month: 'short',
@@ -106,84 +106,25 @@ document.addEventListener('DOMContentLoaded', function (e) {
           targets: 4,
           responsivePriority: 1,
           render: function (data, type, full, meta) {
-            const name = full['customer'];
-            const email = full['email'];
-            const avatar = full['avatar'];
-            let output;
-
-            if (avatar) {
-              // For Avatar image
-              output = `<img src="${assetsPath}img/avatars/${avatar}" alt="Avatar" class="rounded-circle">`;
-            } else {
-              // For Avatar badge
-              const stateNum = Math.floor(Math.random() * 6);
-              const states = ['success', 'danger', 'warning', 'info', 'dark', 'primary', 'secondary'];
-              const state = states[stateNum];
-              const initials = (name.match(/\b\w/g) || []).slice(0, 2).join('').toUpperCase();
-
-              output = `<span class="avatar-initial rounded-circle bg-label-${state}">${initials}</span>`;
-            }
-
-            // Creates full output for row
-            const rowOutput = `
-              <div class="d-flex justify-content-start align-items-center order-name text-nowrap">
-                <div class="avatar-wrapper">
-                  <div class="avatar avatar-sm me-3">
-                    ${output}
-                  </div>
-                </div>
-                <div class="d-flex flex-column">
-                  <h6 class="m-0"><a href="pages-profile-user.html" class="text-heading">${name}</a></h6>
-                  <small>${email}</small>
-                </div>
-              </div>`;
-
-            return rowOutput;
+            return '';
           }
         },
         {
           targets: 5,
           render: function (data, type, full, meta) {
-            const payment = full['payment'];
-            const paymentStatus = paymentObj[payment];
-            if (paymentStatus) {
-              return `
-                <h6 class="mb-0 align-items-center d-flex w-px-100 ${paymentStatus.class}">
-                  <i class="icon-base ti tabler-circle-filled icon-12px me-1"></i>${paymentStatus.title}
-                </h6>`;
-            }
-            return data;
+            return '';
           }
         },
         {
           targets: -3,
           render: function (data, type, full, meta) {
-            const status = full['status'];
-            const statusInfo = statusObj[status];
-            if (statusInfo) {
-              return `
-                <span class="badge px-2 ${statusInfo.class} text-capitalized">
-                  ${statusInfo.title}
-                </span>`;
-            }
-            return data;
+            return '';
           }
         },
         {
           targets: -2,
           render: function (data, type, full, meta) {
-            let method = full['method'];
-            let methodNumber = full['method_number'];
-
-            if (method === 'paypal') {
-              methodNumber = '@gmail.com';
-            }
-
-            return `
-              <div class="d-flex align-items-center text-nowrap">
-                <img src="${assetsPath}img/icons/payments/${method}.png" alt="${method}" width="29">
-                <span><i class="icon-base ti tabler-dots mt-1 me-1"></i>${methodNumber}</span>
-              </div>`;
+              return '';
           }
         },
         {
