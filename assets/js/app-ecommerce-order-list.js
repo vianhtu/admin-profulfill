@@ -87,11 +87,13 @@ document.addEventListener('DOMContentLoaded', function (e) {
             const items = JSON.parse(full['items']);
             // Creates full output for row
             let row_output = '<a href="app-ecommerce-order-details.html"><span>#' + order_id + '</span></a>';
-              row_output += '<div class="avatar-wrapper">' +
-                  '<div class="avatar avatar me-2 me-sm-4 rounded-2 bg-label-secondary">' +
-                  '<img src="'+items[0].Image+'" alt="" class="rounded">' +
-              '</div>' +
-              '</div>';
+              items.forEach((item, index) => {
+                  row_output += '<div class="avatar-wrapper">' +
+                      '<div class="avatar avatar me-2 me-sm-4 rounded-2 bg-label-secondary">' +
+                      '<img src="'+item.Image+'" alt="'+item.Title+'" class="rounded">' +
+                      '</div>' +
+                      '</div>';
+              });
             return row_output;
           }
         },
