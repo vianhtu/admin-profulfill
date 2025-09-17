@@ -13,13 +13,13 @@ function renderMenu($currentMenu) {
 			'link' => '' // để trống => mặc định dùng $currentMenu
 		],
 		'eCommerce' => [
-			'icon' => 'tabler-shopping-cart',
+			'icon' => 'tabler-building-store',
 			'sub' => [
 				'products' => 'Products',
 				'stores' => 'Stores'
 			]
 		],
-        'Orders' => [
+        'Platform Orders' => [
             'icon' => 'tabler-shopping-bag',
             'sub' => [
                 'orders' => 'Orders',
