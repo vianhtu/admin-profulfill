@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
 
   const dt_order_table = document.querySelector('.datatables-order'),
     statusObj = {
-      1: { title: 'Dispatched', class: 'bg-label-warning' },
+      Unshipped: { title: 'Unshipped', class: 'bg-label-warning' },
       2: { title: 'Delivered', class: 'bg-label-success' },
       3: { title: 'Out for Delivery', class: 'bg-label-primary' },
       4: { title: 'Ready to Pickup', class: 'bg-label-info' }
@@ -215,7 +215,15 @@ document.addEventListener('DOMContentLoaded', function (e) {
           {
               targets: 7,
               render: function (data, type, full, meta) {
-                  return '';
+                  const status = full['status'];
+                  const statusInfo = statusObj[status];
+                  if (statusInfo) {
+                      return `
+                <span class="badge px-2 ${statusInfo.class} text-capitalized">
+                  ${statusInfo.title}
+                </span>`;
+                  }
+                  return data;
               }
           },
           {
