@@ -111,6 +111,10 @@ td .product-name h6{
     max-width: 250px;            /* Giới hạn chiều rộng */
 }
 
+td.sub-img{
+    max-width: 300px;
+}
+
 td.sub-title{
     max-width: 350px;
 }
