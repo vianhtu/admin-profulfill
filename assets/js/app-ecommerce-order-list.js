@@ -88,10 +88,10 @@ document.addEventListener('DOMContentLoaded', function (e) {
             // Creates full output for row
             let row_output = '<a href="app-ecommerce-order-details.html">' +
                 '<span>#' + order_id + '</span>' +
-                '</a>' +
-                '<div class="d-flex justify-content-start align-items-center product-name">';
+                '</a>';
               items.forEach((item, index) => {
-                  row_output += '<div class="avatar-wrapper">' +
+                  row_output += '<div class="d-flex justify-content-start align-items-center product-name">' +
+                      '<div class="avatar-wrapper">' +
                       '<div class="avatar avatar me-2 me-sm-4 rounded-2 bg-label-secondary">' +
                       '<img src="'+item.Image+'" alt="'+item.Title+'" class="rounded">' +
                       '</div>' +
@@ -99,9 +99,9 @@ document.addEventListener('DOMContentLoaded', function (e) {
                       '<div class="d-flex flex-column">' +
                       '<small class="text-truncate d-none d-sm-block">SKU:'+item.SKU+'</small>' +
                       '<small class="text-truncate d-none d-sm-block">QLT:'+item.Quantity+'</small>' +
+                      '</div>'+
                       '</div>';
               });
-              row_output += '</div>';
             return row_output;
           }
         },
