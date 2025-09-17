@@ -40,7 +40,7 @@ function getItemsTable(orderItems) {
                <td>${row_image}</td>
                <td>${item.Title}</td>
                <td>${item.Quantity}</td>
-               <td>${item.Cost.Amount}</td>
+               <td>${item.Cost.Amount} ${item.Cost.CurrencyCode}</td>
              </tr>`;
     });
 
