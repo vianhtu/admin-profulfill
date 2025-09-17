@@ -89,7 +89,7 @@ if (empty($_SESSION['csrf_token'])) {
   </style>
   </head>
 
-  <body>
+  <body class="dark-layout">
     <!-- Layout wrapper -->
     <div class="layout-wrapper layout-content-navbar">
       <div class="layout-container">
