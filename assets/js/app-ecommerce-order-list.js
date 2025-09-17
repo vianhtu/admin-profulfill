@@ -37,8 +37,10 @@ function getItemsTable(orderItems) {
             '</div>';
 
         let row_custom = '';
-        item.Customizations.forEach(custom => {
-            row_custom += '';
+        item.Customizations.forEach(Modifications => {
+            Modifications.forEach(values => {
+                row_custom += '<small>'+values.Name+': '+ values.Value +'</small>';
+            })
         });
 
         html += `<tr>
