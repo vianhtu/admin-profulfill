@@ -115,6 +115,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
                 '<small class="text-truncate d-none d-sm-block">'+full['street_address_1']+'</small>' +
                 street_address_2 +
                 '<small class="text-truncate d-none d-sm-block">'+full['city']+', '+full['state']+' '+ full['zip_code'] +'</small>' +
+                '<small class="text-truncate d-none d-sm-block">'+full['country']+'</small>' +
                 '</div>';
           }
         },
