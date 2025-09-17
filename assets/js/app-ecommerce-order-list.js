@@ -109,8 +109,12 @@ document.addEventListener('DOMContentLoaded', function (e) {
           targets: 4,
           responsivePriority: 1,
           render: function (data, type, full, meta) {
-            return '<h6 class="text-nowrap mb-0">'+full['full_name']+'</h6>' +
-                '<small class="text-truncate d-none d-sm-block">'+full['street_address_1']+'</small>';
+              const street_address_2 = full['street_address_2'] ? '<small class="text-truncate d-none d-sm-block">'+full['street_address_2']+'</small>' : '';
+            return '<div class="d-flex flex-column">' +
+                '<h6 class="text-nowrap mb-0">'+full['full_name']+'</h6>' +
+                '<small class="text-truncate d-none d-sm-block">'+full['street_address_1']+'</small>' +
+                street_address_2 +
+                '</div>';
           }
         },
         {
