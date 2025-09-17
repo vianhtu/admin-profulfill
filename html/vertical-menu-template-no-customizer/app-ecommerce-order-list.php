@@ -86,9 +86,9 @@
 </div>
 
 <!-- Modal -->
-<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content bg-transparent border-0">
+<div class="modal fade show" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-simple">
+        <div class="modal-content">
             <div class="modal-body text-center">
                 <img id="modalImage" src="" class="img-fluid rounded" alt="Preview">
             </div>
