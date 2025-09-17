@@ -19,6 +19,9 @@ if (!is_logged_in() && !attempt_cookie_login()) {
             case 'get-missing-orders':
                 echo json_encode(getMissingOrders());
                 break;
+            case 'add-orders':
+                echo json_encode(addOrders());
+                break;
         }
     } else {
         http_response_code(401); // Unauthorized

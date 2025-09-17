@@ -924,6 +924,16 @@ function getXlsxFileHeader(string $filePath, string $sheetName = 'Template', int
 	}
 }
 
+function addOrders(): array
+{
+    // Kết nối DB
+    $conn = db();
+
+    // Đọc dữ liệu JSON từ body request
+    $input = json_decode(file_get_contents('php://input'), true);
+    return $input;
+}
+
 function addXlsx(): array {
 	$conn = db();
 	$csrfToken = $_POST['csrf_token'] ?? '';
