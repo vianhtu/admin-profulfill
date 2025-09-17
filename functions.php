@@ -19,6 +19,12 @@ function renderMenu($currentMenu) {
 				'stores' => 'Stores'
 			]
 		],
+        'Orders' => [
+            'icon' => 'tabler-shopping-bag',
+            'sub' => [
+                'orders' => 'Orders',
+            ]
+        ],
 		'Export' => [
 			'icon' => 'tabler-file-type-xls',
 			'sub' => [
