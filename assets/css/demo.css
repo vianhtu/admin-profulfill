@@ -112,11 +112,11 @@ td .product-name h6{
 }
 
 td.sub-img{
-    max-width: 300px;
+    max-width: 150px;
 }
 
 td.sub-title{
-    max-width: 350px;
+    max-width: 300px;
 }
 
 .tr-loading {
