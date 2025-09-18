@@ -175,7 +175,7 @@ function initTable(){
                         // Creates full output for row
                         return '<a href="app-ecommerce-order-details.html">' +
                                 '<span class="text-nowrap">#' + order_id + '</span>' +
-                            '</a>';
+                            '</a><small>'+sitesObj[full['account_id']]+' ('+full['account_name']+')</small>';
                     }
                 },
                 {
