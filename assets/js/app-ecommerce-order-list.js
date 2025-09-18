@@ -41,6 +41,7 @@ function getItemsRow(orderItems, colCount) {
               <small>ASIN: <a href="https://www.amazon.com/dp/${item.ASIN}" target="_blank">${item.ASIN}</a></small>
               <small>SKU: ${item.SKU}</small>
               <small>QLT: ${item.Quantity}</small>
+              <small>${item.Cost.Amount} ${item.Cost.CurrencyCode}</small>
             </div>
           </div>`;
 
@@ -59,7 +60,7 @@ function getItemsRow(orderItems, colCount) {
             <td>${row_image}</td>
             <td>${row_custom}</td>
             <td></td>
-            <td><small>${item.Cost.Amount} ${item.Cost.CurrencyCode}</small></td>
+            <td></td>
             <td></td>
             <td></td>
             <td></td>
