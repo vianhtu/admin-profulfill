@@ -41,9 +41,7 @@ function getItemsRow(orderItems, colCount) {
               </div>
             </div>
             <div class="d-flex flex-column">
-              <a href="https://www.amazon.com/dp/${item.ASIN}" target="_blank">
-                <small>ASIN: ${item.ASIN}</small>
-              </a>
+                <small>ASIN: <a href="https://www.amazon.com/dp/${item.ASIN}" target="_blank">${item.ASIN}</a></small>
               <small>SKU: ${item.SKU}</small>
               <small>TRACKING: #</small>
             </div>
