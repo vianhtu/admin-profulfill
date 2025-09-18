@@ -576,6 +576,7 @@ function getOrdersTable(): array {
             "total_price"       => $row['total_price'],
             "items"             => $row['items'],
             "status"            => $row['status'],
+            "account_id"        => $row['account_id'],
             "account_name"      => $row['account_name'],
         ];
     }
