@@ -594,7 +594,7 @@ function getMissingOrders(): array
     $input = json_decode(file_get_contents('php://input'), true);
     $orderIds = $input['orderIds'] ?? [];
     if (empty($orderIds)) {
-        return [];
+        return ['missingOrders' => []];
     }
 
     $placeholders = implode(',', array_fill(0, count($orderIds), '?'));
