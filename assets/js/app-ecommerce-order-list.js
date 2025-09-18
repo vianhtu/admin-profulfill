@@ -263,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
         style: 'multi',
         selector: 'td:nth-child(2)'
       },
-      order: [3, 'asc'],
+      order: [3, 'desc'],
       layout: {
         topStart: {
           search: {
