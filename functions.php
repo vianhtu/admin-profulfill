@@ -1004,6 +1004,36 @@ function addOrders(): array
     // Kết nối DB
     $conn = db();
 
+    // 1. Kiểm tra key trong bảng options
+    $key = $_GET['key'] ?? '';
+    if (!empty($account_email)) {
+        $res = $conn->query("SELECT value FROM options WHERE name = 'sys_orders' LIMIT 1");
+        $row = $res->fetch_assoc();
+        if (!$row || $key !== $row['value']) {
+            return ['error' => 'Invalid key'];
+        }
+    } else {
+        return ['error' => 'Api key not found in options'];
+    }
+
+    // Kiểm tra email trong bảng accounts
+    $account_id = 0;
+    $account_email = $_GET['email'] ?? '';
+    if (!empty($account_email)) {
+        $stmt = $conn->prepare("SELECT id FROM accounts WHERE email = ? LIMIT 1");
+        $stmt->bind_param("s", $account_email);
+        $stmt->execute();
+        $stmt->bind_result($account_id);
+        $stmt->fetch();
+        $stmt->close();
+
+        if (empty($account_id)) {
+            return ['error' => 'Email not found in accounts'];
+        }
+    } else {
+        return ['error' => 'Account email not found in options'];
+    }
+
     // Đọc dữ liệu JSON từ body request
     $input = json_decode(file_get_contents('php://input'), true);
     $orders = $input['orders'] ?? [];
@@ -1014,7 +1044,6 @@ function addOrders(): array
     // Chuẩn bị dữ liệu insert
     $values = [];
     $site_id = 2;
-    $account_id = 0;
     foreach ($orders as $order) {
         if (!empty($order['Id'])) {
             $host_id = $conn->real_escape_string($order['Id']);
