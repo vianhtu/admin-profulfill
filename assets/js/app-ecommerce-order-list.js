@@ -57,10 +57,10 @@ function getItemsRow(orderItems, colCount) {
               </div>
             </div>
             <div class="d-flex flex-column">
-              <small>ASIN: <a href="https://www.amazon.com/dp/${item.ASIN}" target="_blank">${item.ASIN}</a></small>
-              <small>SKU: ${item.SKU}</small>
-              <small>QLT: ${item.Quantity}</small>
-              <small>PRICE: ${item.Cost.Amount} ${item.Cost.CurrencyCode}</small>
+              <small>asin: <a href="https://www.amazon.com/dp/${item.ASIN}" target="_blank">${item.ASIN}</a></small>
+              <small>sku: ${item.SKU}</small>
+              <small>qlt: ${item.Quantity}</small>
+              <small>price: ${item.Cost.Amount} ${item.Cost.CurrencyCode}</small>
             </div>
           </div>`;
 
