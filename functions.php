@@ -539,20 +539,20 @@ function getOrdersTable(): array {
     // Lọc theo search
     if ( $searchValue !== '' ) {
         $searchEsc      = $conn->real_escape_string( $searchValue );
-        $whereClauses[] = "(host_id LIKE '%$searchEsc%' OR full_name LIKE '%$searchEsc%' OR phone LIKE '%$searchEsc%' OR items LIKE '%$searchEsc%')";
+        $whereClauses[] = "(orders.host_id LIKE '%$searchEsc%' OR orders.full_name LIKE '%$searchEsc%' OR orders.phone LIKE '%$searchEsc%' OR orders.items LIKE '%$searchEsc%')";
     }
 
-    $joinAccounts   = "INNER JOIN accounts ar ON accounts.ID = orders.account_id";
+    $joinAccounts   = "INNER JOIN accounts ON accounts.ID = orders.account_id";
 
     $where         = $whereClauses ? ' WHERE ' . implode( ' AND ', $whereClauses ) : '';
-    $totalFiltered = $conn->query( "SELECT COUNT(ID) AS cnt FROM orders $joinAccounts $where" )->fetch_assoc()['cnt'];
+    $totalFiltered = $conn->query( "SELECT COUNT(ID) AS cnt FROM orders $where" )->fetch_assoc()['cnt'];
 
     // Lấy dữ liệu
     $sql = "SELECT orders.*, accounts.name AS account_name, accounts.email AS account_email
         FROM orders
         $joinAccounts
         $where
-        ORDER BY $orderColumn $orderDir
+        ORDER BY orders.$orderColumn $orderDir
         LIMIT $start, $length";
     $rs  = $conn->query( $sql );
 
