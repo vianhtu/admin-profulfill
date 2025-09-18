@@ -41,7 +41,7 @@ function getItemsRow(orderItems, colCount) {
               <small>ASIN: <a href="https://www.amazon.com/dp/${item.ASIN}" target="_blank">${item.ASIN}</a></small>
               <small>SKU: ${item.SKU}</small>
               <small>QLT: ${item.Quantity}</small>
-              <small>${item.Cost.Amount} ${item.Cost.CurrencyCode}</small>
+              <small>PRICE: ${item.Cost.Amount} ${item.Cost.CurrencyCode}</small>
             </div>
           </div>`;
 
