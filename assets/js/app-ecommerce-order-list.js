@@ -38,8 +38,9 @@ function getItemsRow(orderItems, colCount) {
               </div>
             </div>
             <div class="d-flex flex-column">
-                <small>ASIN: <a href="https://www.amazon.com/dp/${item.ASIN}" target="_blank">${item.ASIN}</a></small>
+              <small>ASIN: <a href="https://www.amazon.com/dp/${item.ASIN}" target="_blank">${item.ASIN}</a></small>
               <small>SKU: ${item.SKU}</small>
+              <small>QLT: ${item.Quantity}</small>
             </div>
           </div>`;
 
@@ -57,7 +58,7 @@ function getItemsRow(orderItems, colCount) {
             <td></td>
             <td>${row_image}</td>
             <td>${row_custom}</td>
-            <td><small>QLT: ${item.Quantity}</small></td>
+            <td></td>
             <td><small>${item.Cost.Amount} ${item.Cost.CurrencyCode}</small></td>
             <td></td>
             <td></td>
