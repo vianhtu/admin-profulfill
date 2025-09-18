@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
             // Creates full output for row
             return '<a href="app-ecommerce-order-details.html">' +
             '<span class="text-nowrap">#' + order_id + '</span>' +
-            '</a>';
+            '</a><span class="text-nowrap">'+full['account_name']+'</span>';
           }
         },
         {

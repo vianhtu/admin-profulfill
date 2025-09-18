@@ -542,12 +542,15 @@ function getOrdersTable(): array {
         $whereClauses[] = "(host_id LIKE '%$searchEsc%' OR full_name LIKE '%$searchEsc%' OR phone LIKE '%$searchEsc%' OR items LIKE '%$searchEsc%')";
     }
 
+    $joinAccounts   = "INNER JOIN accounts ar ON accounts.ID = orders.account_id";
+
     $where         = $whereClauses ? ' WHERE ' . implode( ' AND ', $whereClauses ) : '';
     $totalFiltered = $conn->query( "SELECT COUNT(ID) AS cnt FROM orders $where" )->fetch_assoc()['cnt'];
 
     // Lấy dữ liệu
-    $sql = "SELECT *
+    $sql = "SELECT orders.*, accounts.name AS account_name, accounts.email AS account_email
         FROM orders
+        $joinAccounts
         $where
         ORDER BY $orderColumn $orderDir
         LIMIT $start, $length";
@@ -573,6 +576,7 @@ function getOrdersTable(): array {
             "total_price"       => $row['total_price'],
             "items"             => $row['items'],
             "status"            => $row['status'],
+            "account_name"      => $row['account_name'],
         ];
     }
 
