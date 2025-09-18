@@ -22,10 +22,7 @@ function replaceAmazonImageSize(url, newSize) {
 
 // Hàm tạo HTML cho bảng con
 function getItemsRow(orderItems, colCount) {
-    let html = `<tr class="child-row">
-                  <td colspan="${colCount}" class="p-0">
-                    <table class="table mb-0 table-sm table-borderless child-table">
-                      <tbody>`;
+    let html = '';
 
     orderItems.forEach(item => {
         const row_image = `
@@ -57,17 +54,20 @@ function getItemsRow(orderItems, colCount) {
 
         html += `
           <tr>
-            <td style="width: 350px">${row_image}</td>
-            <td style="width: 70px"><small>${item.Quantity}</small></td>
-            <td style="width: 100px"><small>${item.Cost.Amount} ${item.Cost.CurrencyCode}</small></td>
-            <td>${row_custom}</td>
+            <td style="display: none;"></td>
+            <td>${row_image}</td>
+            <td><small>${item.Quantity}</small></td>
+            <td><small>${item.Cost.Amount} ${item.Cost.CurrencyCode}</small></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
           </tr>`;
     });
 
-    html += `     </tbody>
-                </table>
-              </td>
-            </tr>`;
+    html += '';
 
     return html;
 }
