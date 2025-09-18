@@ -37,7 +37,7 @@
     </option>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../profulfill-sys-orders" />
   </component>
   <component name="PhpDebugGeneral" listening_started="true" />
   <component name="PhpWorkspaceProjectConfiguration" interpreter_name="$PROJECT_DIR$/../../../../../../xampp/php/php.exe">
@@ -139,7 +139,7 @@
       <workItem from="1758072407605" duration="9403000" />
       <workItem from="1758093760664" duration="18883000" />
       <workItem from="1758159844763" duration="4362000" />
-      <workItem from="1758164992922" duration="51000" />
+      <workItem from="1758164992922" duration="392000" />
     </task>
     <servers />
   </component>
