@@ -590,6 +590,18 @@ function getMissingOrders(): array
     // Kết nối DB
     $conn = db();
 
+    // 1. Kiểm tra key trong bảng options
+    $key = $_GET['key'] ?? '';
+    if (!empty($key)) {
+        $res = $conn->query("SELECT value FROM options WHERE name = 'sys_orders' LIMIT 1");
+        $row = $res->fetch_assoc();
+        if (!$row || $key !== $row['value']) {
+            return ['error' => 'Invalid key'];
+        }
+    } else {
+        return ['error' => 'Api key not found in options'];
+    }
+
     // Đọc dữ liệu JSON từ body request
     $input = json_decode(file_get_contents('php://input'), true);
     $orderIds = $input['orderIds'] ?? [];
@@ -1006,7 +1018,7 @@ function addOrders(): array
 
     // 1. Kiểm tra key trong bảng options
     $key = $_GET['key'] ?? '';
-    if (!empty($account_email)) {
+    if (!empty($key)) {
         $res = $conn->query("SELECT value FROM options WHERE name = 'sys_orders' LIMIT 1");
         $row = $res->fetch_assoc();
         if (!$row || $key !== $row['value']) {
