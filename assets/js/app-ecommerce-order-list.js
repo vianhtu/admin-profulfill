@@ -170,13 +170,14 @@ function initTable(){
                     // Order ID
                     targets: 2,
                     render: function (data, type, full, meta) {
-                        console.log(sitesObj);
                         const order_id = full['host_id'];
                         const items = JSON.parse(full['items']);
                         // Creates full output for row
-                        return '<a href="app-ecommerce-order-details.html">' +
+                        return '<div class="d-flex flex-column">' +
+                            '<a href="app-ecommerce-order-details.html">' +
                                 '<span class="text-nowrap">#' + order_id + '</span>' +
-                            '</a><small>'+sitesObj[full['account_id']]+' ('+full['account_name']+')</small>';
+                            '</a><small>'+sitesObj[full['account_id']].title+' ('+full['account_name']+')</small>' +
+                            '</div>';
                     }
                 },
                 {
