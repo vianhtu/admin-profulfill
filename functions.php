@@ -1055,7 +1055,6 @@ function addOrders(): array
 
     // Chuẩn bị dữ liệu insert
     $values = [];
-    $site_id = 2;
     foreach ($orders as $order) {
         if (!empty($order['Id'])) {
             $host_id = $conn->real_escape_string($order['Id']);
@@ -1073,13 +1072,13 @@ function addOrders(): array
             $zip_code = $conn->real_escape_string($order['Address']['postalCode']);
             $country = $conn->real_escape_string($order['Address']['countryCode']);
             $items = $conn->real_escape_string(json_encode($order['Items'] ?? []));
-            $values[] = "($site_id, $account_id, '$host_id', '$items', '$status','$purchase_date','$delivery_date','$ship_date', $total_price, '$full_name', '$phone', '$street_address_1', '$street_address_2', '$city', '$state', '$zip_code', '$country')";
+            $values[] = "($account_id, '$host_id', '$items', '$status','$purchase_date','$delivery_date','$ship_date', $total_price, '$full_name', '$phone', '$street_address_1', '$street_address_2', '$city', '$state', '$zip_code', '$country')";
         }
     }
 
     if (!empty($values)) {
         $sql = "
-            INSERT IGNORE INTO orders (site_id, account_id, host_id, items, status, purchase_date, delivery_date, ship_date, total_price, full_name, phone, street_address_1, street_address_2, city, state, zip_code, country)
+            INSERT IGNORE INTO orders (account_id, host_id, items, status, purchase_date, delivery_date, ship_date, total_price, full_name, phone, street_address_1, street_address_2, city, state, zip_code, country)
             VALUES " . implode(',', $values);
 
         $conn->query($sql);
