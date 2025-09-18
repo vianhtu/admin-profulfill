@@ -170,6 +170,7 @@ function initTable(){
                     // Order ID
                     targets: 2,
                     render: function (data, type, full, meta) {
+                        console.log(full['account_id']);
                         const order_id = full['host_id'];
                         const items = JSON.parse(full['items']);
                         // Creates full output for row
