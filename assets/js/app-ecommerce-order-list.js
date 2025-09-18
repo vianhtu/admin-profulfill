@@ -40,7 +40,6 @@ function getItemsRow(orderItems, colCount) {
             <div class="d-flex flex-column">
                 <small>ASIN: <a href="https://www.amazon.com/dp/${item.ASIN}" target="_blank">${item.ASIN}</a></small>
               <small>SKU: ${item.SKU}</small>
-              <small>TRACKING: #</small>
             </div>
           </div>`;
 
@@ -53,7 +52,7 @@ function getItemsRow(orderItems, colCount) {
         row_custom += '</div>';
 
         html += `
-          <tr>
+          <tr class="child-row">
             <td style="display: none;"></td>
             <td></td>
             <td>${row_image}</td>
