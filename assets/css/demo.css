@@ -112,7 +112,7 @@ td .product-name h6{
 }
 
 tr.child-row {
-    background-color: #fafafa;
+    background-color: #fafafa!important;
     border-top: none;
     font-size: 0.85rem;
 }
