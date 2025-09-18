@@ -176,7 +176,7 @@ function initTable(){
                         return '<a href="app-ecommerce-order-details.html">' +
                                 '<span class="text-nowrap">#' + order_id + '</span>' +
                             '</a>' +
-                            '<span class="text-nowrap">'+sitesObj[full['account_name']]+'('+full['account_name']+')</span>';
+                            '<span class="text-nowrap">'+sitesObj[full['account_id']]+'('+full['account_name']+')</span>';
                     }
                 },
                 {
