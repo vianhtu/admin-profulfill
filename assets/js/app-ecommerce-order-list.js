@@ -45,6 +45,7 @@ function getItemsRow(orderItems, colCount) {
                 <small>ASIN: ${item.ASIN}</small>
               </a>
               <small>SKU: ${item.SKU}</small>
+              <small>TRACKING: #</small>
             </div>
           </div>`;
 
