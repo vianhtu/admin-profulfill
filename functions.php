@@ -545,7 +545,7 @@ function getOrdersTable(): array {
     $joinAccounts   = "INNER JOIN accounts ar ON accounts.ID = orders.account_id";
 
     $where         = $whereClauses ? ' WHERE ' . implode( ' AND ', $whereClauses ) : '';
-    $totalFiltered = $conn->query( "SELECT COUNT(ID) AS cnt FROM orders $where" )->fetch_assoc()['cnt'];
+    $totalFiltered = $conn->query( "SELECT COUNT(ID) AS cnt FROM orders $joinAccounts $where" )->fetch_assoc()['cnt'];
 
     // Lấy dữ liệu
     $sql = "SELECT orders.*, accounts.name AS account_name, accounts.email AS account_email
