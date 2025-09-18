@@ -24,15 +24,6 @@ async function init() {
     }
 }
 
-async function fetchTableFilter(){
-    const res = await fetch('../../ajax.php?action=get-product-table-filter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-    });
-    if (!res.ok) throw new Error('Lỗi lấy danh mục');
-    return await res.json();
-}
-
 // Datatable (js)
 function initTable(){
     let borderColor, bodyBg, headingColor;
