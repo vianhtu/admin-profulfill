@@ -12,7 +12,7 @@ let lastPostData = {};
 async function init() {
     try {
         // 1️⃣ Gọi API trước
-        let options = await fetchProductTableFilter();
+        let options = await fetchTableFilter();
         categoryObj = options['types'];
         authorsObj = options['authors'];
         sitesObj = options['sites'];
@@ -22,15 +22,6 @@ async function init() {
     } catch (err) {
         alert('Không thể tải danh mục');
     }
-}
-
-async function fetchProductTableFilter(){
-    const res = await fetch('../../ajax.php?action=get-product-table-filter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-    });
-    if (!res.ok) throw new Error('Lỗi lấy danh mục');
-    return await res.json();
 }
 
 function initProductTable(){
