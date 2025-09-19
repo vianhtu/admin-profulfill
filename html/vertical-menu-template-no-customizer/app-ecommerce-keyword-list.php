@@ -27,10 +27,10 @@
                 <h6 class="mb-6">Information</h6>
                 <div class="mb-6 form-control-validation">
                     <label class="form-label" for="add-name">Name*</label>
-                    <input type="text" class="form-control" id="add-name" placeholder="Apple" name="name" aria-label="Apple"/>
+                    <textarea class="form-control" id="add-name" placeholder="Apple" name="name" aria-label="Apple" rows="50"></textarea>
                 </div>
                 <div class="form-control-validation">
-                    <label class="form-label" for="select-status">Status</label>
+                    <label class="form-label" for="select-status">Status*</label>
                     <select id="select-status" class="select2 form-select">
                         <option value="0">Select</option>
                         <option value="1">Replace</option>
