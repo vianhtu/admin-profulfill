@@ -1248,7 +1248,63 @@ function addXlsx(): array {
 function addKeywords(): array
 {
     $conn = db();
-    return $_POST;
+    $result = [
+        'success' => [],
+        'error'   => [],
+    ];
+
+    $rawKeywords = $_POST['keywords'] ?? '';
+    $status      = (int) ($_POST['keywordsStatus'] ?? 0);
+
+    // Chỉ nhận status 1, 2, 3
+    if (!in_array($status, [1, 2, 3], true)) {
+        return ['error' => ['Trạng thái không hợp lệ!']];
+    }
+
+    // Tách theo dòng
+    $lines = preg_split('/\r\n|\r|\n/', $rawKeywords);
+
+    $keywords = [];
+    foreach ($lines as $line) {
+        // Tách tiếp theo dấu phẩy nếu có
+        $parts = explode(',', $line);
+        foreach ($parts as $part) {
+            $kw = trim($part);
+            if ($kw !== '') {
+                $keywords[] = mb_strtolower($kw); // chuẩn hóa chữ thường
+            }
+        }
+    }
+
+    // Loại bỏ trùng lặp
+    $keywords = array_unique($keywords);
+
+    if (empty($keywords)) {
+        return ['error' => ['Không có từ khóa hợp lệ!']];
+    }
+
+    // Chuẩn bị statement
+    $stmt = $conn->prepare("
+        INSERT INTO keywords (name, status)
+        VALUES (?, ?)
+        ON DUPLICATE KEY UPDATE status = VALUES(status)
+    ");
+
+    if (!$stmt) {
+        return ['error' => ['Lỗi prepare: ' . $conn->error]];
+    }
+
+    foreach ($keywords as $kw) {
+        $stmt->bind_param('si', $kw, $status);
+        if ($stmt->execute()) {
+            $result['success'][] = $kw;
+        } else {
+            $result['error'][] = "Lỗi với từ khóa '{$kw}': " . $stmt->error;
+        }
+    }
+
+    $stmt->close();
+    return $result;
 }
 
 function duplicateXlsx(): array {
