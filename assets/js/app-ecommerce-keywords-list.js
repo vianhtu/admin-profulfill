@@ -108,13 +108,13 @@ function initTable(){
             order: [2, 'desc'],
             layout: {
                 topStart: {
+                    rowClass: 'row mx-3 my-0 justify-content-between',
                     search: {
                         placeholder: 'Search Keyword',
                         text: '_INPUT_'
                     }
                 },
                 topEnd: {
-                    rowClass: 'row mx-3 my-0 justify-content-between',
                     features: [
                         {
                             pageLength: {
@@ -129,6 +129,7 @@ function initTable(){
                                     className: 'btn btn-label-primary dropdown-toggle',
                                     text: '<span class="d-flex align-items-center gap-1"><i class="icon-base ti tabler-upload icon-xs"></i> <span class="d-none d-sm-inline-block">Actions</span></span>',
                                     buttons: [
+
                                     ]
                                 },
                                 {
