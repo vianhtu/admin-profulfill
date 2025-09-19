@@ -1248,7 +1248,7 @@ function addXlsx(): array {
 function addKeywords(): array
 {
     $conn = db();
-    return [];
+    return $_POST;
 }
 
 function duplicateXlsx(): array {
