@@ -54,6 +54,8 @@ function initTable(){
 
     if (dt_order_table) {
         const dt_products = new DataTable(dt_order_table, {
+            serverSide: true,
+            processing: true,
             ajax: {
                 url: '../../ajax.php?action=get-keywords-table',
                 type: 'POST',
