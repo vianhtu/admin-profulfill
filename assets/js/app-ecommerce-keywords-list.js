@@ -109,10 +109,15 @@ function initTable(){
             layout: {
                 topStart: {
                     rowClass: 'row mx-3 my-0 justify-content-between',
-                    search: {
-                        placeholder: 'Search Keyword',
-                        text: '_INPUT_'
-                    }
+                    features: [
+                        {
+                            search: {
+                                className: 'me-5 ms-n4 pe-5 mb-n6 mb-md-0',
+                                placeholder: 'Search Keyword',
+                                text: '_INPUT_'
+                            }
+                        }
+                    ]
                 },
                 topEnd: {
                     features: [
