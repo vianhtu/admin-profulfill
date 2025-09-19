@@ -365,6 +365,9 @@ if (empty($_SESSION['csrf_token'])) {
         case 'orders': ?>
             <script src="../../assets/js/app-ecommerce-order-list.js"></script>
             <?php break;
+        case 'keywords': ?>
+            <script src="../../assets/js/app-ecommerce-keywords-list.js"></script>
+            <?php break;
     }
     ?>
     <!-- Main JS -->

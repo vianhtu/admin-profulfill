@@ -88,7 +88,7 @@
     "SHELLCHECK.PATH": "C:\\Users\\thien\\AppData\\Roaming\\JetBrains\\PhpStorm2025.2\\plugins\\Shell Script\\shellcheck.exe",
     "disable.download.node.interpreter.editor.notification": "true",
     "git-widget-placeholder": "main",
-    "last_opened_file_path": "C:/Users/thien/OneDrive/Documents/GitHub/admin-profulfill/html/vertical-menu-template-no-customizer",
+    "last_opened_file_path": "C:/Users/thien/OneDrive/Documents/GitHub/admin-profulfill/assets/js",
     "list.type.of.created.stylesheet": "CSS",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -100,9 +100,9 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\thien\OneDrive\Documents\GitHub\admin-profulfill\assets\js" />
       <recent name="C:\Users\thien\OneDrive\Documents\GitHub\admin-profulfill\html\vertical-menu-template-no-customizer" />
       <recent name="C:\Users\thien\OneDrive\Documents\GitHub\profulfill-sys-orders" />
-      <recent name="C:\Users\thien\OneDrive\Documents\GitHub\admin-profulfill\assets\js" />
     </key>
   </component>
   <component name="SharedIndexes">
@@ -140,7 +140,7 @@
       <workItem from="1758093760664" duration="18883000" />
       <workItem from="1758159844763" duration="4362000" />
       <workItem from="1758164992922" duration="5742000" />
-      <workItem from="1758245383564" duration="662000" />
+      <workItem from="1758245383564" duration="807000" />
     </task>
     <servers />
   </component>
