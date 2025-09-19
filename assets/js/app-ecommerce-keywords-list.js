@@ -105,7 +105,7 @@ function initTable(){
                 style: 'multi',
                 selector: 'td:nth-child(2)'
             },
-            order: [2, 'desc'],
+            order: [1, 'desc'],
             layout: {
                 topStart: {
                     search: {
