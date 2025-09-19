@@ -4,10 +4,44 @@
 
 'use strict';
 
-function showAddKeywordsModal() {
-    const modal = new bootstrap.Modal(document.getElementById('addKeywordsModal'));
-    modal.show();
-}
+// Validation & Phone mask
+(function () {
+    const eCommerceCustomerAddForm = document.getElementById('eCommerceKeywordsAddForm');
+    // Add New customer Form Validation
+    const fv = FormValidation.formValidation(eCommerceCustomerAddForm, {
+        fields: {
+            keywords: {
+                validators: {
+                    notEmpty: {
+                        message: 'Please enter keywords!'
+                    }
+                }
+            },
+            keywordsStatus: {
+                validators: {
+                    notEmpty: {
+                        message: 'Please select a status!'
+                    }
+                }
+            }
+        },
+        plugins: {
+            trigger: new FormValidation.plugins.Trigger(),
+            bootstrap5: new FormValidation.plugins.Bootstrap5({
+                // Use this for enabling/changing valid/invalid class
+                eleValidClass: '',
+                rowSelector: function (field, ele) {
+                    // field is the field name & ele is the field element
+                    return '.form-control-validation';
+                }
+            }),
+            submitButton: new FormValidation.plugins.SubmitButton(),
+            // Submit the form when all fields are valid
+            // defaultSubmit: new FormValidation.plugins.DefaultSubmit(),
+            autoFocus: new FormValidation.plugins.AutoFocus()
+        }
+    });
+})();
 
 // Datatable (js)
 function initTable(){

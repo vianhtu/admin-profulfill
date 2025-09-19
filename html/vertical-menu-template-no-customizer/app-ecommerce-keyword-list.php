@@ -22,16 +22,16 @@
         <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body border-top mx-0 flex-grow-0">
-        <form class="ecommerce-customer-add pt-0" id="eCommerceCustomerAddForm" onsubmit="return false">
+        <form class="ecommerce-customer-add pt-0" id="eCommerceKeywordsAddForm" onsubmit="return false">
             <div class="mb-6 pt-4">
                 <div class="mb-6 form-control-validation">
                     <label class="form-label" for="add-name">Name*</label>
-                    <textarea class="form-control" id="add-name" placeholder="Nhập tên từ khóa mỗi dòng một từ" rows="15"></textarea>
+                    <textarea class="form-control" id="keywords" name="keywords" placeholder="Nhập tên từ khóa mỗi dòng một từ" rows="15"></textarea>
                 </div>
                 <div class="form-control-validation">
                     <label class="form-label" for="select-status">Status*</label>
-                    <select id="select-status" class="select2 form-select">
-                        <option value="0">Select</option>
+                    <select id="select-status" class="select2 form-select" name="keywordsStatus">
+                        <option value="">Select</option>
                         <option value="1">Replace</option>
                         <option value="2">Trademark</option>
                         <option value="3">Cannot be Used</option>
