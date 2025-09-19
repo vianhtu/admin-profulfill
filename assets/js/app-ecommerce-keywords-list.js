@@ -4,39 +4,11 @@
 
 'use strict';
 
-let categoryObj = {};
-let authorsObj = {};
-let sitesObj = {};
-
-async function init() {
-    try {
-        // 1️⃣ Gọi API trước
-        let options = await fetchTableFilter();
-        categoryObj = options['types'];
-        authorsObj = options['authors'];
-        sitesObj = options['sites'];
-
-        // 2️⃣ Sau khi có dữ liệu → tạo bảng
-        initTable();
-    } catch (err) {
-        alert('Không thể tải danh mục');
-    }
-}
-
 function showImageModal(src) {
     const modalImg = document.getElementById('modalImage');
     modalImg.src = src;
     const modal = new bootstrap.Modal(document.getElementById('imageModal'));
     modal.show();
-}
-
-function getFullSizeImage(url) {
-    return url.replace(/_.*\.jpg$/, '.jpg');
-}
-
-function replaceAmazonImageSize(url, newSize) {
-    // newSize chỉ cần số, ví dụ 200
-    return url.replace(/SX\d+/, `SX${newSize}`);
 }
 
 // Datatable (js)
@@ -134,11 +106,11 @@ function initTable(){
                 style: 'multi',
                 selector: 'td:nth-child(2)'
             },
-            order: [3, 'desc'],
+            order: [2, 'desc'],
             layout: {
                 topStart: {
                     search: {
-                        placeholder: 'Search Order',
+                        placeholder: 'Search Keyword',
                         text: '_INPUT_'
                     }
                 },
@@ -270,5 +242,5 @@ function initTable(){
 }
 
 document.addEventListener('DOMContentLoaded', function (e) {
-    init();
+    initTable();
 });
