@@ -75,6 +75,8 @@
                             $('.datatables-taxonomy').DataTable().ajax.reload(null, false);
                         }
                         alertBox.classList.remove('d-none'); // Hiện alert
+                        // Reset lại cờ để lần sau vẫn submit được
+                        isValidated = false;
                     })
                     .catch(err => {
                         console.error(err);
@@ -83,6 +85,8 @@
                         alertBox.classList.remove('d-none');
                         spinner.classList.add('d-none');
                         btn.disabled = false;
+                        // Cho phép thử lại
+                        isValidated = false;
                     });
             }
         });
