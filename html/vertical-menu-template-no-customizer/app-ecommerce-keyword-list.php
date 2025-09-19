@@ -32,7 +32,16 @@
     <div class="offcanvas-body border-top mx-0 flex-grow-0">
         <form class="ecommerce-customer-add pt-0" id="eCommerceCustomerAddForm" onsubmit="return false">
             <div class="ecommerce-customer-add-basic mb-4">
-                <h6 class="mb-6">Basic Information</h6>
+                <h6 class="mb-6">Information</h6>
+                <div class="form-control-validation">
+                    <label class="form-label" for="select-status">Status</label>
+                    <select id="select-status" class="select2 form-select">
+                        <option value="0">Select</option>
+                        <option value="1">Replace</option>
+                        <option value="2">Trademark</option>
+                        <option value="3">Cannot be Used</option>
+                    </select>
+                </div>
                 <div class="mb-6 form-control-validation">
                     <label class="form-label" for="ecommerce-customer-add-name">Name*</label>
                     <input
