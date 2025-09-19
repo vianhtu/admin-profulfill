@@ -16,7 +16,8 @@ function renderMenu($currentMenu) {
 			'icon' => 'tabler-building-store',
 			'sub' => [
 				'products' => 'Products',
-				'stores' => 'Stores'
+				'stores' => 'Stores',
+                'keywords' => 'Keywords',
 			]
 		],
         'Platform Orders' => [

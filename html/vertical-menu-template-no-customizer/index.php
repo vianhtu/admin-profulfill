@@ -261,6 +261,9 @@ if (empty($_SESSION['csrf_token'])) {
                   case 'orders':
                       include 'app-ecommerce-order-list.php';
                       break;
+                  case 'keywords':
+                      include 'app-ecommerce-keyword-list.php';
+                      break;
               }
               ?>
             </div>
