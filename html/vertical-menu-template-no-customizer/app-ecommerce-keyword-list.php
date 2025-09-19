@@ -27,7 +27,7 @@
                 <h6 class="mb-6">Information</h6>
                 <div class="mb-6 form-control-validation">
                     <label class="form-label" for="add-name">Name*</label>
-                    <textarea class="form-control" id="add-name" placeholder="Apple" name="name" aria-label="Apple" rows="50"></textarea>
+                    <textarea class="form-control" id="add-name" placeholder="Apple\n9gag\nNFL" name="name" rows="50"></textarea>
                 </div>
                 <div class="form-control-validation">
                     <label class="form-label" for="select-status">Status*</label>
