@@ -171,7 +171,7 @@ function initTable(){
                     targets: 2,
                     render: function (data, type, full, meta) {
                         const order_id = full['host_id'];
-                        const items = JSON.parse(full['items']);
+                        const items = JSON.parse(full['items']); console.log(sitesObj); console.log(full['account_id'])
                         // Creates full output for row
                         return '<div class="d-flex flex-column">' +
                             '<a href="app-ecommerce-order-details.html">' +
