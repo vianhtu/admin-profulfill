@@ -531,7 +531,7 @@ function getProductTableFilters(): array {
 function getKeywordsTable(): array
 {
     $conn = db();
-    $allowedCols = ['ID', 'status', 'purchase_date', 'delivery_date', 'ship_date'];
+    $allowedCols = ['ID', 'name', 'status'];
 
     // Lấy tham số từ DataTables
     $params = getDataTableParams($allowedCols);
