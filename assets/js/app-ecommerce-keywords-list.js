@@ -79,7 +79,7 @@ function initTable(){
                 {
                     targets: 3,
                     render: function (data, type, full, meta) {
-                        return '<span class="badge px-2 '+statusInfo[full['status']].class+' text-capitalized">'+statusObj[full['status']].title+'</span>';
+                        return '<span class="badge px-2 '+statusObj[full['status']].class+' text-capitalized">'+statusObj[full['status']].title+'</span>';
                     }
                 },
                 {
