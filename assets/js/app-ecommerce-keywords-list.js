@@ -60,6 +60,9 @@
                     })
                     .catch(err => {
                         btn.textContent = 'Error!';
+                        setTimeout(function() {
+                            btn.textContent = 'Add';
+                        }, 1000);
                         console.error(err);
                     });
             }
