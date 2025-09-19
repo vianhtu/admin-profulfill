@@ -1270,6 +1270,7 @@ function addKeywords(): array
         $parts = explode(',', $line);
         foreach ($parts as $part) {
             $kw = trim($part);
+            $kw = preg_replace('/\s+/', ' ', $kw); // chuẩn hóa khoảng trắng
             if ($kw !== '') {
                 $keywords[] = mb_strtolower($kw); // chuẩn hóa chữ thường
             }
