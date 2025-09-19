@@ -1,7 +1,7 @@
-<!-- Order List Table -->
+<!-- Taxonomy List Table -->
 <div class="card">
     <div class="card-datatable table-responsive">
-        <table class="datatables-order table border-top">
+        <table class="datatables-taxonomy table border-top">
             <thead>
             <tr>
                 <th></th>

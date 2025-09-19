@@ -42,7 +42,7 @@ function replaceAmazonImageSize(url, newSize) {
 // Datatable (js)
 function initTable(){
     // Variable declaration for table
-    const dt_order_table = document.querySelector('.datatables-order'),
+    const dt_order_table = document.querySelector('.datatables-taxonomy'),
         statusObj = {
             Unshipped: { title: 'Unshipped', class: 'bg-label-warning' },
             2: { title: 'Delivered', class: 'bg-label-success' },
