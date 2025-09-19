@@ -120,7 +120,7 @@ function initTable(){
     if (dt_order_table) {
         const dt_products = new DataTable(dt_order_table, {
             ajax: {
-                url: '../../ajax.php?action=get-keywords-table',
+                url: '../../ajax.php?action=get-orders',
                 type: 'POST',
                 data: function (d) {},
                 dataSrc: function (json) {
