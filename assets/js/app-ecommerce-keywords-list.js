@@ -200,7 +200,7 @@ function initTable(){
     // ? setTimeout used for order-list table initialization
     setTimeout(() => {
         const elementsToModify = [
-            { selector: '.dt-buttons .btn', classToRemove: 'btn-secondary', classToAdd: 'btn-label-secondary' },
+            { selector: '.dt-buttons .btn', classToRemove: 'btn-secondary'},
             { selector: '.dt-search .form-control', classToRemove: 'form-control-sm', classToAdd: 'ms-0' },
             { selector: '.dt-length .form-select', classToRemove: 'form-select-sm' },
             { selector: '.dt-length', classToAdd: 'mt-md-6 mt-0' },
