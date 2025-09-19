@@ -43,8 +43,7 @@
                 // Lần đầu hợp lệ → chỉ đánh dấu và đổi nút
                 isValidated = true;
                 const btn = eCommerceCustomerAddForm.querySelector('[type="submit"]');
-                btn.textContent = 'Send keywords';
-            } else {
+                btn.textContent = 'Send Keywords...';
                 // Lần thứ hai → chạy AJAX
                 const formData = new FormData(eCommerceCustomerAddForm);
                 fetch('../../ajax.php?action=add-keywords', {
@@ -53,11 +52,11 @@
                 })
                     .then(res => res.json())
                     .then(data => {
-                        alert('Done!');
+                        btn.textContent = 'Done!';
                         console.log(data);
                     })
                     .catch(err => {
-                        alert('Error!');
+                        btn.textContent = 'Error!';
                         console.error(err);
                     });
             }
