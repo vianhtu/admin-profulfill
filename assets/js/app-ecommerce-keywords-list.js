@@ -130,6 +130,11 @@ function initTable(){
                                     text: '<span class="d-flex align-items-center gap-1"><i class="icon-base ti tabler-upload icon-xs"></i> <span class="d-none d-sm-inline-block">Actions</span></span>',
                                     buttons: [
                                     ]
+                                },
+                                {
+                                    text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-plus icon-xs"></i> <span class="d-none d-sm-inline-block">Add New</span></span>',
+                                    className: 'add-new btn btn-primary',
+                                    action: function () {}
                                 }
                             ]
                         }
