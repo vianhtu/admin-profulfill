@@ -88,7 +88,16 @@ function initTable(){
                     searchable: false,
                     orderable: false,
                     render: function (data, type, full, meta) {
-                        return '';
+                        return `
+                          <div class="d-flex align-items-center" data-id="${full['id']}">
+                            <a href="javascript:;" class="btn btn-text-secondary rounded-pill waves-effect btn-icon">
+                              <i class="icon-base ti tabler-edit icon-22px"></i>
+                            </a>
+                            <a href="javascript:;" class="btn btn-text-secondary rounded-pill waves-effect btn-icon delete-record">
+                              <i class="icon-base ti tabler-trash icon-22px"></i>
+                            </a>
+                          </div>
+                        `;
                     }
                 }
             ],
