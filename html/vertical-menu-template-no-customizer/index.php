@@ -47,7 +47,7 @@ if (empty($_SESSION['csrf_token'])) {
     <!-- build:css assets/vendor/css/theme.css  -->
 
     <link rel="stylesheet" href="../../assets/vendor/libs/node-waves/node-waves.css" />
-
+    <link rel="stylesheet" href="../../assets/vendor/libs/pickr/pickr-themes.css" />
     <link rel="stylesheet" href="../../assets/vendor/css/core.css" />
     <link rel="stylesheet" href="../../assets/css/demo.css" />
 
@@ -317,7 +317,7 @@ if (empty($_SESSION['csrf_token'])) {
     <script src="../../assets/vendor/libs/popper/popper.js"></script>
     <script src="../../assets/vendor/js/bootstrap.js"></script>
     <script src="../../assets/vendor/libs/node-waves/node-waves.js"></script>
-
+    <script src="../../assets/vendor/libs/pickr/pickr.js"></script>
     <script src="../../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
 
     <script src="../../assets/vendor/libs/hammer/hammer.js"></script>
