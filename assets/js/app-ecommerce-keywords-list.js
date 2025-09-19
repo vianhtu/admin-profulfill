@@ -132,7 +132,7 @@ function initTable(){
                                     ]
                                 },
                                 {
-                                    text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-plus icon-xs"></i> <span class="d-none d-sm-inline-block">Add New</span></span>',
+                                    text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-plus icon-xs"></i> <span class="d-none d-sm-inline-block">Add New Keywords</span></span>',
                                     className: 'add-new btn btn-primary',
                                     action: function () {}
                                 }
