@@ -68,13 +68,8 @@ function initTable(){
                 // columns according to JSON
                 { data: 'id' },
                 { data: 'id', orderable: false, render: DataTable.render.select() },
-                { data: 'host_id' },
-                { data: 'purchase_date' },
-                { data: 'total_price' },
-                { data: 'ship_date' },
-                { data: 'delivery_date' },
+                { data: 'name' },
                 { data: 'status' },
-                { data: 'full_name' },
                 { data: 'id' }
             ],
             columnDefs: [
@@ -107,44 +102,13 @@ function initTable(){
                     // Order ID
                     targets: 2,
                     render: function (data, type, full, meta) {
-                        return '';
+                        return '<span>'+full['name']+'</span>';
                     }
                 },
                 {
                     targets: 3,
                     render: function (data, type, full, meta) {
-                        return '';
-                    }
-                },
-                {
-                    targets: 4,
-                    render: function (data, type, full, meta) {
-                        return '';
-                    }
-                },
-                {
-                    targets: 5,
-                    render: function (data, type, full, meta) {
-                        return '';
-                    }
-                },
-                {
-                    targets: 6,
-                    render: function (data, type, full, meta) {
-                        return '';
-                    }
-                },
-                {
-                    targets: 7,
-                    render: function (data, type, full, meta) {
-                        return '';
-                    }
-                },
-                {
-                    targets: 8,
-                    responsivePriority: 1,
-                    render: function (data, type, full, meta) {
-                        return '';
+                        return '<span>'+full['status']+'</span>';
                     }
                 },
                 {
