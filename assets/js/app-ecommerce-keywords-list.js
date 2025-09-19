@@ -16,10 +16,9 @@ function initTable(){
     // Variable declaration for table
     const dt_order_table = document.querySelector('.datatables-taxonomy'),
         statusObj = {
-            Unshipped: { title: 'Unshipped', class: 'bg-label-warning' },
-            2: { title: 'Delivered', class: 'bg-label-success' },
-            3: { title: 'Out for Delivery', class: 'bg-label-primary' },
-            4: { title: 'Ready to Pickup', class: 'bg-label-info' }
+            1: { title: 'Replace', class: 'bg-label-warning' },
+            2: { title: 'Trademark', class: 'bg-label-danger' },
+            3: { title: 'Cannot be Used', class: 'bg-label-dark' }
         }
 
     // E-commerce Products datatable
@@ -80,7 +79,7 @@ function initTable(){
                 {
                     targets: 3,
                     render: function (data, type, full, meta) {
-                        return '<span>'+full['status']+'</span>';
+                        return '<span class="badge px-2 '+statusInfo[full['status']].class+' text-capitalized">'+statusObj[full['status']].title+'</span>';
                     }
                 },
                 {
