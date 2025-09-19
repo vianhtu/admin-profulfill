@@ -72,7 +72,7 @@
                             alertBox.textContent = 'Thêm từ khóa thành công!';
                             form.reset();
                             // Reload DataTable
-                            document.querySelector('.datatables-taxonomy').DataTable().ajax.reload(null, false);
+                            $('.datatables-taxonomy').DataTable().ajax.reload(null, false);
                         }
                         alertBox.classList.remove('d-none'); // Hiện alert
                     })
