@@ -53,6 +53,9 @@
                     .then(res => res.json())
                     .then(data => {
                         btn.textContent = 'Done!';
+                        setTimeout(function() {
+                            btn.textContent = 'Add';
+                        }, 1000);
                         console.log(data);
                     })
                     .catch(err => {
