@@ -222,6 +222,30 @@ function AIProcessProducts($downloadId): array
     return $results;
 }
 
+function getDataTableParams(array $allowedCols, string $defaultCol = 'ID'): array {
+    $draw             = intval($_POST['draw'] ?? 1);
+    $start            = intval($_POST['start'] ?? 0);
+    $length           = intval($_POST['length'] ?? 10);
+    $orderColumnIndex = intval($_POST['order'][0]['column'] ?? 0);
+    $orderColumn      = $_POST['columns'][$orderColumnIndex]['data'] ?? $defaultCol;
+    $orderDir         = strtolower($_POST['order'][0]['dir'] ?? 'asc') === 'desc' ? 'DESC' : 'ASC';
+    $searchValue      = trim($_POST['search']['value'] ?? '');
+
+    // Chỉ cho phép sort theo cột hợp lệ
+    if (!in_array($orderColumn, $allowedCols)) {
+        $orderColumn = $defaultCol;
+    }
+
+    return [
+        'draw'        => $draw,
+        'start'       => $start,
+        'length'      => $length,
+        'orderColumn' => $orderColumn,
+        'orderDir'    => $orderDir,
+        'searchValue' => $searchValue
+    ];
+}
+
 function getAISitePrompt($downloadId)
 {
     $conn = db();
@@ -517,74 +541,70 @@ function getProductTableFilters(): array {
 	return $options;
 }
 
+function getKeywordsTable()
+{
+    return [];
+}
+
 function getOrdersTable(): array {
     $conn = db();
-    // Lấy thông số từ DataTables
-    $draw             = intval( $_POST['draw'] ?? 1 );
-    $start            = intval( $_POST['start'] ?? 0 );
-    $length           = intval( $_POST['length'] ?? 10 );
-    $orderColumnIndex = intval( $_POST['order'][0]['column'] ?? 0 );
-    $orderColumn      = $_POST['columns'][ $orderColumnIndex ]['data'] ?? 'ID';
-    $orderDir         = strtolower( $_POST['order'][0]['dir'] ?? 'asc' ) === 'desc' ? 'DESC' : 'ASC';
-    $searchValue      = trim( $_POST['search']['value'] ?? '' );
+    $allowedCols = ['ID', 'status', 'purchase_date', 'delivery_date', 'ship_date'];
 
-    // Danh sách cột cho phép sort
-    $allowedCols = [ 'ID', 'status', 'purchase_date', 'delivery_date', 'ship_date' ];
-    if ( ! in_array( $orderColumn, $allowedCols ) ) {
-        $orderColumn = 'ID';
-    }
+    // Lấy tham số từ DataTables
+    $params = getDataTableParams($allowedCols);
 
     // Tổng số bản ghi
-    $totalRecords = $conn->query( "SELECT COUNT(ID) AS cnt FROM orders" )->fetch_assoc()['cnt'];
+    $totalRecords = $conn->query("SELECT COUNT(ID) AS cnt FROM orders")->fetch_assoc()['cnt'];
+
+    // Điều kiện lọc
     $whereClauses = [];
-    // Lọc theo search
-    if ( $searchValue !== '' ) {
-        $searchEsc      = $conn->real_escape_string( $searchValue );
-        $whereClauses[] = "(orders.host_id LIKE '%$searchEsc%' OR orders.full_name LIKE '%$searchEsc%' OR orders.phone LIKE '%$searchEsc%' OR orders.items LIKE '%$searchEsc%')";
+    if ($params['searchValue'] !== '') {
+        $searchEsc = $conn->real_escape_string($params['searchValue']);
+        $whereClauses[] = "(orders.host_id LIKE '%$searchEsc%' 
+            OR orders.full_name LIKE '%$searchEsc%' 
+            OR orders.phone LIKE '%$searchEsc%' 
+            OR orders.items LIKE '%$searchEsc%')";
     }
+    $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
 
-    $joinAccounts   = "INNER JOIN accounts ON accounts.ID = orders.account_id";
-
-    $where         = $whereClauses ? ' WHERE ' . implode( ' AND ', $whereClauses ) : '';
-    $totalFiltered = $conn->query( "SELECT COUNT(ID) AS cnt FROM orders $where" )->fetch_assoc()['cnt'];
+    // Tổng số bản ghi sau khi lọc
+    $totalFiltered = $conn->query("SELECT COUNT(ID) AS cnt FROM orders $where")->fetch_assoc()['cnt'];
 
     // Lấy dữ liệu
     $sql = "SELECT orders.*, accounts.name AS account_name, accounts.email AS account_email
-        FROM orders
-        $joinAccounts
-        $where
-        ORDER BY orders.$orderColumn $orderDir
-        LIMIT $start, $length";
-    $rs  = $conn->query( $sql );
+            FROM orders
+            INNER JOIN accounts ON accounts.ID = orders.account_id
+            $where
+            ORDER BY orders.{$params['orderColumn']} {$params['orderDir']}
+            LIMIT {$params['start']}, {$params['length']}";
+    $rs = $conn->query($sql);
 
-    // Chuẩn bị dữ liệu trả về
     $data = [];
-    while ( $row = $rs->fetch_assoc() ) {
+    while ($row = $rs->fetch_assoc()) {
         $data[] = [
-            "id"                => $row['ID'],
-            "host_id"           => $row['host_id'],
-            "purchase_date"     => $row['purchase_date'],
-            "delivery_date"     => $row['delivery_date'],
-            "ship_date"         => $row['ship_date'],
-            "full_name"         => $row['full_name'],
-            "phone"             => $row['phone'],
-            "street_address_1"  => $row['street_address_1'],
-            "street_address_2"  => $row['street_address_2'],
-            "city"              => $row['city'],
-            "state"             => $row['state'],
-            "zip_code"          => $row['zip_code'],
-            "country"           => $row['country'],
-            "total_price"       => $row['total_price'],
-            "items"             => $row['items'],
-            "status"            => $row['status'],
-            "account_id"        => $row['account_id'],
-            "account_name"      => $row['account_name'],
+            "id"               => $row['ID'],
+            "host_id"          => $row['host_id'],
+            "purchase_date"    => $row['purchase_date'],
+            "delivery_date"    => $row['delivery_date'],
+            "ship_date"        => $row['ship_date'],
+            "full_name"        => $row['full_name'],
+            "phone"            => $row['phone'],
+            "street_address_1" => $row['street_address_1'],
+            "street_address_2" => $row['street_address_2'],
+            "city"             => $row['city'],
+            "state"            => $row['state'],
+            "zip_code"         => $row['zip_code'],
+            "country"          => $row['country'],
+            "total_price"      => $row['total_price'],
+            "items"            => $row['items'],
+            "status"           => $row['status'],
+            "account_id"       => $row['account_id'],
+            "account_name"     => $row['account_name'],
         ];
     }
 
-    // Trả JSON
     return [
-        "draw"            => $draw,
+        "draw"            => $params['draw'],
         "recordsTotal"    => $totalRecords,
         "recordsFiltered" => $totalFiltered,
         "data"            => $data

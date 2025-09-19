@@ -60,6 +60,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         case 'get-orders':
             echo json_encode(getOrdersTable());
             break;
+        case 'get-keywords':
+            echo json_encode(getKeywordsTable());
+            break;
 		case 'filter-stores':
 			echo json_encode(getStoresTableFilter());
 			break;
