@@ -108,7 +108,7 @@ function initTable(){
             order: [2, 'desc'],
             layout: {
                 topStart: {
-                    rowClass: 'row mx-3 my-0 justify-content-between',
+                    rowClass: 'card-header d-flex border-top rounded-0 flex-wrap py-0 flex-column flex-md-row align-items-start',
                     features: [
                         {
                             search: {
@@ -120,6 +120,7 @@ function initTable(){
                     ]
                 },
                 topEnd: {
+                    rowClass: 'row m-3 my-0 justify-content-between',
                     features: [
                         {
                             pageLength: {
@@ -140,7 +141,7 @@ function initTable(){
                                 {
                                     text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-plus icon-xs"></i> <span class="d-none d-sm-inline-block">Add New Keywords</span></span>',
                                     className: 'add-new btn btn-primary',
-                                    action: function () {}
+                                    action: function () {window.location.href = '#';}
                                 }
                             ]
                         }
