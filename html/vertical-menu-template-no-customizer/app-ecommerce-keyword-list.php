@@ -22,7 +22,7 @@
         id="offcanvasEcommerceKeywordsAdd"
         aria-labelledby="offcanvasEcommerceCustomerAddLabel">
     <div class="offcanvas-header">
-        <h5 id="offcanvasEcommerceCustomerAddLabel" class="offcanvas-title">Add Customer</h5>
+        <h5 id="offcanvasEcommerceCustomerAddLabel" class="offcanvas-title">Add Keywords</h5>
         <button
                 type="button"
                 class="btn-close text-reset"
