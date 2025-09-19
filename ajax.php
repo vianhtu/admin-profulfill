@@ -75,6 +75,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 		case 'add-xlsx':
 			echo json_encode(addXlsx());
 			break;
+        case 'add-keywords':
+			echo json_encode(addKeywords());
+			break;
 		case 'delete-xlsx':
 			echo json_encode(deleteXlsx());
 			break;

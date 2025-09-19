@@ -1245,6 +1245,12 @@ function addXlsx(): array {
 	}
 }
 
+function addKeywords(): array
+{
+    $conn = db();
+    return [];
+}
+
 function duplicateXlsx(): array {
 	$conn = db();
 	$id = $_POST['id'] ?? null;
