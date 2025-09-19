@@ -70,7 +70,7 @@
                             // Thành công → alert-success
                             alertBox.className = 'alert alert-success';
                             alertBox.textContent = 'Thêm từ khóa thành công!';
-                            form.reset();
+                            eCommerceCustomerAddForm.reset();
                             // Reload DataTable
                             $('.datatables-taxonomy').DataTable().ajax.reload(null, false);
                         }
