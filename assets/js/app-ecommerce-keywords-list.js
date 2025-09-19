@@ -205,7 +205,7 @@ function initTable(){
             { selector: '.dt-length .form-select', classToRemove: 'form-select-sm' },
             { selector: '.dt-length', classToAdd: 'mt-md-6 mt-0' },
             { selector: '.dt-layout-table', classToRemove: 'row mt-2' },
-            { selector: '.dt-layout-end', classToAdd: 'px-3 mt-0' },
+            { selector: '.dt-layout-end', classToAdd: 'mt-0' },
             {
                 selector: '.dt-layout-end .dt-buttons',
                 classToAdd: 'gap-2 px-3 mt-0 mb-md-0 mb-6'
