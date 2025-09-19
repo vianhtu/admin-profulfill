@@ -7,7 +7,8 @@
 // Validation & Phone mask
 (function () {
     const eCommerceCustomerAddForm = document.getElementById('eCommerceKeywordsAddForm');
-    // Add New customer Form Validation
+    let isValidated = false; // Cờ đánh dấu đã validate
+
     const fv = FormValidation.formValidation(eCommerceCustomerAddForm, {
         fields: {
             keywords: {
@@ -28,19 +29,39 @@
         plugins: {
             trigger: new FormValidation.plugins.Trigger(),
             bootstrap5: new FormValidation.plugins.Bootstrap5({
-                // Use this for enabling/changing valid/invalid class
                 eleValidClass: '',
                 rowSelector: function (field, ele) {
-                    // field is the field name & ele is the field element
                     return '.form-control-validation';
                 }
             }),
             submitButton: new FormValidation.plugins.SubmitButton(),
-            // Submit the form when all fields are valid
-            // defaultSubmit: new FormValidation.plugins.DefaultSubmit(),
             autoFocus: new FormValidation.plugins.AutoFocus()
         }
-    });
+    })
+        .on('core.form.valid', function () {
+            if (!isValidated) {
+                // Lần đầu hợp lệ → chỉ đánh dấu và đổi nút
+                isValidated = true;
+                const btn = eCommerceCustomerAddForm.querySelector('[type="submit"]');
+                btn.textContent = 'Gửi dữ liệu';
+            } else {
+                // Lần thứ hai → chạy AJAX
+                const formData = new FormData(eCommerceCustomerAddForm);
+                fetch('/path/to/api', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        alert('Gửi thành công!');
+                        console.log(data);
+                    })
+                    .catch(err => {
+                        alert('Có lỗi xảy ra!');
+                        console.error(err);
+                    });
+            }
+        });
 })();
 
 // Datatable (js)
