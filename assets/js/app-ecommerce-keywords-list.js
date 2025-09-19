@@ -73,6 +73,9 @@
                             eCommerceCustomerAddForm.reset();
                             // Reload DataTable
                             $('.datatables-taxonomy').DataTable().ajax.reload(null, false);
+                            setTimeout(() => {
+                                alertBox.classList.add('d-none');
+                            }, 3000);
                         }
                         alertBox.classList.remove('d-none'); // Hiện alert
                         // Reset lại cờ để lần sau vẫn submit được
