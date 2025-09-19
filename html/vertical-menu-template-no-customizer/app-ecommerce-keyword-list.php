@@ -16,18 +16,10 @@
 </div>
 
 <!-- Offcanvas to add new customer -->
-<div
-        class="offcanvas offcanvas-end"
-        tabindex="-1"
-        id="offcanvasEcommerceKeywordsAdd"
-        aria-labelledby="offcanvasEcommerceCustomerAddLabel">
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasEcommerceKeywordsAdd" aria-labelledby="offcanvasEcommerceCustomerAddLabel">
     <div class="offcanvas-header">
         <h5 id="offcanvasEcommerceCustomerAddLabel" class="offcanvas-title">Add Keywords</h5>
-        <button
-                type="button"
-                class="btn-close text-reset"
-                data-bs-dismiss="offcanvas"
-                aria-label="Close"></button>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body border-top mx-0 flex-grow-0">
         <form class="ecommerce-customer-add pt-0" id="eCommerceCustomerAddForm" onsubmit="return false">
@@ -35,13 +27,7 @@
                 <h6 class="mb-6">Information</h6>
                 <div class="mb-6 form-control-validation">
                     <label class="form-label" for="add-name">Name*</label>
-                    <input
-                            type="text"
-                            class="form-control"
-                            id="add-name"
-                            placeholder="Apple"
-                            name="customerName"
-                            aria-label="Apple"/>
+                    <input type="text" class="form-control" id="add-name" placeholder="Apple" name="name" aria-label="Apple"/>
                 </div>
                 <div class="form-control-validation">
                     <label class="form-label" for="select-status">Status</label>
@@ -51,15 +37,6 @@
                         <option value="2">Trademark</option>
                         <option value="3">Cannot be Used</option>
                     </select>
-                </div>
-            </div>
-            <div class="d-sm-flex mb-6">
-                <div class="me-auto mb-2 mb-md-0">
-                    <h6 class="mb-1">Use as a billing address?</h6>
-                    <small class="text-body-secondary">If you need more info, please check budget.</small>
-                </div>
-                <div class="form-check form-switch my-auto me-n2">
-                    <input type="checkbox" class="form-check-input" checked/>
                 </div>
             </div>
             <div>
