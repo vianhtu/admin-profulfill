@@ -528,9 +528,51 @@ function getProductTableFilters(): array {
 	return $options;
 }
 
-function getKeywordsTable()
+function getKeywordsTable(): array
 {
-    return [];
+    $conn = db();
+    $allowedCols = ['ID', 'status', 'purchase_date', 'delivery_date', 'ship_date'];
+
+    // Lấy tham số từ DataTables
+    $params = getDataTableParams($allowedCols);
+
+    // Tổng số bản ghi
+    $totalRecords = $conn->query("SELECT COUNT(ID) AS cnt FROM keywords")->fetch_assoc()['cnt'];
+
+    // Điều kiện lọc
+    $whereClauses = [];
+    if ($params['searchValue'] !== '') {
+        $searchEsc = $conn->real_escape_string($params['searchValue']);
+        $whereClauses[] = "(name LIKE '%$searchEsc%')";
+    }
+    $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
+
+    // Tổng số bản ghi sau khi lọc
+    $totalFiltered = $conn->query("SELECT COUNT(ID) AS cnt FROM keywords $where")->fetch_assoc()['cnt'];
+
+    // Lấy dữ liệu
+    $sql = "SELECT *
+            FROM keywords
+            $where
+            ORDER BY {$params['orderColumn']} {$params['orderDir']}
+            LIMIT {$params['start']}, {$params['length']}";
+    $rs = $conn->query($sql);
+
+    $data = [];
+    while ($row = $rs->fetch_assoc()) {
+        $data[] = [
+            "id"        => $row['ID'],
+            "name"      => $row['name'],
+            "status"    => $row['status'],
+        ];
+    }
+
+    return [
+        "draw"            => $params['draw'],
+        "recordsTotal"    => $totalRecords,
+        "recordsFiltered" => $totalFiltered,
+        "data"            => $data
+    ];
 }
 
 function getOrdersTable(): array {
