@@ -39,7 +39,7 @@
                 </div>
             </div>
             <div>
-                <button type="submit" class="btn btn-primary me-sm-4 data-submit">Add</button>
+                <button type="submit" class="btn btn-primary me-sm-4 data-submit"><span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>Add</button>
                 <button type="reset" class="btn btn-label-danger" data-bs-dismiss="offcanvas">Discard</button>
             </div>
         </form>

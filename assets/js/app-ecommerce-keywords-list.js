@@ -43,27 +43,30 @@
                 // Lần đầu hợp lệ → chỉ đánh dấu và đổi nút
                 isValidated = true;
                 const btn = eCommerceCustomerAddForm.querySelector('[type="submit"]');
-                btn.textContent = 'Send Keywords...';
+                const spinner = btn.querySelector('.spinner-border');
+                // Hiện spinner + disable nút
+                spinner.classList.remove('d-none');
+                btn.disabled = true;
                 // Lần thứ hai → chạy AJAX
                 const formData = new FormData(eCommerceCustomerAddForm);
                 fetch('../../ajax.php?action=add-keywords', {
                     method: 'POST',
                     body: formData
                 })
-                    .then(res => res.json())
+                    .then(res => {
+                        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                        return res.json();
+                    })
                     .then(data => {
-                        btn.textContent = 'Done!';
-                        setTimeout(function() {
-                            btn.textContent = 'Add';
-                        }, 1000);
                         console.log(data);
+                        // Ẩn spinner + enable nút
+                        spinner.classList.add('d-none');
+                        btn.disabled = false;
                     })
                     .catch(err => {
-                        btn.textContent = 'Error!';
-                        setTimeout(function() {
-                            btn.textContent = 'Add';
-                        }, 1000);
                         console.error(err);
+                        spinner.classList.add('d-none');
+                        btn.disabled = false;
                     });
             }
         });
