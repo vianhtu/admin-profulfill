@@ -73,7 +73,7 @@ function initTable(){
                     // Order ID
                     targets: 2,
                     render: function (data, type, full, meta) {
-                        return '<span>'+full['name']+'</span>';
+                        return '<h6>'+full['name']+'</h6>';
                     }
                 },
                 {
@@ -88,16 +88,7 @@ function initTable(){
                     searchable: false,
                     orderable: false,
                     render: function (data, type, full, meta) {
-                        return `
-              <div class="d-flex justify-content-sm-start align-items-sm-center">
-                <button class="btn btn-text-secondary rounded-pill waves-effect btn-icon dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                  <i class="icon-base ti tabler-dots-vertical"></i>
-                </button>
-                <div class="dropdown-menu dropdown-menu-end m-0">
-                  <a href="app-ecommerce-order-details.html" class="dropdown-item">View</a>
-                  <a href="javascript:void(0);" class="dropdown-item delete-record">Delete</a>
-                </div>
-              </div>`;
+                        return '';
                     }
                 }
             ],
@@ -188,18 +179,6 @@ function initTable(){
             },
             initComplete:function(settings, json) {
 
-            }
-        });
-
-        //? The 'delete-record' class is necessary for the functionality of the following code.
-        document.addEventListener('click', function (e) {
-            if (e.target.classList.contains('delete-record')) {
-                dt_products.row(e.target.closest('tr')).remove().draw();
-                const modalEl = document.querySelector('.dtr-bs-modal');
-                if (modalEl && modalEl.classList.contains('show')) {
-                    const modal = bootstrap.Modal.getInstance(modalEl);
-                    modal?.hide();
-                }
             }
         });
     }
