@@ -44,6 +44,7 @@
                 isValidated = true;
                 const btn = eCommerceCustomerAddForm.querySelector('[type="submit"]');
                 const spinner = btn.querySelector('.spinner-border');
+                const alertBox = eCommerceCustomerAddForm.querySelector('.alert');
                 // Hiện spinner + disable nút
                 spinner.classList.remove('d-none');
                 btn.disabled = true;
@@ -58,13 +59,26 @@
                         return res.json();
                     })
                     .then(data => {
-                        console.log(data);
                         // Ẩn spinner + enable nút
                         spinner.classList.add('d-none');
                         btn.disabled = false;
+                        if (data.error && Object.keys(data.error).length > 0) {
+                            // Lỗi → alert-danger
+                            alertBox.className = 'alert alert-danger';
+                            alertBox.textContent = Array.isArray(data.error) ? data.error.join(', ') : 'Có lỗi xảy ra!';
+                        } else {
+                            // Thành công → alert-success
+                            alertBox.className = 'alert alert-success';
+                            alertBox.textContent = 'Thêm từ khóa thành công!';
+                            form.reset();
+                        }
+                        alertBox.classList.remove('d-none'); // Hiện alert
                     })
                     .catch(err => {
                         console.error(err);
+                        alertBox.className = 'alert alert-danger';
+                        alertBox.textContent = 'Lỗi kết nối máy chủ!';
+                        alertBox.classList.remove('d-none');
                         spinner.classList.add('d-none');
                         btn.disabled = false;
                     });
