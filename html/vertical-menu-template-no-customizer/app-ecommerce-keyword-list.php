@@ -24,7 +24,6 @@
     <div class="offcanvas-body border-top mx-0 flex-grow-0">
         <form class="ecommerce-customer-add pt-0" id="eCommerceCustomerAddForm" onsubmit="return false">
             <div class="mb-6 pt-4">
-                <h6 class="mb-6">Information</h6>
                 <div class="mb-6 form-control-validation">
                     <label class="form-label" for="add-name">Name*</label>
                     <textarea class="form-control" id="add-name" placeholder="Nhập tên từ khóa mỗi dòng một từ" rows="15"></textarea>
