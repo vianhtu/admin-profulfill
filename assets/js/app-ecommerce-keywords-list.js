@@ -129,9 +129,12 @@ function initTable(){
                         {
                             buttons: [
                                 {
-                                    text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-plus icon-xs"></i> <span class="d-none d-sm-inline-block">Add New Keywords</span></span>',
+                                    text: '<span class="d-flex align-items-center gap-1"><i class="icon-base ti tabler-plus icon-xs"></i> <span class="d-none d-sm-inline-block">Add Keywords</span></span>',
                                     className: 'add-new-keywords btn btn-primary',
-                                    action: function () {showAddKeywordsModal()}
+                                    attr: {
+                                        'data-bs-toggle': 'offcanvas',
+                                        'data-bs-target': '#offcanvasEcommerceKeywordsAdd'
+                                    }
                                 }
                             ]
                         }
