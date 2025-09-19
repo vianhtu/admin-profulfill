@@ -176,7 +176,7 @@ function initTable(){
                         return '<div class="d-flex flex-column">' +
                             '<a href="app-ecommerce-order-details.html">' +
                                 '<span class="text-nowrap">#' + order_id + '</span>' +
-                            '</a><small>'+sitesObj[full['account_id']].title+' ('+full['account_name']+')</small>' +
+                            '</a><small>'+sitesObj[full['site_id']].title+' ('+full['account_name']+')</small>' +
                             '</div>';
                     }
                 },

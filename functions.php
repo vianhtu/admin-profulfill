@@ -571,7 +571,7 @@ function getOrdersTable(): array {
     $totalFiltered = $conn->query("SELECT COUNT(ID) AS cnt FROM orders $where")->fetch_assoc()['cnt'];
 
     // Lấy dữ liệu
-    $sql = "SELECT orders.*, accounts.name AS account_name, accounts.email AS account_email
+    $sql = "SELECT orders.*, accounts.site_id, accounts.name AS account_name, accounts.email AS account_email
             FROM orders
             INNER JOIN accounts ON accounts.ID = orders.account_id
             $where
@@ -598,7 +598,7 @@ function getOrdersTable(): array {
             "total_price"      => $row['total_price'],
             "items"            => $row['items'],
             "status"           => $row['status'],
-            "account_id"       => $row['account_id'],
+            "site_id"          => $row['site_id'],
             "account_name"     => $row['account_name'],
         ];
     }
