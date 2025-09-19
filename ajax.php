@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 			echo json_encode(getProductTableFilters());
 			break;
         case 'get-xlsx':
-            echo json_encode(getAccountsTable());
+            echo json_encode(getFilesTable());
             break;
         case 'get-download':
             echo json_encode(getDownloadTable());

@@ -677,100 +677,99 @@ function getStoresTableFilter(): array {
 	];
 }
 
-function getAccountsTable(): array {
-	$conn = db();
-	// Lấy thông số từ DataTables
-	$draw             = intval( $_POST['draw'] ?? 1 );
-	$start            = intval( $_POST['start'] ?? 0 );
-	$length           = intval( $_POST['length'] ?? 10 );
-	$orderColumnIndex = intval( $_POST['order'][0]['column'] ?? 0 );
-	$orderColumn      = $_POST['columns'][ $orderColumnIndex ]['data'] ?? 'ID';
-	$orderDir         = strtolower( $_POST['order'][0]['dir'] ?? 'asc' ) === 'desc' ? 'DESC' : 'ASC';
-	$searchValue      = trim( $_POST['search']['value'] ?? '' );
+function getFilesTable(): array {
+    $conn = db();
+    $allowedCols = ['ID', 'name', 'date_create', 'accounts_id', 'type_id', 'site_id', 'authors_id'];
 
-	// Danh sách cột cho phép sort
-	$allowedCols = ['ID', 'name', 'date_create', 'accounts_id', 'type_id', 'site_id', 'authors_id'];
-	if ( ! in_array( $orderColumn, $allowedCols ) ) {
-		$orderColumn = 'ID';
-	}
+    // Lấy tham số từ DataTables
+    $params = getDataTableParams($allowedCols);
 
-	// Tổng số bản ghi
-	$totalRecords = $conn->query( "SELECT COUNT(*) AS cnt FROM exports" )->fetch_assoc()['cnt'];
-	$whereClauses = [];
-	// Lọc theo search
-	if ( $searchValue !== '' ) {
-		$searchEsc      = $conn->real_escape_string( $searchValue );
-		$whereClauses[] = "(name LIKE '%$searchEsc%' OR file_name LIKE '%$searchEsc%')";
-	}
+    // Tổng số bản ghi
+    $totalRecords = $conn->query("SELECT COUNT(*) AS cnt FROM exports")->fetch_assoc()['cnt'];
 
-	// lọc theo type.
-	$filterType = $_POST['columns'][3]['search']['value'] ?? '';
-	$filterType = trim( $filterType, '^$' ); // bỏ ký tự regex
-	if ( $filterType !== '' ) {
-		$escStock       = $conn->real_escape_string( $filterType );
-		$whereClauses[] = "type_id = '$escStock'";
-	}
-	// lọc theo author.
-	$filterSite = $_POST['columns'][4]['search']['value'] ?? '';
-	$filterSite = trim( $filterSite, '^$' ); // bỏ ký tự regex
-	if ( $filterSite !== '' ) {
-		$escStock       = $conn->real_escape_string( $filterSite );
-		$whereClauses[] = "site_id = '$escStock'";
-	}
-	// lọc theo author.
-	$filterAuthor = $_POST['columns'][6]['search']['value'] ?? '';
-	$filterAuthor = trim( $filterAuthor, '^$' ); // bỏ ký tự regex
-	if ( $filterAuthor !== '' ) {
-		$escStock       = $conn->real_escape_string( $filterAuthor );
-		$whereClauses[] = "authors_id = '$escStock'";
-	}
+    $whereClauses = [];
 
-	// lọc theo accounts.
-	$filterAccounts = $_POST['accounts'] ?? [];
-	if ( ! empty( $filterAccounts ) && is_array( $filterAccounts ) ) {
-		// Ép tất cả sang số nguyên để tránh SQL injection
-		$ids    = array_map( 'intval', $filterAccounts );
-		$idsStr = implode( ',', $ids );
-		if ( $idsStr !== '' ) {
-			$whereClauses[] = "accounts_id IN ($idsStr)";
-		}
-	}
+    // Lọc theo search
+    if ($params['searchValue'] !== '') {
+        $searchEsc = $conn->real_escape_string($params['searchValue']);
+        $whereClauses[] = "(name LIKE '%$searchEsc%' OR file_name LIKE '%$searchEsc%')";
+    }
 
-	$where         = $whereClauses ? ' WHERE ' . implode( ' AND ', $whereClauses ) : '';
-	$join          = 'INNER JOIN accounts a ON a.ID = exports.accounts_id';
-	$totalFiltered = $conn->query( "SELECT COUNT(DISTINCT exports.ID) AS cnt FROM exports $join $where" )->fetch_assoc()['cnt'];
+    // Lọc theo type
+    $filterType = trim($_POST['columns'][3]['search']['value'] ?? '', '^$');
+    if ($filterType !== '') {
+        $esc = $conn->real_escape_string($filterType);
+        $whereClauses[] = "type_id = '$esc'";
+    }
 
-	// Lấy dữ liệu
-	$sql = "SELECT DISTINCT exports.ID, a.site_id AS account_site_id, a.name AS account_name, exports.type_id, exports.site_id, exports.authors_id, exports.name, exports.date_create
-        FROM exports
-        $join
-        $where
-        ORDER BY $orderColumn $orderDir
-        LIMIT $start, $length";
-	$rs  = $conn->query( $sql );
+    // Lọc theo site
+    $filterSite = trim($_POST['columns'][4]['search']['value'] ?? '', '^$');
+    if ($filterSite !== '') {
+        $esc = $conn->real_escape_string($filterSite);
+        $whereClauses[] = "site_id = '$esc'";
+    }
 
-	// Chuẩn bị dữ liệu trả về
-	$data = [];
-	while ( $row = $rs->fetch_assoc() ) {
-		$data[] = [
-			"id"            => $row['ID'],
-			"full_name"     => htmlspecialchars( $row['name'] ),
-			"type_id"       => $row['type_id'],
-			"site_id"       => $row['site_id'],
-			"authors_id"    => $row['authors_id'],
-			"date_create"   => $row['date_create'],
-			"account_site_id"   => $row['account_site_id'],
-			"account_name"   => $row['account_name'],
-		];
-	}
+    // Lọc theo author
+    $filterAuthor = trim($_POST['columns'][6]['search']['value'] ?? '', '^$');
+    if ($filterAuthor !== '') {
+        $esc = $conn->real_escape_string($filterAuthor);
+        $whereClauses[] = "authors_id = '$esc'";
+    }
 
-	// Trả JSON
-	return [
-		"draw"            => $draw,
-		"recordsTotal"    => $totalRecords,
-		"recordsFiltered" => $totalFiltered,
-		"data"            => $data
-	];
+    // Lọc theo accounts
+    $filterAccounts = $_POST['accounts'] ?? [];
+    if (!empty($filterAccounts) && is_array($filterAccounts)) {
+        $idsStr = implode(',', array_map('intval', $filterAccounts));
+        if ($idsStr !== '') {
+            $whereClauses[] = "accounts_id IN ($idsStr)";
+        }
+    }
+
+    $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
+    $join  = 'INNER JOIN accounts a ON a.ID = exports.accounts_id';
+
+    // Tổng số bản ghi sau khi lọc
+    $totalFiltered = $conn->query(
+        "SELECT COUNT(DISTINCT exports.ID) AS cnt FROM exports $join $where"
+    )->fetch_assoc()['cnt'];
+
+    // Lấy dữ liệu
+    $sql = "SELECT DISTINCT exports.ID, 
+                   a.site_id AS account_site_id, 
+                   a.name AS account_name, 
+                   exports.type_id, 
+                   exports.site_id, 
+                   exports.authors_id, 
+                   exports.name, 
+                   exports.date_create
+            FROM exports
+            $join
+            $where
+            ORDER BY {$params['orderColumn']} {$params['orderDir']}
+            LIMIT {$params['start']}, {$params['length']}";
+    $rs = $conn->query($sql);
+
+    // Chuẩn bị dữ liệu trả về
+    $data = [];
+    while ($row = $rs->fetch_assoc()) {
+        $data[] = [
+            "id"              => $row['ID'],
+            "full_name"       => htmlspecialchars($row['name']),
+            "type_id"         => $row['type_id'],
+            "site_id"         => $row['site_id'],
+            "authors_id"      => $row['authors_id'],
+            "date_create"     => $row['date_create'],
+            "account_site_id" => $row['account_site_id'],
+            "account_name"    => $row['account_name'],
+        ];
+    }
+
+    return [
+        "draw"            => $params['draw'],
+        "recordsTotal"    => $totalRecords,
+        "recordsFiltered" => $totalFiltered,
+        "data"            => $data
+    ];
 }
 
 function getAccountsByID($id): array {
