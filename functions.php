@@ -830,95 +830,95 @@ function getAccountsTableFilter(): array {
 
 function getDownloadTable(): array {
     $conn = db();
-    // Lấy thông số từ DataTables
-    $draw             = intval( $_POST['draw'] ?? 1 );
-    $start            = intval( $_POST['start'] ?? 0 );
-    $length           = intval( $_POST['length'] ?? 10 );
-    $orderColumnIndex = intval( $_POST['order'][0]['column'] ?? 0 );
-    $orderColumn      = $_POST['columns'][ $orderColumnIndex ]['data'] ?? 'ID';
-    $orderDir         = strtolower( $_POST['order'][0]['dir'] ?? 'asc' ) === 'desc' ? 'DESC' : 'ASC';
-    $searchValue      = trim( $_POST['search']['value'] ?? '' );
-
-    // Danh sách cột cho phép sort
     $allowedCols = ['ID', 'status', 'date', 'download_date'];
-    if ( ! in_array( $orderColumn, $allowedCols ) ) {
-        $orderColumn = 'ID';
-    }
+
+    // Lấy tham số từ DataTables
+    $params = getDataTableParams($allowedCols);
 
     // Tổng số bản ghi
-    $totalRecords = $conn->query( "SELECT COUNT(*) AS cnt FROM download" )->fetch_assoc()['cnt'];
+    $totalRecords = $conn->query("SELECT COUNT(*) AS cnt FROM download")->fetch_assoc()['cnt'];
+
     $whereClauses = [];
+
     // Lọc theo search
-    if ( $searchValue !== '' ) {
-        $searchEsc      = $conn->real_escape_string( $searchValue );
-        $whereClauses[] = "(exports.file_name LIKE '%$searchEsc%' OR exports.name LIKE '%$searchEsc%' OR accounts.name LIKE '%$searchEsc%')";
+    if ($params['searchValue'] !== '') {
+        $searchEsc = $conn->real_escape_string($params['searchValue']);
+        $whereClauses[] = "(exports.file_name LIKE '%$searchEsc%' 
+            OR exports.name LIKE '%$searchEsc%' 
+            OR accounts.name LIKE '%$searchEsc%')";
     }
-    // lọc theo type.
-    $filterType = $_POST['columns'][11]['search']['value'] ?? '';
-    $filterType = trim( $filterType, '^$' ); // bỏ ký tự regex
-    if ( $filterType !== '' ) {
-        $escType      = $conn->real_escape_string( $filterType );
+
+    // Lọc theo type
+    $filterType = trim($_POST['columns'][11]['search']['value'] ?? '', '^$');
+    if ($filterType !== '') {
+        $escType = $conn->real_escape_string($filterType);
         $whereClauses[] = "exports.type_id = '$escType'";
     }
-    // lọc theo site.
-    $filterSite = $_POST['columns'][4]['search']['value'] ?? '';
-    $filterSite = trim( $filterSite, '^$' ); // bỏ ký tự regex
-    if ( $filterSite !== '' ) {
-        $escSite      = $conn->real_escape_string( $filterSite );
+
+    // Lọc theo site
+    $filterSite = trim($_POST['columns'][4]['search']['value'] ?? '', '^$');
+    if ($filterSite !== '') {
+        $escSite = $conn->real_escape_string($filterSite);
         $whereClauses[] = "exports.site_id = '$escSite'";
     }
-    // lọc theo author.
-    $filterAuthor = $_POST['columns'][10]['search']['value'] ?? '';
-    $filterAuthor = trim( $filterAuthor, '^$' ); // bỏ ký tự regex
-    if ( $filterAuthor !== '' ) {
-        $escAuthor       = $conn->real_escape_string( $filterAuthor );
+
+    // Lọc theo author
+    $filterAuthor = trim($_POST['columns'][10]['search']['value'] ?? '', '^$');
+    if ($filterAuthor !== '') {
+        $escAuthor = $conn->real_escape_string($filterAuthor);
         $whereClauses[] = "download.author_id = '$escAuthor'";
     }
-    // lọc theo accounts.
+
+    // Lọc theo accounts
     $filterAccounts = $_POST['accounts'] ?? [];
-    if ( ! empty( $filterAccounts ) && is_array( $filterAccounts ) ) {
-        // Ép tất cả sang số nguyên để tránh SQL injection
-        $ids    = array_map( 'intval', $filterAccounts );
-        $idsStr = implode( ',', $ids );
-        if ( $idsStr !== '' ) {
+    if (!empty($filterAccounts) && is_array($filterAccounts)) {
+        $idsStr = implode(',', array_map('intval', $filterAccounts));
+        if ($idsStr !== '') {
             $whereClauses[] = "exports.accounts_id IN ($idsStr)";
         }
     }
 
-    $where         = $whereClauses ? ' WHERE ' . implode( ' AND ', $whereClauses ) : '';
-    $join          = 'INNER JOIN exports ON exports.ID = download.exports_id INNER JOIN accounts ON accounts.ID = exports.accounts_id';
-    $totalFiltered = $conn->query( "SELECT COUNT(DISTINCT download.ID) AS cnt FROM download $join $where" )->fetch_assoc()['cnt'];
+    $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
+    $join  = 'INNER JOIN exports ON exports.ID = download.exports_id 
+              INNER JOIN accounts ON accounts.ID = exports.accounts_id';
+
+    // Tổng số bản ghi sau khi lọc
+    $totalFiltered = $conn->query(
+        "SELECT COUNT(DISTINCT download.ID) AS cnt 
+         FROM download $join $where"
+    )->fetch_assoc()['cnt'];
 
     // Lấy dữ liệu
-    $sql = "SELECT DISTINCT download.ID, download.author_id, accounts.email, exports.site_id, exports.type_id, exports.file_name, exports.name, download.status, download.date, download.download_date, download.total_items
-        FROM download
-        $join
-        $where
-        ORDER BY download.$orderColumn $orderDir
-        LIMIT $start, $length";
-    $rs  = $conn->query( $sql );
+    $sql = "SELECT DISTINCT download.ID, download.author_id, accounts.email, 
+                   exports.site_id, exports.type_id, exports.file_name, exports.name, 
+                   download.status, download.date, download.download_date, download.total_items
+            FROM download
+            $join
+            $where
+            ORDER BY download.{$params['orderColumn']} {$params['orderDir']}
+            LIMIT {$params['start']}, {$params['length']}";
+    $rs = $conn->query($sql);
 
     // Chuẩn bị dữ liệu trả về
     $data = [];
-    while ( $row = $rs->fetch_assoc() ) {
+    while ($row = $rs->fetch_assoc()) {
         $data[] = [
-            "id"                => $row['ID'],
-            "full_name"         => $row['name'],
-            "email"             => $row['email'],
-            "site_id"           => $row['site_id'],
-            "type_id"           => $row['type_id'],
-            "author_id"         => $row['author_id'],
-            "status"            => $row['status'],
-            "date"              => $row['date'],
-            "download_date"     => $row['download_date'],
-            "total_items"       => $row['total_items'],
-            "temp_file_name"    => $row['file_name']
+            "id"             => $row['ID'],
+            "full_name"      => $row['name'],
+            "email"          => $row['email'],
+            "site_id"        => $row['site_id'],
+            "type_id"        => $row['type_id'],
+            "author_id"      => $row['author_id'],
+            "status"         => $row['status'],
+            "date"           => $row['date'],
+            "download_date"  => $row['download_date'],
+            "total_items"    => $row['total_items'],
+            "temp_file_name" => $row['file_name']
         ];
     }
 
-    // Trả JSON
     return [
-        "draw"            => $draw,
+        "draw"            => $params['draw'],
         "recordsTotal"    => $totalRecords,
         "recordsFiltered" => $totalFiltered,
         "data"            => $data
