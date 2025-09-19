@@ -24,6 +24,9 @@
     <div class="offcanvas-body border-top mx-0 flex-grow-0">
         <form class="ecommerce-customer-add pt-0" id="eCommerceKeywordsAddForm" onsubmit="return false">
             <div class="mb-6 pt-4">
+                <div class="alert alert-success" role="alert">
+                    A simple success alert—check it out!
+                </div>
                 <div class="mb-6 form-control-validation">
                     <label class="form-label" for="add-name">Keywords*</label>
                     <textarea class="form-control" id="keywords" name="keywords" placeholder="Enter keyword names one word per line!" rows="15"></textarea>
