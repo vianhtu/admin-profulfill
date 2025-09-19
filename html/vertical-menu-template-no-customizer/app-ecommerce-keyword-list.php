@@ -8,7 +8,7 @@
                 <th></th>
                 <th>name</th>
                 <th>status</th>
-                <th>actions</th>
+                <th data-align="right">actions</th>
             </tr>
             </thead>
         </table>
