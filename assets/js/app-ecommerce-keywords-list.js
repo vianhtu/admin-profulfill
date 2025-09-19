@@ -4,10 +4,8 @@
 
 'use strict';
 
-function showImageModal(src) {
-    const modalImg = document.getElementById('modalImage');
-    modalImg.src = src;
-    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+function showAddKeywordsModal() {
+    const modal = new bootstrap.Modal(document.getElementById('addKeywordsModal'));
     modal.show();
 }
 
@@ -133,7 +131,7 @@ function initTable(){
                                 {
                                     text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-plus icon-xs"></i> <span class="d-none d-sm-inline-block">Add New Keywords</span></span>',
                                     className: 'add-new-keywords btn btn-primary',
-                                    action: function () {window.location.href = '#';}
+                                    action: function () {showAddKeywordsModal()}
                                 }
                             ]
                         }
