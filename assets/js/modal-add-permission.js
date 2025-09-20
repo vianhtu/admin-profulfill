@@ -54,9 +54,9 @@ document.addEventListener('DOMContentLoaded', function () {
             const match = name.match(/^permissions\[([^\]]+)\]\[([^\]]+)\]\[([^\]]+)\]$/);
             if (!match) return;
 
-            const cha = match[1];   // menu cha
-            const con = match[2];   // menu con
-            const role = match[3];  // quyền: view, add, edit, delete
+            const cha = match[1];   // menu cha (ví dụ: Products)
+            const con = match[2];   // menu con (ví dụ: Phones)
+            const role = match[3];  // quyền (ví dụ: view, add, edit, delete)
 
             if (!permissions[cha]) {
                 permissions[cha] = {};
