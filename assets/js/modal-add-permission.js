@@ -51,6 +51,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Xóa hidden role_id (nếu là form edit)
         $(this).find('input[name="role_id"]').remove();
+
+        // Đổi tiêu đề và nút submit về mặc định
+        $(this).find('.modal-title').text('Add New Role');
+        $(this).find('button[type="submit"]').text('Create Role');
     });
 
     // Sự kiện khi form hợp lệ

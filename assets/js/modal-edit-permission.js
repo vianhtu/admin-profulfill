@@ -18,6 +18,10 @@ document.addEventListener('DOMContentLoaded', function (e) {
                 if (res.status === 'success') {
                     let form = $('#addPermissionModal');
 
+                    // Đổi tiêu đề và nút submit sang chế độ Edit
+                    form.find('h3').text('Edit Role');
+                    form.find('button[type="submit"]').text('Edit Role');
+
                     // Gán dữ liệu vào form
                     form.find('#modalPermissionName').val(res.role_name);
                     form.find('input[type="checkbox"]').prop('checked', false);

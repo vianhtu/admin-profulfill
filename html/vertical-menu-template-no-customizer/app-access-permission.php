@@ -107,7 +107,7 @@ $allRoles = ['view','add','edit','delete'];
                         </div>
                     </div>
                     <div class="col-12 text-center demo-vertical-spacing">
-                        <button type="submit" class="btn btn-primary me-sm-4 me-1">Create Roles</button>
+                        <button type="submit" class="btn btn-primary me-sm-4 me-1">Create Role</button>
                         <button
                                 type="reset"
                                 class="btn btn-label-secondary"
