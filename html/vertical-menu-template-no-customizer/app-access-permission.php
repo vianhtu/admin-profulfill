@@ -73,9 +73,9 @@ $allRoles = ['view','add','edit','delete'];
                                             <td class="ps-4"><?= $subData['label'] ?></td>
                                             <?php foreach ($allRoles as $role): ?>
                                                 <td class="text-center">
-                                                    <?php if (in_array($role, $subData['roles'])): ?>
-                                                        <input type="checkbox" name="permissions[<?= $subKey ?>][<?= $role ?>]" checked>
-                                                    <?php endif; ?>
+                                                    <input type="checkbox"
+                                                           name="permissions[<?= $subKey ?>][<?= $role ?>]"
+                                                            <?= in_array($role, $subData['roles']) ? 'checked' : 'disabled' ?>>
                                                 </td>
                                             <?php endforeach; ?>
                                         </tr>
@@ -88,9 +88,9 @@ $allRoles = ['view','add','edit','delete'];
                                         <td><i class="<?= $menuData['icon'] ?>"></i> <?= $menuName ?></td>
                                         <?php foreach ($allRoles as $role): ?>
                                             <td class="text-center">
-                                                <?php if (in_array($role, $menuData['roles'])): ?>
-                                                    <input type="checkbox" name="permissions[<?= strtolower(str_replace(' ', '_', $menuName)) ?>][<?= $role ?>]" checked>
-                                                <?php endif; ?>
+                                                <input type="checkbox"
+                                                       name="permissions[<?= strtolower(str_replace(' ', '_', $menuName)) ?>][<?= $role ?>]"
+                                                        <?= in_array($role, $menuData['roles']) ? 'checked' : 'disabled' ?>>
                                             </td>
                                         <?php endforeach; ?>
                                     </tr>
