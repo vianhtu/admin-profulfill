@@ -1383,6 +1383,59 @@ function addKeywords(): array
     return $result;
 }
 
+function addRolesPermissions(): array
+{
+    $conn = db(); // Hàm db() trả về kết nối mysqli
+
+    $roleName = $_POST['role_name'] ?? '';
+    $permissions = $_POST['permissions'] ?? [];
+
+    if (trim($roleName) === '' || empty($permissions)) {
+        return ['status' => 'error', 'message' => 'Thiếu dữ liệu'];
+    }
+
+    $rolesJson = json_encode($permissions, JSON_UNESCAPED_UNICODE);
+
+    // Kiểm tra trùng tên role
+    $stmtCheck = $conn->prepare("SELECT id FROM roles_permissions WHERE name = ?");
+    $stmtCheck->bind_param("s", $roleName);
+    $stmtCheck->execute();
+    $result = $stmtCheck->get_result();
+
+    if ($result->num_rows > 0) {
+        // Nếu tồn tại → update
+        $row = $result->fetch_assoc();
+        $roleId = $row['id'];
+
+        $stmtUpdate = $conn->prepare("UPDATE roles_permissions SET roles = ? WHERE id = ?");
+        $stmtUpdate->bind_param("si", $rolesJson, $roleId);
+
+        if ($stmtUpdate->execute()) {
+            $stmtCheck->close();
+            $stmtUpdate->close();
+            return ['status' => 'success', 'message' => 'Đã cập nhật vai trò'];
+        } else {
+            $stmtCheck->close();
+            $stmtUpdate->close();
+            return ['status' => 'error', 'message' => 'Lỗi khi cập nhật: ' . $stmtUpdate->error];
+        }
+    } else {
+        // Nếu chưa tồn tại → insert
+        $stmtInsert = $conn->prepare("INSERT INTO roles_permissions (name, roles) VALUES (?, ?)");
+        $stmtInsert->bind_param("ss", $roleName, $rolesJson);
+
+        if ($stmtInsert->execute()) {
+            $stmtCheck->close();
+            $stmtInsert->close();
+            return ['status' => 'success', 'message' => 'Đã thêm vai trò mới'];
+        } else {
+            $stmtCheck->close();
+            $stmtInsert->close();
+            return ['status' => 'error', 'message' => 'Lỗi khi thêm: ' . $stmtInsert->error];
+        }
+    }
+}
+
 function duplicateXlsx(): array {
 	$conn = db();
 	$id = $_POST['id'] ?? null;
