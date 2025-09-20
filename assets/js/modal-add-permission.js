@@ -40,12 +40,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // Sự kiện khi form hợp lệ
     fv.on('core.form.valid', function () {
         // Lấy Role Name
-        let from = $('#modalPermissionName');
-        let roleName = from.val().trim();
+        let roleName = $('#modalPermissionName').val().trim();
 
         // Lấy toàn bộ checkbox permission
         let permissions = {};
-        from.find('input[type="checkbox"]').each(function () {
+        $('#addPermissionForm input[type="checkbox"]').each(function () {
             let name = $(this).attr('name');
             let checked = $(this).is(':checked') ? 1 : 0;
 
