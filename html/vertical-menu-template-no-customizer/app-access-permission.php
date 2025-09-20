@@ -59,11 +59,9 @@ $allRoles = ['view','add','edit','delete'];
                             <tbody>
                             <?php foreach ($menus as $menuName => $menuData): ?>
                                 <?php
-                                // Nếu có sub menu
                                 if (isset($menuData['sub'])) {
-                                    // Lọc sub có roles
                                     $validSubs = array_filter($menuData['sub'], fn($sub) => !empty($sub['roles']));
-                                    if (empty($validSubs)) continue; // bỏ qua nếu không có sub hợp lệ
+                                    if (empty($validSubs)) continue;
                                     ?>
                                     <tr class="table-secondary">
                                         <td colspan="<?= count($allRoles) + 1 ?>">
@@ -75,23 +73,24 @@ $allRoles = ['view','add','edit','delete'];
                                             <td class="ps-4"><?= $subData['label'] ?></td>
                                             <?php foreach ($allRoles as $role): ?>
                                                 <td class="text-center">
-                                                    <input type="checkbox" name="permissions[<?= $subKey ?>][<?= $role ?>]"
-                                                            <?= in_array($role, $subData['roles']) ? 'checked' : '' ?>>
+                                                    <?php if (in_array($role, $subData['roles'])): ?>
+                                                        <input type="checkbox" name="permissions[<?= $subKey ?>][<?= $role ?>]" checked>
+                                                    <?php endif; ?>
                                                 </td>
                                             <?php endforeach; ?>
                                         </tr>
                                     <?php endforeach; ?>
                                     <?php
                                 } else {
-                                    // Không có sub menu
-                                    if (empty($menuData['roles'])) continue; // bỏ qua nếu không có roles
+                                    if (empty($menuData['roles'])) continue;
                                     ?>
                                     <tr>
                                         <td><i class="<?= $menuData['icon'] ?>"></i> <?= $menuName ?></td>
                                         <?php foreach ($allRoles as $role): ?>
                                             <td class="text-center">
-                                                <input type="checkbox" name="permissions[<?= strtolower(str_replace(' ', '_', $menuName)) ?>][<?= $role ?>]"
-                                                        <?= in_array($role, $menuData['roles']) ? 'checked' : '' ?>>
+                                                <?php if (in_array($role, $menuData['roles'])): ?>
+                                                    <input type="checkbox" name="permissions[<?= strtolower(str_replace(' ', '_', $menuName)) ?>][<?= $role ?>]" checked>
+                                                <?php endif; ?>
                                             </td>
                                         <?php endforeach; ?>
                                     </tr>
