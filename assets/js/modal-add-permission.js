@@ -61,6 +61,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
+        console.log(permissions);
+
         // Gửi AJAX
         $.ajax({
             url: '../../ajax.php?action=get-roles-permissions-table',
