@@ -6,30 +6,45 @@
 
 // Edit permission form validation
 document.addEventListener('DOMContentLoaded', function (e) {
-  (function () {
-    FormValidation.formValidation(document.getElementById('editPermissionForm'), {
-      fields: {
-        editPermissionName: {
-          validators: {
-            notEmpty: {
-              message: 'Please enter permission name'
+    // edit.
+    $(document).on('click', '.btn-edit', function () {
+        const roleId = $(this).data('id');
+
+        $.getJSON('get_role.php', { id: roleId }, function (res) {
+            if (res.status === 'success') {
+                let form = $('#addPermissionModal');
+                // Gán dữ liệu vào form
+                form.find('#modalPermissionName').val(res.role_name);
+                form.find('input[type="checkbox"]').prop('checked', false);
+
+                const perms = res.permissions;
+                for (let cha in perms) {
+                    for (let key in perms[cha]) {
+                        if (typeof perms[cha][key] === 'object') {
+                            for (let role in perms[cha][key]) {
+                                if (perms[cha][key][role] == 1) {
+                                    form.find(`input[name="permissions[${cha}][${key}][${role}]"]`).prop('checked', true);
+                                }
+                            }
+                        } else {
+                            if (perms[cha][key] == 1) {
+                                form.find(`input[name="permissions[${cha}][${key}]"]`).prop('checked', true);
+                            }
+                        }
+                    }
+                }
+
+                // Lưu role_id
+                if (!form.find('input[name="role_id"]').length) {
+                    form.find('form').append('<input type="hidden" name="role_id">');
+                }
+                form.find('input[name="role_id"]').val(roleId);
+
+                // Mở modal sau khi load xong
+                form.modal('show');
+            } else {
+                alert(res.message);
             }
-          }
-        }
-      },
-      plugins: {
-        trigger: new FormValidation.plugins.Trigger(),
-        bootstrap5: new FormValidation.plugins.Bootstrap5({
-          // Use this for enabling/changing valid/invalid class
-          // eleInvalidClass: '',
-          eleValidClass: '',
-          rowSelector: '.form-control-validation'
-        }),
-        submitButton: new FormValidation.plugins.SubmitButton(),
-        // Submit the form when all fields are valid
-        // defaultSubmit: new FormValidation.plugins.DefaultSubmit(),
-        autoFocus: new FormValidation.plugins.AutoFocus()
-      }
+        });
     });
-  })();
 });
