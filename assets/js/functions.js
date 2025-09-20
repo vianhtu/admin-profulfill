@@ -63,4 +63,9 @@ function showAlert(alertId, message, type = 'danger') {
 
     // Gán nội dung
     alertBox.innerText = message;
+
+    // Tự ẩn sau 3 giây
+    setTimeout(() => {
+        alertBox.classList.add('d-none');
+    }, 3000);
 }

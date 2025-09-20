@@ -44,7 +44,6 @@
                 isValidated = true;
                 const btn = eCommerceCustomerAddForm.querySelector('[type="submit"]');
                 const spinner = btn.querySelector('.spinner-border');
-                const alertBox = eCommerceCustomerAddForm.querySelector('.alert');
                 // Hiện spinner + disable nút
                 spinner.classList.remove('d-none');
                 btn.disabled = true;
@@ -64,28 +63,20 @@
                         btn.disabled = false;
                         if (data.error && Object.keys(data.error).length > 0) {
                             // Lỗi → alert-danger
-                            alertBox.className = 'alert alert-danger';
-                            alertBox.textContent = Array.isArray(data.error) ? data.error.join(', ') : 'Có lỗi xảy ra!';
+                            showAlert('alertKeywordsAddForm', Array.isArray(data.error) ? data.error.join(', ') : 'Có lỗi xảy ra!', 'danger');
                         } else {
                             // Thành công → alert-success
-                            alertBox.className = 'alert alert-success';
-                            alertBox.textContent = 'Thêm từ khóa thành công!';
+                            showAlert('alertKeywordsAddForm', 'Thêm từ khóa thành công!', 'success');
                             eCommerceCustomerAddForm.reset();
                             // Reload DataTable
                             $('.datatables-taxonomy').DataTable().ajax.reload(null, false);
-                            setTimeout(() => {
-                                alertBox.classList.add('d-none');
-                            }, 3000);
                         }
-                        alertBox.classList.remove('d-none'); // Hiện alert
                         // Reset lại cờ để lần sau vẫn submit được
                         isValidated = false;
                     })
                     .catch(err => {
                         console.error(err);
-                        alertBox.className = 'alert alert-danger';
-                        alertBox.textContent = 'Lỗi kết nối máy chủ!';
-                        alertBox.classList.remove('d-none');
+                        showAlert('alertKeywordsAddForm', 'Lỗi kết nối máy chủ!', 'danger');
                         spinner.classList.add('d-none');
                         btn.disabled = false;
                         // Cho phép thử lại
