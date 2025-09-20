@@ -23,7 +23,7 @@ $allRoles = ['view','add','edit','delete'];
 <!-- Modal -->
 <!-- Add Permission Modal -->
 <div class="modal fade" id="addPermissionModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-simple">
+    <div class="modal-dialog modal-dialog-centered modal-simple modal-lg">
         <div class="modal-content">
             <div class="modal-body">
                 <button
