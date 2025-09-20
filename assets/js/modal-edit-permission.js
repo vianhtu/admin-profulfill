@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
         const roleId = $(this).data('id');
         let form = $('#addPermissionModal');
         // Đổi tiêu đề và nút submit sang chế độ Edit
+        form.data('type', 'edit');
         form.find('h3').text('Edit Role');
         form.find('button[type="submit"]').text('Edit Role');
         $.ajax({

@@ -93,7 +93,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 if (result.status === 'success') {
-                    $('#addPermissionModal').modal('hide');
+                    if ($('#addPermissionModal').data('type') !== 'edit') {
+                        $('#addPermissionModal').modal('hide');
+                    }
                     formEl.reset();
                     fv.resetForm(true);
                     // Reload DataTable
