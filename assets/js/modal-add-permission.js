@@ -93,7 +93,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 if (result.status === 'success') {
-                    showAlert( 'alertPermissionModal', result.message, 'success');
                     $('#addPermissionModal').modal('hide');
                     formEl.reset();
                     fv.resetForm(true);
