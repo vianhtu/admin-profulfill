@@ -95,11 +95,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (result.status === 'success') {
                     if ($('#addPermissionModal').data('type') !== 'edit') {
                         $('#addPermissionModal').modal('hide');
+                        formEl.reset();
+                        fv.resetForm(true);
+                        // Reload DataTable
+                        $('.datatables-permissions').DataTable().ajax.reload(null, false);
                     }
-                    formEl.reset();
-                    fv.resetForm(true);
-                    // Reload DataTable
-                    $('.datatables-permissions').DataTable().ajax.reload(null, false);
                 } else {
                     showAlert('alertPermissionModal', result.message, 'danger');
                 }
