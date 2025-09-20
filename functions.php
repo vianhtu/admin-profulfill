@@ -1041,6 +1041,46 @@ function getRolesPermissionsTable(): array {
     ];
 }
 
+function getRolesPermissions(): array
+{
+    $conn = db(); // Hàm db() trả về kết nối mysqli
+
+    // Lấy id từ POST
+    $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+    if ($id <= 0) {
+        return [
+            'status'  => 'error',
+            'message' => 'Thiếu hoặc ID không hợp lệ'
+        ];
+    }
+
+    // Chuẩn bị truy vấn
+    $stmt = $conn->prepare("SELECT name, roles FROM roles_permissions WHERE ID = ?");
+    if (!$stmt) {
+        return [
+            'status'  => 'error',
+            'message' => 'Lỗi prepare: ' . $conn->error
+        ];
+    }
+
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($row = $result->fetch_assoc()) {
+        return [
+            'status'      => 'success',
+            'role_name'   => $row['name'],
+            'permissions' => json_decode($row['roles'], true) ?? []
+        ];
+    } else {
+        return [
+            'status'  => 'error',
+            'message' => 'Không tìm thấy role'
+        ];
+    }
+}
+
 function getExportTableFilter() {
     $conn = db();
     $id   = isset($_POST['id']) ? $_POST['id'] : '';
