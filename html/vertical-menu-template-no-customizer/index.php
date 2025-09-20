@@ -264,6 +264,9 @@ if (empty($_SESSION['csrf_token'])) {
                   case 'keywords':
                       include 'app-ecommerce-keyword-list.php';
                       break;
+                  case 'roles-permissions':
+                      include 'app-access-permission.php';
+                      break;
               }
               ?>
             </div>
@@ -367,6 +370,11 @@ if (empty($_SESSION['csrf_token'])) {
             <?php break;
         case 'keywords': ?>
             <script src="../../assets/js/app-ecommerce-keywords-list.js"></script>
+            <?php break;
+        case 'roles-permissions': ?>
+            <script src="../../assets/js/app-access-permission.js"></script>
+            <script src="../../assets/js/modal-add-permission.js"></script>
+            <script src="../../assets/js/modal-edit-permission.js"></script>
             <?php break;
     }
     ?>
