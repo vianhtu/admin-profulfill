@@ -47,6 +47,7 @@ $allRoles = ['view','add','edit','delete'];
                                 autofocus />
                     </div>
                     <div class="col-12 mb-2">
+                        <div class="table-responsive" style="max-height:70vh; overflow-y:auto;">
                         <table class="table table-bordered align-middle">
                             <thead class="table-light">
                             <tr>
@@ -102,6 +103,7 @@ $allRoles = ['view','add','edit','delete'];
                             <?php endforeach; ?>
                             </tbody>
                         </table>
+                        </div>
                     </div>
                     <div class="col-12 text-center demo-vertical-spacing">
                         <button type="submit" class="btn btn-primary me-sm-4 me-1">Create Roles</button>
