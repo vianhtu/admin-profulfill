@@ -36,6 +36,22 @@ document.addEventListener('DOMContentLoaded', function () {
             autoFocus: new FormValidation.plugins.AutoFocus()
         }
     });
+    // reset.
+    $('#addPermissionModal').on('hidden.bs.modal', function () {
+        // Reset form HTML
+        this.querySelector('form').reset();
+
+        // Nếu dùng FormValidation plugin thì reset luôn trạng thái validate
+        if (typeof fv !== 'undefined') {
+            fv.resetForm(true);
+        }
+
+        // Bỏ tick tất cả checkbox (nếu cần)
+        $(this).find('input[type="checkbox"]').prop('checked', false);
+
+        // Xóa hidden role_id (nếu là form edit)
+        $(this).find('input[name="role_id"]').remove();
+    });
 
     // Sự kiện khi form hợp lệ
     fv.on('core.form.valid', function () {
