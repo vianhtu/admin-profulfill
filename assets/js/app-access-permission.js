@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
             return `
               <div class="d-flex align-items-center">
                 <span class="text-nowrap">
-                  <button class="btn btn-icon me-1 edit" data-bs-dismiss="modal" data-id="${full['id']}">
+                  <button class="btn btn-icon me-1 edit" data-id="${full['id']}">
                     <i class="icon-base ti tabler-edit icon-22px"></i>
                   </button>
                   <a href="javascript:;" class="btn btn-icon dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
