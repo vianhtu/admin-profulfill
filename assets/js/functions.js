@@ -56,7 +56,7 @@ function showAlert(alertId, message, type = 'danger') {
     if (!alertBox) return;
 
     // Xóa các class trạng thái cũ
-    alertBox.classList.remove('d-none', 'alert-success', 'alert-danger', 'alert-warning');
+    alertBox.classList.remove('d-none', 'alert-success', 'alert-danger', 'alert-warning', 'show');
 
     // Thêm class trạng thái mới
     alertBox.classList.add('alert', `alert-${type}`);
@@ -64,8 +64,11 @@ function showAlert(alertId, message, type = 'danger') {
     // Gán nội dung
     alertBox.innerText = message;
 
+    // Hiển thị (fade in)
+    alertBox.classList.add('show');
+
     // Tự ẩn sau 3 giây
     setTimeout(() => {
-        alertBox.classList.add('d-none');
+        alertBox.classList.remove('show');
     }, 3000);
 }
