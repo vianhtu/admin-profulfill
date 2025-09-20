@@ -48,8 +48,7 @@ function menuArgs():array
                     'roles' => ['view','add','edit','delete']
                 ],
                 'exports_add' => [
-                    'label' => 'Add & Update',
-                    'roles' => ['add','edit']
+                    'label' => 'Add & Update'
                 ],
             ]
         ],
