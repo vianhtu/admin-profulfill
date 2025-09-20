@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Gửi AJAX
         $.ajax({
-            url: '../../ajax.php?action=get-roles-permissions-table',
+            url: '../../ajax.php?action=add-roles-permissions',
             type: 'POST',
             data: {
                 role_name: roleName,
