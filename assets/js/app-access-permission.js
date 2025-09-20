@@ -12,14 +12,22 @@ document.addEventListener('DOMContentLoaded', function (e) {
   // Users List datatable
   if (dataTablePermissions) {
     dt_permission = new DataTable(dataTablePermissions, {
-      ajax: assetsPath + 'json/permissions-list.json', // JSON file to add data
+      serverSide: true,
+      processing: true,
+      ajax: {
+          url: '../../ajax.php?action=get-roles-permissions-table',
+          type: 'POST',
+          data: function (d) {},
+          dataSrc: function (json) {
+              return json.data;
+          }
+      },
       columns: [
         // columns according to JSON
         { data: 'id' },
         { data: 'id' },
         { data: 'name' },
-        { data: 'assigned_to' },
-        { data: 'created_date' },
+        { data: 'roles' },
         { data: 'id' }
       ],
       columnDefs: [
@@ -52,30 +60,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
           targets: 3,
           orderable: false,
           render: function (data, type, full, meta) {
-            const assignedTo = full['assigned_to'];
-            let output = '';
-            const roleBadgeObj = {
-              Admin: `<a href="${userList}"><span class="badge bg-label-primary me-4">Administrator</span></a>`,
-              Manager: `<a href="${userList}"><span class="badge bg-label-warning me-4">Manager</span></a>`,
-              Users: `<a href="${userList}"><span class="badge bg-label-success me-4">Users</span></a>`,
-              Support: `<a href="${userList}"><span class="badge bg-label-info me-4">Support</span></a>`,
-              Restricted: `<a href="${userList}"><span class="badge bg-label-danger me-4">Restricted User</span></a>`
-            };
-
-            assignedTo.forEach(role => {
-              output += roleBadgeObj[role] || '';
-            });
-
-            return `<span class="text-nowrap">${output}</span>`;
-          }
-        },
-        {
-          // remove ordering from Name
-          targets: 4,
-          orderable: false,
-          render: function (data, type, full, meta) {
-            let date = full['created_date'];
-            return '<span class="text-nowrap">' + date + '</span>';
+            return `<span class="text-nowrap"></span>`;
           }
         },
         {

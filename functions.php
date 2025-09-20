@@ -991,6 +991,52 @@ function getDownloadTable(): array {
     ];
 }
 
+function getRolesPermissionsTable(): array {
+    $conn = db();
+    $allowedCols = ['ID', 'name'];
+
+    // Lấy tham số từ DataTables
+    $params = getDataTableParams($allowedCols);
+
+    // Tổng số bản ghi
+    $totalRecords = $conn->query("SELECT COUNT(ID) AS cnt FROM roles_permissions")->fetch_assoc()['cnt'];
+
+    // Điều kiện lọc
+    $whereClauses = [];
+    if ($params['searchValue'] !== '') {
+        $searchEsc = $conn->real_escape_string($params['searchValue']);
+        $whereClauses[] = "name LIKE '%$searchEsc%'";
+    }
+    $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
+
+    // Tổng số bản ghi sau khi lọc
+    $totalFiltered = $conn->query("SELECT COUNT(ID) AS cnt FROM roles_permissions $where")->fetch_assoc()['cnt'];
+
+    // Lấy dữ liệu
+    $sql = "SELECT *
+            FROM roles_permissions
+            $where
+            ORDER BY {$params['orderColumn']} {$params['orderDir']}
+            LIMIT {$params['start']}, {$params['length']}";
+    $rs = $conn->query($sql);
+
+    $data = [];
+    while ($row = $rs->fetch_assoc()) {
+        $data[] = [
+            "id"          => $row['ID'],
+            "name"        => $row['name'],
+            "roles"       => $row['roles'],
+        ];
+    }
+
+    return [
+        "draw"            => $params['draw'],
+        "recordsTotal"    => $totalRecords,
+        "recordsFiltered" => $totalFiltered,
+        "data"            => $data
+    ];
+}
+
 function getExportTableFilter() {
     $conn = db();
     $id   = isset($_POST['id']) ? $_POST['id'] : '';

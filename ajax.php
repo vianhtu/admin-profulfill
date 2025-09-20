@@ -63,6 +63,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         case 'get-keywords-table':
             echo json_encode(getKeywordsTable());
             break;
+        case 'get-roles-permissions-table':
+            echo json_encode(getRolesPermissionsTable());
+            break;
 		case 'filter-stores':
 			echo json_encode(getStoresTableFilter());
 			break;
