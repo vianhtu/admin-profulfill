@@ -7,8 +7,10 @@
 // Edit permission form validation
 document.addEventListener('DOMContentLoaded', function (e) {
     // edit.
-    $(document).on('click', '.btn-edit', function () {
+    $(document).on('click', '.datatables-permissions .edit', function () {
         const roleId = $(this).data('id');
+
+        console.log(roleId); return;
 
         $.getJSON('get_role.php', { id: roleId }, function (res) {
             if (res.status === 'success') {
