@@ -99,6 +99,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         fv.resetForm(true);
                         // Reload DataTable
                         $('.datatables-permissions').DataTable().ajax.reload(null, false);
+                    } else {
+                        showAlert('alertPermissionModal', result.message, 'success');
                     }
                 } else {
                     showAlert('alertPermissionModal', result.message, 'danger');
