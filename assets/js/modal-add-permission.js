@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!name) return;
 
             const checked = $(this).is(':checked') ? 1 : 0;
-            
+
             // Trường hợp chỉ có l1 + role
             let match2 = name.match(/^permissions\[([^\]]+)\]\[([^\]]+)\]$/);
             if (match2) {
@@ -62,8 +62,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 permissions[l1][role] = checked;
             }
         });
-
-        console.log(permissions);
 
         // Gửi AJAX
         $.ajax({
@@ -88,6 +86,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     $('#addPermissionModal').modal('hide');
                     formEl.reset();
                     fv.resetForm(true);
+                    // Reload DataTable
+                    $('.datatables-permissions').DataTable().ajax.reload(null, false);
                 } else {
                     showAlert(result.message, 'danger');
                 }
