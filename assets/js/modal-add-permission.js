@@ -44,20 +44,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Lấy toàn bộ checkbox permission
         let permissions = {};
-        $('#addPermissionForm input[type="checkbox"]').each(function () {
-            let name = $(this).attr('name');
-            let checked = $(this).is(':checked') ? 1 : 0;
+        $('#addPermissionForm input[type="checkbox"][name^="permissions["]').each(function () {
+            const name = $(this).attr('name');
+            if (!name) return;
 
-            let match = name.match(/permissions\[(.+?)\]\[(.+?)\]/);
-            if (match) {
-                let module = match[1];
-                let role = match[2];
+            const checked = $(this).is(':checked') ? 1 : 0;
 
-                if (!permissions[module]) {
-                    permissions[module] = {};
-                }
-                permissions[module][role] = checked;
+            // Regex: permissions[cha][con][role]
+            const match = name.match(/^permissions\[([^\]]+)\]\[([^\]]+)\]\[([^\]]+)\]$/);
+            if (!match) return;
+
+            const cha = match[1];   // menu cha
+            const con = match[2];   // menu con
+            const role = match[3];  // quyền: view, add, edit, delete
+
+            if (!permissions[cha]) {
+                permissions[cha] = {};
             }
+
+            if (!permissions[cha][con]) {
+                permissions[cha][con] = {};
+            }
+
+            permissions[cha][con][role] = checked;
         });
 
         console.log(permissions);
