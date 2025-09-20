@@ -49,24 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!name) return;
 
             const checked = $(this).is(':checked') ? 1 : 0;
-
-            // Trường hợp có l1 + con + role
-            let match3 = name.match(/^permissions\[([^\]]+)\]\[([^\]]+)\]\[([^\]]+)\]$/);
-            if (match3) {
-                const l1 = match3[1];
-                const l2 = match3[2];
-                const role = match3[3];
-
-                if (!permissions[l1]) {
-                    permissions[l1] = {};
-                }
-                if (!permissions[l1][l2]) {
-                    permissions[l1][l2] = {};
-                }
-                permissions[l1][l2][role] = checked;
-                return;
-            }
-
+            
             // Trường hợp chỉ có l1 + role
             let match2 = name.match(/^permissions\[([^\]]+)\]\[([^\]]+)\]$/);
             if (match2) {
