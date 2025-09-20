@@ -50,3 +50,17 @@ async function fetchTableFilter(){
     if (!res.ok) throw new Error('Lỗi lấy danh mục');
     return await res.json();
 }
+
+function showAlert(alertId, message, type = 'danger') {
+    const alertBox = document.getElementById(alertId);
+    if (!alertBox) return;
+
+    // Xóa các class trạng thái cũ
+    alertBox.classList.remove('d-none', 'alert-success', 'alert-danger', 'alert-warning');
+
+    // Thêm class trạng thái mới
+    alertBox.classList.add('alert', `alert-${type}`);
+
+    // Gán nội dung
+    alertBox.innerText = message;
+}

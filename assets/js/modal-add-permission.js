@@ -4,15 +4,6 @@
 
 'use strict';
 
-function showAlert(message, type = 'danger') {
-    const alertBox = document.querySelector('#addPermissionForm .alert');
-    if (!alertBox) return;
-
-    alertBox.classList.remove('d-none', 'alert-success', 'alert-danger', 'alert-warning');
-    alertBox.classList.add('alert-' + type);
-    alertBox.innerText = message;
-}
-
 // Add permission form validation
 document.addEventListener('DOMContentLoaded', function () {
     const formEl = document.getElementById('addPermissionForm');
@@ -97,23 +88,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 try {
                     result = typeof res === 'string' ? JSON.parse(res) : res;
                 } catch (e) {
-                    showAlert('Lỗi không xác định từ server', 'danger');
+                    showAlert( 'alertPermissionModal','Lỗi không xác định từ server', 'danger');
                     return;
                 }
 
                 if (result.status === 'success') {
-                    showAlert(result.message, 'success');
+                    showAlert( 'alertPermissionModal', result.message, 'success');
                     $('#addPermissionModal').modal('hide');
                     formEl.reset();
                     fv.resetForm(true);
                     // Reload DataTable
                     $('.datatables-permissions').DataTable().ajax.reload(null, false);
                 } else {
-                    showAlert(result.message, 'danger');
+                    showAlert('alertPermissionModal', result.message, 'danger');
                 }
             },
             error: function () {
-                showAlert('Không thể kết nối đến máy chủ', 'danger');
+                showAlert('alertPermissionModal','Không thể kết nối đến máy chủ', 'danger');
             }
         });
     });
