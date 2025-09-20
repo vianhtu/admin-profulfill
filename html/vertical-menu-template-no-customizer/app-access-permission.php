@@ -32,18 +32,18 @@ $allRoles = ['view','add','edit','delete'];
                         data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 <div class="text-center mb-6">
-                    <h3>Add New Permission</h3>
+                    <h3>Add New Role</h3>
                     <p class="text-body-secondary">Permissions you may use and assign to your users.</p>
                 </div>
                 <form id="addPermissionForm" class="row" onsubmit="return false">
                     <div class="col-12 form-control-validation mb-4">
-                        <label class="form-label" for="modalPermissionName">Permission Name</label>
+                        <label class="form-label" for="modalPermissionName">Role Name</label>
                         <input
                                 type="text"
                                 id="modalPermissionName"
                                 name="modalPermissionName"
                                 class="form-control"
-                                placeholder="Permission Name"
+                                placeholder="Role Name"
                                 autofocus />
                     </div>
                     <div class="col-12 mb-2">
