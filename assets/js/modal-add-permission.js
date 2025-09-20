@@ -46,7 +46,8 @@ document.addEventListener('DOMContentLoaded', function () {
         let permissions = {};
         $('input[type="checkbox"]').each(function () {
             let name = $(this).attr('name');
-            console.log(name);
+            console.log($(this));
+            if (!name) return; // bỏ qua nếu không có name
             let checked = $(this).is(':checked') ? 1 : 0;
 
             let match = name.match(/permissions\[(.+?)\]\[(.+?)\]/);
