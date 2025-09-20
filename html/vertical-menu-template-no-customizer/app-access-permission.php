@@ -60,6 +60,7 @@ $allRoles = ['view','add','edit','delete'];
                             <?php foreach ($menus as $menuName => $menuData): ?>
                                 <?php
                                 if (isset($menuData['sub'])) {
+                                    // Lọc sub có roles
                                     $validSubs = array_filter($menuData['sub'], fn($sub) => !empty($sub['roles']));
                                     if (empty($validSubs)) continue;
                                     ?>
@@ -75,7 +76,7 @@ $allRoles = ['view','add','edit','delete'];
                                                 <td class="text-center">
                                                     <input type="checkbox"
                                                            name="permissions[<?= $subKey ?>][<?= $role ?>]"
-                                                            <?= in_array($role, $subData['roles']) ? 'checked' : 'disabled' ?>>
+                                                            <?= in_array($role, $subData['roles']) ? '' : 'disabled' ?>>
                                                 </td>
                                             <?php endforeach; ?>
                                         </tr>
@@ -83,14 +84,17 @@ $allRoles = ['view','add','edit','delete'];
                                     <?php
                                 } else {
                                     if (empty($menuData['roles'])) continue;
+
+                                    // Nếu là Roles & Permissions thì style khác
+                                    $isSpecial = ($menuName === 'Roles & Permissions');
                                     ?>
-                                    <tr>
+                                    <tr class="<?= $isSpecial ? 'table-warning fw-bold' : '' ?>">
                                         <td><i class="<?= $menuData['icon'] ?>"></i> <?= $menuName ?></td>
                                         <?php foreach ($allRoles as $role): ?>
                                             <td class="text-center">
                                                 <input type="checkbox"
                                                        name="permissions[<?= strtolower(str_replace(' ', '_', $menuName)) ?>][<?= $role ?>]"
-                                                        <?= in_array($role, $menuData['roles']) ? 'checked' : 'disabled' ?>>
+                                                        <?= in_array($role, $menuData['roles']) ? '' : 'disabled' ?>>
                                             </td>
                                         <?php endforeach; ?>
                                     </tr>
