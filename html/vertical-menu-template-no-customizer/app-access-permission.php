@@ -1,3 +1,7 @@
+<?php
+$menus = menuArgs();
+$allRoles = ['view','add','edit','delete'];
+?>
 <!-- Permission Table -->
 <div class="card">
     <div class="card-datatable table-responsive">
@@ -43,10 +47,58 @@
                                 autofocus />
                     </div>
                     <div class="col-12 mb-2">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="corePermission" />
-                            <label class="form-check-label" for="corePermission"> Set as core permission </label>
-                        </div>
+                        <table class="table table-bordered align-middle">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Module</th>
+                                <?php foreach ($allRoles as $role): ?>
+                                    <th class="text-center text-capitalize"><?= $role ?></th>
+                                <?php endforeach; ?>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <?php foreach ($menus as $menuName => $menuData): ?>
+                                <?php
+                                // Nếu có sub menu
+                                if (isset($menuData['sub'])) {
+                                    // Lọc sub có roles
+                                    $validSubs = array_filter($menuData['sub'], fn($sub) => !empty($sub['roles']));
+                                    if (empty($validSubs)) continue; // bỏ qua nếu không có sub hợp lệ
+                                    ?>
+                                    <tr class="table-secondary">
+                                        <td colspan="<?= count($allRoles) + 1 ?>">
+                                            <i class="<?= $menuData['icon'] ?>"></i> <strong><?= $menuName ?></strong>
+                                        </td>
+                                    </tr>
+                                    <?php foreach ($validSubs as $subKey => $subData): ?>
+                                        <tr>
+                                            <td class="ps-4"><?= $subData['label'] ?></td>
+                                            <?php foreach ($allRoles as $role): ?>
+                                                <td class="text-center">
+                                                    <input type="checkbox" name="permissions[<?= $subKey ?>][<?= $role ?>]"
+                                                            <?= in_array($role, $subData['roles']) ? 'checked' : '' ?>>
+                                                </td>
+                                            <?php endforeach; ?>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    <?php
+                                } else {
+                                    // Không có sub menu
+                                    if (empty($menuData['roles'])) continue; // bỏ qua nếu không có roles
+                                    ?>
+                                    <tr>
+                                        <td><i class="<?= $menuData['icon'] ?>"></i> <?= $menuName ?></td>
+                                        <?php foreach ($allRoles as $role): ?>
+                                            <td class="text-center">
+                                                <input type="checkbox" name="permissions[<?= strtolower(str_replace(' ', '_', $menuName)) ?>][<?= $role ?>]"
+                                                        <?= in_array($role, $menuData['roles']) ? 'checked' : '' ?>>
+                                            </td>
+                                        <?php endforeach; ?>
+                                    </tr>
+                                <?php } ?>
+                            <?php endforeach; ?>
+                            </tbody>
+                        </table>
                     </div>
                     <div class="col-12 text-center demo-vertical-spacing">
                         <button type="submit" class="btn btn-primary me-sm-4 me-1">Create Permission</button>

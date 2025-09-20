@@ -6,17 +6,18 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use GeminiAPI\Client;
 use GeminiAPI\Resources\Parts\TextPart;
-function renderMenu($currentMenu): void
+
+function menuArgs():array
 {
-	$menuItems = [
-		'Dashboards' => [
-			'icon' => 'tabler-smart-home',
-			'link' => '' // để trống => mặc định dùng $currentMenu
-		],
-		'eCommerce' => [
-			'icon' => 'tabler-building-store',
-			'sub' => [
-				'products' => [
+    return [
+        'Dashboards' => [
+            'icon' => 'tabler-smart-home',
+            'link' => '' // để trống => mặc định dùng $currentMenu
+        ],
+        'eCommerce' => [
+            'icon' => 'tabler-building-store',
+            'sub' => [
+                'products' => [
                     'label' => 'Products',
                     'roles' => ['view','add','edit','delete']
                 ],
@@ -24,8 +25,8 @@ function renderMenu($currentMenu): void
                     'label' => 'Keywords',
                     'roles' => ['view','add','edit','delete']
                 ],
-			]
-		],
+            ]
+        ],
         'Platform Orders' => [
             'icon' => 'tabler-shopping-bag',
             'sub' => [
@@ -35,23 +36,23 @@ function renderMenu($currentMenu): void
                 ],
             ]
         ],
-		'Export' => [
-			'icon' => 'tabler-file-type-xls',
-			'sub' => [
-				'exports_download' => [
+        'Export' => [
+            'icon' => 'tabler-file-type-xls',
+            'sub' => [
+                'exports_download' => [
                     'label' => 'Download',
                     'roles' => ['view','add','edit','delete']
                 ],
-				'exports_xlsx' => [
+                'exports_xlsx' => [
                     'label' => 'Files',
                     'roles' => ['view','add','edit','delete']
                 ],
-				'exports_add' => [
+                'exports_add' => [
                     'label' => 'Add & Update',
                     'roles' => ['add','edit']
                 ],
-			]
-		],
+            ]
+        ],
         'Phones' => [
             'icon' => 'tabler-device-mobile-message',
             'sub' => [
@@ -65,9 +66,13 @@ function renderMenu($currentMenu): void
                 ],
             ]
         ],
-		'Users' => ['icon' => 'tabler-users', 'link' => 'users'],
+        'Users' => ['icon' => 'tabler-users', 'link' => 'users'],
         'Roles & Permissions' => ['icon' => 'tabler-lock', 'link' => 'roles-permissions', 'roles' => ['view','add','edit','delete']]
-	];
+    ];
+}
+function renderMenu($currentMenu): void
+{
+	$menuItems = menuArgs();
 
 	foreach ($menuItems as $mainLabel => $mainData) {
 		$icon = $mainData['icon'];
