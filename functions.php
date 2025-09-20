@@ -6,7 +6,8 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use GeminiAPI\Client;
 use GeminiAPI\Resources\Parts\TextPart;
-function renderMenu($currentMenu) {
+function renderMenu($currentMenu): void
+{
 	$menuItems = [
 		'Dashboards' => [
 			'icon' => 'tabler-smart-home',
@@ -15,30 +16,53 @@ function renderMenu($currentMenu) {
 		'eCommerce' => [
 			'icon' => 'tabler-building-store',
 			'sub' => [
-				'products' => 'Products',
-				'stores' => 'Stores',
-                'keywords' => 'Keywords',
+				'products' => [
+                    'label' => 'Products',
+                    'roles' => ['view','add','edit','delete']
+                ],
+                'keywords' => [
+                    'label' => 'Keywords',
+                    'roles' => ['view','add','edit','delete']
+                ],
 			]
 		],
         'Platform Orders' => [
             'icon' => 'tabler-shopping-bag',
             'sub' => [
-                'orders' => 'Orders',
+                'orders' => [
+                    'label' => 'Orders',
+                    'roles' => ['view','add','edit','delete']
+                ],
             ]
         ],
 		'Export' => [
 			'icon' => 'tabler-file-type-xls',
 			'sub' => [
-				'exports_download' => 'Download',
-				'exports_xlsx' => 'Files',
-				'exports_add' => 'Add & Update',
+				'exports_download' => [
+                    'label' => 'Download',
+                    'roles' => ['view','add','edit','delete']
+                ],
+				'exports_xlsx' => [
+                    'label' => 'Files',
+                    'roles' => ['view','add','edit','delete']
+                ],
+				'exports_add' => [
+                    'label' => 'Add & Update',
+                    'roles' => ['add','edit']
+                ],
 			]
 		],
         'Phones' => [
             'icon' => 'tabler-device-mobile-message',
             'sub' => [
-                'phones_numbers' => 'Numbers',
-                'phones_sms' => 'SMS',
+                'phones_numbers' => [
+                    'label' => 'Numbers',
+                    'roles' => ['view','add','edit','delete']
+                ],
+                'phones_sms' => [
+                    'label' => 'SMS',
+                    'roles' => ['view']
+                ],
             ]
         ],
 		'Users' => ['icon' => 'tabler-users', 'link' => 'users']
