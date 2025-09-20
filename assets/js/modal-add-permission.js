@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
         $(this).find('input[name="role_id"]').remove();
 
         // Đổi tiêu đề và nút submit về mặc định
-        $(this).find('.modal-title').text('Add New Role');
+        $(this).find('h3').text('Add New Role');
         $(this).find('button[type="submit"]').text('Create Role');
     });
 
