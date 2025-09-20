@@ -68,7 +68,7 @@ $allRoles = ['view','add','edit','delete'];
                                     ?>
                                     <tr class="table-secondary">
                                         <td colspan="<?= count($allRoles) + 1 ?>">
-                                            <i class="<?= $menuData['icon'] ?>"></i> <strong><?= $menuName ?></strong>
+                                            <i class="icon-base ti <?= $menuData['icon'] ?>"></i> <strong><?= $menuName ?></strong>
                                         </td>
                                     </tr>
                                     <?php foreach ($validSubs as $subKey => $subData): ?>
@@ -77,7 +77,7 @@ $allRoles = ['view','add','edit','delete'];
                                             <?php foreach ($allRoles as $role): ?>
                                                 <td class="text-center">
                                                     <input type="checkbox"
-                                                           name="permissions[<?= $menuName ?>][<?= $subKey ?>][<?= $role ?>]"
+                                                           name="permissions[<?= $subKey ?>][<?= $role ?>]"
                                                             <?= in_array($role, $subData['roles']) ? '' : 'disabled' ?>>
                                                 </td>
                                             <?php endforeach; ?>
@@ -91,11 +91,11 @@ $allRoles = ['view','add','edit','delete'];
                                     $isSpecial = ($menuName === 'Roles & Permissions');
                                     ?>
                                     <tr class="<?= $isSpecial ? 'table-warning fw-bold' : '' ?>">
-                                        <td><i class="<?= $menuData['icon'] ?>"></i> <?= $menuName ?></td>
+                                        <td><i class="icon-base ti <?= $menuData['icon'] ?>"></i> <?= $menuName ?></td>
                                         <?php foreach ($allRoles as $role): ?>
                                             <td class="text-center">
                                                 <input type="checkbox"
-                                                       name="permissions[<?= $menuName ?>][<?= $role ?>]"
+                                                       name="permissions[<?= $menuData['link'] ?>][<?= $role ?>]"
                                                         <?= in_array($role, $menuData['roles']) ? '' : 'disabled' ?>>
                                             </td>
                                         <?php endforeach; ?>
