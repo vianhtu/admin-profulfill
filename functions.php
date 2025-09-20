@@ -65,7 +65,8 @@ function renderMenu($currentMenu): void
                 ],
             ]
         ],
-		'Users' => ['icon' => 'tabler-users', 'link' => 'users']
+		'Users' => ['icon' => 'tabler-users', 'link' => 'users'],
+        'Roles & Permissions' => ['icon' => 'tabler-lock', 'link' => 'roles-permissions']
 	];
 
 	foreach ($menuItems as $mainLabel => $mainData) {
