@@ -37,12 +37,10 @@ document.addEventListener('DOMContentLoaded', function () {
         alertBox.innerText = message;
     }
 
-    console.log(fv.validate());
-
     // Khi form hợp lệ và được submit
     formEl.addEventListener('submit', function (e) {
         e.preventDefault();
-
+        console.log(fv.validate());
         fv.validate().then(function (status) {
             if (status === 'Valid') {
                 // Lấy Role Name
