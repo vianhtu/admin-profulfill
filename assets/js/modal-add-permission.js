@@ -50,23 +50,34 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const checked = $(this).is(':checked') ? 1 : 0;
 
-            // Regex: permissions[cha][con][role]
-            const match = name.match(/^permissions\[([^\]]+)\]\[([^\]]+)\]\[([^\]]+)\]$/);
-            if (!match) return;
+            // Trường hợp có l1 + con + role
+            let match3 = name.match(/^permissions\[([^\]]+)\]\[([^\]]+)\]\[([^\]]+)\]$/);
+            if (match3) {
+                const l1 = match3[1];
+                const l2 = match3[2];
+                const role = match3[3];
 
-            const cha = match[1];   // menu cha (ví dụ: Products)
-            const con = match[2];   // menu con (ví dụ: Phones)
-            const role = match[3];  // quyền (ví dụ: view, add, edit, delete)
-
-            if (!permissions[cha]) {
-                permissions[cha] = {};
+                if (!permissions[l1]) {
+                    permissions[l1] = {};
+                }
+                if (!permissions[l1][l2]) {
+                    permissions[l1][l2] = {};
+                }
+                permissions[l1][l2][role] = checked;
+                return;
             }
 
-            if (!permissions[cha][con]) {
-                permissions[cha][con] = {};
-            }
+            // Trường hợp chỉ có l1 + role
+            let match2 = name.match(/^permissions\[([^\]]+)\]\[([^\]]+)\]$/);
+            if (match2) {
+                const l1 = match2[1];
+                const role = match2[2];
 
-            permissions[cha][con][role] = checked;
+                if (!permissions[l1]) {
+                    permissions[l1] = {};
+                }
+                permissions[l1][role] = checked;
+            }
         });
 
         console.log(permissions);
