@@ -77,7 +77,7 @@ $allRoles = ['view','add','edit','delete'];
                                             <?php foreach ($allRoles as $role): ?>
                                                 <td class="text-center">
                                                     <input type="checkbox"
-                                                           name="permissions[<?= $subKey ?>][<?= $role ?>]"
+                                                           name="permissions[<?= $menuName ?>][<?= $subKey ?>][<?= $role ?>]"
                                                             <?= in_array($role, $subData['roles']) ? '' : 'disabled' ?>>
                                                 </td>
                                             <?php endforeach; ?>
@@ -95,7 +95,7 @@ $allRoles = ['view','add','edit','delete'];
                                         <?php foreach ($allRoles as $role): ?>
                                             <td class="text-center">
                                                 <input type="checkbox"
-                                                       name="permissions[<?= strtolower(str_replace(' ', '_', $menuName)) ?>][<?= $role ?>]"
+                                                       name="permissions[<?= $menuName ?>][<?= $role ?>]"
                                                         <?= in_array($role, $menuData['roles']) ? '' : 'disabled' ?>>
                                             </td>
                                         <?php endforeach; ?>
