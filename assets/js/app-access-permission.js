@@ -76,13 +76,9 @@ document.addEventListener('DOMContentLoaded', function (e) {
                   <button class="btn btn-icon me-1 edit" data-id="${full['id']}">
                     <i class="icon-base ti tabler-edit icon-22px"></i>
                   </button>
-                  <a href="javascript:;" class="btn btn-icon dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                    <i class="icon-base ti tabler-dots-vertical icon-22px"></i>
-                  </a>
-                  <div class="dropdown-menu dropdown-menu-end m-0">
-                    <a href="javascript:;" class="dropdown-item">Edit</a>
-                    <a href="javascript:;" class="dropdown-item">Suspend</a>
-                  </div>
+                  <button class="btn btn-icon me-1 delete" data-id="${full['id']}">
+                    <i class="icon-base ti tabler-trash icon-22px"></i>
+                  </button>
                 </span>
               </div>
             `;
