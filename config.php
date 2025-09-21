@@ -278,3 +278,9 @@ function clear_remember_cookie(): void {
 		'samesite' => 'Lax',
 	]);
 }
+
+function isAdmin() : bool
+{
+    return isset($_SESSION['auth'], $_SESSION['auth']['level'])
+        && $_SESSION['auth']['level'] === 0;
+}

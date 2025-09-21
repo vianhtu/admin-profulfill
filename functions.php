@@ -125,6 +125,44 @@ function renderSelect($id, $label, $options, $selected = null) {
 	echo "</select>";
 }
 
+function checkRoles(string $role = '', string $menu = ''): bool
+{
+    // Nếu là admin thì luôn true
+    if (isAdmin()) {
+        return true;
+    }
+
+    // Nếu không truyền $menu thì lấy từ GET
+    if ($menu === '') {
+        $menu = $_GET['menu'] ?? '';
+    }
+
+    if ($menu === '') {
+        return false; // Không xác định được menu
+    }
+
+    // Lấy danh sách quyền của user
+    $userRoles = $_SESSION['auth']['roles'] ?? [];
+
+    // Nếu không truyền role => mặc định kiểm tra view
+    if ($role === '') {
+        // Có view thì true
+        if (!empty($userRoles[$menu]['view'])) {
+            return true;
+        }
+        // Không có view nhưng có add/edit/delete thì cũng coi như view
+        foreach (['add', 'edit', 'delete'] as $r) {
+            if (!empty($userRoles[$menu][$r])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Nếu truyền role cụ thể => kiểm tra role đó
+    return !empty($userRoles[$menu][$role]);
+}
+
 function gemini_2_5_flash(string $prompt): string
 {
     // Thay bằng API key của bạn
