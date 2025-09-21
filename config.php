@@ -106,15 +106,26 @@ function logout_user(): void {
 
 // ===== Login lookup (email OR username) =====
 function find_author_by_login(string $userOrEmail): ?array {
-	$sql = "SELECT ID, username, pass, level, rule FROM authors WHERE username = ? OR email = ? LIMIT 1";
+	$sql = "
+        SELECT authors.ID, username, pass, level, rl.roles
+        FROM authors
+        INNER JOIN roles_permissions rl ON rl.ID = authors.level
+        WHERE username = ? OR email = ?
+        LIMIT 1";
 	$stmt = db()->prepare($sql);
 	$stmt->bind_param('ss', $userOrEmail, $userOrEmail);
 	$stmt->execute();
-	$stmt->bind_result($id, $username, $hash, $level, $rule);
+	$stmt->bind_result($id, $username, $hash, $level, $rolesJson);
 	if ($stmt->fetch()) {
 		$stmt->close();
-		$rule = $rule === null ? [] : json_decode($rule);
-		return ['id' => (int)$id, 'username' => (string)$username, 'hash' => (string)$hash, 'level' => (int)$level, 'rule' => $rule];
+		$roles = $rolesJson === null ? [] : json_decode($rolesJson, true);
+		return [
+            'id' => (int)$id,
+            'username' => (string)$username,
+            'hash' => (string)$hash,
+            'level' => (int)$level,
+            'roles' => $roles
+        ];
 	}
 	$stmt->close();
 	return null;
