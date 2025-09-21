@@ -1,4 +1,7 @@
 <?php
+if(!checkRoles('view', 'roles-permissions')){
+    return;
+}
 $menus = menuArgs();
 $allRoles = ['view','add','edit','delete'];
 ?>
