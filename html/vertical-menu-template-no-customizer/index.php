@@ -253,7 +253,7 @@ if (empty($_SESSION['csrf_token'])) {
                       include 'app-user-list.php';
                       break;
                   case 'phones_sms':
-                      include 'app-phone-all-sms.php';
+                      include 'app-phones-sms.php';
                       break;
                   case 'phones_numbers':
                       include 'app-phones-list.php';
