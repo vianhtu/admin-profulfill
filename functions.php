@@ -1069,18 +1069,20 @@ function getRolesPermissionsTable(): array {
     $whereClauses = [];
     if ($params['searchValue'] !== '') {
         $searchEsc = $conn->real_escape_string($params['searchValue']);
-        $whereClauses[] = "name LIKE '%$searchEsc%'";
+        $whereClauses[] = "rp.name LIKE '%$searchEsc%'";
     }
     $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
 
     // Tổng số bản ghi sau khi lọc
-    $totalFiltered = $conn->query("SELECT COUNT(ID) AS cnt FROM roles_permissions $where")->fetch_assoc()['cnt'];
+    $totalFiltered = $conn->query("SELECT COUNT(ID) AS cnt FROM roles_permissions rp $where")->fetch_assoc()['cnt'];
 
     // Lấy dữ liệu
-    $sql = "SELECT *
-            FROM roles_permissions
+    $sql = "SELECT rp.ID, rp.name, rp.roles, COUNT(a.ID) AS authors_count
+            FROM roles_permissions rp
+            LEFT JOIN authors a ON a.level = rp.ID
             $where
-            ORDER BY {$params['orderColumn']} {$params['orderDir']}
+            GROUP BY rp.ID, rp.name, rp.roles
+            ORDER BY rp.{$params['orderColumn']} {$params['orderDir']}
             LIMIT {$params['start']}, {$params['length']}";
     $rs = $conn->query($sql);
 
@@ -1090,6 +1092,7 @@ function getRolesPermissionsTable(): array {
             "id"          => $row['ID'],
             "name"        => $row['name'],
             "roles"       => $row['roles'],
+            "count"       => $row['authors_count']
         ];
     }
 
