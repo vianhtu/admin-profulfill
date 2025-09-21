@@ -128,10 +128,10 @@ function get_username_by_id(int $id): ?array {
         LIMIT 1");
 	$stmt->bind_param('i', $id);
 	$stmt->execute();
-	$stmt->bind_result($author_id, $username, $level, $roles);
+	$stmt->bind_result($author_id, $username, $level, $rolesJson);
 	if ($stmt->fetch()){
 		$stmt->close();
-        $roles = $roles === null ? [] : json_decode($roles);
+        $roles = $rolesJson === null ? [] : json_decode($rolesJson, true);
 		return [
 			'id' => $author_id,
 			'username' => $username,
