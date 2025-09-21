@@ -63,12 +63,18 @@ function showAlert(alertId, message, type = 'danger') {
 
     // Gán nội dung
     alertBox.innerText = message;
-
-    // Hiển thị (fade in)
-    alertBox.classList.add('show');
+    
+    alertBox.classList.remove('d-none'); // bỏ ẩn
+    setTimeout(() => {
+        alertBox.classList.add('show'); // fade in
+    }, 10); // delay nhỏ để CSS transition hoạt động
 
     // Tự ẩn sau 3 giây
     setTimeout(() => {
-        alertBox.classList.remove('show');
+        alertBox.classList.remove('show'); // fade out
+        setTimeout(() => {
+            alertBox.classList.add('d-none'); // ẩn hẳn sau khi fade xong
+        }, 150); // thời gian khớp với CSS transition
     }, 3000);
+
 }
