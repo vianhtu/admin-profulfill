@@ -55,11 +55,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Lấy toàn bộ checkbox permission
         let permissions = {};
-        $('#addPermissionForm input[type="checkbox"][name^="permissions["]').each(function () {
+        $('#addPermissionForm input[type="checkbox"][name^="permissions["]:checked')
+        .each(function () {
             const name = $(this).attr('name');
             if (!name) return;
-
-            const checked = $(this).is(':checked') ? 1 : 0;
 
             // Trường hợp chỉ có l1 + role
             let match2 = name.match(/^permissions\[([^\]]+)\]\[([^\]]+)\]$/);
@@ -70,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!permissions[l1]) {
                     permissions[l1] = {};
                 }
-                permissions[l1][role] = checked;
+                permissions[l1][role] = 1; // luôn là 1 vì đã lọc :checked
             }
         });
 

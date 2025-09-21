@@ -24,23 +24,18 @@ document.addEventListener('DOMContentLoaded', function (e) {
 
                     // Gán dữ liệu vào form
                     form.find('#modalPermissionName').val(res.role_name);
+
+                    // Bỏ check tất cả trước
                     form.find('input[type="checkbox"]').prop('checked', false);
 
                     const perms = res.permissions;
-                    for (let cha in perms) {
-                        for (let key in perms[cha]) {
-                            if (typeof perms[cha][key] === 'object') {
-                                for (let role in perms[cha][key]) {
-                                    if (perms[cha][key][role] == 1) {
-                                        form.find(`input[name="permissions[${cha}][${key}][${role}]"]`)
-                                            .prop('checked', true);
-                                    }
-                                }
-                            } else {
-                                if (perms[cha][key] == 1) {
-                                    form.find(`input[name="permissions[${cha}][${key}]"]`)
-                                        .prop('checked', true);
-                                }
+
+                    // perms dạng: { l1: { role: 1, role2: 0, ... }, ... }
+                    for (let l1 in perms) {
+                        for (let role in perms[l1]) {
+                            if (perms[l1][role] == 1) {
+                                form.find(`input[name="permissions[${l1}][${role}]"]`)
+                                    .prop('checked', true);
                             }
                         }
                     }
@@ -50,6 +45,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
                         form.find('form').append('<input type="hidden" name="role_id">');
                     }
                     form.find('input[name="role_id"]').val(roleId);
+
                 } else {
                     showAlert('alertPermissionModal', res.message, 'danger');
                 }
