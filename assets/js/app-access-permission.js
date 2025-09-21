@@ -176,30 +176,8 @@ document.addEventListener('DOMContentLoaded', function (e) {
   $('.datatables-permissions tbody').on('click', '.delete', function () {
      dt_permission.row($(this).parents('tr')).remove().draw();
   });
-  // Lấy tất cả header của bảng
-  document.querySelectorAll('#addPermissionModal thead th').forEach(function (th, index) {
-    // Bỏ qua cột đầu tiên (Module)
-    if (index === 0) return;
 
-    th.style.cursor = 'pointer'; // để người dùng biết có thể click
-
-    th.addEventListener('click', function () {
-        // Lấy tất cả checkbox trong cột này
-        const checkboxes = document.querySelectorAll(
-            'tbody tr td:nth-child(' + (index + 1) + ') input[type="checkbox"]:not(:disabled)'
-        );
-
-        if (checkboxes.length === 0) return;
-
-        // Kiểm tra xem có bao nhiêu checkbox đang được check
-        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-
-        // Nếu tất cả đã check thì bỏ check, ngược lại thì check hết
-        checkboxes.forEach(cb => cb.checked = !allChecked);
-    });
-  });
-
-    // Filter form control to default size
+  // Filter form control to default size
   // ? setTimeout used for multilingual table initialization
   setTimeout(() => {
     const elementsToModify = [

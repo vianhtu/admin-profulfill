@@ -4,8 +4,8 @@
 
 'use strict';
 
-// Add permission form validation
 document.addEventListener('DOMContentLoaded', function () {
+    // Add permission form validation
     const formEl = document.getElementById('addPermissionForm');
     const fv = FormValidation.formValidation(formEl, {
         fields: {
@@ -27,7 +27,31 @@ document.addEventListener('DOMContentLoaded', function () {
             autoFocus: new FormValidation.plugins.AutoFocus()
         }
     });
-    // reset.
+
+    // check all checkbox.
+    document.querySelectorAll('#addPermissionModal thead th').forEach(function (th, index) {
+        // Bỏ qua cột đầu tiên (Module)
+        if (index === 0) return;
+
+        th.style.cursor = 'pointer'; // để người dùng biết có thể click
+
+        th.addEventListener('click', function () {
+            // Lấy tất cả checkbox trong cột này
+            const checkboxes = document.querySelectorAll(
+                'tbody tr td:nth-child(' + (index + 1) + ') input[type="checkbox"]:not(:disabled)'
+            );
+
+            if (checkboxes.length === 0) return;
+
+            // Kiểm tra xem có bao nhiêu checkbox đang được check
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+
+            // Nếu tất cả đã check thì bỏ check, ngược lại thì check hết
+            checkboxes.forEach(cb => cb.checked = !allChecked);
+        });
+    });
+
+    // hide modal reset all form.
     $('#addPermissionModal').on('hidden.bs.modal', function () {
         // Reset form HTML
         this.querySelector('form').reset();
