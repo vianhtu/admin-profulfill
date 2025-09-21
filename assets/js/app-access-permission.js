@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
           }
         }
       ],
-      order: [[1, 'asc']],
+      order: [[1, 'desc']],
       layout: {
         topStart: {
           rowClass: 'row m-3 my-0 justify-content-between',
