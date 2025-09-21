@@ -71,7 +71,7 @@ function menuArgs():array
 }
 function renderMenu($currentMenu): void
 {
-    $menuItems = menuArgs(); var_dump($_SESSION['auth']['roles']);
+    $menuItems = menuArgs(); var_dump($_SESSION['auth']);
 
     foreach ($menuItems as $mainLabel => $mainData) {
         $icon = $mainData['icon'];
