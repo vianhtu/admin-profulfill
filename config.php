@@ -62,7 +62,7 @@ function user_agent_fingerprint(): string { return hash('sha256', $_SERVER['HTTP
 // ===== Auth core =====
 function login_user(array $username): void {
 	session_regenerate_id(true);
-	$_SESSION['auth'] = ['user'=>$username['username'], 'ua'=>user_agent_fingerprint(), 't'=>time(), 'user_id'=> $username['id'], 'level'=>$username['level'], 'rule'=>$username['rule']];
+	$_SESSION['auth'] = ['user'=>$username['username'], 'ua'=>user_agent_fingerprint(), 't'=>time(), 'user_id'=> $username['id'], 'level'=>$username['level'], 'roles'=>$username['roles']];
 }
 function is_logged_in(): bool {
 	return !empty($_SESSION['auth']['user']) && hash_equals($_SESSION['auth']['ua'], user_agent_fingerprint());
@@ -120,18 +120,23 @@ function find_author_by_login(string $userOrEmail): ?array {
 	return null;
 }
 function get_username_by_id(int $id): ?array {
-	$stmt = db()->prepare("SELECT ID,username,level, rule FROM authors WHERE ID = ? LIMIT 1");
+	$stmt = db()->prepare("
+        SELECT ID, username, level, rl.roles
+        FROM authors
+        INNER JOIN roles_permissions rl ON rl.ID = authors.level
+        WHERE ID = ?
+        LIMIT 1");
 	$stmt->bind_param('i', $id);
 	$stmt->execute();
-	$stmt->bind_result($author_id, $username, $level, $rule);
+	$stmt->bind_result($author_id, $username, $level, $roles);
 	if ($stmt->fetch()){
 		$stmt->close();
-		$rule = $rule === null ? [] : json_decode($rule);
+        $roles = $roles === null ? [] : json_decode($roles);
 		return [
 			'id' => $author_id,
 			'username' => $username,
 			'level' => $level,
-			'rule' => $rule,
+			'roles' => $roles,
 		];
 	}
 	$stmt->close();

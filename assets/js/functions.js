@@ -63,7 +63,7 @@ function showAlert(alertId, message, type = 'danger') {
 
     // Gán nội dung
     alertBox.innerText = message;
-    
+
     alertBox.classList.remove('d-none'); // bỏ ẩn
     setTimeout(() => {
         alertBox.classList.add('show'); // fade in
