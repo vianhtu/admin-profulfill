@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
           targets: 3,
           orderable: false,
           render: function (data, type, full, meta) {
-            return `<span class="text-nowrap">${full['count']}</span>`;
+            return `<a href="#" class="text-nowrap">${full['count']}</a>`;
           }
         },
         {
