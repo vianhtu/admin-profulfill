@@ -82,15 +82,18 @@ function renderMenu($currentMenu): void
             $isOpen = false;
 
             foreach ($mainData['sub'] as $key => $value) {
-                // Kiểm tra quyền view
-                if (!checkRoles('', $key)) {
-                    continue;
-                }
-
                 $label = is_array($value) ? $value['label'] : $value;
                 $target = is_array($value) && isset($value['target']) ? 'target="_blank"' : '';
                 $activeClass = ($currentMenu === $key) ? 'active' : '';
                 if ($activeClass) $isOpen = true;
+
+                // Nếu có roles trong menuArgs => kiểm tra quyền
+                if (isset($value['roles'])) {
+                    if (!checkRoles('', $key)) {
+                        continue; // Không có quyền => bỏ qua
+                    }
+                }
+                // Nếu không có roles => ai cũng xem được
 
                 $subMenuHtml .= "<li class='menu-item {$activeClass}'>
                     <a href='index.php?menu={$key}' class='menu-link' {$target}>
@@ -113,14 +116,16 @@ function renderMenu($currentMenu): void
         } else {
             // Không có submenu
             $link = trim($mainData['link']) === '' ? '' : $mainData['link'];
-
-            // Kiểm tra quyền
-            if (!checkRoles('', $link)) {
-                continue;
-            }
-
             $activeClass = ($currentMenu === $link) ? 'active' : '';
             $href = $link === '' ? 'index.php' : "index.php?menu={$link}";
+
+            // Nếu có roles => kiểm tra quyền
+            if (isset($mainData['roles'])) {
+                if (!checkRoles('', $link)) {
+                    continue;
+                }
+            }
+            // Nếu không có roles => ai cũng xem được
 
             echo "<li class='menu-item {$activeClass}'>
                 <a href='{$href}' class='menu-link'>
