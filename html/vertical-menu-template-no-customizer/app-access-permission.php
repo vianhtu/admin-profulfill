@@ -86,11 +86,8 @@ $allRoles = ['view','add','edit','delete'];
                                     <?php
                                 } else {
                                     if (empty($menuData['roles'])) continue;
-
-                                    // Nếu là Roles & Permissions thì style khác
-                                    $isSpecial = ($menuName === 'Roles & Permissions');
                                     ?>
-                                    <tr class="<?= $isSpecial ? 'table-warning fw-bold' : '' ?>">
+                                    <tr class="table-warning fw-bold">
                                         <td><i class="icon-base ti <?= $menuData['icon'] ?>"></i> <?= $menuName ?></td>
                                         <?php foreach ($allRoles as $role): ?>
                                             <td class="text-center">
