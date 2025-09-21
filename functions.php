@@ -82,9 +82,9 @@ function renderMenu($currentMenu): void
             $isOpen = false;
 
             foreach ($mainData['sub'] as $key => $value) {
-                // Kiểm tra quyền view (theo logic checkRoles)
+                // Kiểm tra quyền view
                 if (!checkRoles('', $key)) {
-                    continue; // bỏ qua nếu không có quyền
+                    continue;
                 }
 
                 $label = is_array($value) ? $value['label'] : $value;
