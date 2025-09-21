@@ -147,7 +147,7 @@ function renderSelect($id, $label, $options, $selected = null) {
 	echo "</select>";
 }
 
-function checkRoles(string $role = '', string $menu = ''): bool
+function checkRoles(string|array $role = '', string $menu = ''): bool
 {
     // Nếu là admin thì luôn true
     if (isAdmin()) {
@@ -167,12 +167,10 @@ function checkRoles(string $role = '', string $menu = ''): bool
     $userRoles = $_SESSION['auth']['roles'] ?? [];
 
     // Nếu không truyền role => mặc định kiểm tra view
-    if ($role === '') {
-        // Có view thì true
+    if ($role === '' || $role === []) {
         if (!empty($userRoles[$menu]['view'])) {
             return true;
         }
-        // Không có view nhưng có add/edit/delete thì cũng coi như view
         foreach (['add', 'edit', 'delete'] as $r) {
             if (!empty($userRoles[$menu][$r])) {
                 return true;
@@ -181,7 +179,17 @@ function checkRoles(string $role = '', string $menu = ''): bool
         return false;
     }
 
-    // Nếu truyền role cụ thể => kiểm tra role đó
+    // Nếu $role là mảng => kiểm tra nếu có ít nhất 1 quyền hợp lệ
+    if (is_array($role)) {
+        foreach ($role as $r) {
+            if (!empty($userRoles[$menu][$r])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Nếu $role là string => kiểm tra role đó
     return !empty($userRoles[$menu][$role]);
 }
 
@@ -1503,6 +1511,12 @@ function addKeywords(): array
 
 function addRolesPermissions(): array
 {
+    if(!checkRoles(['add','edit'], 'roles-permissions')){
+        return [
+            'status'  => 'error',
+            'message' => 'Bạn Không có quyền thêm hoặc sửa roles'
+        ];
+    }
     $conn = db(); // Hàm db() trả về kết nối mysqli
 
     $roleName = $_POST['role_name'] ?? '';
