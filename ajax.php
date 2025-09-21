@@ -64,9 +64,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             echo json_encode(getKeywordsTable());
             break;
         case 'get-roles-permissions-table':
+            // view
             echo json_encode(getRolesPermissionsTable());
             break;
         case 'get-roles-permissions':
+            // edit
             echo json_encode(getRolesPermissions());
             break;
 		case 'filter-stores':
@@ -85,6 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 			echo json_encode(addKeywords());
 			break;
         case 'add-roles-permissions':
+            // add
             echo json_encode(addRolesPermissions());
             break;
 		case 'delete-xlsx':

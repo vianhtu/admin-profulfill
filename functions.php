@@ -1056,11 +1056,20 @@ function getDownloadTable(): array {
 }
 
 function getRolesPermissionsTable(): array {
-    $conn = db();
     $allowedCols = ['ID', 'name'];
 
     // Lấy tham số từ DataTables
     $params = getDataTableParams($allowedCols);
+    if(!checkRoles('view', 'roles-permissions')){
+        return [
+            "draw"            => $params['draw'],
+            "recordsTotal"    => 0,
+            "recordsFiltered" => 0,
+            "data"            => []
+        ];
+    }
+
+    $conn = db();
 
     // Tổng số bản ghi
     $totalRecords = $conn->query("SELECT COUNT(ID) AS cnt FROM roles_permissions")->fetch_assoc()['cnt'];
