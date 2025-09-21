@@ -144,9 +144,9 @@ function get_username_by_id(int $id): ?array {
 		$stmt->close();
         $roles = $rolesJson === null ? [] : json_decode($rolesJson, true);
 		return [
-			'id' => $author_id,
-			'username' => $username,
-			'level' => $level,
+			'id' => (int)$author_id,
+			'username' => (string)$username,
+			'level' => (int)$level,
 			'roles' => $roles,
 		];
 	}
