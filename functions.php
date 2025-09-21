@@ -1115,6 +1115,12 @@ function getRolesPermissionsTable(): array {
 
 function getRolesPermissions(): array
 {
+    if(!checkRoles('edit', 'roles-permissions')){
+        return [
+            'status'  => 'error',
+            'message' => 'Bạn Không có quyền lấy roles'
+        ];
+    }
     $conn = db(); // Hàm db() trả về kết nối mysqli
 
     // Lấy id từ POST
