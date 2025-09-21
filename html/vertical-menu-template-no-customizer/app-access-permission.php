@@ -34,7 +34,7 @@ $allRoles = ['view','add','edit','delete'];
                 <div class="text-center mb-6">
                     <h3>Add New Role</h3>
                     <p class="text-body-secondary">Permissions you may use and assign to your users.</p>
-                    <div class="alert d-none" id="alertPermissionModal" role="alert"></div>
+                    <div class="alert alert-dismissible fade" id="alertPermissionModal" role="alert"></div>
                 </div>
                 <form id="addPermissionForm" class="row" onsubmit="return false">
                     <div class="col-12 form-control-validation mb-4">
