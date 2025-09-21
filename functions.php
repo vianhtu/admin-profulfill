@@ -1490,8 +1490,8 @@ function addRolesPermissions(): array
     $roleName = $_POST['role_name'] ?? '';
     $permissions = $_POST['permissions'] ?? [];
 
-    if (trim($roleName) === '' || empty($permissions)) {
-        return ['status' => 'error', 'message' => 'Thiếu dữ liệu'];
+    if (trim($roleName) === '') {
+        return ['status' => 'error', 'message' => 'Tên không được để trống.'];
     }
 
     $rolesJson = json_encode($permissions, JSON_UNESCAPED_UNICODE);
