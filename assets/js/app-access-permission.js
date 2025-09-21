@@ -5,8 +5,7 @@
 'use strict';
 
 document.addEventListener('DOMContentLoaded', function (e) {
-  const dataTablePermissions = document.querySelector('.datatables-permissions'),
-    userList = 'app-user-list.html';
+  const dataTablePermissions = document.querySelector('.datatables-permissions');
   let dt_permission;
 
   // Users List datatable
@@ -174,8 +173,8 @@ document.addEventListener('DOMContentLoaded', function (e) {
   }
 
   // Delete Record
-  $('.datatables-permissions tbody').on('click', '.delete-record', function () {
-    dt_permission.row($(this).parents('tr')).remove().draw();
+  $('.datatables-permissions tbody').on('click', '.delete', function () {
+     dt_permission.row($(this).parents('tr')).remove().draw();
   });
   // Lấy tất cả header của bảng
   document.querySelectorAll('#addPermissionModal thead th').forEach(function (th, index) {
