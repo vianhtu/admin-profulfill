@@ -65,7 +65,7 @@ function menuArgs():array
                 ],
             ]
         ],
-        'Users' => ['icon' => 'tabler-users', 'link' => 'users'],
+        'Users' => ['icon' => 'tabler-users', 'link' => 'users', 'roles' => ['view','add','edit','delete']],
         'Roles & Permissions' => ['icon' => 'tabler-lock', 'link' => 'roles-permissions', 'roles' => ['view','add','edit','delete']]
     ];
 }
