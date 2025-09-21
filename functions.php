@@ -168,6 +168,43 @@ function checkRoles(string|array $role = '', string $menu = ''): bool
 
     // Nếu không truyền role => mặc định kiểm tra view
     if ($role === '' || $role === []) {
+        // Có view thì true
+        if (!empty($userRoles[$menu]['view'])) {
+            return true;
+        }
+        // Không có view nhưng có add/edit/delete thì cũng coi như view
+        foreach (['add', 'edit', 'delete'] as $r) {
+            if (!empty($userRoles[$menu][$r])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Nếu $role là mảng
+    if (is_array($role)) {
+        foreach ($role as $r) {
+            // Nếu đang check 'view' thì áp dụng logic đặc biệt
+            if ($r === 'view') {
+                if (!empty($userRoles[$menu]['view'])) {
+                    return true;
+                }
+                foreach (['add', 'edit', 'delete'] as $extra) {
+                    if (!empty($userRoles[$menu][$extra])) {
+                        return true;
+                    }
+                }
+            } else {
+                if (!empty($userRoles[$menu][$r])) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // Nếu $role là string
+    if ($role === 'view') {
         if (!empty($userRoles[$menu]['view'])) {
             return true;
         }
@@ -179,17 +216,6 @@ function checkRoles(string|array $role = '', string $menu = ''): bool
         return false;
     }
 
-    // Nếu $role là mảng => kiểm tra nếu có ít nhất 1 quyền hợp lệ
-    if (is_array($role)) {
-        foreach ($role as $r) {
-            if (!empty($userRoles[$menu][$r])) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // Nếu $role là string => kiểm tra role đó
     return !empty($userRoles[$menu][$role]);
 }
 
