@@ -121,10 +121,10 @@ function find_author_by_login(string $userOrEmail): ?array {
 }
 function get_username_by_id(int $id): ?array {
 	$stmt = db()->prepare("
-        SELECT ID, username, level, rl.roles
+        SELECT authors.ID, username, level, rl.roles
         FROM authors
         INNER JOIN roles_permissions rl ON rl.ID = authors.level
-        WHERE ID = ?
+        WHERE authors.ID = ?
         LIMIT 1");
 	$stmt->bind_param('i', $id);
 	$stmt->execute();
