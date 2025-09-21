@@ -71,48 +71,65 @@ function menuArgs():array
 }
 function renderMenu($currentMenu): void
 {
-	$menuItems = menuArgs();
+    $menuItems = menuArgs();
 
-	foreach ($menuItems as $mainLabel => $mainData) {
-		$icon = $mainData['icon'];
+    foreach ($menuItems as $mainLabel => $mainData) {
+        $icon = $mainData['icon'];
 
-		if (!empty($mainData['sub'])) {
-			// Có submenu
-			$subMenuHtml = '';
-			$isOpen = false;
-			foreach ($mainData['sub'] as $key => $value) {
-				$label = is_array($value) ? $value['label'] : $value;
-				$target = is_array($value) && isset($value['target']) ? 'target="_blank"' : '';
-				$activeClass = ($currentMenu === $key) ? 'active' : '';
-				if ($activeClass) $isOpen = true;
+        if (!empty($mainData['sub'])) {
+            // Có submenu
+            $subMenuHtml = '';
+            $isOpen = false;
 
-				$subMenuHtml .= "<li class='menu-item {$activeClass}'>
+            foreach ($mainData['sub'] as $key => $value) {
+                // Kiểm tra quyền view (theo logic checkRoles)
+                if (!checkRoles('', $key)) {
+                    continue; // bỏ qua nếu không có quyền
+                }
+
+                $label = is_array($value) ? $value['label'] : $value;
+                $target = is_array($value) && isset($value['target']) ? 'target="_blank"' : '';
+                $activeClass = ($currentMenu === $key) ? 'active' : '';
+                if ($activeClass) $isOpen = true;
+
+                $subMenuHtml .= "<li class='menu-item {$activeClass}'>
                     <a href='index.php?menu={$key}' class='menu-link' {$target}>
                         <div data-i18n='{$label}'>{$label}</div>
                     </a>
                 </li>";
-			}
-			$openClass = $isOpen ? 'active open' : '';
-			echo "<li class='menu-item {$openClass}'>
-                <a href='javascript:void(0);' class='menu-link menu-toggle'>
-                    <i class='menu-icon icon-base ti {$icon}'></i>
-                    <div data-i18n='{$mainLabel}'>{$mainLabel}</div>
-                </a>
-                <ul class='menu-sub'>{$subMenuHtml}</ul>
-            </li>";
-		} else {
-			// Không có submenu
-			$link = trim($mainData['link']) === '' ? '' : $mainData['link'];
-			$activeClass = ($currentMenu === $link) ? 'active' : '';
-			$href = $link === '' ? 'index.php' : "index.php?menu={$link}";
-			echo "<li class='menu-item {$activeClass}'>
+            }
+
+            // Chỉ render menu cha nếu có ít nhất 1 submenu được phép
+            if ($subMenuHtml !== '') {
+                $openClass = $isOpen ? 'active open' : '';
+                echo "<li class='menu-item {$openClass}'>
+                    <a href='javascript:void(0);' class='menu-link menu-toggle'>
+                        <i class='menu-icon icon-base ti {$icon}'></i>
+                        <div data-i18n='{$mainLabel}'>{$mainLabel}</div>
+                    </a>
+                    <ul class='menu-sub'>{$subMenuHtml}</ul>
+                </li>";
+            }
+        } else {
+            // Không có submenu
+            $link = trim($mainData['link']) === '' ? '' : $mainData['link'];
+
+            // Kiểm tra quyền
+            if (!checkRoles('', $link)) {
+                continue;
+            }
+
+            $activeClass = ($currentMenu === $link) ? 'active' : '';
+            $href = $link === '' ? 'index.php' : "index.php?menu={$link}";
+
+            echo "<li class='menu-item {$activeClass}'>
                 <a href='{$href}' class='menu-link'>
                     <i class='menu-icon icon-base ti {$icon}'></i>
                     <div data-i18n='{$mainLabel}'>{$mainLabel}</div>
                 </a>
             </li>";
-		}
-	}
+        }
+    }
 }
 
 function renderSelect($id, $label, $options, $selected = null) {
