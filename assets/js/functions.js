@@ -69,8 +69,6 @@ function showAlert(alertId, message, type = 'danger') {
 
     // Tự ẩn sau 3 giây
     setTimeout(() => {
-        // Dùng API của Bootstrap để đóng alert
-        const bsAlert = bootstrap.Alert.getOrCreateInstance(alertBox);
-        bsAlert.close();
+        alertBox.classList.remove('show');
     }, 3000);
 }
