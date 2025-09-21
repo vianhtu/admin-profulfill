@@ -1,4 +1,7 @@
 <?php
+if(!checkRoles('view', 'phones_sms')){
+    return;
+}
 require __DIR__ . '/../../functions-telnyx.php';
 $sms = getSMS();
 $colors = [

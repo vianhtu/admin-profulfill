@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 			echo json_encode(addKeywords());
 			break;
         case 'add-roles-permissions':
-            // add
+            // add, edit
             echo json_encode(addRolesPermissions());
             break;
 		case 'delete-xlsx':
