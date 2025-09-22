@@ -99,9 +99,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         case 'save-export-query':
             echo json_encode(saveExportQuery());
             break;
-        case 'ai-process-products':
-            echo json_encode(AIProcessProducts());
-            break;
 	}
 	exit;
 }
