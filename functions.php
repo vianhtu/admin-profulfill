@@ -895,11 +895,19 @@ function getAccountsTableFilter(): array {
 }
 
 function getDownloadTable(): array {
-    $conn = db();
     $allowedCols = ['ID', 'status', 'date', 'download_date'];
-
     // Lấy tham số từ DataTables
     $params = getDataTableParams($allowedCols);
+    if(!checkRoles('view', 'exports_download')){
+        return [
+            "draw"            => $params['draw'],
+            "recordsTotal"    => 0,
+            "recordsFiltered" => 0,
+            "data"            => []
+        ];
+    }
+
+    $conn = db();
 
     // Tổng số bản ghi
     $totalRecords = $conn->query("SELECT COUNT(*) AS cnt FROM download")->fetch_assoc()['cnt'];

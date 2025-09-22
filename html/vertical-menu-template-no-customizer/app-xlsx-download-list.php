@@ -1,3 +1,8 @@
+<?php
+if(!checkRoles('view', 'exports_download')){
+    return;
+}
+?>
 <!-- Users List Table -->
 <div class="card">
     <div class="card-header border-bottom">
