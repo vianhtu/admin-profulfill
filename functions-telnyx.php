@@ -108,11 +108,19 @@ function getSMS(): array
             INNER JOIN phones p ON p.ID = sms.phone_id
             INNER JOIN phone_carrier pc ON pc.ID = p.carrier_id";
 
+    $whereClauses = [];
     if ($id) {
-        $sql .= " WHERE sms.phone_id = ?";
+        $whereClauses[] = "sms.phone_id = ?";
     }
 
-    $sql .= " ORDER BY sms.date DESC LIMIT 20";
+    if(!isAdmin()){
+        $teamId = getCurrentUserTeam();
+        if($teamId){
+            $whereClauses[] = "p.team_id = $teamId";
+        }
+    }
+    $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
+    $sql .= "$where ORDER BY sms.date DESC LIMIT 20";
 
     $stmt = $conn->prepare($sql);
 
