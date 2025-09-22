@@ -2091,6 +2091,9 @@ function insertAmazonListingFromAI($downloadId, string $sku, array $aiData)
 
 function saveExportQuery(): array
 {
+    if(!checkRoles('add', 'exports_download')){
+        return ['error' => ['Bạn Không có quyền thêm và sửa từ khóa']];
+    }
     $conn = db();
     $products = getProductsTable();
 
