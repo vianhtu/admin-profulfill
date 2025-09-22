@@ -234,6 +234,42 @@ function gemini_2_5_flash(string $prompt): string
     return $response->text();
 }
 
+function buildCompressedPromptFromText(string $fullText): string {
+    // Regex tìm JSON schema thật: bắt đầu bằng { và có ít nhất một cặp "key":
+    if (preg_match('/\{\s*"[^"]+"\s*:/', $fullText, $m, PREG_OFFSET_CAPTURE)) {
+        $pos = $m[0][1]; // vị trí bắt đầu JSON thật
+
+        // Lấy phần JSON từ vị trí này
+        $jsonRaw = substr($fullText, $pos);
+
+        // Cắt tới dấu } đóng cuối cùng
+        $lastBrace = strrpos($jsonRaw, '}');
+        if ($lastBrace !== false) {
+            $jsonRaw = substr($jsonRaw, 0, $lastBrace + 1);
+        }
+
+        // Minify JSON: bỏ xuống dòng, khoảng trắng thừa
+        $jsonMin = preg_replace('/\s+/', ' ', $jsonRaw);
+        $jsonMin = trim($jsonMin);
+
+        // Escape dấu ngoặc kép để an toàn
+        $jsonEscaped = addslashes($jsonMin);
+
+        // Ghép lại prompt: phần trước JSON + JSON đã escape + phần sau JSON
+        $beforeJson = substr($fullText, 0, $pos);
+        $afterJson  = substr($fullText, $pos + strlen($jsonRaw));
+        $textWithEscapedJson = $beforeJson . $jsonEscaped . $afterJson;
+
+        // Nén toàn bộ prompt thành 1 dòng
+        $promptOneLine = preg_replace('/\s+/', ' ', $textWithEscapedJson);
+    } else {
+        // Không tìm thấy JSON schema → chỉ nén text
+        $promptOneLine = preg_replace('/\s+/', ' ', $fullText);
+    }
+
+    return trim($promptOneLine);
+}
+
 function AIProcessDownloadProducts($downloadId): array
 {
     $conn = db();
@@ -295,7 +331,7 @@ function AIProcessDownloadProducts($downloadId): array
         ]);
 
         // Gọi AI
-        $raw = gemini_2_5_flash($prompt);
+        $raw = gemini_2_5_flash(buildCompressedPromptFromText($prompt));
 
         // Làm sạch và parse JSON
         $clean = preg_replace('/^```json\s*|\s*```$/', '', trim($raw));
@@ -2228,4 +2264,35 @@ function timeAgo(string $datetime): string {
             return $value . ' ' . $label . ($value > 1 ? 's' : '') . ' ago';
         }
     }
+}
+
+function getDebug()
+{
+    $text = 'You are an AI assistant for writing Amazon product listings. 
+    Input: title + product image. 
+    Generate output in the JSON structure below with original, SEO copy highlighting features, benefits, and use cases. 
+    Use natural language with relevant keywords (no stuffing). 
+    Only return JSON, no extra keys, explanations, or markdown.
+    Input:
+    title : {title}
+    image : {image}
+    Output: only the JSON {
+      "Item Name": "",                
+      "Product Description": "",      
+      "Bullet Point": [],             
+      "Generic Keyword": [],          
+      "Style": [],                    
+      "Theme": [],                                    
+      "Color": [],                                      
+      "Recommended Uses For Product": [],
+      "Room Type": [],                                       
+      "Occasion": [],                           
+      "Copyright Warning": "",
+      "Copyrighted Content": ""
+    }
+    Follow Amazon policies: no prohibited language, medical/legal claims, hate speech, or excessive violence. 
+    Avoid copyright.
+    If title/image suggests a brand, celebrity, movie, or copyrighted material, set "Copyright Warning"
+    and fill "Copyrighted Content" with relevant keywords.';
+    return buildCompressedPromptFromText($text);
 }
