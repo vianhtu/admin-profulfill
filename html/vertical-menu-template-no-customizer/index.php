@@ -256,11 +256,11 @@ if (empty($_SESSION['csrf_token'])) {
                           include 'app-xlsx-list.php';
                       }
                       break;
-                  case 'phones_sms':
-                      include 'app-phones-sms.php';
-                      break;
                   case 'phones_numbers':
                       include 'app-phones-list.php';
+                      break;
+                  case 'phones_sms':
+                      include 'app-phones-sms.php';
                       break;
                   case 'users':
                       include 'app-user-list.php';
@@ -354,18 +354,8 @@ if (empty($_SESSION['csrf_token'])) {
         case 'users': ?>
             <script src="../../assets/js/app-user-list.js"></script>
             <?php break;
-        case 'exports_xlsx':
-            if( isset( $_GET['form'] ) && $_GET['form'] == 'add') { ?>
-                <script src="../../assets/js/app-xlsx-add.js"></script>
-            <?php } else { ?>
-                <script src="../../assets/js/app-xlsx-list.js"></script>
-            <?php } ?>
-            <?php break;
         case 'exports_download': ?>
             <script src="../../assets/js/app-download-list.js"></script>
-            <?php break;
-        case 'phones_numbers': ?>
-            <script src="../../assets/js/app-phones-list.js"></script>
             <?php break;
         case 'orders': ?>
             <script src="../../assets/js/app-ecommerce-order-list.js"></script>
@@ -373,6 +363,16 @@ if (empty($_SESSION['csrf_token'])) {
         case 'keywords': ?>
             <script src="../../assets/js/app-ecommerce-keywords-list.js"></script>
             <?php break;
+        case 'exports_xlsx':
+            if( isset( $_GET['form'] ) && $_GET['form'] == 'add') { ?>
+                <script src="../../assets/js/app-xlsx-add.js"></script>
+            <?php } else { ?>
+                <script src="../../assets/js/app-xlsx-list.js"></script>
+            <?php } ?>
+            <?php break;
+        case 'phones_numbers': ?>
+            <script src="../../assets/js/app-phones-list.js"></script>
+        <?php break;
         case 'roles-permissions': ?>
             <script src="../../assets/js/app-access-permission.js"></script>
             <script src="../../assets/js/modal-add-permission.js"></script>
