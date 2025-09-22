@@ -287,9 +287,6 @@ function initTable(){
                 <a href="index.php?menu=exports_add&id=${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon">
                   <i class="icon-base ti tabler-edit icon-22px"></i>
                 </a>
-                <a href="javascript:;" data-id="${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon duplicate-record">
-                  <i class="icon-base ti tabler-copy-check icon-22px"></i>
-                </a>
                 <a href="javascript:;" data-id="${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon delete-record">
                   <i class="icon-base ti tabler-trash icon-22px"></i>
                 </a>
@@ -478,7 +475,7 @@ function initTable(){
             }
 
             // Gửi request Ajax
-            fetch(`../../ajax.php?action=${action}-xlsx`, {
+            fetch(``, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `id=${encodeURIComponent(recordId)}&csrf_token=${encodeURIComponent(window.csrfToken)}`
@@ -538,12 +535,6 @@ function initTable(){
 
         // Re-bind events when modal is shown or hidden
         document.addEventListener('show.bs.modal', function (event) {
-            if (event.target.classList.contains('dtr-bs-modal')) {
-                bindDeleteEvent();
-            }
-        });
-
-        document.addEventListener('hide.bs.modal', function (event) {
             if (event.target.classList.contains('dtr-bs-modal')) {
                 bindDeleteEvent();
             }
