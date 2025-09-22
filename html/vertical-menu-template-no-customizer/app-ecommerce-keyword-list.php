@@ -1,3 +1,8 @@
+<?php
+if(!checkRoles('view', 'keywords')){
+    return;
+}
+?>
 <!-- Taxonomy List Table -->
 <div class="card">
     <div class="card-datatable table-responsive">
