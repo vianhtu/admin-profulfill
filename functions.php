@@ -1400,6 +1400,9 @@ function addOrders(): array
 
 function addKeywords(): array
 {
+    if(!checkRoles(['add','edit'], 'keywords')){
+        return ['error' => ['Bạn Không có quyền thêm và sửa từ khóa']];
+    }
     $conn = db();
     $result = [
         'success' => [],
@@ -1465,7 +1468,7 @@ function addXlsx(): array {
     if(!checkRoles(['add','edit'], 'exports_xlsx')){
         return [
             'status'  => 'error',
-            'message' => 'Bạn Không có quyền thêm hoặc sửa file excel'
+            'message' => 'Bạn Không có quyền thêm và sửa file excel'
         ];
     }
     $conn = db();
@@ -1576,7 +1579,7 @@ function addRolesPermissions(): array
     if(!checkRoles(['add','edit'], 'roles-permissions')){
         return [
             'status'  => 'error',
-            'message' => 'Bạn Không có quyền thêm hoặc sửa roles'
+            'message' => 'Bạn Không có quyền thêm và sửa roles'
         ];
     }
     $conn = db(); // Hàm db() trả về kết nối mysqli
