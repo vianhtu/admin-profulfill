@@ -23,7 +23,7 @@ function initTable(){
             serverSide: true,
             processing: true,
             ajax: {
-                url: '../../ajax.php?action=get-phones',
+                url: '../../ajax.php?action=get-phones-table',
                 type: 'POST',
                 data: function (d) {},
                 dataSrc: function (json) {

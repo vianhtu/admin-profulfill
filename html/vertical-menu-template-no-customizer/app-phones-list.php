@@ -1,3 +1,8 @@
+<?php
+if(!checkRoles('view', 'phones_numbers')){
+    return;
+}
+?>
 <!-- Users List Table -->
 <div class="card">
     <div class="card-header border-bottom">

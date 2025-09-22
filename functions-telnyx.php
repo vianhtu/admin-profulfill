@@ -115,29 +115,24 @@ function getSMS(): array
 
 function getPhonesTable(): array
 {
-    $conn = db();
-    // Lấy thông số từ DataTables
-    $draw             = intval($_POST['draw'] ?? 1);
-    $start            = intval($_POST['start'] ?? 0);
-    $length           = intval($_POST['length'] ?? 10);
-    $orderColumnIndex = intval($_POST['order'][0]['column'] ?? 0);
-    $orderColumn      = $_POST['columns'][$orderColumnIndex]['data'] ?? 'ID';
-    $orderDir         = strtolower($_POST['order'][0]['dir'] ?? 'asc') === 'desc' ? 'DESC' : 'ASC';
-    $searchValue      = trim($_POST['search']['value'] ?? '');
-
-    // Danh sách cột cho phép sort
     $allowedCols = ['ID', 'number', 'status'];
-    if (!in_array($orderColumn, $allowedCols)) {
-        $orderColumn = 'ID';
+    $params = getDataTableParams($allowedCols);
+    if(!checkRoles('view', 'phones_numbers')){
+        return [
+            "draw"            => $params['draw'],
+            "recordsTotal"    => 0,
+            "recordsFiltered" => 0,
+            "data"            => []
+        ];
     }
+    $conn = db();
 
     // Tổng số bản ghi
     $totalRecords = $conn->query("SELECT COUNT(*) AS cnt FROM phones")->fetch_assoc()['cnt'];
 
     $whereClauses = [];
-    // Lọc theo search
-    if ($searchValue !== '') {
-        $searchEsc      = $conn->real_escape_string($searchValue);
+    if ($params['searchValue'] !== '') {
+        $searchEsc      = $conn->real_escape_string($params['searchValue']);
         $whereClauses[] = "phones.number LIKE '%$searchEsc%'";
     }
 
@@ -179,9 +174,8 @@ function getPhonesTable(): array
         $join
         $where
         GROUP BY phones.ID, phones.status, phones.number, phone_carrier.name, s_latest.text
-        ORDER BY phones.$orderColumn $orderDir
-        LIMIT $start, $length
-    ";
+        ORDER BY phones.{$params['orderColumn']} {$params['orderDir']}
+        LIMIT {$params['start']}, {$params['length']}";
     $rs  = $conn->query($sql);
 
     // Chuẩn bị dữ liệu trả về
@@ -202,7 +196,7 @@ function getPhonesTable(): array
 
     // Trả JSON
     return [
-        "draw"            => $draw,
+        "draw"            => $params['draw'],
         "recordsTotal"    => $totalRecords,
         "recordsFiltered" => $totalFiltered,
         "data"            => $data
