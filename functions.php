@@ -235,35 +235,7 @@ function gemini_2_5_flash(string $prompt): string
 }
 
 function buildCompressedPromptFromText(string $fullText): string {
-    // Regex tìm JSON schema thật: bắt đầu bằng { và có ít nhất một cặp "key":
-    if (preg_match('/\{\s*"[^"]+"\s*:/', $fullText, $m, PREG_OFFSET_CAPTURE)) {
-        $pos = $m[0][1]; // vị trí bắt đầu JSON thật
-
-        // Lấy phần JSON từ vị trí này
-        $jsonRaw = substr($fullText, $pos);
-
-        // Cắt tới dấu } đóng cuối cùng
-        $lastBrace = strrpos($jsonRaw, '}');
-        if ($lastBrace !== false) {
-            $jsonRaw = substr($jsonRaw, 0, $lastBrace + 1);
-        }
-
-        // Minify JSON: bỏ xuống dòng, khoảng trắng thừa
-        $jsonMin = preg_replace('/\s+/', ' ', $jsonRaw);
-        $jsonMin = trim($jsonMin);
-
-        // Ghép lại prompt: phần trước JSON + JSON đã escape + phần sau JSON
-        $beforeJson = substr($fullText, 0, $pos);
-        $afterJson  = substr($fullText, $pos + strlen($jsonRaw));
-        $textWithEscapedJson = $beforeJson . $jsonMin . $afterJson;
-
-        // Nén toàn bộ prompt thành 1 dòng
-        $promptOneLine = preg_replace('/\s+/', ' ', $textWithEscapedJson);
-    } else {
-        // Không tìm thấy JSON schema → chỉ nén text
-        $promptOneLine = preg_replace('/\s+/', ' ', $fullText);
-    }
-
+    $promptOneLine = preg_replace('/\s+/', ' ', $fullText);
     return trim($promptOneLine);
 }
 
