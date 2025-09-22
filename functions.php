@@ -252,13 +252,10 @@ function buildCompressedPromptFromText(string $fullText): string {
         $jsonMin = preg_replace('/\s+/', ' ', $jsonRaw);
         $jsonMin = trim($jsonMin);
 
-        // Escape dấu ngoặc kép để an toàn
-        $jsonEscaped = addslashes($jsonMin);
-
         // Ghép lại prompt: phần trước JSON + JSON đã escape + phần sau JSON
         $beforeJson = substr($fullText, 0, $pos);
         $afterJson  = substr($fullText, $pos + strlen($jsonRaw));
-        $textWithEscapedJson = $beforeJson . $jsonEscaped . $afterJson;
+        $textWithEscapedJson = $beforeJson . $jsonMin . $afterJson;
 
         // Nén toàn bộ prompt thành 1 dòng
         $promptOneLine = preg_replace('/\s+/', ' ', $textWithEscapedJson);
