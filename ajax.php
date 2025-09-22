@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 	error_reporting(E_ALL);
 
 	switch ($_GET['action']) {
-		case 'get-products':
+		case 'get-products-table':
 			echo json_encode(getProductsTable());
 			break;
 		case 'get-product-table-filter':

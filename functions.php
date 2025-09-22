@@ -513,133 +513,6 @@ function getAuthorsProductInfo(): ?array {
 	return $data;
 }
 
-function getProductsTable(): array {
-    $conn = db();
-    $allowedCols = ['ID', 'title', 'status', 'sku', 'date', 'badge'];
-
-    // Lấy tham số từ DataTables
-    $params = getDataTableParams($allowedCols);
-
-    // Tổng số bản ghi
-    $totalRecords = $conn->query("SELECT COUNT(*) AS cnt FROM posts")->fetch_assoc()['cnt'];
-
-    $whereClauses = [];
-
-    // Lọc theo search
-    if ($params['searchValue'] !== '') {
-        $searchEsc = $conn->real_escape_string($params['searchValue']);
-        $whereClauses[] = "(title LIKE '%$searchEsc%' OR sku LIKE '%$searchEsc%' OR status LIKE '%$searchEsc%' OR badge LIKE '%$searchEsc%')";
-    }
-
-    // Lọc theo status
-    $filterStatus = trim($_POST['columns'][8]['search']['value'] ?? '', '^$');
-    if ($filterStatus !== '') {
-        $esc = $conn->real_escape_string($filterStatus);
-        $whereClauses[] = "status = '$esc'";
-    }
-
-    // Lọc theo type
-    $filterType = trim($_POST['columns'][3]['search']['value'] ?? '', '^$');
-    if ($filterType !== '') {
-        $esc = $conn->real_escape_string($filterType);
-        $whereClauses[] = "type_id = '$esc'";
-    }
-
-    // Lọc theo author
-    $filterAuthor = trim($_POST['columns'][4]['search']['value'] ?? '', '^$');
-    if ($filterAuthor !== '') {
-        $esc = $conn->real_escape_string($filterAuthor);
-        $whereClauses[] = "author_id = '$esc'";
-    }
-
-    // Lọc theo sites
-    $filterSites = $_POST['sites'] ?? [];
-    if (!empty($filterSites) && is_array($filterSites)) {
-        $idsStr = implode(',', array_map('intval', $filterSites));
-        if ($idsStr !== '') {
-            $whereClauses[] = "site_id IN ($idsStr)";
-        }
-    }
-
-    // Lọc theo khoảng ngày
-    $minDate = $_POST['minDate'] ?? '';
-    $maxDate = $_POST['maxDate'] ?? '';
-    if ($minDate !== '' && $maxDate !== '') {
-        $escMin = $conn->real_escape_string($minDate);
-        $escMax = $conn->real_escape_string($maxDate);
-        $whereClauses[] = "DATE(`date`) BETWEEN '$escMin' AND '$escMax'";
-    } elseif ($minDate !== '') {
-        $escMin = $conn->real_escape_string($minDate);
-        $whereClauses[] = "DATE(`date`) >= '$escMin'";
-    } elseif ($maxDate !== '') {
-        $escMax = $conn->real_escape_string($maxDate);
-        $whereClauses[] = "DATE(`date`) <= '$escMax'";
-    }
-
-    // Lọc theo stores
-    $filterStores = $_POST['stores'] ?? [];
-    if (!empty($filterStores) && is_array($filterStores)) {
-        $idsStr = implode(',', array_map('intval', $filterStores));
-        if ($idsStr !== '') {
-            $whereClauses[] = "store_id IN ($idsStr)";
-        }
-    }
-
-    // Lọc theo accounts
-    $joinAccounts = '';
-    $filterAccounts = $_POST['accounts'] ?? [];
-    if (!empty($filterAccounts) && is_array($filterAccounts)) {
-        $idsStr = implode(',', array_map('intval', $filterAccounts));
-        if ($idsStr !== '') {
-            $joinAccounts = "INNER JOIN accounts_relationships ar ON ar.post_id = posts.ID";
-            $whereClauses[] = "ar.account_id IN ($idsStr)";
-        }
-    }
-
-    $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
-
-    // Tổng số bản ghi sau khi lọc
-    $totalFiltered = $conn->query("SELECT COUNT(DISTINCT posts.ID) AS cnt FROM posts $joinAccounts $where")->fetch_assoc()['cnt'];
-
-    // Lấy dữ liệu
-    $sql = "SELECT DISTINCT posts.ID, posts.title, posts.status, posts.sku, posts.images, posts.badge, posts.date, posts.type_id, posts.author_id
-            FROM posts
-            $joinAccounts
-            $where
-            ORDER BY {$params['orderColumn']} {$params['orderDir']}
-            LIMIT {$params['start']}, {$params['length']}";
-    $rs = $conn->query($sql);
-
-    // Chuẩn bị dữ liệu trả về
-    $data = [];
-    while ($row = $rs->fetch_assoc()) {
-        $imgs = json_decode($row['images']);
-        $updatedUrl = '';
-        if ($imgs && isset($imgs->main)) {
-            $updatedUrl = preg_replace('/il_\d+xN/', 'il_100xN', $imgs->main);
-        }
-        $data[] = [
-            "id"            => $row['ID'],
-            "title"         => htmlspecialchars($row['title']),
-            "sku"           => htmlspecialchars($row['sku']),
-            "type_id"       => $row['type_id'],
-            "author_id"     => $row['author_id'],
-            "badge"         => $row['badge'],
-            "date"          => $row['date'],
-            "status"        => $row['status'],
-            "image"         => $updatedUrl,
-            "product_brand" => "Etsy"
-        ];
-    }
-
-    return [
-        "draw"            => $params['draw'],
-        "recordsTotal"    => $totalRecords,
-        "recordsFiltered" => $totalFiltered,
-        "data"            => $data
-    ];
-}
-
 function getProductTableFilters(): array {
 	$options = [];
 	$options['types'] = getTypes();
@@ -780,6 +653,141 @@ function getAccountsTableFilter(): array {
 		'items' => $items,
 		'more'  => $more
 	];
+}
+
+function getProductsTable(): array {
+    $allowedCols = ['ID', 'title', 'status', 'sku', 'date', 'badge'];
+    // Lấy tham số từ DataTables
+    $params = getDataTableParams($allowedCols);
+    if(!checkRoles('view', 'products')){
+        return [
+            "draw"            => $params['draw'],
+            "recordsTotal"    => 0,
+            "recordsFiltered" => 0,
+            "data"            => []
+        ];
+    }
+
+    $conn = db();
+
+    // Tổng số bản ghi
+    $totalRecords = $conn->query("SELECT COUNT(*) AS cnt FROM posts")->fetch_assoc()['cnt'];
+
+    $whereClauses = [];
+
+    // Lọc theo search
+    if ($params['searchValue'] !== '') {
+        $searchEsc = $conn->real_escape_string($params['searchValue']);
+        $whereClauses[] = "(title LIKE '%$searchEsc%' OR sku LIKE '%$searchEsc%' OR status LIKE '%$searchEsc%' OR badge LIKE '%$searchEsc%')";
+    }
+
+    // Lọc theo status
+    $filterStatus = trim($_POST['columns'][8]['search']['value'] ?? '', '^$');
+    if ($filterStatus !== '') {
+        $esc = $conn->real_escape_string($filterStatus);
+        $whereClauses[] = "status = '$esc'";
+    }
+
+    // Lọc theo type
+    $filterType = trim($_POST['columns'][3]['search']['value'] ?? '', '^$');
+    if ($filterType !== '') {
+        $esc = $conn->real_escape_string($filterType);
+        $whereClauses[] = "type_id = '$esc'";
+    }
+
+    // Lọc theo author
+    $filterAuthor = trim($_POST['columns'][4]['search']['value'] ?? '', '^$');
+    if ($filterAuthor !== '') {
+        $esc = $conn->real_escape_string($filterAuthor);
+        $whereClauses[] = "author_id = '$esc'";
+    }
+
+    // Lọc theo sites
+    $filterSites = $_POST['sites'] ?? [];
+    if (!empty($filterSites) && is_array($filterSites)) {
+        $idsStr = implode(',', array_map('intval', $filterSites));
+        if ($idsStr !== '') {
+            $whereClauses[] = "site_id IN ($idsStr)";
+        }
+    }
+
+    // Lọc theo khoảng ngày
+    $minDate = $_POST['minDate'] ?? '';
+    $maxDate = $_POST['maxDate'] ?? '';
+    if ($minDate !== '' && $maxDate !== '') {
+        $escMin = $conn->real_escape_string($minDate);
+        $escMax = $conn->real_escape_string($maxDate);
+        $whereClauses[] = "DATE(`date`) BETWEEN '$escMin' AND '$escMax'";
+    } elseif ($minDate !== '') {
+        $escMin = $conn->real_escape_string($minDate);
+        $whereClauses[] = "DATE(`date`) >= '$escMin'";
+    } elseif ($maxDate !== '') {
+        $escMax = $conn->real_escape_string($maxDate);
+        $whereClauses[] = "DATE(`date`) <= '$escMax'";
+    }
+
+    // Lọc theo stores
+    $filterStores = $_POST['stores'] ?? [];
+    if (!empty($filterStores) && is_array($filterStores)) {
+        $idsStr = implode(',', array_map('intval', $filterStores));
+        if ($idsStr !== '') {
+            $whereClauses[] = "store_id IN ($idsStr)";
+        }
+    }
+
+    // Lọc theo accounts
+    $joinAccounts = '';
+    $filterAccounts = $_POST['accounts'] ?? [];
+    if (!empty($filterAccounts) && is_array($filterAccounts)) {
+        $idsStr = implode(',', array_map('intval', $filterAccounts));
+        if ($idsStr !== '') {
+            $joinAccounts = "INNER JOIN accounts_relationships ar ON ar.post_id = posts.ID";
+            $whereClauses[] = "ar.account_id IN ($idsStr)";
+        }
+    }
+
+    $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
+
+    // Tổng số bản ghi sau khi lọc
+    $totalFiltered = $conn->query("SELECT COUNT(DISTINCT posts.ID) AS cnt FROM posts $joinAccounts $where")->fetch_assoc()['cnt'];
+
+    // Lấy dữ liệu
+    $sql = "SELECT DISTINCT posts.ID, posts.title, posts.status, posts.sku, posts.images, posts.badge, posts.date, posts.type_id, posts.author_id
+            FROM posts
+            $joinAccounts
+            $where
+            ORDER BY {$params['orderColumn']} {$params['orderDir']}
+            LIMIT {$params['start']}, {$params['length']}";
+    $rs = $conn->query($sql);
+
+    // Chuẩn bị dữ liệu trả về
+    $data = [];
+    while ($row = $rs->fetch_assoc()) {
+        $imgs = json_decode($row['images']);
+        $updatedUrl = '';
+        if ($imgs && isset($imgs->main)) {
+            $updatedUrl = preg_replace('/il_\d+xN/', 'il_100xN', $imgs->main);
+        }
+        $data[] = [
+            "id"            => $row['ID'],
+            "title"         => htmlspecialchars($row['title']),
+            "sku"           => htmlspecialchars($row['sku']),
+            "type_id"       => $row['type_id'],
+            "author_id"     => $row['author_id'],
+            "badge"         => $row['badge'],
+            "date"          => $row['date'],
+            "status"        => $row['status'],
+            "image"         => $updatedUrl,
+            "product_brand" => "Etsy"
+        ];
+    }
+
+    return [
+        "draw"            => $params['draw'],
+        "recordsTotal"    => $totalRecords,
+        "recordsFiltered" => $totalFiltered,
+        "data"            => $data
+    ];
 }
 
 function getKeywordsTable(): array

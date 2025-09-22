@@ -1,4 +1,7 @@
 <?php
+if(!checkRoles('view', 'products')){
+    return;
+}
 $info = getAuthorsProductInfo();
 ?>
 <!-- Product List Widget -->

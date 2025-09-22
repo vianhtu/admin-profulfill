@@ -48,7 +48,7 @@ function initProductTable(){
             serverSide: true,
             processing: true,
             ajax: {
-                url: '../../ajax.php?action=get-products',
+                url: '../../ajax.php?action=get-products-table',
                 type: 'POST',
                 data: function (d) {
                     d.minDate = $('#minDate').val();
