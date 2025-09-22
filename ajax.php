@@ -23,7 +23,7 @@ if (!is_logged_in() && !attempt_cookie_login()) {
                 echo json_encode(addOrders());
                 break;
             case 'debug':
-                echo json_encode(getDebug());
+                echo getDebug();
                 break;
         }
     } else {
