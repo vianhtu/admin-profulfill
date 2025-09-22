@@ -251,7 +251,7 @@ if (empty($_SESSION['csrf_token'])) {
                       break;
                   case 'exports_xlsx':
                       if( isset( $_GET['form'] ) && $_GET['form'] == 'add') {
-                          include 'app-exports-add.php';
+                          include 'app-xlsx-add.php';
                       } else {
                           include 'app-xlsx-list.php';
                       }
@@ -354,11 +354,12 @@ if (empty($_SESSION['csrf_token'])) {
         case 'users': ?>
             <script src="../../assets/js/app-user-list.js"></script>
             <?php break;
-        case 'exports_add': ?>
-            <script src="../../assets/js/app-exports-add.js"></script>
-            <?php break;
-        case 'exports_xlsx': ?>
-            <script src="../../assets/js/app-xlsx-list.js"></script>
+        case 'exports_xlsx':
+            if( isset( $_GET['form'] ) && $_GET['form'] == 'add') { ?>
+                <script src="../../assets/js/app-xlsx-add.js"></script>
+            <?php } else { ?>
+                <script src="../../assets/js/app-xlsx-list.js"></script>
+            <?php } ?>
             <?php break;
         case 'exports_download': ?>
             <script src="../../assets/js/app-download-list.js"></script>
