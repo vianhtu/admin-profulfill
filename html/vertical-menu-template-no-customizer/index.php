@@ -240,17 +240,21 @@ if (empty($_SESSION['csrf_token'])) {
                   case 'products':
                       include 'app-ecommerce-product-list.php';
                       break;
-                  case 'exports_add':
-                      include 'app-exports-add.php';
-                      break;
-                  case 'exports_xlsx':
-                      include 'app-xlsx-list.php';
-                      break;
                   case 'exports_download':
                       include 'app-download-list.php';
                       break;
-                  case 'users':
-                      include 'app-user-list.php';
+                  case 'orders':
+                      include 'app-ecommerce-order-list.php';
+                      break;
+                  case 'keywords':
+                      include 'app-ecommerce-keyword-list.php';
+                      break;
+                  case 'exports_xlsx':
+                      if( isset( $_GET['form'] ) && $_GET['form'] == 'add') {
+                          include 'app-exports-add.php';
+                      } else {
+                          include 'app-xlsx-list.php';
+                      }
                       break;
                   case 'phones_sms':
                       include 'app-phones-sms.php';
@@ -258,11 +262,8 @@ if (empty($_SESSION['csrf_token'])) {
                   case 'phones_numbers':
                       include 'app-phones-list.php';
                       break;
-                  case 'orders':
-                      include 'app-ecommerce-order-list.php';
-                      break;
-                  case 'keywords':
-                      include 'app-ecommerce-keyword-list.php';
+                  case 'users':
+                      include 'app-user-list.php';
                       break;
                   case 'roles-permissions':
                       include 'app-access-permission.php';

@@ -46,10 +46,7 @@ function menuArgs():array
                 'exports_xlsx' => [
                     'label' => 'Files',
                     'roles' => ['view','add','edit','delete']
-                ],
-                'exports_add' => [
-                    'label' => 'Add & Update'
-                ],
+                ]
             ]
         ],
         'Phones' => [
