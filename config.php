@@ -295,3 +295,20 @@ function isAdmin() : bool
     return isset($_SESSION['auth'], $_SESSION['auth']['level'])
         && $_SESSION['auth']['level'] === 0;
 }
+
+function getCurrentUserTeam(): ?int
+{
+    // get current user team.
+    $stmt = db()->prepare("SELECT team_id FROM authors WHERE ID = ?");
+    $stmt->bind_param("i", $_SESSION['auth']['user_id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if($row = $result->fetch_assoc()){
+        $teamId = $row['team_id'];
+    }
+    else{
+        $teamId = null;
+    }
+    $stmt->close();
+    return $teamId;
+}

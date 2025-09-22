@@ -3,6 +3,24 @@ function hookTelnyx(): array
 {
     $conn = db(); // Hàm db() trả về MySQLi connection
 
+    $key = $_GET['key'] ?? '';
+    if ($key === '') {
+        return ['status' => 'error', 'message' => 'Missing key'];
+    }
+
+    // Kiểm tra khóa và lấy author ID.
+    $stmt_a = $conn->prepare("SELECT ID FROM team WHERE `key` = ? LIMIT 1");
+    $stmt_a->bind_param("s", $key);
+    $stmt_a->execute();
+    $result_a = $stmt_a->get_result();
+    if ($row_a = $result_a->fetch_assoc()) {
+        // Tìm thấy key
+        $teamId = $row_a['ID'];
+    } else {
+        // Không tìm thấy key
+        return ['status' => 'error', 'message' => 'Invalid key'];
+    }
+
     // Lấy raw JSON từ webhook
     $raw = file_get_contents('php://input');
     $data = json_decode($raw, true);
@@ -59,8 +77,8 @@ function hookTelnyx(): array
         $phoneId = $row['id'];
     } else {
         // Thêm mới phone
-        $insertPhone = $conn->prepare("INSERT INTO phones (carrier_id, status, number) VALUES (?, 'active', ?)");
-        $insertPhone->bind_param("is", $carrierId, $toNumber);
+        $insertPhone = $conn->prepare("INSERT INTO phones (team_id, carrier_id, status, number) VALUES (?, ?, 'active', ?)");
+        $insertPhone->bind_param("iis",$teamId, $carrierId, $toNumber);
         $insertPhone->execute();
         $phoneId = $conn->insert_id;
         $insertPhone->close();
@@ -126,15 +144,24 @@ function getPhonesTable(): array
         ];
     }
     $conn = db();
-
-    // Tổng số bản ghi
-    $totalRecords = $conn->query("SELECT COUNT(*) AS cnt FROM phones")->fetch_assoc()['cnt'];
-
+    // search.
     $whereClauses = [];
     if ($params['searchValue'] !== '') {
         $searchEsc      = $conn->real_escape_string($params['searchValue']);
         $whereClauses[] = "phones.number LIKE '%$searchEsc%'";
     }
+    // team
+    $totalTeam = '';
+    if(!isAdmin()){
+        $teamId = getCurrentUserTeam();
+        if($teamId){
+            $whereClauses[] = "phones.team_id = $teamId";
+            $totalTeam = "WHERE phones.team_id = $teamId";
+        }
+    }
+
+    // Tổng số bản ghi
+    $totalRecords = $conn->query("SELECT COUNT(*) AS cnt FROM phones $totalTeam")->fetch_assoc()['cnt'];
 
     $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
 
