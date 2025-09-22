@@ -45,9 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 		case 'get-product-table-filter':
 			echo json_encode(getProductTableFilters());
 			break;
-        case 'get-process-products':
-            echo json_encode(getProcessProducts());
-            break;
         case 'get-keywords-table':
             echo json_encode(getKeywordsTable());
             break;
@@ -56,6 +53,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             break;
         case 'get-download-table':
             echo json_encode(getDownloadTable());
+            break;
+        case 'get-download-products-process':
+            echo json_encode(getDownloadProductsProcess());
             break;
         case 'get-files-table':
             echo json_encode(getFilesTable());
