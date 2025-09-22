@@ -240,11 +240,11 @@ if (empty($_SESSION['csrf_token'])) {
                   case 'products':
                       include 'app-ecommerce-product-list.php';
                       break;
-                  case 'orders':
-                      include 'app-ecommerce-order-list.php';
-                      break;
                   case 'keywords':
                       include 'app-ecommerce-keyword-list.php';
+                      break;
+                  case 'orders':
+                      include 'app-ecommerce-order-list.php';
                       break;
                   case 'exports_download':
                       include 'app-xlsx-download-list.php';
@@ -354,11 +354,11 @@ if (empty($_SESSION['csrf_token'])) {
         case 'users': ?>
             <script src="../../assets/js/app-user-list.js"></script>
             <?php break;
-        case 'orders': ?>
-            <script src="../../assets/js/app-ecommerce-order-list.js"></script>
-            <?php break;
         case 'keywords': ?>
             <script src="../../assets/js/app-ecommerce-keywords-list.js"></script>
+            <?php break;
+        case 'orders': ?>
+            <script src="../../assets/js/app-ecommerce-order-list.js"></script>
             <?php break;
         case 'exports_download': ?>
             <script src="../../assets/js/app-xlsx-download-list.js"></script>

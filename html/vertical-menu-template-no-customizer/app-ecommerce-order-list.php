@@ -1,3 +1,8 @@
+<?php
+if(!checkRoles('view', 'orders')){
+    return;
+}
+?>
 <div class="card mb-6">
     <div class="card-widget-separator-wrapper">
         <div class="card-body card-widget-separator">
