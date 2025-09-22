@@ -1607,6 +1607,12 @@ function addRolesPermissions(): array
 }
 
 function duplicateXlsx(): array {
+    if(!checkRoles(['add','edit'], 'exports_xlsx')){
+        return [
+            'status'  => 'error',
+            'message' => 'Bạn Không có quyền thêm hoặc sửa file excel'
+        ];
+    }
 	$conn = db();
 	$id = $_POST['id'] ?? null;
 	$csrfToken = $_POST['csrf_token'] ?? '';
@@ -1644,6 +1650,12 @@ function duplicateXlsx(): array {
 }
 
 function deleteXlsx(): array {
+    if(!checkRoles('delete', 'exports_xlsx')){
+        return [
+            'status'  => 'error',
+            'message' => 'Bạn Không có quyền xóa file excel'
+        ];
+    }
 	$conn = db();
 	$id = $_POST['id'] ?? null;
 	$csrfToken = $_POST['csrf_token'] ?? '';
