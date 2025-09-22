@@ -48,11 +48,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         case 'get-process-products':
             echo json_encode(getProcessProducts());
             break;
-        case 'get-orders':
-            echo json_encode(getOrdersTable());
-            break;
         case 'get-keywords-table':
             echo json_encode(getKeywordsTable());
+            break;
+        case 'get-orders-table':
+            echo json_encode(getOrdersTable());
             break;
         case 'get-download-table':
             echo json_encode(getDownloadTable());

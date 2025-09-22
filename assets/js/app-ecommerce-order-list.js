@@ -122,7 +122,7 @@ function initTable(){
             serverSide: true,
             processing: true,
             ajax: {
-                url: '../../ajax.php?action=get-orders',
+                url: '../../ajax.php?action=get-orders-table',
                 type: 'POST',
                 data: function (d) {},
                 dataSrc: function (json) {
