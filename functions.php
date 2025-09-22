@@ -234,7 +234,7 @@ function gemini_2_5_flash(string $prompt): string
     return $response->text();
 }
 
-function AIProcessProducts($downloadId): array
+function AIProcessDownloadProducts($downloadId): array
 {
     $conn = db();
     $promptTemplate = getAISitePrompt($downloadId);

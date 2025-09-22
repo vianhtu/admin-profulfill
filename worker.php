@@ -42,7 +42,7 @@ while (true) {
 function processDownload($downloadId, $conn): void
 {
     // Gọi AIProcessProducts
-    $log = AIProcessProducts($downloadId);
+    $log = AIProcessDownloadProducts($downloadId);
 
     // Xác định status mới
     $status = null;
