@@ -45,9 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 		case 'get-product-table-filter':
 			echo json_encode(getProductTableFilters());
 			break;
-        case 'get-xlsx':
-            echo json_encode(getFilesTable());
-            break;
         case 'get-download':
             echo json_encode(getDownloadTable());
             break;
@@ -60,15 +57,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         case 'get-keywords-table':
             echo json_encode(getKeywordsTable());
             break;
+        case 'get-files-table':
+            echo json_encode(getFilesTable());
+            break;
         case 'get-phones-table':
             echo json_encode(getPhonesTable());
             break;
         case 'get-roles-permissions-table':
-            // view
             echo json_encode(getRolesPermissionsTable());
             break;
         case 'get-roles-permissions':
-            // edit
             echo json_encode(getRolesPermissions());
             break;
 		case 'filter-stores':
@@ -87,7 +85,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 			echo json_encode(addKeywords());
 			break;
         case 'add-roles-permissions':
-            // add, edit
             echo json_encode(addRolesPermissions());
             break;
 		case 'delete-xlsx':

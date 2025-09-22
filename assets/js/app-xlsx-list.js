@@ -39,7 +39,7 @@ function initTable(){
             serverSide: true,
             processing: true,
             ajax: {
-                url: '../../ajax.php?action=get-xlsx',
+                url: '../../ajax.php?action=get-files-table',
                 type: 'POST',
                 data: function (d) {
                     d.accounts = $('#xlsxAccounts').val();
