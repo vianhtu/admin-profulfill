@@ -2274,9 +2274,9 @@ function getDebug()
     Use natural language with relevant keywords (no stuffing). 
     Only return JSON, no extra keys, explanations, or markdown.
     Input:
-    title : {title}
-    image : {image}
-    Output: only the JSON {
+    title : Princess Diana On Yacht Photography Prints Diving Board Retro Poster Black And White Wall Art Museum Quality
+    image : https://i.etsystatic.com/57813934/r/il/116af3/7012545892/il_1588xN.7012545892_6mn3.jpg
+    Output: {
       "Item Name": "",                
       "Product Description": "",      
       "Bullet Point": [],             
