@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     container.append(`
                     <div class="col-sm-6 col-lg-4">
                       <div class="card p-2 h-100 shadow-none border">
-                        <div class="ratio ratio-4x3 rounded-2 text-center mb-4">
+                        <div class="rounded-2 text-center mb-4">
                           <a href="">
                             <img class="img-fluid" src="${item.img}" alt="${item.title}"/>
                           </a>
