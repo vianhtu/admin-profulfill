@@ -48,6 +48,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 		case 'get-product-table-filter':
 			echo json_encode(getProductTableFilters());
 			break;
+        case 'get-product-copyright-warning':
+            echo json_encode(getProductCopyrightWarning());
+            break;
         case 'get-keywords-table':
             echo json_encode(getKeywordsTable());
             break;

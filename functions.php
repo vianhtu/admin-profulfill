@@ -738,6 +738,50 @@ function getProductsTable(): array {
     ];
 }
 
+function getProductCopyrightWarning(): array
+{
+    $conn = db();
+
+    $where = "
+        TRIM(a.copyright_warning) <> ''
+        AND TRIM(a.copyrighted_content) <> ''
+        AND LOWER(a.copyright_warning) NOT IN ('none','no','n/a','false','not applicable')
+        AND LOWER(a.copyrighted_content) NOT IN ('none','no','n/a','false','not applicable')
+    ";
+
+    // Lấy danh sách items
+    $sql = "
+        SELECT a.copyright_warning, a.copyrighted_content, p.title, p.images, p.sku, p.ID
+        FROM amazon_listings AS a
+        INNER JOIN posts AS p ON p.sku = a.sku
+        WHERE $where
+        ORDER BY a.created_at DESC
+        LIMIT 6
+    ";
+    $data = [];
+    foreach ($conn->query($sql) as $row) {
+        $imgs = json_decode($row['images']);
+        $data[] = [
+            "id" => $row['ID'],
+            "sku" => $row['sku'],
+            "title" => $row['title'],
+            "name"  => $imgs->main ?? '',
+            "copyrighted_content" => $row['copyrighted_content'],
+            "copyright_warning" => $row['copyright_warning'],
+        ];
+    }
+
+    // Đếm tổng số
+    $total = $conn->query("
+        SELECT COUNT(*) AS total
+        FROM amazon_listings AS a
+        INNER JOIN posts AS p ON p.sku = a.sku
+        WHERE $where
+    ")->fetch_assoc()['total'] ?? 0;
+
+    return ['total' => (int)$total, 'items' => $data];
+}
+
 function getKeywordsTable(): array
 {
     $allowedCols = ['ID', 'name', 'status'];
