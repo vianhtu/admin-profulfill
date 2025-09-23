@@ -992,7 +992,7 @@ function getDownloadTable(): array {
     )->fetch_assoc()['cnt'];
 
     // Lấy dữ liệu
-    $sql = "SELECT DISTINCT download.ID, download.author_id, accounts.email, 
+    $sql = "SELECT DISTINCT download.ID, download.author_id, accounts.email, accounts.site_id AS account_site_id, 
                    exports.site_id, exports.type_id, exports.file_name, accounts.name, 
                    download.status, download.date, download.download_date, download.total_items
             FROM download
@@ -1010,6 +1010,7 @@ function getDownloadTable(): array {
             "full_name"      => $row['name'],
             "email"          => $row['email'],
             "site_id"        => $row['site_id'],
+            "account_site_id"  => $row['account_site_id'],
             "type_id"        => $row['type_id'],
             "author_id"      => $row['author_id'],
             "status"         => $row['status'],
