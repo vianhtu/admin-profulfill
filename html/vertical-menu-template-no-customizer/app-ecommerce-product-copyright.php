@@ -3,7 +3,7 @@
         <div class="card-header d-flex flex-wrap justify-content-between gap-4">
             <div class="card-title mb-0 me-1">
                 <h5 class="mb-0">Products</h5>
-                <p class="mb-0" id="totalWarning">Total 0 products copyright warning</p>
+                <p class="mb-0" id="totalWarning"></p>
             </div>
         </div>
         <div class="card-body">

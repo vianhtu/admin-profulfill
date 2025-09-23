@@ -17,6 +17,8 @@ document.addEventListener('DOMContentLoaded', function (e) {
             // Ví dụ render ra HTML
             const container = $('.card-body #cardBody');
             container.empty();
+            let total = response.total ?? 0;
+            $('#totalWarning').textContent(`Total ${total} products copyright warning`);
             response.items.forEach(function (item) {
                 let warningArr = item.copyrighted_content.split(',').map(s => s.trim());
                 let copyrighted_content = [];
