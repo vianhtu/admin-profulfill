@@ -993,7 +993,7 @@ function getDownloadTable(): array {
 
     // Lấy dữ liệu
     $sql = "SELECT DISTINCT download.ID, download.author_id, accounts.email, 
-                   exports.site_id, exports.type_id, exports.file_name, exports.name, 
+                   exports.site_id, exports.type_id, exports.file_name, accounts.name, 
                    download.status, download.date, download.download_date, download.total_items
             FROM download
             $join
