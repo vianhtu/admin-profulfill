@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
                             <h5 >${item.copyright_warning}</h5>
                             <p class="mt-1">${item.title}</p>
                             <div class="d-flex flex-column flex-md-row gap-4 text-nowrap flex-wrap flex-md-nowrap flex-lg-wrap flex-xxl-nowrap">
-                                <button class="w-100 btn btn-label-secondary d-flex align-items-center">
+                                <button class="w-100 btn btn-label-danger d-flex align-items-center">
                                     <i class="icon-base ti tabler-rotate-clockwise-2 icon-xs align-middle scaleX-n1-rtl me-2"></i>
                                     <span>Reject</span>
                                 </button>
