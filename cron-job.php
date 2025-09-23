@@ -8,7 +8,7 @@ $sql = "SELECT ID,status,locked_at
         FROM download
         WHERE status IN ('schedule', 'running')
         ORDER BY id ASC
-        LIMIT 5";
+        LIMIT 10";
 
 $result = $conn->query($sql);
 
