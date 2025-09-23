@@ -18,6 +18,11 @@ document.addEventListener('DOMContentLoaded', function (e) {
             const container = $('.card-body #cardBody');
             container.empty();
             response.items.forEach(function (item) {
+                let warningArr = item.copyrighted_content.split(',').map(s => s.trim());
+                let copyrighted_content = '';
+                warningArr.forEach((val, idx) => {
+                    copyrighted_content = `<span class="badge bg-label-primary">${val}</span>`;
+                });
                 container.append(`
                 <div class="col-sm-6 col-lg-4">
                     <div class="card p-2 h-100 shadow-none border">
@@ -25,9 +30,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
                             <a href=""><img class="img-fluid" src="${item.img}" alt="${item.title}"/></a>
                         </div>
                         <div class="card-body p-4 pt-2">
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <span class="badge bg-label-primary">${item.copyrighted_content}</span>
-                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-4">${copyrighted_content}</div>
                             <h5 >${item.copyright_warning}</h5>
                             <p class="mt-1">${item.title}</p>
                             <div class="d-flex flex-column flex-md-row gap-4 text-nowrap flex-wrap flex-md-nowrap flex-lg-wrap flex-xxl-nowrap">
