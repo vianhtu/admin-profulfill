@@ -1867,10 +1867,10 @@ function downloadXlsx(): array
             FROM amazon_listings AS al
             INNER JOIN posts p ON al.sku = p.sku
             WHERE al.download_id = ?
-            AND (TRIM(a.copyright_warning) = ''
-            OR TRIM(a.copyrighted_content) = ''
-            OR LOWER(a.copyright_warning) IN ('none','no','n/a','false','not applicable')
-            OR LOWER(a.copyrighted_content) IN ('none','no','n/a','false','not applicable'))";
+            AND (TRIM(al.copyright_warning) = ''
+            OR TRIM(al.copyrighted_content) = ''
+            OR LOWER(al.copyright_warning) IN ('none','no','n/a','false','not applicable')
+            OR LOWER(al.copyrighted_content) IN ('none','no','n/a','false','not applicable'))";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param('i', $downloadID);
     $stmt->execute();
