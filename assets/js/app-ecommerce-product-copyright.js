@@ -28,8 +28,8 @@ document.addEventListener('DOMContentLoaded', function (e) {
                             <div class="d-flex justify-content-between align-items-center mb-4">
                                 <span class="badge bg-label-primary">${item.copyrighted_content}</span>
                             </div>
-                            <a href="" class="h5">${item.title}</a>
-                            <p class="mt-1">${item.copyright_warning}</p>
+                            <h5 >${item.copyright_warning}</h5>
+                            <p class="mt-1">${item.title}</p>
                             <div class="d-flex flex-column flex-md-row gap-4 text-nowrap flex-wrap flex-md-nowrap flex-lg-wrap flex-xxl-nowrap">
                                 <a class="w-100 btn btn-label-secondary d-flex align-items-center" href="">
                                     <i class="icon-base ti tabler-rotate-clockwise-2 icon-xs align-middle scaleX-n1-rtl me-2"></i><span>Start Over</span>
