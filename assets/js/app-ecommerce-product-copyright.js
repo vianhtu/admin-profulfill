@@ -5,14 +5,31 @@
 'use strict';
 
 document.addEventListener('DOMContentLoaded', function (e) {
-  // Media player
+    // Gọi AJAX tới PHP
+    $.ajax({
+        url: '../../ajax.php?action=get-product-copyright-warning',
+        type: 'POST',
+        dataType: 'json',
+        success: function (response) {
+            console.log('Tổng số:', response.total);
+            console.log('Danh sách items:', response.items);
 
-  const videoPlayer = new Plyr('#guitar-video-player');
-
-  const videoPlayer2 = new Plyr('#guitar-video-player-2');
-
-  document.getElementsByClassName('plyr')[0].style.borderRadius = '6px';
-  document.getElementsByClassName('plyr')[1].style.borderRadius = '6px';
-  document.getElementsByClassName('plyr__poster')[0].style.display = 'none';
-  document.getElementsByClassName('plyr__poster')[1].style.display = 'none';
+            // Ví dụ render ra HTML
+            const container = $('#product-list');
+            container.empty();
+            response.items.forEach(function (item) {
+                container.append(`
+                    <div class="product">
+                        <h3>${item.title}</h3>
+                        <img src="${item.name}" alt="${item.title}" />
+                        <p>SKU: ${item.sku}</p>
+                        <p>Copyright Warning: ${item.copyright_warning}</p>
+                    </div>
+                `);
+            });
+        },
+        error: function (xhr, status, error) {
+            console.error('Lỗi AJAX:', error);
+        }
+    });
 });
