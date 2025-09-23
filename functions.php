@@ -947,7 +947,7 @@ function getDownloadTable(): array {
     if ($params['searchValue'] !== '') {
         $searchEsc = $conn->real_escape_string($params['searchValue']);
         $whereClauses[] = "(exports.file_name LIKE '%$searchEsc%' 
-            OR exports.name LIKE '%$searchEsc%' 
+            OR accounts.email LIKE '%$searchEsc%' 
             OR accounts.name LIKE '%$searchEsc%')";
     }
 
