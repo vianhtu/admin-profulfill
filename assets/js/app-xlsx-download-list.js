@@ -180,7 +180,7 @@ function initTable(){
                     targets: 2,
                     responsivePriority: 3,
                     render: function (data, type, full, meta) {
-                        var name = categoryObj[full['type_id']].title + ' - ' + full['account_site_id'];
+                        var name = sitesObj[full['account_site_id']].title + ' - ' + full['full_name'];
                         var account_name = full['temp_file_name'] + ' - ' + categoryObj[full['type_id']].title;
                         var image = './../../assets/svg/icons/xlsx_icon.svg';
                         // Nếu status = 'running' thì không thêm class d-none
