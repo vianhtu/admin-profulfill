@@ -1809,10 +1809,6 @@ function downloadXlsx(): array
                  INNER JOIN exports ON exports.ID = download.exports_id
                  INNER JOIN accounts ON accounts.ID = exports.accounts_id
                  WHERE download.id = ?
-                 AND (TRIM(a.copyright_warning) = ''
-                 OR TRIM(a.copyrighted_content) = ''
-                 OR LOWER(a.copyright_warning) IN ('none','no','n/a','false','not applicable')
-                 OR LOWER(a.copyrighted_content) IN ('none','no','n/a','false','not applicable'))
                  AND download.status = 'ready'"; // ready
     $checkStmt = $conn->prepare($checkSql);
     $checkStmt->bind_param('i', $downloadID);
@@ -1870,7 +1866,11 @@ function downloadXlsx(): array
     $sql = "SELECT DISTINCT al.item_name, al.product_description, al.meta_data, p.sku, p.images
             FROM amazon_listings AS al
             INNER JOIN posts p ON al.sku = p.sku
-            WHERE al.download_id = ?";
+            WHERE al.download_id = ?
+            AND (TRIM(a.copyright_warning) = ''
+            OR TRIM(a.copyrighted_content) = ''
+            OR LOWER(a.copyright_warning) IN ('none','no','n/a','false','not applicable')
+            OR LOWER(a.copyrighted_content) IN ('none','no','n/a','false','not applicable'))";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param('i', $downloadID);
     $stmt->execute();
