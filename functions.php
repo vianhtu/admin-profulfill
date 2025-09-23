@@ -749,6 +749,12 @@ function getProductCopyrightWarning(): array
         AND LOWER(a.copyrighted_content) NOT IN ('none','no','n/a','false','not applicable')
     ";
 
+    // Lấy page và limit từ request
+    $limit = isset($_POST['limit']) ? (int)$_POST['limit'] : 6;
+    $page  = isset($_POST['page']) ? (int)$_POST['page'] : 1;
+    if ($page < 1) $page = 1;
+    $offset = ($page - 1) * $limit;
+
     // Lấy danh sách items
     $sql = "
         SELECT a.copyright_warning, a.copyrighted_content, p.title, p.images, p.sku, p.ID
@@ -756,8 +762,9 @@ function getProductCopyrightWarning(): array
         INNER JOIN posts AS p ON p.sku = a.sku
         WHERE $where
         ORDER BY a.created_at DESC
-        LIMIT 6
+        LIMIT $limit OFFSET $offset
     ";
+
     $data = [];
     foreach ($conn->query($sql) as $row) {
         $imgs = json_decode($row['images']);
@@ -779,7 +786,12 @@ function getProductCopyrightWarning(): array
         WHERE $where
     ")->fetch_assoc()['total'] ?? 0;
 
-    return ['total' => (int)$total, 'items' => $data];
+    return [
+        'total' => (int)$total,
+        'items' => $data,
+        'page'  => $page,
+        'limit' => $limit
+    ];
 }
 
 function getKeywordsTable(): array
