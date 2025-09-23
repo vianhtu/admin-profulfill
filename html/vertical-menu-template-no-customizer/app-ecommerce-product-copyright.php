@@ -1,42 +1,4 @@
 <div class="app-academy">
-    <div class="card p-0 mb-6">
-        <div class="card-body d-flex flex-column flex-md-row justify-content-between p-0 pt-6">
-            <div class="app-academy-md-25 card-body py-0 pt-6 ps-12">
-                <img
-                        src="../../assets/img/illustrations/bulb-light.png"
-                        class="img-fluid app-academy-img-height scaleX-n1-rtl"
-                        alt="Bulb in hand"
-                        data-app-light-img="illustrations/bulb-light.png"
-                        data-app-dark-img="illustrations/bulb-dark.png"
-                        height="90" />
-            </div>
-            <div
-                    class="app-academy-md-50 card-body d-flex align-items-md-center flex-column text-md-center mb-6 py-6">
-                      <span class="card-title mb-4 lh-lg px-md-12 h4 text-heading">
-                        Education, talents, and career<br />
-                        opportunities. <span class="text-primary text-nowrap">All in one place</span>.
-                      </span>
-                <p class="mb-4">
-                    Grow your skill with the most reliable online courses and certifications in<br />
-                    marketing, information technology, programming, and data science.
-                </p>
-                <div class="d-flex align-items-center justify-content-between app-academy-md-80">
-                    <input type="search" placeholder="Find your course" class="form-control me-4" />
-                    <button type="submit" class="btn btn-primary btn-icon">
-                        <i class="icon-base ti tabler-search icon-22px"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="app-academy-md-25 d-flex align-items-end justify-content-end">
-                <img
-                        src="../../assets/img/illustrations/pencil-rocket.png"
-                        alt="pencil rocket"
-                        height="188"
-                        class="scaleX-n1-rtl" />
-            </div>
-        </div>
-    </div>
-
     <div class="card mb-6">
         <div class="card-header d-flex flex-wrap justify-content-between gap-4">
             <div class="card-title mb-0 me-1">
