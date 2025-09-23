@@ -354,6 +354,9 @@ if (empty($_SESSION['csrf_token'])) {
         case 'products': ?>
             <script src="../../assets/js/app-ecommerce-product-list.js"></script>
             <?php break;
+        case 'copyright': ?>
+            <script src="../../assets/js/app-ecommerce-product-copyright.js"></script>
+        <?php break;
         case 'users': ?>
             <script src="../../assets/js/app-user-list.js"></script>
             <?php break;
