@@ -27,36 +27,36 @@ document.addEventListener('DOMContentLoaded', function () {
                         .join('');
 
                     container.append(`
-            <div class="col-sm-6 col-lg-4">
-              <div class="card p-2 h-100 shadow-none border">
-                <div class="rounded-2 text-center mb-4">
-                  <a href="">
-                    <img class="img-fluid" src="${item.img}" alt="${item.title}"/>
-                  </a>
-                </div>
-                <div class="card-body p-4 pt-2">
-                  <div class="d-flex justify-content-between align-items-center mb-4">
-                    ${badges}
-                  </div>
-                  <h5>${item.copyright_warning}</h5>
-                  <p class="mt-1">${item.title}</p>
-                  <div class="d-flex flex-column flex-md-row gap-4 text-nowrap
-                              flex-wrap flex-md-nowrap flex-lg-wrap flex-xxl-nowrap">
-                    <button class="w-100 btn btn-label-danger d-flex align-items-center item-reject">
-                      <i class="icon-base ti tabler-rotate-clockwise-2 icon-xs
-                                align-middle scaleX-n1-rtl me-2"></i>
-                      <span>Reject</span>
-                    </button>
-                    <button class="w-100 btn btn-label-primary d-flex align-items-center item-approve">
-                      <span class="me-2">Approve</span>
-                      <i class="icon-base ti tabler-chevron-right icon-xs
-                                lh-1 scaleX-n1-rtl"></i>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          `);
+                    <div class="col-sm-6 col-lg-4">
+                      <div class="card p-2 h-100 shadow-none border">
+                        <div class="ratio ratio-4x3 rounded-2 text-center mb-4">
+                          <a href="">
+                            <img class="img-fluid" src="${item.img}" alt="${item.title}"/>
+                          </a>
+                        </div>
+                        <div class="card-body p-4 pt-2">
+                          <div class="d-flex justify-content-between align-items-center mb-4">
+                            ${badges}
+                          </div>
+                          <h5>${item.copyright_warning}</h5>
+                          <p class="mt-1">${item.title}</p>
+                          <div class="d-flex flex-column flex-md-row gap-4 text-nowrap
+                                      flex-wrap flex-md-nowrap flex-lg-wrap flex-xxl-nowrap">
+                            <button class="w-100 btn btn-label-danger d-flex align-items-center item-reject">
+                              <i class="icon-base ti tabler-rotate-clockwise-2 icon-xs
+                                        align-middle scaleX-n1-rtl me-2"></i>
+                              <span>Reject</span>
+                            </button>
+                            <button class="w-100 btn btn-label-primary d-flex align-items-center item-approve">
+                              <span class="me-2">Approve</span>
+                              <i class="icon-base ti tabler-chevron-right icon-xs
+                                        lh-1 scaleX-n1-rtl"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  `);
                 });
 
                 // now redraw pagination
