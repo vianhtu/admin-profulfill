@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
                 let warningArr = item.copyrighted_content.split(',').map(s => s.trim());
                 let copyrighted_content = [];
                 warningArr.forEach((val, idx) => {
-                    copyrighted_content.push(`<span class="badge bg-label-primary">${val}</span>`);
+                    copyrighted_content.push(`<span class="badge bg-label-warning">${val}</span>`);
                 });
                 container.append(`
                 <div class="col-sm-6 col-lg-4">
