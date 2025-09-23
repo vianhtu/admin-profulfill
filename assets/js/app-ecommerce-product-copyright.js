@@ -22,14 +22,14 @@ document.addEventListener('DOMContentLoaded', function (e) {
                 <div class="col-sm-6 col-lg-4">
                     <div class="card p-2 h-100 shadow-none border">
                         <div class="rounded-2 text-center mb-4">
-                            <a href=""><img class="img-fluid" src="" alt="tutor image 1"/></a>
+                            <a href=""><img class="img-fluid" src="${item.img}" alt="${item.title}"/></a>
                         </div>
                         <div class="card-body p-4 pt-2">
                             <div class="d-flex justify-content-between align-items-center mb-4">
-                                <span class="badge bg-label-primary">Web</span>
+                                <span class="badge bg-label-primary">${item.copyrighted_content}</span>
                             </div>
-                            <a href="" class="h5">Basics of Angular</a>
-                            <p class="mt-1">Introductory course for Angular and framework basics in web development.</p>
+                            <a href="" class="h5">${item.title}</a>
+                            <p class="mt-1">${item.copyright_warning}</p>
                             <div class="d-flex flex-column flex-md-row gap-4 text-nowrap flex-wrap flex-md-nowrap flex-lg-wrap flex-xxl-nowrap">
                                 <a class="w-100 btn btn-label-secondary d-flex align-items-center" href="">
                                     <i class="icon-base ti tabler-rotate-clockwise-2 icon-xs align-middle scaleX-n1-rtl me-2"></i><span>Start Over</span>
