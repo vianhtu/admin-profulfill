@@ -61,28 +61,60 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    function renderPagination(total, page, limit) {
-        let totalPages = Math.ceil(total / limit);
-        let pagination = $('.pagination');
-        pagination.empty();
+    function renderPagination(currentPage, totalPages) {
+        const $pagination = $('.pagination');
+        $pagination.empty();
 
-        for (let i = 1; i <= totalPages; i++) {
-            pagination.append(`
-                <li class="page-item ${i === page ? 'active' : ''}">
-                    <a class="page-link" href="javascript:void(0);" data-page="${i}">${i}</a>
-                </li>
-            `);
+        // First
+        $pagination.append(`
+        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+          <a class="page-link" href="javascript:void(0);" data-page="first">First</a>
+        </li>
+      `);
+
+        // Prev
+        $pagination.append(`
+        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+          <a class="page-link" href="javascript:void(0);" data-page="prev">Prev</a>
+        </li>
+      `);
+
+        // Current page indicator (optional)
+        $pagination.append(`
+        <li class="page-item active">
+          <span class="page-link">${currentPage}</span>
+        </li>
+      `);
+
+        // Next
+        $pagination.append(`
+        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+          <a class="page-link" href="javascript:void(0);" data-page="next">Next</a>
+        </li>
+      `);
+
+        // Last
+        $pagination.append(`
+        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+          <a class="page-link" href="javascript:void(0);" data-page="last">Last</a>
+        </li>
+      `);
         }
 
-        // Gắn sự kiện click
-        $('.pagination .page-link').off('click').on('click', function () {
-            let p = parseInt($(this).data('page'));
-            if (!isNaN(p)) {
-                currentPage = p;
-                loadData(currentPage);
-            }
-        });
-    }
+    // Xử lý sự kiện click
+    $(document).on('click', '.pagination a[data-page]', function () {
+        const action = $(this).data('page');
+        let newPage = currentPage;
+
+        if (action === 'first') newPage = 1;
+        else if (action === 'prev') newPage = Math.max(1, currentPage - 1);
+        else if (action === 'next') newPage = Math.min(totalPages, currentPage + 1);
+        else if (action === 'last') newPage = totalPages;
+
+        if (newPage !== currentPage) {
+            loadPage(newPage); // Hàm AJAX để tải dữ liệu trang mới
+        }
+    });
 
     // Load lần đầu
     loadData(currentPage);
