@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
                           </a>
                         </div>
                         <div class="card-body p-4 pt-2">
-                          <div class="d-flex justify-content-between align-items-center mb-4">
+                          <div class="d-flex">
                             ${badges}
                           </div>
                           <h5>${item.copyright_warning}</h5>
