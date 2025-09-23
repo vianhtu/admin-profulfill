@@ -199,7 +199,7 @@ function initTable(){
                     features: [
                         {
                             pageLength: {
-                                menu: [7, 10, 25, 50, 100],
+                                menu: [10, 15, 25, 50, 100],
                                 text: '_MENU_'
                             }
                         },
