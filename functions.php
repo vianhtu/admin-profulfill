@@ -768,11 +768,12 @@ function getProductCopyrightWarning(): array
     $data = [];
     foreach ($conn->query($sql) as $row) {
         $imgs = json_decode($row['images']);
+        $mainImg = !empty($imgs->main) ? preg_replace('/il_\d+xN/', 'il_500xN', $imgs->main) : '';
         $data[] = [
             "id" => $row['ID'],
             "sku" => $row['sku'],
             "title" => $row['title'],
-            "img"  => $imgs->main ?? '',
+            "img"  => $mainImg,
             "copyrighted_content" => $row['copyrighted_content'],
             "copyright_warning" => $row['copyright_warning'],
         ];
