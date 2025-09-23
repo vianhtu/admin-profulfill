@@ -34,11 +34,11 @@ document.addEventListener('DOMContentLoaded', function (e) {
                             <h5 >${item.copyright_warning}</h5>
                             <p class="mt-1">${item.title}</p>
                             <div class="d-flex flex-column flex-md-row gap-4 text-nowrap flex-wrap flex-md-nowrap flex-lg-wrap flex-xxl-nowrap">
-                                <button class="w-100 btn btn-label-danger d-flex align-items-center">
+                                <button class="w-100 btn btn-label-danger d-flex align-items-center item-reject">
                                     <i class="icon-base ti tabler-rotate-clockwise-2 icon-xs align-middle scaleX-n1-rtl me-2"></i>
                                     <span>Reject</span>
                                 </button>
-                                <button class="w-100 btn btn-label-primary d-flex align-items-center">
+                                <button class="w-100 btn btn-label-primary d-flex align-items-center item-approve">
                                     <span class="me-2">Approve</span>
                                     <i class="icon-base ti tabler-chevron-right icon-xs lh-1 scaleX-n1-rtl"></i>
                                 </button>
