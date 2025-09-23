@@ -240,6 +240,9 @@ if (empty($_SESSION['csrf_token'])) {
                   case 'products':
                       include 'app-ecommerce-product-list.php';
                       break;
+                  case 'copyright':
+                      include 'app-ecommerce-product-copyright.php';
+                      break;
                   case 'keywords':
                       include 'app-ecommerce-keyword-list.php';
                       break;
