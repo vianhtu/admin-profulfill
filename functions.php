@@ -1164,7 +1164,7 @@ function getFilesTable(): array {
                    exports.type_id, 
                    exports.site_id, 
                    exports.authors_id, 
-                   exports.name, 
+                   exports.file_name, 
                    exports.date_create
             FROM exports
             $join
@@ -1178,7 +1178,7 @@ function getFilesTable(): array {
     while ($row = $rs->fetch_assoc()) {
         $data[] = [
             "id"              => $row['ID'],
-            "full_name"       => htmlspecialchars($row['name']),
+            "full_name"       => $row['file_name'],
             "type_id"         => $row['type_id'],
             "site_id"         => $row['site_id'],
             "authors_id"      => $row['authors_id'],
