@@ -80,24 +80,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;SHELLCHECK.PATH&quot;: &quot;C:\\Users\\thien\\AppData\\Roaming\\JetBrains\\PhpStorm2025.2\\plugins\\Shell Script\\shellcheck.exe&quot;,
-    &quot;disable.download.node.interpreter.editor.notification&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/thien/OneDrive/Documents/GitHub/admin-profulfill/assets/js&quot;,
-    &quot;list.type.of.created.stylesheet&quot;: &quot;CSS&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;yarn&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHELLCHECK.PATH": "C:\\Users\\thien\\AppData\\Roaming\\JetBrains\\PhpStorm2025.2\\plugins\\Shell Script\\shellcheck.exe",
+    "disable.download.node.interpreter.editor.notification": "true",
+    "git-widget-placeholder": "main",
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "C:/Users/thien/OneDrive/Documents/GitHub/admin-profulfill/assets/js",
+    "list.type.of.created.stylesheet": "CSS",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "yarn",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\thien\OneDrive\Documents\GitHub\admin-profulfill\assets\js" />
@@ -146,7 +147,9 @@
       <workItem from="1758377007685" duration="11484000" />
       <workItem from="1758426421841" duration="223000" />
       <workItem from="1758426701044" duration="14728000" />
-      <workItem from="1758504974286" duration="14128000" />
+      <workItem from="1758504974286" duration="15169000" />
+      <workItem from="1758532590858" duration="1033000" />
+      <workItem from="1758591311973" duration="119000" />
     </task>
     <servers />
   </component>
@@ -163,5 +166,8 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="WordPressConfiguration">
+    <wordpressPath />
   </component>
 </project>
