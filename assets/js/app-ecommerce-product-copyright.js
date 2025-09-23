@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         .map(s => s.trim());
                     let badges = warningArr
                         .map(val =>
-                            `<span class="badge bg-label-warning text-wrap w-100">${val}</span>`
+                            `<span class="badge bg-label-warning text-wrap">${val}</span>`
                         )
                         .join('');
 
