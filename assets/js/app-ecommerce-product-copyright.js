@@ -93,68 +93,68 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // First
         $ul.append(`
-    <li class="page-item first ${page === 1 ? 'disabled' : ''}">
-      <a class="page-link" href="javascript:void(0);" data-page="1">
-        <i class="ti ti-chevrons-left icon-sm scaleX-n1-rtl"></i>
-      </a>
-    </li>
-  `);
+            <li class="page-item first ${page === 1 ? 'disabled' : ''}">
+              <a class="page-link" href="javascript:void(0);" data-page="1">
+                <i class="ti tabler-chevrons-left icon-sm scaleX-n1-rtl"></i>
+              </a>
+            </li>
+          `);
 
         // Prev
         const prevPage = page > 1 ? page - 1 : 1;
         $ul.append(`
-    <li class="page-item prev ${page === 1 ? 'disabled' : ''}">
-      <a class="page-link" href="javascript:void(0);" data-page="${prevPage}">
-        <i class="ti ti-chevron-left icon-sm scaleX-n1-rtl"></i>
-      </a>
-    </li>
-  `);
+            <li class="page-item prev ${page === 1 ? 'disabled' : ''}">
+              <a class="page-link" href="javascript:void(0);" data-page="${prevPage}">
+                <i class="ti tabler-chevron-left icon-sm scaleX-n1-rtl"></i>
+              </a>
+            </li>
+          `);
 
         // … nếu có khoảng trống trước cửa sổ
         if (startPage > 1) {
             $ul.append(`
-      <li class="page-item disabled">
-        <span class="page-link">…</span>
-      </li>
-    `);
+              <li class="page-item disabled">
+                <span class="page-link">…</span>
+              </li>
+            `);
         }
 
         // Các trang trong cửa sổ
         for (let i = startPage; i <= endPage; i++) {
             $ul.append(`
-      <li class="page-item ${i === page ? 'active' : ''}">
-        <a class="page-link" href="javascript:void(0);" data-page="${i}">${i}</a>
-      </li>
-    `);
+              <li class="page-item ${i === page ? 'active' : ''}">
+                <a class="page-link" href="javascript:void(0);" data-page="${i}">${i}</a>
+              </li>
+            `);
         }
 
         // … nếu có khoảng trống sau cửa sổ
         if (endPage < totalPages) {
             $ul.append(`
-      <li class="page-item disabled">
-        <span class="page-link">…</span>
-      </li>
-    `);
+              <li class="page-item disabled">
+                <span class="page-link">…</span>
+              </li>
+            `);
         }
 
         // Next
         const nextPage = page < totalPages ? page + 1 : totalPages;
         $ul.append(`
-    <li class="page-item next ${page === totalPages ? 'disabled' : ''}">
-      <a class="page-link" href="javascript:void(0);" data-page="${nextPage}">
-        <i class="ti ti-chevron-right icon-xs scaleX-n1-rtl"></i>
-      </a>
-    </li>
-  `);
+            <li class="page-item next ${page === totalPages ? 'disabled' : ''}">
+              <a class="page-link" href="javascript:void(0);" data-page="${nextPage}">
+                <i class="ti tabler-chevron-right icon-xs scaleX-n1-rtl"></i>
+              </a>
+            </li>
+          `);
 
         // Last
         $ul.append(`
-    <li class="page-item last ${page === totalPages ? 'disabled' : ''}">
-      <a class="page-link" href="javascript:void(0);" data-page="${totalPages}">
-        <i class="ti ti-chevrons-right icon-sm scaleX-n1-rtl"></i>
-      </a>
-    </li>
-  `);
+            <li class="page-item last ${page === totalPages ? 'disabled' : ''}">
+              <a class="page-link" href="javascript:void(0);" data-page="${totalPages}">
+                <i class="ti tabler-chevrons-right icon-sm scaleX-n1-rtl"></i>
+              </a>
+            </li>
+          `);
 
         // Bắt sự kiện click
         $ul.find('.page-link[data-page]').off('click').on('click', function () {
