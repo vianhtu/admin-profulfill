@@ -69,60 +69,96 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function renderPagination(total, page, limit) {
-        let totalPages = Math.ceil(total / limit) || 1;
-        let $ul = $('.pagination');
+        const totalPages = Math.ceil(total / limit) || 1;
+        const maxVisible = 5;    // số trang hiển thị tối đa cùng lúc
+        let startPage = 1;
+        let endPage = totalPages;
+
+        if (totalPages > maxVisible) {
+            const half = Math.floor(maxVisible / 2);
+            if (page <= half) {
+                startPage = 1;
+                endPage = maxVisible;
+            } else if (page + half >= totalPages) {
+                startPage = totalPages - maxVisible + 1;
+                endPage = totalPages;
+            } else {
+                startPage = page - half;
+                endPage = page + half;
+            }
+        }
+
+        const $ul = $('.pagination');
         $ul.empty();
 
         // First
         $ul.append(`
-      <li class="page-item first ${page === 1 ? 'disabled' : ''}">
-        <a class="page-link" href="javascript:void(0);" data-page="1">
-          <i class="icon-base ti tabler-chevrons-left icon-sm scaleX-n1-rtl"></i>
-        </a>
-      </li>
-    `);
+    <li class="page-item first ${page === 1 ? 'disabled' : ''}">
+      <a class="page-link" href="javascript:void(0);" data-page="1">
+        <i class="ti ti-chevrons-left icon-sm scaleX-n1-rtl"></i>
+      </a>
+    </li>
+  `);
 
         // Prev
-        let prevPage = page > 1 ? page - 1 : 1;
+        const prevPage = page > 1 ? page - 1 : 1;
         $ul.append(`
-      <li class="page-item prev ${page === 1 ? 'disabled' : ''}">
-        <a class="page-link" href="javascript:void(0);" data-page="${prevPage}">
-          <i class="icon-base ti tabler-chevron-left icon-sm scaleX-n1-rtl"></i>
-        </a>
+    <li class="page-item prev ${page === 1 ? 'disabled' : ''}">
+      <a class="page-link" href="javascript:void(0);" data-page="${prevPage}">
+        <i class="ti ti-chevron-left icon-sm scaleX-n1-rtl"></i>
+      </a>
+    </li>
+  `);
+
+        // … nếu có khoảng trống trước cửa sổ
+        if (startPage > 1) {
+            $ul.append(`
+      <li class="page-item disabled">
+        <span class="page-link">…</span>
       </li>
     `);
+        }
 
-        // Numbered pages
-        for (let i = 1; i <= totalPages; i++) {
+        // Các trang trong cửa sổ
+        for (let i = startPage; i <= endPage; i++) {
             $ul.append(`
-        <li class="page-item ${i === page ? 'active' : ''}">
-          <a class="page-link" href="javascript:void(0);" data-page="${i}">${i}</a>
-        </li>
-      `);
+      <li class="page-item ${i === page ? 'active' : ''}">
+        <a class="page-link" href="javascript:void(0);" data-page="${i}">${i}</a>
+      </li>
+    `);
+        }
+
+        // … nếu có khoảng trống sau cửa sổ
+        if (endPage < totalPages) {
+            $ul.append(`
+      <li class="page-item disabled">
+        <span class="page-link">…</span>
+      </li>
+    `);
         }
 
         // Next
-        let nextPage = page < totalPages ? page + 1 : totalPages;
+        const nextPage = page < totalPages ? page + 1 : totalPages;
         $ul.append(`
-      <li class="page-item next ${page === totalPages ? 'disabled' : ''}">
-        <a class="page-link" href="javascript:void(0);" data-page="${nextPage}">
-          <i class="icon-base ti tabler-chevron-right icon-xs scaleX-n1-rtl"></i>
-        </a>
-      </li>
-    `);
+    <li class="page-item next ${page === totalPages ? 'disabled' : ''}">
+      <a class="page-link" href="javascript:void(0);" data-page="${nextPage}">
+        <i class="ti ti-chevron-right icon-xs scaleX-n1-rtl"></i>
+      </a>
+    </li>
+  `);
 
         // Last
         $ul.append(`
-      <li class="page-item last ${page === totalPages ? 'disabled' : ''}">
-        <a class="page-link" href="javascript:void(0);" data-page="${totalPages}">
-          <i class="icon-base ti tabler-chevrons-right icon-sm scaleX-n1-rtl"></i>
-        </a>
-      </li>
-    `);
+    <li class="page-item last ${page === totalPages ? 'disabled' : ''}">
+      <a class="page-link" href="javascript:void(0);" data-page="${totalPages}">
+        <i class="ti ti-chevrons-right icon-sm scaleX-n1-rtl"></i>
+      </a>
+    </li>
+  `);
 
-        // Attach click handlers
-        $ul.find('.page-link').off('click').on('click', function () {
-            let p = parseInt($(this).data('page'), 10);
+        // Bắt sự kiện click
+        $ul.find('.page-link[data-page]').off('click').on('click', function () {
+            const p = parseInt($(this).data('page'), 10);
             if (!isNaN(p) && p !== currentPage) {
                 currentPage = p;
                 loadData(p);
