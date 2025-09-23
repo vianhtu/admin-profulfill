@@ -765,7 +765,7 @@ function getProductCopyrightWarning(): array
             "id" => $row['ID'],
             "sku" => $row['sku'],
             "title" => $row['title'],
-            "name"  => $imgs->main ?? '',
+            "img"  => $imgs->main ?? '',
             "copyrighted_content" => $row['copyrighted_content'],
             "copyright_warning" => $row['copyright_warning'],
         ];
