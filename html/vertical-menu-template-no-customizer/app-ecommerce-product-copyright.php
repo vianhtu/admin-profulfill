@@ -23,30 +23,7 @@
             </div>
         </div>
         <div class="card-body">
-            <div class="row gy-6 mb-6">
-                <div class="col-sm-6 col-lg-4">
-                    <div class="card p-2 h-100 shadow-none border">
-                        <div class="rounded-2 text-center mb-4">
-                            <a href=""><img class="img-fluid" src="" alt="tutor image 1"/></a>
-                        </div>
-                        <div class="card-body p-4 pt-2">
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <span class="badge bg-label-primary">Web</span>
-                            </div>
-                            <a href="" class="h5">Basics of Angular</a>
-                            <p class="mt-1">Introductory course for Angular and framework basics in web development.</p>
-                            <div class="d-flex flex-column flex-md-row gap-4 text-nowrap flex-wrap flex-md-nowrap flex-lg-wrap flex-xxl-nowrap">
-                                <a class="w-100 btn btn-label-secondary d-flex align-items-center" href="">
-                                    <i class="icon-base ti tabler-rotate-clockwise-2 icon-xs align-middle scaleX-n1-rtl me-2"></i><span>Start Over</span>
-                                </a>
-                                <a class="w-100 btn btn-label-primary d-flex align-items-center" href="">
-                                    <span class="me-2">Continue</span><i class="icon-base ti tabler-chevron-right icon-xs lh-1 scaleX-n1-rtl"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div class="row gy-6 mb-6" id="cardBody"></div>
             <nav aria-label="Page navigation" class="d-flex align-items-center justify-content-center">
                 <ul class="pagination mb-0 pagination-rounded">
                     <li class="page-item first disabled">
