@@ -1312,7 +1312,7 @@ function getAuthorsTable():array
             "status"      => $row['status'],
             "username"    => $row['username'],
             "level"       => $row['roles_name'],
-            "wage"        => $row['wage'],
+            "wage"        => formatCurrencyVND($row['wage']),
             "insurance"   => $row['insurance'],
             "date"        => $row['date'],
         ];
@@ -2389,6 +2389,14 @@ function timeAgo(string $datetime): string {
             return $value . ' ' . $label . ($value > 1 ? 's' : '') . ' ago';
         }
     }
+}
+
+function formatCurrencyVND($input) {
+    // Ép kiểu về số nguyên
+    $number = intval($input);
+
+    // Định dạng số với dấu phẩy và thêm hậu tố VND
+    return number_format($number, 0, ',', ',') . ' VND';
 }
 
 function getDebug()
