@@ -6,12 +6,6 @@
 
 // Datatable (js)
 document.addEventListener('DOMContentLoaded', function (e) {
-  let borderColor, bodyBg, headingColor;
-
-  borderColor = config.colors.borderColor;
-  bodyBg = config.colors.bodyBg;
-  headingColor = config.colors.headingColor;
-
   // Variable declaration for table
   const dt_user_table = document.querySelector('.datatables-users'),
     userView = 'app-user-view-account.html',
@@ -33,15 +27,24 @@ document.addEventListener('DOMContentLoaded', function (e) {
   // Users datatable
   if (dt_user_table) {
     const dt_user = new DataTable(dt_user_table, {
-      ajax: assetsPath + 'json/user-list.json', // JSON file to add data
+      serverSide: true,
+      processing: true,
+      ajax: {
+          url: '../../ajax.php?action=get-authors-table',
+          type: 'POST',
+          data: function (d) {},
+          dataSrc: function (json) {
+              return json.data;
+          }
+      },
       columns: [
         // columns according to JSON
         { data: 'id' },
         { data: 'id', orderable: false, render: DataTable.render.select() },
-        { data: 'full_name' },
-        { data: 'role' },
-        { data: 'current_plan' },
-        { data: 'billing' },
+        { data: 'username' },
+        { data: 'level' },
+        { data: 'team_id' },
+        { data: 'wage' },
         { data: 'status' },
         { data: 'action' }
       ],
@@ -75,9 +78,9 @@ document.addEventListener('DOMContentLoaded', function (e) {
           targets: 2,
           responsivePriority: 3,
           render: function (data, type, full, meta) {
-            var name = full['full_name'];
+            var name = full['username'];
             var email = full['email'];
-            var image = full['avatar'];
+            var image = '';
             var output;
 
             if (image) {
@@ -118,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
         {
           targets: 3,
           render: function (data, type, full, meta) {
-            var role = full['role'];
+            var role = full['level'];
             var roleBadgeObj = {
               Subscriber: '<i class="icon-base ti tabler-crown icon-md text-primary me-2"></i>',
               Author: '<i class="icon-base ti tabler-edit icon-md text-warning me-2"></i>',
@@ -128,19 +131,28 @@ document.addEventListener('DOMContentLoaded', function (e) {
             };
             return (
               "<span class='text-truncate d-flex align-items-center text-heading'>" +
-              (roleBadgeObj[role] || '') + // Ensures badge exists for the role
+              //(roleBadgeObj[role] || '') + // Ensures badge exists for the role
               role +
               '</span>'
             );
           }
         },
         {
-          // Plans
+          // team
           targets: 4,
           render: function (data, type, full, meta) {
-            const plan = full['current_plan'];
+            const team = full['team_id'];
 
-            return '<span class="text-heading">' + plan + '</span>';
+            return '<span class="text-heading">' + team + '</span>';
+          }
+        },
+        {
+          // wage
+          targets: 5,
+          render: function (data, type, full, meta) {
+              const wage = full['wage'];
+
+              return '<span class="text-heading">' + wage + '</span>';
           }
         },
         {
@@ -214,212 +226,11 @@ document.addEventListener('DOMContentLoaded', function (e) {
                 {
                   extend: 'collection',
                   className: 'btn btn-label-secondary dropdown-toggle',
-                  text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-upload icon-xs"></i> <span class="d-none d-sm-inline-block">Export</span></span>',
-                  buttons: [
-                    {
-                      extend: 'print',
-                      text: `<span class="d-flex align-items-center"><i class="icon-base ti tabler-printer me-1"></i>Print</span>`,
-                      className: 'dropdown-item',
-                      exportOptions: {
-                        columns: [3, 4, 5, 6, 7],
-                        format: {
-                          body: function (inner, coldex, rowdex) {
-                            if (inner.length <= 0) return inner;
-
-                            // Check if inner is HTML content
-                            if (inner.indexOf('<') > -1) {
-                              const parser = new DOMParser();
-                              const doc = parser.parseFromString(inner, 'text/html');
-
-                              // Get all text content
-                              let text = '';
-
-                              // Handle specific elements
-                              const userNameElements = doc.querySelectorAll('.user-name');
-                              if (userNameElements.length > 0) {
-                                userNameElements.forEach(el => {
-                                  // Get text from nested structure
-                                  const nameText =
-                                    el.querySelector('.fw-medium')?.textContent ||
-                                    el.querySelector('.d-block')?.textContent ||
-                                    el.textContent;
-                                  text += nameText.trim() + ' ';
-                                });
-                              } else {
-                                // Get regular text content
-                                text = doc.body.textContent || doc.body.innerText;
-                              }
-
-                              return text.trim();
-                            }
-
-                            return inner;
-                          }
-                        }
-                      },
-                      customize: function (win) {
-                        win.document.body.style.color = config.colors.headingColor;
-                        win.document.body.style.borderColor = config.colors.borderColor;
-                        win.document.body.style.backgroundColor = config.colors.bodyBg;
-                        const table = win.document.body.querySelector('table');
-                        table.classList.add('compact');
-                        table.style.color = 'inherit';
-                        table.style.borderColor = 'inherit';
-                        table.style.backgroundColor = 'inherit';
-                      }
-                    },
-                    {
-                      extend: 'csv',
-                      text: `<span class="d-flex align-items-center"><i class="icon-base ti tabler-file-text me-1"></i>Csv</span>`,
-                      className: 'dropdown-item',
-                      exportOptions: {
-                        columns: [3, 4, 5, 6, 7],
-                        format: {
-                          body: function (inner, coldex, rowdex) {
-                            if (inner.length <= 0) return inner;
-
-                            // Parse HTML content
-                            const parser = new DOMParser();
-                            const doc = parser.parseFromString(inner, 'text/html');
-
-                            let text = '';
-
-                            // Handle user-name elements specifically
-                            const userNameElements = doc.querySelectorAll('.user-name');
-                            if (userNameElements.length > 0) {
-                              userNameElements.forEach(el => {
-                                // Get text from nested structure - try different selectors
-                                const nameText =
-                                  el.querySelector('.fw-medium')?.textContent ||
-                                  el.querySelector('.d-block')?.textContent ||
-                                  el.textContent;
-                                text += nameText.trim() + ' ';
-                              });
-                            } else {
-                              // Handle other elements (status, role, etc)
-                              text = doc.body.textContent || doc.body.innerText;
-                            }
-
-                            return text.trim();
-                          }
-                        }
-                      }
-                    },
-                    {
-                      extend: 'excel',
-                      text: `<span class="d-flex align-items-center"><i class="icon-base ti tabler-file-spreadsheet me-1"></i>Excel</span>`,
-                      className: 'dropdown-item',
-                      exportOptions: {
-                        columns: [3, 4, 5, 6, 7],
-                        format: {
-                          body: function (inner, coldex, rowdex) {
-                            if (inner.length <= 0) return inner;
-
-                            // Parse HTML content
-                            const parser = new DOMParser();
-                            const doc = parser.parseFromString(inner, 'text/html');
-
-                            let text = '';
-
-                            // Handle user-name elements specifically
-                            const userNameElements = doc.querySelectorAll('.user-name');
-                            if (userNameElements.length > 0) {
-                              userNameElements.forEach(el => {
-                                // Get text from nested structure - try different selectors
-                                const nameText =
-                                  el.querySelector('.fw-medium')?.textContent ||
-                                  el.querySelector('.d-block')?.textContent ||
-                                  el.textContent;
-                                text += nameText.trim() + ' ';
-                              });
-                            } else {
-                              // Handle other elements (status, role, etc)
-                              text = doc.body.textContent || doc.body.innerText;
-                            }
-
-                            return text.trim();
-                          }
-                        }
-                      }
-                    },
-                    {
-                      extend: 'pdf',
-                      text: `<span class="d-flex align-items-center"><i class="icon-base ti tabler-file-description me-1"></i>Pdf</span>`,
-                      className: 'dropdown-item',
-                      exportOptions: {
-                        columns: [3, 4, 5, 6, 7],
-                        format: {
-                          body: function (inner, coldex, rowdex) {
-                            if (inner.length <= 0) return inner;
-
-                            // Parse HTML content
-                            const parser = new DOMParser();
-                            const doc = parser.parseFromString(inner, 'text/html');
-
-                            let text = '';
-
-                            // Handle user-name elements specifically
-                            const userNameElements = doc.querySelectorAll('.user-name');
-                            if (userNameElements.length > 0) {
-                              userNameElements.forEach(el => {
-                                // Get text from nested structure - try different selectors
-                                const nameText =
-                                  el.querySelector('.fw-medium')?.textContent ||
-                                  el.querySelector('.d-block')?.textContent ||
-                                  el.textContent;
-                                text += nameText.trim() + ' ';
-                              });
-                            } else {
-                              // Handle other elements (status, role, etc)
-                              text = doc.body.textContent || doc.body.innerText;
-                            }
-
-                            return text.trim();
-                          }
-                        }
-                      }
-                    },
-                    {
-                      extend: 'copy',
-                      text: `<i class="icon-base ti tabler-copy me-1"></i>Copy`,
-                      className: 'dropdown-item',
-                      exportOptions: {
-                        columns: [3, 4, 5, 6, 7],
-                        format: {
-                          body: function (inner, coldex, rowdex) {
-                            if (inner.length <= 0) return inner;
-
-                            // Parse HTML content
-                            const parser = new DOMParser();
-                            const doc = parser.parseFromString(inner, 'text/html');
-
-                            let text = '';
-
-                            // Handle user-name elements specifically
-                            const userNameElements = doc.querySelectorAll('.user-name');
-                            if (userNameElements.length > 0) {
-                              userNameElements.forEach(el => {
-                                // Get text from nested structure - try different selectors
-                                const nameText =
-                                  el.querySelector('.fw-medium')?.textContent ||
-                                  el.querySelector('.d-block')?.textContent ||
-                                  el.textContent;
-                                text += nameText.trim() + ' ';
-                              });
-                            } else {
-                              // Handle other elements (status, role, etc)
-                              text = doc.body.textContent || doc.body.innerText;
-                            }
-
-                            return text.trim();
-                          }
-                        }
-                      }
-                    }
-                  ]
+                  text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-upload icon-xs"></i> <span class="d-none d-sm-inline-block">Actions</span></span>',
+                  buttons: []
                 },
                 {
-                  text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-plus icon-xs"></i> <span class="d-none d-sm-inline-block">Add New Record</span></span>',
+                  text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-plus icon-xs"></i> <span class="d-none d-sm-inline-block">Add New User</span></span>',
                   className: 'add-new btn btn-primary',
                   attr: {
                     'data-bs-toggle': 'offcanvas',

@@ -1236,7 +1236,7 @@ function getFilesTableFilter(): array
 
 function getAuthorsTable():array
 {
-    $allowedCols = ['ID', 'username', 'email', 'level', 'status', 'date'];
+    $allowedCols = ['ID', 'username', 'status', 'date'];
 
     // Lấy tham số từ DataTables
     $params = getDataTableParams($allowedCols);

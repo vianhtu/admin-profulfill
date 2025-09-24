@@ -16,8 +16,8 @@
                 <th></th>
                 <th>User</th>
                 <th>Role</th>
-                <th>Plan</th>
-                <th>Billing</th>
+                <th>Team</th>
+                <th>Salary</th>
                 <th>Status</th>
                 <th>Actions</th>
             </tr>
