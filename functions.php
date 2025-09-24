@@ -1290,7 +1290,7 @@ function getAuthorsTable():array
         "SELECT COUNT(ID) AS cnt FROM authors $where"
     )->fetch_assoc()['cnt'];
 
-    $join  = 'LEFT JOIN roles_permissions a ON roles_permissions.ID = authors.level
+    $join  = 'LEFT JOIN roles_permissions ON roles_permissions.ID = authors.level
               LEFT JOIN team ON team.ID = authors.team_id';
 
     // Lấy dữ liệu
