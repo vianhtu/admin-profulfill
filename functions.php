@@ -1265,7 +1265,7 @@ function getAuthorsTable():array
     addTableFilter($whereClauses, 'authors.level', 3, 'int', $conn);
 
     // Lọc theo team name (int)
-    addTableFilter($whereClauses, 'teams.name', 4, 'int', $conn);
+    addTableFilter($whereClauses, 'authors.team_id', 4, 'int', $conn);
 
     $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
 
