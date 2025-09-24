@@ -23,7 +23,6 @@ if(!empty($export_data)){
     $type_id = $export_data['type_id'];
     $account_id = $export_data['accounts_id'];
     $authors_id = $export_data['authors_id'];
-    $name = $export_data['name'];
     $file_name = $export_data['file_name'];
     $text_add = 'Edit';
     $text_button = 'Update';
@@ -59,25 +58,6 @@ if(!empty($export_data)){
     <div class="row">
         <!-- First column-->
         <div class="col-12 col-lg-8">
-            <!-- Product Information -->
-            <div class="card mb-6">
-                <div class="card-header">
-                    <h5 class="card-tile mb-0">Information</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-6">
-                        <label class="form-label" for="export-name">Name</label>
-                        <input
-                                type="text"
-                                class="form-control"
-                                id="export-name"
-                                placeholder="File title"
-                                name="productTitle"
-                                value="<?= $name ?>"
-                                aria-label="File title" required/>
-                    </div>
-                </div>
-            </div>
             <!-- /Product Information -->
             <!-- Media -->
             <div class="card mb-6">

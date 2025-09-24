@@ -213,7 +213,6 @@ document.addEventListener('DOMContentLoaded', function (e) {
             formData.append('site', $('#export_site').val());
             formData.append('type', $('#export_type').val());
             formData.append('account', $('#accountsExport').val());
-            formData.append('name', $('#export-name').val());
             formData.append('id', id);
             formData.append('options', JSON.stringify(getRepeaterData()));
             formData.append('csrf_token', window.csrfToken);
