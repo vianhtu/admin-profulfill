@@ -1234,6 +1234,98 @@ function getFilesTableFilter(): array
     return $items;
 }
 
+function getAuthorsTable():array
+{
+    $allowedCols = ['ID', 'username', 'email', 'level', 'status', 'date'];
+
+    // Lấy tham số từ DataTables
+    $params = getDataTableParams($allowedCols);
+    if(!checkRoles('view', 'users')){
+        return [
+            "draw"            => $params['draw'],
+            "recordsTotal"    => 0,
+            "recordsFiltered" => 0,
+            "data"            => []
+        ];
+    }
+
+    $conn = db();
+
+    // Tổng số bản ghi
+    $totalRecords = $conn->query("SELECT COUNT(*) AS cnt FROM authors")->fetch_assoc()['cnt'];
+
+    $whereClauses = [];
+
+    // Lọc theo search
+    if ($params['searchValue'] !== '') {
+        $searchEsc = $conn->real_escape_string($params['searchValue']);
+        $whereClauses[] = "(email LIKE '%$searchEsc%' OR username LIKE '%$searchEsc%')";
+    }
+
+    // Lọc theo status
+    $filterType = trim($_POST['columns'][3]['search']['value'] ?? '', '^$');
+    if ($filterType !== '') {
+        $esc = $conn->real_escape_string($filterType);
+        $whereClauses[] = "type_id = '$esc'";
+    }
+
+    // Lọc theo role
+    $filterSite = trim($_POST['columns'][4]['search']['value'] ?? '', '^$');
+    if ($filterSite !== '') {
+        $esc = $conn->real_escape_string($filterSite);
+        $whereClauses[] = "site_id = '$esc'";
+    }
+
+    // Lọc theo team
+    $filterAuthor = trim($_POST['columns'][6]['search']['value'] ?? '', '^$');
+    if ($filterAuthor !== '') {
+        $esc = $conn->real_escape_string($filterAuthor);
+        $whereClauses[] = "authors_id = '$esc'";
+    }
+
+    $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
+
+    // Tổng số bản ghi sau khi lọc
+    $totalFiltered = $conn->query(
+        "SELECT COUNT(ID) AS cnt FROM authors $where"
+    )->fetch_assoc()['cnt'];
+
+    $join  = 'LEFT JOIN roles_permissions a ON roles_permissions.ID = authors.level
+              LEFT JOIN team ON team.ID = authors.team_id';
+
+    // Lấy dữ liệu
+    $sql = "SELECT authors.ID, team.name AS team_name, authors.email, authors.status, authors.username, roles_permissions.name AS roles_name, authors.wage, authors.insurance, authors.date
+            FROM authors
+            $join
+            $where
+            ORDER BY authors.{$params['orderColumn']} {$params['orderDir']}
+            LIMIT {$params['start']}, {$params['length']}";
+    $rs = $conn->query($sql);
+
+    // Chuẩn bị dữ liệu trả về
+    $data = [];
+    while ($row = $rs->fetch_assoc()) {
+        $data[] = [
+            "id"          => $row['ID'],
+            "team_id"     => $row['team_name'],
+            "email"       => $row['email'],
+            "status"      => $row['status'],
+            "username"    => $row['username'],
+            "level"       => $row['roles_name'],
+            "wage"        => $row['wage'],
+            "insurance"   => $row['insurance'],
+            "date"        => $row['date'],
+        ];
+    }
+
+    return [
+        "draw"            => $params['draw'],
+        "recordsTotal"    => $totalRecords,
+        "recordsFiltered" => $totalFiltered,
+        "data"            => $data
+    ];
+}
+
 function getRolesPermissionsTable(): array {
     $allowedCols = ['ID', 'name'];
 
