@@ -1258,26 +1258,14 @@ function getAuthorsTable():array
         $whereClauses[] = "(email LIKE '%$searchEsc%' OR username LIKE '%$searchEsc%')";
     }
 
-    // Lọc theo status
-    $filterStatus = trim($_POST['columns'][6]['search']['value'] ?? '', '^$');
-    if ($filterStatus !== '') {
-        $esc = (int)$filterStatus;
-        $whereClauses[] = "authors.status = $esc";
-    }
+    // Lọc theo status (int)
+    addTableFilter($whereClauses, 'authors.status', 6, 'int', $conn);
 
-    // Lọc theo role
-    $filterRole = trim($_POST['columns'][3]['search']['value'] ?? '', '^$');
-    if ($filterRole !== '') {
-        $esc = (int)$filterRole;
-        $whereClauses[] = "authors.level = $esc";
-    }
+    // Lọc theo role (int)
+    addTableFilter($whereClauses, 'authors.level', 3, 'int', $conn);
 
-    // Lọc theo team
-    $filterTeam = trim($_POST['columns'][4]['search']['value'] ?? '', '^$');
-    if ($filterTeam !== '') {
-        $esc = (int)$filterTeam;
-        $whereClauses[] = "authors.team_id = $esc";
-    }
+    // Lọc theo team name (int)
+    addTableFilter($whereClauses, 'teams.name', 4, 'int', $conn);
 
     $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
 
@@ -1496,6 +1484,34 @@ function getXlsxFileHeader(string $filePath, string $sheetName = 'Template', int
 	} catch (\Throwable $e) {
 		return ['status' => 'error', 'message' => 'Lỗi không xác định: ' . $e->getMessage()];
 	}
+}
+
+/**
+ * Thêm điều kiện lọc vào $whereClauses
+ *
+ * @param array  $whereClauses  Mảng chứa các điều kiện WHERE
+ * @param string $field         Tên cột trong DB (vd: authors.status)
+ * @param int    $colIndex      Index cột trong DataTables
+ * @param string $type          Kiểu dữ liệu: int|string|like
+ * @param mysqli $conn          Kết nối DB để escape string
+ */
+function addTableFilter(array &$whereClauses, string $field, int $colIndex, string $type, mysqli $conn): void {
+    $val = trim($_POST['columns'][$colIndex]['search']['value'] ?? '', '^$');
+    if ($val === '') return;
+
+    switch ($type) {
+        case 'int':
+            $whereClauses[] = "$field = " . (int)$val;
+            break;
+        case 'string':
+            $esc = $conn->real_escape_string($val);
+            $whereClauses[] = "$field = '$esc'";
+            break;
+        case 'like':
+            $esc = $conn->real_escape_string($val);
+            $whereClauses[] = "$field LIKE '%$esc%'";
+            break;
+    }
 }
 
 function addOrders(): array
