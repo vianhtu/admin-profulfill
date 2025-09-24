@@ -1258,24 +1258,24 @@ function getAuthorsTable():array
     }
 
     // Lọc theo status
-    $filterType = trim($_POST['columns'][3]['search']['value'] ?? '', '^$');
-    if ($filterType !== '') {
-        $esc = $conn->real_escape_string($filterType);
-        $whereClauses[] = "type_id = '$esc'";
+    $filterStatus = trim($_POST['columns'][6]['search']['value'] ?? '', '^$');
+    if ($filterStatus !== '') {
+        $esc = (int)$filterStatus;
+        $whereClauses[] = "authors.status = $esc";
     }
 
     // Lọc theo role
-    $filterSite = trim($_POST['columns'][4]['search']['value'] ?? '', '^$');
-    if ($filterSite !== '') {
-        $esc = $conn->real_escape_string($filterSite);
-        $whereClauses[] = "site_id = '$esc'";
+    $filterRole = trim($_POST['columns'][3]['search']['value'] ?? '', '^$');
+    if ($filterRole !== '') {
+        $esc = (int)$filterRole;
+        $whereClauses[] = "authors.level = $esc";
     }
 
     // Lọc theo team
-    $filterAuthor = trim($_POST['columns'][6]['search']['value'] ?? '', '^$');
-    if ($filterAuthor !== '') {
-        $esc = $conn->real_escape_string($filterAuthor);
-        $whereClauses[] = "authors_id = '$esc'";
+    $filterTeam = trim($_POST['columns'][4]['search']['value'] ?? '', '^$');
+    if ($filterTeam !== '') {
+        $esc = (int)$filterTeam;
+        $whereClauses[] = "authors.team_id = $esc";
     }
 
     $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
