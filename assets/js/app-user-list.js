@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
           render: function (data, type, full, meta) {
             const team = full['team_id'];
 
-            return '<span class="text-heading">' + team + '</span>';
+            return '<span class="text-heading"><i class="icon-base ti tabler-users-group icon-md me-2"></i>' + team + '</span>';
           }
         },
         {
