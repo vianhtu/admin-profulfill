@@ -329,20 +329,29 @@ function initTable(){
                 function filterTable(id, html_class, col, label, options = {}) {
                     api.columns(col).every(function () {
                         const column = this;
-                        const select = document.createElement('select');
-                        select.id = id;
-                        select.className = 'form-select text-capitalize';
-                        select.innerHTML = '<option value="">All</option>';
-                        $(html_class).html('<label class="form-label">' + label + '</label>');
-                        document.querySelector(html_class).appendChild(select);
-                        Object.entries(options).forEach(([key, val]) => {
-                            const option = document.createElement('option');
-                            option.value = key;
-                            option.textContent = val.title;
-                            select.appendChild(option);
+                        const $container = $(html_class).empty(); // xoá nội dung cũ
+
+                        // Label
+                        $container.append(`<label class="form-label" for="${id}">${label}</label>`);
+
+                        // Select
+                        const $select = $(`<select id="${id}" class="form-select text-capitalize">
+                              <option value="">All</option>
+                           </select>`).appendTo($container);
+
+                        // Options
+                        $.each(options, (key, val) => {
+                            $select.append(new Option(val.title, key));
                         });
-                        select.addEventListener('change', function () {
-                            const val = select.value ? `^${select.value}$` : '';
+
+                        // Select2
+                        $select.select2({
+                            dropdownParent: $container
+                        });
+
+                        // Event filter
+                        $select.on('change', function () {
+                            const val = this.value ? `^${this.value}$` : '';
                             column.search(val, true, false).draw();
                         });
                     });
