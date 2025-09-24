@@ -448,14 +448,6 @@ function getAuthorsProductInfo(): ?array {
 	return $data;
 }
 
-function getProductTableFilters(): array {
-	$options = [];
-	$options['types'] = getAllTypes();
-	$options['authors'] = getAllAuthors();
-	$options['sites'] = getAllSites();
-	return $options;
-}
-
 function getMissingOrders(): array
 {
     // Kết nối DB
@@ -723,6 +715,14 @@ function getProductsTable(): array {
         "recordsFiltered" => $totalFiltered,
         "data"            => $data
     ];
+}
+
+function getProductsTableFilters(): array {
+    $options = [];
+    $options['types'] = getAllTypes();
+    $options['authors'] = getAllAuthors();
+    $options['sites'] = getAllSites();
+    return $options;
 }
 
 function getProductCopyrightWarning(): array
