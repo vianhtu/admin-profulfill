@@ -1197,8 +1197,9 @@ function getFilesTable(): array {
     ];
 }
 
-function getFilesTableFilter() {
-    if(!checkRoles('add', 'exports_download')){
+function getFilesTableFilter(): array
+{
+    if(!checkRoles('view', 'exports_xlsx')){
         return [];
     }
     $conn = db();
