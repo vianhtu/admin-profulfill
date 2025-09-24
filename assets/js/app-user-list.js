@@ -123,11 +123,11 @@ document.addEventListener('DOMContentLoaded', function (e) {
           render: function (data, type, full, meta) {
             var role = full['level'];
             var roleBadgeObj = {
-              Subscriber: '<i class="icon-base ti tabler-crown icon-md text-primary me-2"></i>',
-              Author: '<i class="icon-base ti tabler-edit icon-md text-warning me-2"></i>',
-              Maintainer: '<i class="icon-base ti tabler-user icon-md text-success me-2"></i>',
-              Editor: '<i class="icon-base ti tabler-chart-pie icon-md text-info me-2"></i>',
-              Admin: '<i class="icon-base ti tabler-device-desktop icon-md text-danger me-2"></i>'
+                'Keywords': '<i class="icon-base ti tabler-letter-case-lower icon-md text-primary me-2"></i>',
+                'Phones': '<i class="icon-base ti tabler-device-mobile-message icon-md text-warning me-2"></i>',
+                'Data Scraper': '<i class="icon-base ti tabler-database-import icon-md text-success me-2"></i>',
+                'Manager': '<i class="icon-base ti tabler-automation icon-md text-info me-2"></i>',
+                'Admin': '<i class="icon-base ti tabler-device-desktop icon-md text-danger me-2"></i>'
             };
             return (
               "<span class='text-truncate d-flex align-items-center text-heading'>" +
