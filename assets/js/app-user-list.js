@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
                 'Manager': '<i class="icon-base ti tabler-automation icon-md text-info me-2"></i>',
                 'Admin': '<i class="icon-base ti tabler-device-desktop icon-md text-danger me-2"></i>'
             };
-            if( role === 'null'){
+            if( role === null){
                 role = 'Admin';
             }
             return (
