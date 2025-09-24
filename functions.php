@@ -411,7 +411,7 @@ function getAllSites(): array {
 }
 
 function getAllRoles(): array {
-    $roles[0] = 'Admin';
+    $roles[0] = ['title' => 'Admin'];
     return array_merge($roles, getAllData('roles_permissions', 'name'));
 }
 
