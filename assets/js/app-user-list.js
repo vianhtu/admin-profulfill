@@ -321,41 +321,9 @@ function initTable(){
             },
             initComplete: function () {
                 const api = this.api();
-
-                filterTable('UserRole', '.user_role', 3, 'Role', rolesObj);
-                filterTable('UserTeam', '.user_team', 4, 'Team', teamsObj);
-                filterTable('UserStatus', '.user_status', 6, 'Status', statusObj);
-
-                function filterTable(id, html_class, col, label, options = {}) {
-                    api.columns(col).every(function () {
-                        const column = this;
-                        const $container = $(html_class).empty(); // xoá nội dung cũ
-
-                        // Label
-                        $container.append(`<label class="form-label" for="${id}">${label}</label>`);
-
-                        // Select
-                        const $select = $(`<select id="${id}" class="form-select text-capitalize">
-                              <option value="">All</option>
-                           </select>`).appendTo($container);
-
-                        // Options
-                        $.each(options, (key, val) => {
-                            $select.append(new Option(val.title, key));
-                        });
-
-                        // Select2
-                        $select.select2({
-                            dropdownParent: $container
-                        });
-
-                        // Event filter
-                        $select.on('change', function () {
-                            const val = this.value ? `^${this.value}$` : '';
-                            column.search(val, true, false).draw();
-                        });
-                    });
-                }
+                getSelect2filterTable(api,'UserRole', '.user_role', 3, 'Role', rolesObj);
+                getSelect2filterTable(api,'UserTeam', '.user_team', 4, 'Team', teamsObj);
+                getSelect2filterTable(api,'UserStatus', '.user_status', 6, 'Status', statusObj);
             }
         });
 

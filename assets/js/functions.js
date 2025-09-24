@@ -42,6 +42,44 @@ function ajaxSelect2(select_id, action, multiple = false){
     });
 }
 
+function getSelect2filterTable(api, id, html_class, col, label, options = {}, selected = '') {
+    api.columns(col).every(function () {
+        const column = this;
+        const $container = $(html_class).empty();
+
+        // Label
+        $container.append(`<label class="form-label" for="${id}">${label}</label>`);
+
+        // Select
+        const $select = $(`<select id="${id}" class="form-select text-capitalize">
+                              <option value="">All</option>
+                           </select>`).appendTo($container);
+
+        // Options
+        $.each(options, (key, val) => {
+            const $opt = new Option(val.title, key, false, key === selected);
+            $select.append($opt);
+        });
+
+        // Select2
+        $select.select2({
+            dropdownParent: $container
+        });
+
+        // Nếu có selected thì filter ngay
+        if (selected) {
+            const val = `^${selected}$`;
+            column.search(val, true, false).draw();
+        }
+
+        // Event filter khi user chọn
+        $select.on('change', function () {
+            const val = this.value ? `^${this.value}$` : '';
+            column.search(val, true, false).draw();
+        });
+    });
+}
+
 async function fetchTableFilter(action = 'get-products-table-filter'){
     const res = await fetch('../../ajax.php?action='+ action, {
         method: 'POST',
