@@ -1730,7 +1730,7 @@ function duplicateXlsx(): array {
 	}
 
 	// 2. Lấy dữ liệu gốc
-	$stmt = $conn->prepare("SELECT type_id, site_id, authors_id, accounts_id, name, file_default FROM exports WHERE id = ?");
+	$stmt = $conn->prepare("SELECT type_id, site_id, authors_id, accounts_id, file_default FROM exports WHERE id = ?");
 	$stmt->bind_param("i", $id);
 	$stmt->execute();
 	$result = $stmt->get_result();
@@ -1740,9 +1740,8 @@ function duplicateXlsx(): array {
 	$row = $result->fetch_assoc();
 
 	// 4. Insert bản ghi mới
-	$stmt2 = $conn->prepare("INSERT INTO exports (type_id, site_id, authors_id, accounts_id, name, file_default, date_create) VALUES (?, ?, ?, ?, ?, ?, NOW())");
-	$newFileName = $row['name'] . ' (Copy)';
-	$stmt2->bind_param("iiiiss", $row['type_id'], $row['site_id'], $row['authors_id'], $row['accounts_id'], $newFileName, $row['file_default']);
+	$stmt2 = $conn->prepare("INSERT INTO exports (type_id, site_id, authors_id, accounts_id, file_default, date_create) VALUES (?, ?, ?, ?, ?, NOW())");
+	$stmt2->bind_param("iiiis", $row['type_id'], $row['site_id'], $row['authors_id'], $row['accounts_id'], $row['file_default']);
 	$success = $stmt2->execute();
 
 	if ($success) {
