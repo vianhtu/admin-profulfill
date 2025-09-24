@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 			echo json_encode(getAccountsTableFilter());
 			break;
 		case 'filter-export-file':
-			echo json_encode(getExportTableFilter());
+			echo json_encode(getFilesTableFilter());
 			break;
         case 'add-keywords':
 			echo json_encode(addKeywords());

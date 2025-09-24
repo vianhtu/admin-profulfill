@@ -1197,6 +1197,42 @@ function getFilesTable(): array {
     ];
 }
 
+function getFilesTableFilter() {
+    if(!checkRoles('add', 'exports_download')){
+        return [];
+    }
+    $conn = db();
+    $id   = isset($_POST['id']) ? $_POST['id'] : '';
+    $type = isset($_POST['type']) ? $_POST['type'] : '';
+
+    // Xây dựng câu truy vấn động
+    $sql = "SELECT a.id, CONCAT(t.name, ' (', a.file_name, ')') AS name
+            FROM exports AS a
+            JOIN type t ON a.type_id = t.id
+            WHERE a.accounts_id = ?";
+
+    // Nếu có type, thêm điều kiện vào truy vấn
+    if ($type !== '') {
+        $sql .= " AND a.type_id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ii", $id, $type); // cả id và type đều là số nguyên
+    } else {
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $id);
+    }
+
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $items = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $items[$row['id']] = $row['name'];
+    }
+
+    $stmt->close();
+    return $items;
+}
+
 function getRolesPermissionsTable(): array {
     $allowedCols = ['ID', 'name'];
 
@@ -1299,43 +1335,6 @@ function getRolesPermissions(): array
             'message' => 'Không tìm thấy role'
         ];
     }
-}
-
-function getExportTableFilter() {
-    $conn = db();
-    $id   = isset($_POST['id']) ? $_POST['id'] : '';
-    $type = isset($_POST['type']) ? $_POST['type'] : '';
-
-    // Xây dựng câu truy vấn động
-    $sql = "SELECT a.id, CONCAT(t.name, ' (', a.file_name, ')') AS name
-            FROM exports AS a
-            JOIN type t ON a.type_id = t.id
-            WHERE a.accounts_id = ?";
-
-    // Nếu có type, thêm điều kiện vào truy vấn
-    if ($type !== '') {
-        $sql .= " AND a.type_id = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ii", $id, $type); // cả id và type đều là số nguyên
-    } else {
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $id);
-    }
-
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $items = [];
-
-    while ($row = $result->fetch_assoc()) {
-        $items[$row['id']] = $row['name'];
-    }
-
-    $stmt->close();
-    return $items;
-}
-
-function getTableFilter($table) {
-
 }
 
 function getXlsxByID($id): array {
