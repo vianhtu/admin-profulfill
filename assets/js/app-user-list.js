@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
         { data: 'team_id' },
         { data: 'wage' },
         { data: 'status' },
+        { data: 'date' },
         { data: 'action' }
       ],
       columnDefs: [
@@ -167,6 +168,14 @@ document.addEventListener('DOMContentLoaded', function (e) {
               statusObj[status].title +
               '</span>'
             );
+          }
+        },
+        {
+          // date
+          targets: 7,
+          render: function (data, type, full, meta) {
+              const date = full['date'];
+              return '<span class="text-heading">' + date + '</span>';
           }
         },
         {
