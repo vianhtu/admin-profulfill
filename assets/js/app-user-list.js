@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
             };
             return (
               "<span class='text-truncate d-flex align-items-center text-heading'>" +
-              //(roleBadgeObj[role] || '') + // Ensures badge exists for the role
+              (roleBadgeObj[role] || '') + // Ensures badge exists for the role
               role +
               '</span>'
             );
