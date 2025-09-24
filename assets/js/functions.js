@@ -42,8 +42,8 @@ function ajaxSelect2(select_id, action, multiple = false){
     });
 }
 
-async function fetchTableFilter(){
-    const res = await fetch('../../ajax.php?action=get-products-table-filter', {
+async function fetchTableFilter(action = 'get-products-table-filter'){
+    const res = await fetch('../../ajax.php?action='+ action, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
     });

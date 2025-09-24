@@ -410,6 +410,14 @@ function getAllSites(): array {
     return getAllData('site', 'name');
 }
 
+function getAllRoles(): array {
+    return getAllData('roles_permissions', 'name');
+}
+
+function getAllTeams(): array {
+    return getAllData('team', 'name');
+}
+
 function getAllData(string $table, string $field): array {
     $conn = db();
     $stmt = $conn->query("SELECT ID, {$field} FROM {$table}");
@@ -1311,6 +1319,16 @@ function getAuthorsTable():array
         "recordsFiltered" => $totalFiltered,
         "data"            => $data
     ];
+}
+
+function getAuthorsTableFilters(): array {
+    if(!checkRoles('view', 'users')){
+        return [];
+    }
+    $options = [];
+    $options['role'] = getAllRoles();
+    $options['team'] = getAllTeams();
+    return $options;
 }
 
 function getRolesPermissionsTable(): array {

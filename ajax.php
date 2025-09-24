@@ -72,6 +72,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         case 'get-authors-table':
             echo json_encode(getAuthorsTable());
             break;
+        case 'get-authors-table-filter':
+            echo json_encode(getAuthorsTableFilters());
+            break;
         case 'get-roles-permissions-table':
             echo json_encode(getRolesPermissionsTable());
             break;
