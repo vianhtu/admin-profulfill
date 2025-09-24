@@ -398,44 +398,31 @@ function getAISitePrompt($downloadId)
     }
 }
 
-function getTypes(): array {
-	$conn = db();
-	$stmt = $conn->query("SELECT ID, name FROM type");
-	$types = [];
-	while ($row = $stmt->fetch_assoc()) {
-		$types[$row['ID']] = [
-			'title' => $row['name']
-		];
-	}
-	$stmt->close();
-	return $types;
+function getAllTypes(): array {
+    return getAllData('type', 'name');
 }
 
-function getAuthors(): array {
-	$conn = db();
-	$stmt = $conn->query("SELECT ID, username FROM authors");
-	$types = [];
-	while ($row = $stmt->fetch_assoc()) {
-		$types[$row['ID']] = [
-			'title' => $row['username']
-		];
-	}
-	$stmt->close();
-	return $types;
+function getAllAuthors(): array {
+    return getAllData('authors', 'username');
 }
 
-function getSites(): array {
-	$conn = db();
-	$stmt = $conn->query("SELECT ID, name FROM site");
-	$types = [];
-	while ($row = $stmt->fetch_assoc()) {
-		$types[$row['ID']] = [
-			'title' => $row['name']
-		];
-	}
-	$stmt->close();
-	return $types;
+function getAllSites(): array {
+    return getAllData('site', 'name');
 }
+
+function getAllData(string $table, string $field): array {
+    $conn = db();
+    $stmt = $conn->query("SELECT ID, {$field} FROM {$table}");
+    $data = [];
+    while ($row = $stmt->fetch_assoc()) {
+        $data[$row['ID']] = [
+            'title' => $row[$field]
+        ];
+    }
+    $stmt->close();
+    return $data;
+}
+
 
 function getAuthorsProductInfo(): ?array {
 	$sql = "SELECT
@@ -463,9 +450,9 @@ function getAuthorsProductInfo(): ?array {
 
 function getProductTableFilters(): array {
 	$options = [];
-	$options['types'] = getTypes();
-	$options['authors'] = getAuthors();
-	$options['sites'] = getSites();
+	$options['types'] = getAllTypes();
+	$options['authors'] = getAllAuthors();
+	$options['sites'] = getAllSites();
 	return $options;
 }
 
