@@ -150,8 +150,8 @@ document.addEventListener('DOMContentLoaded', function (e) {
           targets: 5,
           render: function (data, type, full, meta) {
               const wage = full['wage'];
-              return '<span class="text-heading">' + wage + '</span>' +
-                  '<small>' + full['insurance'] + '</small>';
+              return '<div class="d-flex flex-column"><span class="text-heading">' + wage + '</span>' +
+                  '<small>' + full['insurance'] + '</small></div>';
           }
         },
         {
