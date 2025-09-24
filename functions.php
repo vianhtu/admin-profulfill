@@ -1094,7 +1094,7 @@ function getDownloadProductsProcess(): array
 }
 
 function getFilesTable(): array {
-    $allowedCols = ['ID', 'name', 'date_create', 'accounts_id', 'type_id', 'site_id', 'authors_id'];
+    $allowedCols = ['ID', 'date_create', 'accounts_id', 'type_id', 'site_id', 'authors_id'];
 
     // Lấy tham số từ DataTables
     $params = getDataTableParams($allowedCols);
@@ -1117,7 +1117,7 @@ function getFilesTable(): array {
     // Lọc theo search
     if ($params['searchValue'] !== '') {
         $searchEsc = $conn->real_escape_string($params['searchValue']);
-        $whereClauses[] = "(name LIKE '%$searchEsc%' OR file_name LIKE '%$searchEsc%')";
+        $whereClauses[] = "file_name LIKE '%$searchEsc%'";
     }
 
     // Lọc theo type
@@ -1179,7 +1179,7 @@ function getFilesTable(): array {
     while ($row = $rs->fetch_assoc()) {
         $data[] = [
             "id"              => $row['ID'],
-            "full_name"       => $row['file_name'],
+            "file_name"       => $row['file_name'],
             "type_id"         => $row['type_id'],
             "site_id"         => $row['site_id'],
             "authors_id"      => $row['authors_id'],
