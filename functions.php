@@ -1590,7 +1590,6 @@ function addXlsx(): array {
     $type_id      = (int) ($_POST['type'] ?? 0);
     $accounts_id  = (int) ($_POST['account'] ?? 0);
     $authors_id   = (int) ($_POST['author'] ?? $_SESSION['auth']['user_id']);
-    $name         = trim($_POST['name'] ?? '');
     $date_create  = date('Y-m-d H:i:s');
     $xlsx_options = $_POST['options'] ?? '';
 
@@ -1621,10 +1620,10 @@ function addXlsx(): array {
             $update = $conn->prepare("
                 UPDATE exports SET
                     accounts_id = ?, type_id = ?, site_id = ?, authors_id = ?,
-                    name = ?, date_create = ?, file_name = ?, file_dir = ?, file_default = ?
+                    date_create = ?, file_name = ?, file_dir = ?, file_default = ?
                 WHERE id = ?
             ");
-            $update->bind_param("iiiisssssi", $accounts_id, $type_id, $site_id, $authors_id, $name, $date_create, $originalName, $uniqueName, $xlsx_options, $id);
+            $update->bind_param("iiiissssi", $accounts_id, $type_id, $site_id, $authors_id, $date_create, $originalName, $uniqueName, $xlsx_options, $id);
 
             if ($update->execute()) {
                 return ['status' => 'updated', 'id' => $id, 'file' => $uniqueName];
@@ -1640,10 +1639,10 @@ function addXlsx(): array {
     }
 
     $insert = $conn->prepare("
-        INSERT INTO exports (accounts_id, type_id, site_id, authors_id, name, date_create, file_name, file_dir, file_default)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO exports (accounts_id, type_id, site_id, authors_id, date_create, file_name, file_dir, file_default)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ");
-    $insert->bind_param("iiiisssss", $accounts_id, $type_id, $site_id, $authors_id, $name, $date_create, $originalName, $uniqueName, $xlsx_options);
+    $insert->bind_param("iiiissss", $accounts_id, $type_id, $site_id, $authors_id, $date_create, $originalName, $uniqueName, $xlsx_options);
 
     if ($insert->execute()) {
         return ['status' => 'inserted', 'id' => $insert->insert_id, 'file' => $uniqueName];
