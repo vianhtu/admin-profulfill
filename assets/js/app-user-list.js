@@ -335,17 +335,15 @@ function initTable(){
                         select.innerHTML = '<option value="">All</option>';
                         $(html_class).html('<label class="form-label">' + label + '</label>');
                         document.querySelector(html_class).appendChild(select);
-                        select.addEventListener('change', function () {
-                            const val = select.value ? `^${select.value}$` : '';
-                            column.search(val, true, false).draw();
-                            //const event = new Event('change');
-                            //document.getElementById(id).dispatchEvent(event);
-                        });
                         Object.entries(options).forEach(([key, val]) => {
                             const option = document.createElement('option');
                             option.value = key;
                             option.textContent = val.title;
                             select.appendChild(option);
+                        });
+                        select.addEventListener('change', function () {
+                            const val = select.value ? `^${select.value}$` : '';
+                            column.search(val, true, false).draw();
                         });
                     });
                 }
