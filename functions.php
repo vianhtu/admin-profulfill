@@ -1313,7 +1313,7 @@ function getAuthorsTable():array
             "username"    => $row['username'],
             "level"       => $row['roles_name'],
             "wage"        => formatCurrencyVND($row['wage']),
-            "insurance"   => $row['insurance'],
+            "insurance"   => formatCurrencyVND($row['insurance']),
             "date"        => $row['date'],
         ];
     }

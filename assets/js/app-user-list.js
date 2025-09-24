@@ -142,7 +142,6 @@ document.addEventListener('DOMContentLoaded', function (e) {
           targets: 4,
           render: function (data, type, full, meta) {
             const team = full['team_id'];
-
             return '<span class="text-heading"><i class="icon-base ti tabler-users-group icon-md me-2"></i>' + team + '</span>';
           }
         },
@@ -151,8 +150,8 @@ document.addEventListener('DOMContentLoaded', function (e) {
           targets: 5,
           render: function (data, type, full, meta) {
               const wage = full['wage'];
-
-              return '<span class="text-heading">' + wage + '</span>';
+              return '<span class="text-heading">' + wage + '</span>' +
+                  '<small>' + full['insurance'] + '</small>';
           }
         },
         {
