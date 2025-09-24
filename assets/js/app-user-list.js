@@ -8,7 +8,7 @@ let teamsObj = {};
 async function init() {
     try {
         // 1️⃣ Gọi API trước
-        let options = await fetchTableFilter();
+        let options = await fetchTableFilter('get-authors-table-filter');
         rolesObj = options['role'];
         teamsObj = options['team'];
         // 2️⃣ Sau khi có dữ liệu → tạo bảng
@@ -322,57 +322,33 @@ function initTable(){
             initComplete: function () {
                 const api = this.api();
 
-                // Helper function to create a select dropdown and append options
-                const createFilter = (columnIndex, containerClass, selectId, defaultOptionText) => {
-                    const column = api.column(columnIndex);
-                    const select = document.createElement('select');
-                    select.id = selectId;
-                    select.className = 'form-select text-capitalize';
-                    select.innerHTML = `<option value="">${defaultOptionText}</option>`;
-                    document.querySelector(containerClass).appendChild(select);
+                filterTable('UserRole', '.user_role', 3, 'Role', rolesObj);
+                filterTable('UserTeam', '.user_team', 4, 'Team', teamsObj);
+                filterTable('UserStatus', '.user_status', 6, 'Status', statusObj);
 
-                    // Add event listener for filtering
-                    select.addEventListener('change', () => {
-                        const val = select.value ? `^${select.value}$` : '';
-                        column.search(val, true, false).draw();
+                function filterTable(id, html_class, col, label, options = {}) {
+                    api.columns(col).every(function () {
+                        const column = this;
+                        const select = document.createElement('select');
+                        select.id = id;
+                        select.className = 'form-select text-capitalize';
+                        select.innerHTML = '<option value="">All</option>';
+                        $(html_class).html('<label class="form-label">' + label + '</label>');
+                        document.querySelector(html_class).appendChild(select);
+                        select.addEventListener('change', function () {
+                            const val = select.value ? `^${select.value}$` : '';
+                            column.search(val, true, false).draw();
+                            //const event = new Event('change');
+                            //document.getElementById(id).dispatchEvent(event);
+                        });
+                        Object.entries(options).forEach(([key, val]) => {
+                            const option = document.createElement('option');
+                            option.value = key;
+                            option.textContent = val.title;
+                            select.appendChild(option);
+                        });
                     });
-
-                    // Populate options based on unique column data
-                    const uniqueData = Array.from(new Set(column.data().toArray())).sort();
-                    uniqueData.forEach(d => {
-                        const option = document.createElement('option');
-                        option.value = d;
-                        option.textContent = d;
-                        select.appendChild(option);
-                    });
-                };
-
-                // Role filter
-                createFilter(3, '.user_role', 'UserRole', 'Select Role');
-
-                // Plan filter
-                createFilter(4, '.user_plan', 'UserPlan', 'Select Plan');
-
-                // Status filter
-                const statusFilter = document.createElement('select');
-                statusFilter.id = 'FilterTransaction';
-                statusFilter.className = 'form-select text-capitalize';
-                statusFilter.innerHTML = '<option value="">Select Status</option>';
-                document.querySelector('.user_status').appendChild(statusFilter);
-                statusFilter.addEventListener('change', () => {
-                    const val = statusFilter.value ? `^${statusFilter.value}$` : '';
-                    api.column(6).search(val, true, false).draw();
-                });
-
-                const statusColumn = api.column(6);
-                const uniqueStatusData = Array.from(new Set(statusColumn.data().toArray())).sort();
-                uniqueStatusData.forEach(d => {
-                    const option = document.createElement('option');
-                    option.value = statusObj[d]?.title || d;
-                    option.textContent = statusObj[d]?.title || d;
-                    option.className = 'text-capitalize';
-                    statusFilter.appendChild(option);
-                });
+                }
             }
         });
 
