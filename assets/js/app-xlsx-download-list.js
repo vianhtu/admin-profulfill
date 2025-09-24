@@ -139,7 +139,7 @@ function initTable(){
                 // columns according to JSON
                 { data: 'id' },
                 { data: 'id', orderable: false, render: DataTable.render.select() },
-                { data: 'full_name' },
+                { data: 'name' },
                 { data: 'email' },
                 { data: 'site_id' },
                 { data: 'status' },
@@ -180,7 +180,7 @@ function initTable(){
                     targets: 2,
                     responsivePriority: 3,
                     render: function (data, type, full, meta) {
-                        var name = sitesObj[full['account_site_id']].title + ' - ' + full['full_name'];
+                        var name = sitesObj[full['account_site_id']].title + ' - ' + full['name'];
                         var account_name = full['temp_file_name'] + ' - ' + categoryObj[full['type_id']].title;
                         var image = './../../assets/svg/icons/xlsx_icon.svg';
                         // Nếu status = 'running' thì không thêm class d-none
@@ -373,7 +373,7 @@ function initTable(){
                     display: DataTable.Responsive.display.modal({
                         header: function (row) {
                             const data = row.data();
-                            return 'Details of ' + data['full_name'];
+                            return 'Details of ' + data['name'];
                         }
                     }),
                     type: 'column',

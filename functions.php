@@ -1007,7 +1007,7 @@ function getDownloadTable(): array {
     while ($row = $rs->fetch_assoc()) {
         $data[] = [
             "id"             => $row['ID'],
-            "full_name"      => $row['name'],
+            "name"           => $row['name'],
             "email"          => $row['email'],
             "site_id"        => $row['site_id'],
             "account_site_id"  => $row['account_site_id'],
