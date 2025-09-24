@@ -1307,7 +1307,7 @@ function getExportTableFilter() {
     $type = isset($_POST['type']) ? $_POST['type'] : '';
 
     // Xây dựng câu truy vấn động
-    $sql = "SELECT a.id, CONCAT(t.name, ' (', a.name, ')') AS name
+    $sql = "SELECT a.id, CONCAT(t.name, ' (', a.file_name, ')') AS name
             FROM exports AS a
             JOIN type t ON a.type_id = t.id
             WHERE a.accounts_id = ?";
