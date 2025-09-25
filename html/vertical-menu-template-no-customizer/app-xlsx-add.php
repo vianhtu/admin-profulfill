@@ -152,11 +152,11 @@ if(!empty($export_data)){
                 </div>
                 <div class="card-body">
                     <div class="mb-6 export_header">
-                        <label class="form-label mb-1" for="export_file_header"></label>
+                        <label class="form-label mb-1" for="export_file_header">Row Header</label>
                         <input type="number" min="0" class="form-control" id="export_file_header" value="">
                     </div>
                     <div class="mb-6 export_start">
-                        <label class="form-label mb-1" for="export_file_start"></label>
+                        <label class="form-label mb-1" for="export_file_start">Start Row Item</label>
                         <input type="number" min="0" class="form-control" id="export_file_start" value="">
                     </div>
                 </div>
