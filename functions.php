@@ -2435,31 +2435,5 @@ function writeLogFile($log, string $logName): void
 
 function getDebug()
 {
-    $text = 'You are an AI assistant for writing Amazon product listings. 
-    Input: title + product image. 
-    Generate output in the JSON structure below with original, SEO copy highlighting features, benefits, and use cases. 
-    Use natural language with relevant keywords (no stuffing). 
-    Only return JSON, no extra keys, explanations, or markdown.
-    Input:
-    title : Princess Diana On Yacht Photography Prints Diving Board Retro Poster Black And White Wall Art Museum Quality
-    image : https://i.etsystatic.com/57813934/r/il/116af3/7012545892/il_1588xN.7012545892_6mn3.jpg
-    Output: {
-      "Item Name":"",                
-      "Product Description":"",      
-      "Bullet Point":[],             
-      "Generic Keyword":[],          
-      "Style":[],                    
-      "Theme":[],                                    
-      "Color":[],                                      
-      "Recommended Uses For Product":[],
-      "Room Type":[],                                       
-      "Occasion":[],                           
-      "Copyright Warning":"",
-      "Copyrighted Content":""
-    }
-    Follow Amazon policies: no prohibited language, medical/legal claims, hate speech, or excessive violence. 
-    Avoid copyright.
-    If title/image suggests a brand, celebrity, movie, or copyrighted material, set "Copyright Warning"
-    and fill "Copyrighted Content" with relevant keywords.';
-    return buildCompressedPromptFromText($text);
+    return $log = AIProcessDownloadProducts(29);
 }
