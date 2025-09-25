@@ -1717,6 +1717,8 @@ function addXlsx(): array {
     $authors_id   = (int) ($_POST['author'] ?? $_SESSION['auth']['user_id']);
     $date_create  = date('Y-m-d H:i:s');
     $xlsx_options = $_POST['options'] ?? '';
+    $row_header = (int) ($_POST['header'] ?? 0);
+    $row_item = (int) ($_POST['startRow'] ?? 0);
 
     // Nếu có ID, kiểm tra bản ghi để cập nhật
     if ($id) {
@@ -1745,10 +1747,10 @@ function addXlsx(): array {
             $update = $conn->prepare("
                 UPDATE exports SET
                     accounts_id = ?, type_id = ?, site_id = ?, authors_id = ?,
-                    date_create = ?, file_name = ?, file_dir = ?, file_default = ?
+                    date_create = ?, file_name = ?, file_dir = ?, file_default = ?, row_header = ?, row_item = ?
                 WHERE id = ?
             ");
-            $update->bind_param("iiiissssi", $accounts_id, $type_id, $site_id, $authors_id, $date_create, $originalName, $uniqueName, $xlsx_options, $id);
+            $update->bind_param("iiiissssiii", $accounts_id, $type_id, $site_id, $authors_id, $date_create, $originalName, $uniqueName, $xlsx_options, $row_header, $row_item, $id);
 
             if ($update->execute()) {
                 return ['status' => 'updated', 'id' => $id, 'file' => $uniqueName];
@@ -1764,10 +1766,10 @@ function addXlsx(): array {
     }
 
     $insert = $conn->prepare("
-        INSERT INTO exports (accounts_id, type_id, site_id, authors_id, date_create, file_name, file_dir, file_default)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO exports (accounts_id, type_id, site_id, authors_id, date_create, file_name, file_dir, file_default, row_header, row_item)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
-    $insert->bind_param("iiiissss", $accounts_id, $type_id, $site_id, $authors_id, $date_create, $originalName, $uniqueName, $xlsx_options);
+    $insert->bind_param("iiiissssii", $accounts_id, $type_id, $site_id, $authors_id, $date_create, $originalName, $uniqueName, $xlsx_options, $row_header, $row_item);
 
     if ($insert->execute()) {
         return ['status' => 'inserted', 'id' => $insert->insert_id, 'file' => $uniqueName];
