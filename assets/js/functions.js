@@ -168,8 +168,6 @@ function getSelect2filterTable(api, id, html_class, col, label, options = {}, se
             $select.val(initialValue).trigger('change.select2');
         } else if (selected) {
             $select.val(selected).trigger('change.select2');
-            // optional: reflect default selected into URL if you prefer
-            // setUrlParam(id, selected, true);
         }
 
         // Bind using generic binder (default read/write works for select2 single)
