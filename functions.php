@@ -246,33 +246,44 @@ function buildCompressedPromptFromText(string $fullText): string {
 function AIProcessDownloadProducts($downloadId): array
 {
     $conn = db();
+    if (!($conn instanceof mysqli)) {
+        return [['status' => 'error', 'message' => 'Invalid database connection.']];
+    }
+
     $promptTemplate = getAISitePrompt($downloadId);
-    if (
-        !$promptTemplate ||
-        !str_contains($promptTemplate, '{title}') ||
-        !str_contains($promptTemplate, '{image}')
-    ) {
+    if (!$promptTemplate || !str_contains($promptTemplate, '{title}') || !str_contains($promptTemplate, '{image}')) {
         return [['status' => 'error', 'message' => "Câu lệnh AI rỗng hoặc thiếu {title}/{image}."]];
     }
 
-    // Lấy danh sách sản phẩm cần xử lý
+    // Lấy danh sách sản phẩm cần xử lý (bỏ LIMIT 1 để xử lý nhiều sản phẩm)
     $stmt = $conn->prepare("
         SELECT DISTINCT p.ID, p.title, p.sku, p.images
         FROM posts p
         INNER JOIN download_relationships dr ON dr.post_id = p.ID
         WHERE dr.download_id = ?
         AND p.status = 'schedule'
-        LIMIT 1
     ");
+    if ($stmt === false) {
+        return [['status' => 'error', 'message' => 'Prepare failed: ' . $conn->error]];
+    }
     $stmt->bind_param("i", $downloadId);
-    $stmt->execute();
+    if (!$stmt->execute()) {
+        $stmt->close();
+        return [['status' => 'error', 'message' => 'Execute failed: ' . $stmt->error]];
+    }
     $result = $stmt->get_result();
 
     // Nếu không có sản phẩm nào → cập nhật download.status = 'ready'
     if ($result->num_rows === 0) {
         $updateDownload = $conn->prepare("UPDATE download SET status = 'ready' WHERE ID = ?");
+        if ($updateDownload === false) {
+            $stmt->close();
+            return [['status' => 'error', 'message' => 'Prepare update failed: ' . $conn->error]];
+        }
         $updateDownload->bind_param("i", $downloadId);
         $updateDownload->execute();
+        $updateDownload->close();
+        $stmt->close();
 
         return [[
             'status' => 'done',
@@ -281,15 +292,19 @@ function AIProcessDownloadProducts($downloadId): array
     }
 
     $results = [];
+
+    // Optional: wrap each post's work in a transaction to keep consistency
     while ($row = $result->fetch_assoc()) {
+        $postId = (int)$row['ID'];
+        $sku = $row['sku'] ?? '';
+        $title = $row['title'] ?? '';
+
         // Lấy ảnh chính
         $mainImage = '';
         if (!empty($row['images'])) {
             $imagesArray = json_decode($row['images'], true);
-
-            if (json_last_error() === JSON_ERROR_NONE) {
+            if (json_last_error() === JSON_ERROR_NONE && is_array($imagesArray)) {
                 $mainImage = $imagesArray['main'] ?? '';
-
                 if (!empty($mainImage)) {
                     // Thay thế mọi "il_<số>xN" thành "il_1024xN"
                     $mainImage = preg_replace('/il_\d+xN/', 'il_1024xN', $mainImage);
@@ -299,47 +314,75 @@ function AIProcessDownloadProducts($downloadId): array
 
         // Tạo prompt
         $prompt = strtr($promptTemplate, [
-            '{title}' => $row['title'],
+            '{title}' => $title,
             '{image}' => $mainImage
         ]);
 
-        // Gọi AI
-        $raw = gemini_2_5_flash(buildCompressedPromptFromText($prompt));
-
-        // Làm sạch và parse JSON
-        $clean = preg_replace('/^```json\s*|\s*```$/', '', trim($raw));
-        $json = json_decode($clean, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
+        // Gọi AI (giữ nguyên cách gọi hiện có)
+        $raw = '';
+        try {
+            $raw = gemini_2_5_flash(buildCompressedPromptFromText($prompt));
+        } catch (Throwable $e) {
             $results[] = [
                 'status' => 'error',
-                'message' => 'Không parse được JSON',
+                'message' => "AI call failed for post ID {$postId}: " . $e->getMessage()
+            ];
+            continue;
+        }
+
+        // Làm sạch và parse JSON
+        $clean = preg_replace('/^```json\s*|\s*```$/', '', trim((string)$raw));
+        $json = json_decode($clean, true);
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($json)) {
+            $results[] = [
+                'status' => 'error',
+                'message' => "Không parse được JSON cho post ID {$postId}",
                 'raw' => $raw
             ];
             continue;
         }
 
-        // Lưu vào amazon_listings
-        $newId = insertAmazonListingFromAI($downloadId, $row['sku'], $json);
+        // Try insert; insertAmazonListingFromAI returns int (insert id) or string (error message)
+        $newId = insertAmazonListingFromAI($downloadId, $sku, $json);
 
-        if ($newId['id']) {
+        if (!empty($newId['id'])) {
             // Cập nhật trạng thái bài viết
             $updateStmt = $conn->prepare("
-                UPDATE posts 
-                SET status = 'listed', updated_at = NOW() 
+                UPDATE posts
+                SET status = 'listed', updated_at = NOW()
                 WHERE ID = ?
             ");
-            $updateStmt->bind_param("i", $row['ID']);
-            $updateStmt->execute();
+            if ($updateStmt === false) {
+                $results[] = [
+                    'status' => 'warning',
+                    'message' => "Insert thành công (amazon_listing_id={$newId['id']}) nhưng prepare update post ID {$postId} thất bại: " . $conn->error,
+                    'amazon_listing_id' => $newId['id']
+                ];
+                continue;
+            }
+            $updateStmt->bind_param("i", $postId);
+            if (!$updateStmt->execute()) {
+                $results[] = [
+                    'status' => 'warning',
+                    'message' => "Insert thành công (amazon_listing_id={$newId['id']}) nhưng execute update post ID {$postId} thất bại: " . $updateStmt->error,
+                    'amazon_listing_id' => $newId['id']
+                ];
+                $updateStmt->close();
+                continue;
+            }
+
+            $affected = $updateStmt->affected_rows;
+            $updateStmt->close();
 
             $results[] = [
-                'status' => $updateStmt->affected_rows > 0 ? 'success' : 'warning',
-                'message' => $updateStmt->affected_rows > 0
-                    ? "Post ID {$row['ID']} đã được cập nhật trạng thái thành 'listed'."
-                    : "Insert thành công nhưng không cập nhật được trạng thái post ID {$row['ID']}.",
+                'status' => $affected > 0 ? 'success' : 'warning',
+                'message' => $affected > 0
+                    ? "Post ID {$postId} đã được cập nhật trạng thái thành 'listed'."
+                    : "Insert thành công nhưng không cập nhật được trạng thái post ID {$postId}.",
                 'amazon_listing_id' => $newId['id']
             ];
         } else {
+            // newId is error string
             $results[] = [
                 'status' => 'error',
                 'message' => $newId['message'],
@@ -347,6 +390,8 @@ function AIProcessDownloadProducts($downloadId): array
             ];
         }
     }
+
+    $stmt->close();
 
     return $results;
 }
