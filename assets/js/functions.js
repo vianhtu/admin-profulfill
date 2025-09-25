@@ -43,6 +43,102 @@ function ajaxSelect2(select_id, action, multiple = false){
 }
 
 function getSelect2filterTable(api, id, html_class, col, label, options = {}, selected = '') {
+    // ---- URL helpers (tái sử dụng cho mọi input) ----
+    function getUrlParam(name) {
+        return new URLSearchParams(window.location.search).get(name);
+    }
+    function setUrlParam(name, value, useReplace = false) {
+        const url = new URL(window.location.href);
+        const params = url.searchParams;
+        if (value === '' || value == null) params.delete(name); else params.set(name, value);
+        const newUrl = `${url.pathname}?${params.toString()}`;
+        if (useReplace) window.history.replaceState({}, '', newUrl); else window.history.pushState({}, '', newUrl);
+    }
+    function deleteUrlParam(name, useReplace = false) {
+        const url = new URL(window.location.href);
+        const params = url.searchParams;
+        params.delete(name);
+        const newUrl = `${url.pathname}?${params.toString()}`;
+        if (useReplace) window.history.replaceState({}, '', newUrl); else window.history.pushState({}, '', newUrl);
+    }
+    function onPopState(cb) {
+        window.addEventListener('popstate', cb);
+    }
+
+    // ---- Generic binder: gắn bất kỳ input -> URL + reload DataTables ----
+    // optionsBinder: { element: jQuery|DOM, paramName: string, readValue?: fn, writeValue?: fn, defaultValue?: string, useReplace?: bool, debounceMs?: number, resetPagingOnChange?: bool }
+    function bindInputToUrlAndTable(optionsBinder) {
+        const {
+            element,
+            paramName,
+            readValue,
+            writeValue,
+            defaultValue = '',
+            useReplace = false,
+            debounceMs = 150,
+            resetPagingOnChange = true
+        } = optionsBinder;
+
+        const $el = element.jquery ? element : $(element);
+
+        const _read = typeof readValue === 'function'
+            ? () => readValue($el)
+            : () => ($el.val && $el.val() !== undefined ? $el.val() : ($el[0] ? $el[0].value : ''));
+
+        const _write = typeof writeValue === 'function'
+            ? (v) => writeValue($el, v)
+            : (v) => { if ($el.val) { $el.val(v); $el.trigger('change'); } else if ($el[0]) { $el[0].value = v; } };
+
+        // Initial value: URL wins over provided default
+        const urlVal = getUrlParam(paramName);
+        const initial = (urlVal !== null) ? urlVal : (defaultValue || '');
+
+        if (initial !== null && initial !== undefined && initial !== '') {
+            _write(initial);
+        } else if (defaultValue) {
+            _write(defaultValue);
+            // optionally reflect default into URL without creating history entry
+            setUrlParam(paramName, defaultValue, useReplace);
+        }
+
+        // debounce reload helper
+        let timer = null;
+        function scheduleReload(resetPaging = true) {
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(() => {
+                if (typeof api.ajax === 'function') {
+                    api.ajax.reload(null, resetPagingOnChange && resetPaging);
+                } else if (typeof api.draw === 'function') {
+                    api.draw(false);
+                }
+                timer = null;
+            }, debounceMs);
+        }
+
+        // input change -> update URL -> reload
+        $el.on('change input', () => {
+            const v = _read() ?? '';
+            if (v === '' || v == null) deleteUrlParam(paramName);
+            else setUrlParam(paramName, String(v));
+            scheduleReload(true);
+        });
+
+        // popstate -> sync UI from URL and reload
+        onPopState(() => {
+            const v = getUrlParam(paramName) || '';
+            _write(v);
+            scheduleReload(true);
+        });
+
+        // return control handle if caller needs it
+        return {
+            read: () => _read(),
+            write: (v) => _write(v),
+            syncFromUrl: () => { const v = getUrlParam(paramName) || ''; _write(v); }
+        };
+    }
+
+    // ---- Original DataTable column setup, now using the binder ----
     api.columns(col).every(function () {
         const column = this;
         const $container = $(html_class).empty();
@@ -50,7 +146,7 @@ function getSelect2filterTable(api, id, html_class, col, label, options = {}, se
         // Label
         $container.append(`<label class="form-label" for="${id}">${label}</label>`);
 
-        // Select
+        // Select element
         const $select = $(`<select id="${id}" class="form-select text-capitalize">
                          <option value="">All</option>
                        </select>`).appendTo($container);
@@ -61,62 +157,29 @@ function getSelect2filterTable(api, id, html_class, col, label, options = {}, se
             $select.append($opt);
         });
 
-        // Select2
+        // Init select2
         $select.select2({ dropdownParent: $container });
-
-        // URL helpers
-        function getUrlParam(name) {
-            return new URLSearchParams(window.location.search).get(name);
-        }
-        function updateUrlParam(name, value, useReplace = false) {
-            const url = new URL(window.location.href);
-            const params = url.searchParams;
-            if (value === '' || value == null) params.delete(name); else params.set(name, value);
-            const newUrl = `${url.pathname}?${params.toString()}`;
-            if (useReplace) window.history.replaceState({}, '', newUrl); else window.history.pushState({}, '', newUrl);
-        }
 
         // Decide initial UI value: URL wins over selected
         const urlValue = getUrlParam(id);
-        const initialValue = urlValue !== null ? urlValue : (selected || '');
+        const initialValue = (urlValue !== null) ? urlValue : (selected || '');
 
-        // Set select UI only (no column.search or draw here).
         if (initialValue) {
             $select.val(initialValue).trigger('change.select2');
         } else if (selected) {
             $select.val(selected).trigger('change.select2');
             // optional: reflect default selected into URL if you prefer
-            // updateUrlParam(id, selected, true);
+            // setUrlParam(id, selected, true);
         }
 
-        // Debounced reload to avoid multiple quick requests
-        let _reloadTimer = null;
-        function scheduleReload(resetPaging = true) {
-            if (_reloadTimer) clearTimeout(_reloadTimer);
-            _reloadTimer = setTimeout(() => {
-                // api is DataTables Api instance passed into the function
-                if (typeof api.ajax === 'function') {
-                    // resetPaging true -> go to first page
-                    api.ajax.reload(null, resetPaging);
-                } else if (typeof api.draw === 'function') {
-                    api.draw(false);
-                }
-                _reloadTimer = null;
-            }, 150);
-        }
-
-        // When user changes select: update URL and reload table
-        $select.on('change', function () {
-            const value = this.value || '';
-            updateUrlParam(id, value); // pushState; change to replaceState by passing true if desired
-            scheduleReload(true); // typically reset to page 1 on filter change
-        });
-
-        // Sync when navigating back/forward
-        window.addEventListener('popstate', () => {
-            const v = getUrlParam(id) || '';
-            $select.val(v).trigger('change.select2');
-            scheduleReload(true);
+        // Bind using generic binder (default read/write works for select2 single)
+        bindInputToUrlAndTable({
+            element: $select,
+            paramName: id,
+            defaultValue: selected || '',
+            useReplace: true,
+            debounceMs: 150,
+            resetPagingOnChange: true
         });
     });
 }
