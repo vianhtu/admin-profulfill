@@ -241,6 +241,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
             if (myDropzone.files.length === 0) {
                 hiddenInput.value = '';
                 fv.revalidateField('xlsxFilePresent');
+                document.getElementById('fileTitle').textContent = '';
             }
         });
     }
