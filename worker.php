@@ -56,8 +56,6 @@ function processDownload($downloadId, $conn): void
         }
     }
 
-    writeLogFile($log, 'worker.log');
-
     // Cập nhật DB
     if ($status !== null) {
         $stmt = $conn->prepare("
