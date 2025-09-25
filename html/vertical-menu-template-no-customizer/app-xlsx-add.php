@@ -91,7 +91,7 @@ if(!empty($export_data)){
                     <h5 class="card-title mb-0">Default</h5>
                 </div>
                 <div class="card-body">
-                    <form class="form-repeater">
+                    <div class="form-repeater">
                         <div data-repeater-list="group-a">
                             <?php foreach ($file_default as $key => $value): ?>
                             <div data-repeater-item>
@@ -130,7 +130,7 @@ if(!empty($export_data)){
                                 Add another option
                             </button>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
             <!-- /Variants -->
