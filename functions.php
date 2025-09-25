@@ -1135,7 +1135,7 @@ function getDownloadProductsProcess(): array
 }
 
 function getFilesTable(): array {
-    $allowedCols = ['ID', 'date_create', 'accounts_id', 'type_id', 'site_id', 'authors_id'];
+    $allowedCols = ['ID', 'file_name', 'date_create', 'type_id', 'site_id', 'authors_id'];
 
     // Lấy tham số từ DataTables
     $params = getDataTableParams($allowedCols);
@@ -1158,51 +1158,40 @@ function getFilesTable(): array {
     // Lọc theo search
     if ($params['searchValue'] !== '') {
         $searchEsc = $conn->real_escape_string($params['searchValue']);
-        $whereClauses[] = "file_name LIKE '%$searchEsc%'";
+        $whereClauses[] = "exports.file_name LIKE '%$searchEsc%'";
     }
 
-    // Lọc theo type
-    $filterType = trim($_POST['columns'][3]['search']['value'] ?? '', '^$');
-    if ($filterType !== '') {
-        $esc = $conn->real_escape_string($filterType);
-        $whereClauses[] = "type_id = '$esc'";
-    }
+    // Lọc theo type (int)
+    addTableFilter($whereClauses, 'exports.type_id', 3, 'int', $conn);
 
-    // Lọc theo site
-    $filterSite = trim($_POST['columns'][4]['search']['value'] ?? '', '^$');
-    if ($filterSite !== '') {
-        $esc = $conn->real_escape_string($filterSite);
-        $whereClauses[] = "site_id = '$esc'";
-    }
+    // Lọc theo role (int)
+    addTableFilter($whereClauses, 'exports.site_id', 4, 'int', $conn);
 
-    // Lọc theo author
-    $filterAuthor = trim($_POST['columns'][6]['search']['value'] ?? '', '^$');
-    if ($filterAuthor !== '') {
-        $esc = $conn->real_escape_string($filterAuthor);
-        $whereClauses[] = "authors_id = '$esc'";
-    }
+    // Lọc theo team name (int)
+    addTableFilter($whereClauses, 'exports.authors_id', 5, 'int', $conn);
 
     // Lọc theo accounts
     $filterAccounts = $_POST['accounts'] ?? [];
     if (!empty($filterAccounts) && is_array($filterAccounts)) {
         $idsStr = implode(',', array_map('intval', $filterAccounts));
         if ($idsStr !== '') {
-            $whereClauses[] = "accounts_id IN ($idsStr)";
+            $whereClauses[] = "exports.accounts_id IN ($idsStr)";
         }
     }
 
     $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
-    $join  = 'INNER JOIN accounts a ON a.ID = exports.accounts_id';
 
     // Tổng số bản ghi sau khi lọc
     $totalFiltered = $conn->query(
-        "SELECT COUNT(DISTINCT exports.ID) AS cnt FROM exports $join $where"
+        "SELECT COUNT(ID) AS cnt FROM exports $where"
     )->fetch_assoc()['cnt'];
+
+    $join  = 'INNER JOIN accounts ON accounts.ID = exports.accounts_id';
 
     // Lấy dữ liệu
     $sql = "SELECT DISTINCT exports.ID, 
-                   a.site_id AS account_site_id, 
-                   a.name AS account_name, 
+                   accounts.site_id AS account_site_id, 
+                   accounts.name AS account_name, 
                    exports.type_id, 
                    exports.site_id, 
                    exports.authors_id, 
@@ -1211,7 +1200,7 @@ function getFilesTable(): array {
             FROM exports
             $join
             $where
-            ORDER BY {$params['orderColumn']} {$params['orderDir']}
+            ORDER BY exports.{$params['orderColumn']} {$params['orderDir']}
             LIMIT {$params['start']}, {$params['length']}";
     $rs = $conn->query($sql);
 
