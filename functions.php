@@ -2017,7 +2017,9 @@ function downloadXlsx(): array
             AND (TRIM(al.copyright_warning) = ''
             OR TRIM(al.copyrighted_content) = ''
             OR LOWER(al.copyright_warning) IN ('none','no','n/a','false','not applicable')
-            OR LOWER(al.copyrighted_content) IN ('none','no','n/a','false','not applicable'))";
+            OR LOWER(al.copyrighted_content) IN ('none','no','n/a','false','not applicable'))
+            OR al.copyright_warning IS NULL
+            OR al.copyrighted_content IS NULL";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param('i', $downloadID);
     $stmt->execute();
