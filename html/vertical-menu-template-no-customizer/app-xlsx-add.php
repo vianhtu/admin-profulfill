@@ -145,6 +145,23 @@ if(!empty($export_data)){
                 </div>
             </div>
             <!-- /Pricing Card -->
+            <!-- File Card -->
+            <div class="card mb-6">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">File Settings</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-6 export_header">
+                        <label class="form-label mb-1" for="export_file_header"></label>
+                        <input type="number" min="0" class="form-control" id="export_file_header" value="">
+                    </div>
+                    <div class="mb-6 export_start">
+                        <label class="form-label mb-1" for="export_file_start"></label>
+                        <input type="number" min="0" class="form-control" id="export_file_start" value="">
+                    </div>
+                </div>
+            </div>
+            <!-- /File Card -->
             <!-- Organize Card -->
             <div class="card mb-6">
                 <div class="card-header">
