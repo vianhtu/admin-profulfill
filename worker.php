@@ -2,8 +2,6 @@
 require __DIR__ . '/config.php';
 require __DIR__ . '/functions.php';
 
-exit();
-
 $conn = db();
 
 // Nếu được truyền ID từ cron-job.php thì xử lý trước job đó

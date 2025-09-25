@@ -2211,7 +2211,7 @@ function deleteTableRow($table, $row_id): array {
 	];
 }
 
-function insertAmazonListingFromAI($downloadId, string $sku, array $aiData)
+function insertAmazonListingFromAI($downloadId, string $sku, array $aiData): int|string
 {
     $conn = db();
 
