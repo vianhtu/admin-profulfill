@@ -63,6 +63,7 @@ function initTable(){
                             }
                         }
                     });
+                    console.log(d);
                 },
                 dataSrc: function (json) {
                     return json.data;
