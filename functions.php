@@ -2421,6 +2421,18 @@ function formatCurrencyVND($input) {
     return number_format($number, 0, ',', ',') . ' VND';
 }
 
+function writeLogFile($log, string $logName): void
+{
+    $logEntry = sprintf(
+        "Status: %s | Message: %s\n",
+        date('Y-m-d H:i:s'),
+        $log['status'] ?? 'unknown',
+        $log['message'] ?? json_encode($log, JSON_UNESCAPED_UNICODE)
+    );
+
+    file_put_contents(__DIR__ . '/' . $logName, $logEntry, FILE_APPEND);
+}
+
 function getDebug()
 {
     $text = 'You are an AI assistant for writing Amazon product listings. 

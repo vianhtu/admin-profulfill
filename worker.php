@@ -56,6 +56,8 @@ function processDownload($downloadId, $conn): void
         }
     }
 
+    writeLogFile($log, 'worker.log');
+
     // Cập nhật DB
     if ($status !== null) {
         $stmt = $conn->prepare("
@@ -73,12 +75,4 @@ function processDownload($downloadId, $conn): void
         $stmt->bind_param("i", $downloadId);
     }
     $stmt->execute();
-
-    // Ghi log
-    $logFile = __DIR__ . '/worker.log';
-    file_put_contents(
-        $logFile,
-        date('Y-m-d H:i:s') . " - ID {$downloadId} - " . json_encode($log, JSON_UNESCAPED_UNICODE) . PHP_EOL,
-        FILE_APPEND
-    );
 }

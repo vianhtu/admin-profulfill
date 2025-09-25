@@ -3,7 +3,7 @@ require __DIR__ . '/config.php';
 
 $conn = db();
 
-// Lấy 2 row từ bảng download có status = 'schedule'
+// Lấy 10 row từ bảng download có status = 'schedule'
 $sql = "SELECT ID,status,locked_at
         FROM download
         WHERE status IN ('schedule', 'running')
