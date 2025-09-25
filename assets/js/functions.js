@@ -89,13 +89,13 @@ function getSelect2filterTable(api, id, html_class, col, label, options = {}, se
 
         // Set select's value from URL or selected arg
         if (initialValue) {
-            $select.val(initialValue).trigger('change.select2');
+            //$select.val(initialValue).trigger('change.select2');
             // Apply DataTable filter immediately
             const val = `^${initialValue}$`;
             column.search(val, true, false).draw();
         } else if (selected) {
             // If selected given but URL absent, set it and also reflect in URL
-            $select.val(selected).trigger('change.select2');
+            //$select.val(selected).trigger('change.select2');
             const val = `^${selected}$`;
             column.search(val, true, false).draw();
             updateUrlParam(id, selected);

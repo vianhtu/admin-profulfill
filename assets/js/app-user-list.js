@@ -19,6 +19,12 @@ async function init() {
 }
 
 function initTable(){
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialFilters = {
+        UserRole: urlParams.get('UserRole') || '',
+        UserTeam: urlParams.get('UserTeam') || '',
+        UserStatus: urlParams.get('UserStatus') || ''
+    };
     // Variable declaration for table
     const dt_user_table = document.querySelector('.datatables-users'),
         userView = 'app-user-view-account.html',
@@ -45,7 +51,19 @@ function initTable(){
             ajax: {
                 url: '../../ajax.php?action=get-authors-table',
                 type: 'POST',
-                data: function (d) {},
+                data: function (d) {
+                    const mapping = { UserRole: 'level', UserTeam: 'team_id', UserStatus: 'status' }; // data names in your columns config
+                    const params = { UserRole: initialFilters.UserRole, UserStatus: initialFilters.UserStatus };
+                    d.columns.forEach(col => {
+                        for (const key in mapping) {
+                            if (col.data === mapping[key]) {
+                                const v = params[key] || '';
+                                col.search.value = v ? `^${v}$` : '';
+                                col.search.regex = !!v;
+                            }
+                        }
+                    });
+                },
                 dataSrc: function (json) {
                     return json.data;
                 }
