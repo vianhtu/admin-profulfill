@@ -25,12 +25,6 @@ async function init() {
 }
 
 function initProductTable(){
-    let borderColor, bodyBg, headingColor;
-
-    borderColor = config.colors.borderColor;
-    bodyBg = config.colors.bodyBg;
-    headingColor = config.colors.headingColor;
-
     // Variable declaration for table
     const dt_product_table = document.querySelector('.datatables-products'),
         productAdd = 'app-ecommerce-product-add.html',
@@ -51,6 +45,22 @@ function initProductTable(){
                 url: '../../ajax.php?action=get-products-table',
                 type: 'POST',
                 data: function (d) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const initialFilters = {
+                        ProductStatus: urlParams.get('ProductStatus') || '',
+                        ProductCategory: urlParams.get('ProductCategory') || '',
+                        ProductAuthor: urlParams.get('ProductAuthor') || ''
+                    };
+                    const mapping = { ProductStatus: 'status', ProductCategory: 'type_id', ProductAuthor: 'author_id' }; // data names in your columns config
+                    d.columns.forEach(col => {
+                        for (const key in mapping) {
+                            if (col.data === mapping[key]) {
+                                const v = initialFilters[key] || '';
+                                col.search.value = v ? `^${v}$` : '';
+                                col.search.regex = !!v;
+                            }
+                        }
+                    });
                     d.minDate = $('#minDate').val();
                     d.maxDate = $('#maxDate').val();
                     d.stores = $('#storeFilter').val();
@@ -533,77 +543,9 @@ function initProductTable(){
             initComplete: function () {
                 const api = this.api();
 
-                // Adding status filter once table is initialized
-                api.columns(-2).every(function () {
-                    const column = this;
-                    const select = document.createElement('select');
-                    select.id = 'ProductStatus';
-                    select.className = 'form-select text-capitalize';
-                    select.innerHTML = '<option value="">All</option>';
-                    $('.product_status').html('<label class="form-label">Status</label>');
-                    document.querySelector('.product_status').appendChild(select);
-
-                    select.addEventListener('change', function () {
-                        const val = select.value ? `^${select.value}$` : '';
-                        column.search(val, true, false).draw();
-                    });
-                    Object.entries(statusObj).forEach(([key, val]) => {
-                        const option = document.createElement('option');
-                        option.value = val.title;
-                        option.textContent = val.title;
-                        if(val.title === 'pending'){
-                            option.selected = true;
-                        }
-                        select.appendChild(option);
-                    });
-                });
-
-                // Adding category filter once table is initialized
-                api.columns(3).every(function () {
-                    const column = this;
-                    const select = document.createElement('select');
-                    select.id = 'ProductCategory';
-                    select.className = 'form-select text-capitalize';
-                    select.innerHTML = '<option value="">All</option>';
-                    $('.product_category').html('<label class="form-label">Category</label>');
-                    document.querySelector('.product_category').appendChild(select);
-
-                    select.addEventListener('change', function () {
-                        const val = select.value ? `^${select.value}$` : '';
-                        column.search(val, true, false).draw();
-                        // Trigger sự kiện change thủ công
-                        const event = new Event('change');
-                        document.getElementById('exportAccount').dispatchEvent(event);
-                    });
-                    Object.entries(categoryObj).forEach(([key, val]) => {
-                        const option = document.createElement('option');
-                        option.value = key;
-                        option.textContent = val.title;
-                        select.appendChild(option);
-                    });
-                });
-
-                // Adding stock filter once table is initialized
-                api.columns(4).every(function () {
-                    const column = this;
-                    const select = document.createElement('select');
-                    select.id = 'ProductStock';
-                    select.className = 'form-select text-capitalize';
-                    select.innerHTML = '<option value="">All</option>';
-                    $('.product_stock').html('<label class="form-label">Manager</label>');
-                    document.querySelector('.product_stock').appendChild(select);
-
-                    select.addEventListener('change', function () {
-                        const val = select.value ? `^${select.value}$` : '';
-                        column.search(val, true, false).draw();
-                    });
-                    Object.entries(authorsObj).forEach(([key, val]) => {
-                        const option = document.createElement('option');
-                        option.value = key;
-                        option.textContent = val.title;
-                        select.appendChild(option);
-                    });
-                });
+                getSelect2filterTable(api,'ProductStatus', '.product_status', 8, 'Status', statusObj);
+                getSelect2filterTable(api,'ProductCategory', '.product_category', 4, 'Category', categoryObj);
+                getSelect2filterTable(api,'ProductAuthor', '.product_author', 5, 'Manager', authorsObj);
 
                 // Adding store filter once table is initialized
                 getAjaxSelect2HTML('product_store', 'storeFilter', 'Store', 'filter-stores', true);

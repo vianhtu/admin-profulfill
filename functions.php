@@ -637,7 +637,7 @@ function getAccountsTableFilter(): array {
 }
 
 function getProductsTable(): array {
-    $allowedCols = ['ID', 'title', 'status', 'sku', 'date', 'badge'];
+    $allowedCols = ['ID', 'title', 'status', 'date', 'type_id', 'author_id', 'badge'];
     // Lấy tham số từ DataTables
     $params = getDataTableParams($allowedCols);
     if(!checkRoles('view', 'products')){
@@ -659,36 +659,24 @@ function getProductsTable(): array {
     // Lọc theo search
     if ($params['searchValue'] !== '') {
         $searchEsc = $conn->real_escape_string($params['searchValue']);
-        $whereClauses[] = "(title LIKE '%$searchEsc%' OR sku LIKE '%$searchEsc%' OR status LIKE '%$searchEsc%' OR badge LIKE '%$searchEsc%')";
+        $whereClauses[] = "(posts.title LIKE '%$searchEsc%' OR posts.sku LIKE '%$searchEsc%' OR posts.badge LIKE '%$searchEsc%')";
     }
 
-    // Lọc theo status
-    $filterStatus = trim($_POST['columns'][8]['search']['value'] ?? '', '^$');
-    if ($filterStatus !== '') {
-        $esc = $conn->real_escape_string($filterStatus);
-        $whereClauses[] = "status = '$esc'";
-    }
+    // Lọc theo status (string)
+    addTableFilter($whereClauses, 'posts.status', 8, 'string', $conn);
 
-    // Lọc theo type
-    $filterType = trim($_POST['columns'][3]['search']['value'] ?? '', '^$');
-    if ($filterType !== '') {
-        $esc = $conn->real_escape_string($filterType);
-        $whereClauses[] = "type_id = '$esc'";
-    }
+    // Lọc theo type (int)
+    addTableFilter($whereClauses, 'posts.type_id', 4, 'int', $conn);
 
-    // Lọc theo author
-    $filterAuthor = trim($_POST['columns'][4]['search']['value'] ?? '', '^$');
-    if ($filterAuthor !== '') {
-        $esc = $conn->real_escape_string($filterAuthor);
-        $whereClauses[] = "author_id = '$esc'";
-    }
+    // Lọc theo author (int)
+    addTableFilter($whereClauses, 'posts.author_id', 5, 'int', $conn);
 
     // Lọc theo sites
     $filterSites = $_POST['sites'] ?? [];
     if (!empty($filterSites) && is_array($filterSites)) {
         $idsStr = implode(',', array_map('intval', $filterSites));
         if ($idsStr !== '') {
-            $whereClauses[] = "site_id IN ($idsStr)";
+            $whereClauses[] = "posts.site_id IN ($idsStr)";
         }
     }
 
@@ -698,13 +686,13 @@ function getProductsTable(): array {
     if ($minDate !== '' && $maxDate !== '') {
         $escMin = $conn->real_escape_string($minDate);
         $escMax = $conn->real_escape_string($maxDate);
-        $whereClauses[] = "DATE(`date`) BETWEEN '$escMin' AND '$escMax'";
+        $whereClauses[] = "DATE(`posts.date`) BETWEEN '$escMin' AND '$escMax'";
     } elseif ($minDate !== '') {
         $escMin = $conn->real_escape_string($minDate);
-        $whereClauses[] = "DATE(`date`) >= '$escMin'";
+        $whereClauses[] = "DATE(`posts.date`) >= '$escMin'";
     } elseif ($maxDate !== '') {
         $escMax = $conn->real_escape_string($maxDate);
-        $whereClauses[] = "DATE(`date`) <= '$escMax'";
+        $whereClauses[] = "DATE(`posts.date`) <= '$escMax'";
     }
 
     // Lọc theo stores
@@ -712,7 +700,7 @@ function getProductsTable(): array {
     if (!empty($filterStores) && is_array($filterStores)) {
         $idsStr = implode(',', array_map('intval', $filterStores));
         if ($idsStr !== '') {
-            $whereClauses[] = "store_id IN ($idsStr)";
+            $whereClauses[] = "posts.store_id IN ($idsStr)";
         }
     }
 
@@ -730,14 +718,14 @@ function getProductsTable(): array {
     $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
 
     // Tổng số bản ghi sau khi lọc
-    $totalFiltered = $conn->query("SELECT COUNT(DISTINCT posts.ID) AS cnt FROM posts $joinAccounts $where")->fetch_assoc()['cnt'];
+    $totalFiltered = $conn->query("SELECT COUNT(posts.ID) AS cnt FROM posts $joinAccounts $where")->fetch_assoc()['cnt'];
 
     // Lấy dữ liệu
-    $sql = "SELECT DISTINCT posts.ID, posts.title, posts.status, posts.sku, posts.images, posts.badge, posts.date, posts.type_id, posts.author_id
+    $sql = "SELECT posts.ID, posts.title, posts.status, posts.sku, posts.images, posts.badge, posts.date, posts.type_id, posts.author_id
             FROM posts
             $joinAccounts
             $where
-            ORDER BY {$params['orderColumn']} {$params['orderDir']}
+            ORDER BY posts.{$params['orderColumn']} {$params['orderDir']}
             LIMIT {$params['start']}, {$params['length']}";
     $rs = $conn->query($sql);
 
@@ -751,8 +739,8 @@ function getProductsTable(): array {
         }
         $data[] = [
             "id"            => $row['ID'],
-            "title"         => htmlspecialchars($row['title']),
-            "sku"           => htmlspecialchars($row['sku']),
+            "title"         => $row['title'],
+            "sku"           => $row['sku'],
             "type_id"       => $row['type_id'],
             "author_id"     => $row['author_id'],
             "badge"         => $row['badge'],

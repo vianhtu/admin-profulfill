@@ -491,8 +491,8 @@ function initTable(){
             initComplete: function () {
                 const api = this.api();
                 getSelect2filterTable(api,'xlsxTypes', '.xlsx_types', 3, 'Type', categoryObj);
-                getSelect2filterTable(api,'xlsxSites', '.xlsx_sites', 4, 'Sites', sitesObj);
-                getSelect2filterTable(api,'xlsxAuthors', '.xlsx_authors', 5, 'Authors', authorsObj);
+                getSelect2filterTable(api,'xlsxSites', '.xlsx_sites', 4, 'Site', sitesObj);
+                getSelect2filterTable(api,'xlsxAuthors', '.xlsx_authors', 5, 'Author', authorsObj);
 
                 // Accounts filter
                 getAjaxSelect2HTML('xlsx_accounts', 'xlsxAccounts', 'Accounts', 'filter-accounts', true);
