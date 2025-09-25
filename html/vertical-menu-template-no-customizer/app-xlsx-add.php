@@ -17,6 +17,8 @@ $text_add = 'Add a new';
 $text_button = 'Add';
 $file_header = [];
 $file_default = [['location'=>'', 'text'=>'', 'value'=>'']];
+$row_header = 4;
+$row_item = 7;
 if(!empty($export_data)){
     $export_id = $export_data['ID'];
     $site_id = $export_data['site_id'];
@@ -156,11 +158,11 @@ if(!empty($export_data)){
                 <div class="card-body">
                     <div class="mb-6 form-control-validation col export_header">
                         <label class="form-label mb-1" for="export_file_header">Row Header</label>
-                        <input type="number" min="0" class="form-control" id="export_file_header" name="export_file_header" placeholder="4" value="">
+                        <input type="number" min="0" class="form-control" id="export_file_header" name="export_file_header" placeholder="4" value="<?= $row_header ?>">
                     </div>
                     <div class="mb-6 form-control-validation col export_start">
                         <label class="form-label mb-1" for="export_file_start">Start Row Item</label>
-                        <input type="number" min="0" class="form-control" id="export_file_start" name="export_file_start" placeholder="7" value="">
+                        <input type="number" min="0" class="form-control" id="export_file_start" name="export_file_start" placeholder="7" value="<?= $row_item ?>">
                     </div>
                 </div>
             </div>
