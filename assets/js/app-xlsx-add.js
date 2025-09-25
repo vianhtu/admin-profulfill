@@ -134,6 +134,37 @@ document.addEventListener('DOMContentLoaded', function (e) {
             });
         });
     }
+
+    // Add permission form validation
+    const formEl = document.getElementById('addXlsxFile');
+    const fv = FormValidation.formValidation(formEl, {
+        fields: {
+            export_file_header: {
+                validators: {
+                    notEmpty: {
+                        message: 'Please enter header row number.'
+                    }
+                }
+            },
+            export_file_start: {
+                validators: {
+                    notEmpty: {
+                        message: 'Please enter start item row number.'
+                    }
+                }
+            }
+        },
+        plugins: {
+            trigger: new FormValidation.plugins.Trigger(),
+            bootstrap5: new FormValidation.plugins.Bootstrap5({
+                eleValidClass: '',
+                rowSelector: '.form-control-validation'
+            }),
+            submitButton: new FormValidation.plugins.SubmitButton(),
+            autoFocus: new FormValidation.plugins.AutoFocus()
+        }
+    });
+
     // previewTemplate: Updated Dropzone default previewTemplate
     // ! Don't change it unless you really know what you are doing
     const previewTemplate = `<div class="dz-preview dz-file-preview">
