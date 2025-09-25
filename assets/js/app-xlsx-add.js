@@ -234,6 +234,8 @@ document.addEventListener('DOMContentLoaded', function (e) {
         myDropzone.on('addedfile', function(file) {
             hiddenInput.value = '1';
             fv.revalidateField('xlsxFilePresent');
+            // Lấy tên file
+            document.getElementById('fileTitle').textContent = file.name;
         });
         myDropzone.on('removedfile', function(file) {
             if (myDropzone.files.length === 0) {

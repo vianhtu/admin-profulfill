@@ -63,7 +63,7 @@ if(!empty($export_data)){
             <!-- Media -->
             <div class="card mb-6">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 card-title">File: <?= $file_name ?></h5>
+                    <h5 class="mb-0 card-title" id="fileTitle">File: <?= $file_name ?></h5>
                 </div>
                 <div class="card-body">
                     <div class="dropzone needsclick p-0" id="dropzone-basic">
