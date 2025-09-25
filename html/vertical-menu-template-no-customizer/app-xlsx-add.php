@@ -72,7 +72,7 @@ if(!empty($export_data)){
                             <p class="h6 text-body-secondary d-block fw-normal mb-2">or</p>
                             <span class="needsclick btn btn-sm btn-label-primary" id="btnBrowse">Browse file</span>
                             <!-- field ẩn để validation -->
-                            <input type="hidden" name="xlsxFilePresent" id="xlsxFilePresent" value="">
+                            <input type="hidden" name="xlsxFilePresent" id="xlsxFilePresent" value="<?= $file_name ?>">
                         </div>
                         <div class="fallback">
                             <input name="file" type="file" required/>
