@@ -62,61 +62,61 @@ function getSelect2filterTable(api, id, html_class, col, label, options = {}, se
         });
 
         // Select2
-        $select.select2({
-            dropdownParent: $container
-        });
+        $select.select2({ dropdownParent: $container });
 
-        // Utility: read/set URL param named by the select id
+        // URL helpers
         function getUrlParam(name) {
             return new URLSearchParams(window.location.search).get(name);
         }
-
-        function updateUrlParam(name, value) {
+        function updateUrlParam(name, value, useReplace = false) {
             const url = new URL(window.location.href);
             const params = url.searchParams;
-            if (value === '' || value == null) {
-                params.delete(name);
-            } else {
-                params.set(name, value);
-            }
-            // Use pushState so browser history records the change; replaceState could be used instead if you prefer no history entry
-            window.history.pushState({}, '', `${url.pathname}?${params.toString()}`);
+            if (value === '' || value == null) params.delete(name); else params.set(name, value);
+            const newUrl = `${url.pathname}?${params.toString()}`;
+            if (useReplace) window.history.replaceState({}, '', newUrl); else window.history.pushState({}, '', newUrl);
         }
 
-        // If selected argument provided, use it as fallback; but first prefer URL value
+        // Decide initial UI value: URL wins over selected
         const urlValue = getUrlParam(id);
         const initialValue = urlValue !== null ? urlValue : (selected || '');
 
-        // Set select's value from URL or selected arg
+        // Set select UI only (no column.search or draw here).
         if (initialValue) {
-            //$select.val(initialValue).trigger('change.select2');
-            // Apply DataTable filter immediately
-            const val = `^${initialValue}$`;
-            column.search(val, true, false).draw();
+            $select.val(initialValue).trigger('change.select2');
         } else if (selected) {
-            // If selected given but URL absent, set it and also reflect in URL
-            //$select.val(selected).trigger('change.select2');
-            const val = `^${selected}$`;
-            column.search(val, true, false).draw();
-            updateUrlParam(id, selected);
+            $select.val(selected).trigger('change.select2');
+            // optional: reflect default selected into URL if you prefer
+            // updateUrlParam(id, selected, true);
         }
 
-        // Event filter when user chooses
+        // Debounced reload to avoid multiple quick requests
+        let _reloadTimer = null;
+        function scheduleReload(resetPaging = true) {
+            if (_reloadTimer) clearTimeout(_reloadTimer);
+            _reloadTimer = setTimeout(() => {
+                // api is DataTables Api instance passed into the function
+                if (typeof api.ajax === 'function') {
+                    // resetPaging true -> go to first page
+                    api.ajax.reload(null, resetPaging);
+                } else if (typeof api.draw === 'function') {
+                    api.draw(false);
+                }
+                _reloadTimer = null;
+            }, 150);
+        }
+
+        // When user changes select: update URL and reload table
         $select.on('change', function () {
             const value = this.value || '';
-            // update DataTable filter
-            const val = value ? `^${value}$` : '';
-            column.search(val, true, false).draw();
-            // sync URL param
-            updateUrlParam(id, value);
+            updateUrlParam(id, value); // pushState; change to replaceState by passing true if desired
+            scheduleReload(true); // typically reset to page 1 on filter change
         });
 
-        // If the user navigates history, keep the select in sync with the URL
+        // Sync when navigating back/forward
         window.addEventListener('popstate', () => {
             const v = getUrlParam(id) || '';
             $select.val(v).trigger('change.select2');
-            const val = v ? `^${v}$` : '';
-            column.search(val, true, false).draw();
+            scheduleReload(true);
         });
     });
 }
