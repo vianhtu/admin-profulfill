@@ -125,7 +125,7 @@ if(!empty($export_data)){
                             <?php endforeach; ?>
                         </div>
                         <div>
-                            <button class="btn btn-primary" data-repeater-create>
+                            <button type="button" class="btn btn-primary" data-repeater-create>
                                 <i class="icon-base ti tabler-plus icon-xs me-2"></i>
                                 Add another option
                             </button>
