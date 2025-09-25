@@ -51,6 +51,8 @@ $(function () {
                     col++;
                 });
 
+                $(this).find('input').val('');
+
                 row++;
                 $(this).slideDown();
 
