@@ -141,6 +141,7 @@ function renderMenu($currentMenu): void
 function renderSelect($id, $label, $options, $selected = null) {
 	echo "<label class='form-label mb-1' for='{$id}'>{$label}</label>";
 	echo "<select id='{$id}' name='{$id}' class='select2 form-select'>";
+    echo "<option value=''>Select a {$label}</option>";
 	foreach ($options as $key => $value) {
 		$isSelected = ($selected === $key) ? "selected" : "";
 		echo "<option value='{$key}' {$isSelected}>{$value['title']}</option>";
