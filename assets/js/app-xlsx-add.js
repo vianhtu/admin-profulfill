@@ -70,12 +70,12 @@ $(function () {
                     });
                 });
 
-                updateSelectOptions(formRepeater);
+                updateSelectOptions($(this).closest('.form-repeater'));
             },
             hide: function (deleteElement) {
                 $(this).slideUp(deleteElement);
                 setTimeout(() => {
-                    updateSelectOptions(formRepeater);
+                    updateSelectOptions($(this).closest('.form-repeater'));
                 }, 300);
             }
         });
