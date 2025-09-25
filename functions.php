@@ -1567,12 +1567,12 @@ function addOrders(): array
             $ship_date = date('Y-m-d H:i:s', (int) $order['ShipDate']);
             $total_price = $order['Amount']['CurrencyCode'] === "USD" ? (float) $order['Amount']['Amount'] : 0;
             $full_name = $conn->real_escape_string($order['Address']['name']);
-            $phone = $conn->real_escape_string($order['Address']['phoneNumber']);
+            $phone = $conn->real_escape_string($order['Address']['phoneNumber'] ?? '');
             $street_address_1 = $conn->real_escape_string($order['Address']['line1']);
-            $street_address_2 = $conn->real_escape_string($order['Address']['line2']);
+            $street_address_2 = $conn->real_escape_string($order['Address']['line2'] ?? '');
             $city = $conn->real_escape_string($order['Address']['city']);
-            $state= $conn->real_escape_string($order['Address']['stateOrRegion']);
-            $zip_code = $conn->real_escape_string($order['Address']['postalCode']);
+            $state= $conn->real_escape_string($order['Address']['stateOrRegion'] ?? '');
+            $zip_code = $conn->real_escape_string($order['Address']['postalCode'] ?? '');
             $country = $conn->real_escape_string($order['Address']['countryCode']);
             $items = $conn->real_escape_string(json_encode($order['Items'] ?? []));
             $values[] = "($account_id, '$host_id', '$items', '$status','$purchase_date','$delivery_date','$ship_date', $total_price, '$full_name', '$phone', '$street_address_1', '$street_address_2', '$city', '$state', '$zip_code', '$country')";
