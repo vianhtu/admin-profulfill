@@ -66,7 +66,7 @@ if(!empty($export_data)){
                     <h5 class="mb-0 card-title">File: <?= $file_name ?></h5>
                 </div>
                 <div class="card-body">
-                    <form action="/upload" class="dropzone needsclick p-0" id="dropzone-basic">
+                    <div class="dropzone needsclick p-0" id="dropzone-basic">
                         <div class="dz-message needsclick">
                             <p class="h4 needsclick pt-3 mb-2">Drag and drop your .xlsx file here</p>
                             <p class="h6 text-body-secondary d-block fw-normal mb-2">or</p>
@@ -75,7 +75,7 @@ if(!empty($export_data)){
                         <div class="fallback">
                             <input name="file" type="file" required/>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
             <!-- /Media -->
