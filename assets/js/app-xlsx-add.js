@@ -212,6 +212,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
     const dropzoneBasic = document.querySelector('#dropzone-basic');
     if (dropzoneBasic) {
         myDropzone = new Dropzone(dropzoneBasic, {
+            url: '/upload',
             previewTemplate: previewTemplate,
             parallelUploads: 1,
             maxFilesize: 5,
