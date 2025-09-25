@@ -39,10 +39,6 @@ $(function () {
             $container.find('.form-select').select2();
         }
 
-        formRepeater.on('submit', function (e) {
-            e.preventDefault();
-        });
-
         formRepeater.repeater({
             show: function () {
                 var fromControl = $(this).find('.form-control, .form-select');
