@@ -61,20 +61,20 @@ if(!empty($export_data)){
         <div class="col-12 col-lg-8">
             <!-- /Product Information -->
             <!-- Media -->
-            <div class="card mb-6 form-control-validation">
+            <div class="card mb-6">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 card-title">File: <?= $file_name ?></h5>
                 </div>
                 <div class="card-body">
-                    <div class="dropzone needsclick p-0" id="dropzone-basic">
+                    <div class="dropzone needsclick p-0 form-control-validation" id="dropzone-basic">
                         <div class="dz-message needsclick">
                             <p class="h4 needsclick pt-3 mb-2">Drag and drop your .xlsx file here</p>
                             <p class="h6 text-body-secondary d-block fw-normal mb-2">or</p>
                             <span class="needsclick btn btn-sm btn-label-primary" id="btnBrowse">Browse file</span>
-                        </div>
-                        <div class="fallback">
                             <!-- field ẩn để validation -->
                             <input type="hidden" name="xlsxFilePresent" id="xlsxFilePresent" value="0">
+                        </div>
+                        <div class="fallback">
                             <input name="file" type="file" required/>
                         </div>
                     </div>
