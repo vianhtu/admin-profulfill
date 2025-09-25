@@ -151,13 +151,13 @@ if(!empty($export_data)){
                     <h5 class="card-title mb-0">File Settings</h5>
                 </div>
                 <div class="card-body">
-                    <div class="mb-6 export_header">
+                    <div class="mb-6 form-control-validation export_header">
                         <label class="form-label mb-1" for="export_file_header">Row Header</label>
-                        <input type="number" min="0" class="form-control" id="export_file_header" value="">
+                        <input type="number" min="0" class="form-control" id="export_file_header" placeholder="4" value="">
                     </div>
-                    <div class="mb-6 export_start">
+                    <div class="mb-6 form-control-validation export_start">
                         <label class="form-label mb-1" for="export_file_start">Start Row Item</label>
-                        <input type="number" min="0" class="form-control" id="export_file_start" value="">
+                        <input type="number" min="0" class="form-control" id="export_file_start" placeholder="7" value="">
                     </div>
                 </div>
             </div>
