@@ -152,7 +152,28 @@ document.addEventListener('DOMContentLoaded', function (e) {
                         message: 'Please enter start item row number.'
                     }
                 }
-            }
+            },
+            accountsExport: {
+                validators: {
+                    notEmpty: {
+                        message: 'Please select a export account.'
+                    }
+                }
+            },
+            export_type: {
+                validators: {
+                    notEmpty: {
+                        message: 'Please select a export type.'
+                    }
+                }
+            },
+            export_site: {
+                validators: {
+                    notEmpty: {
+                        message: 'Please select a site export.'
+                    }
+                }
+            },
         },
         plugins: {
             trigger: new FormValidation.plugins.Trigger(),
