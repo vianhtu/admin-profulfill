@@ -174,6 +174,13 @@ document.addEventListener('DOMContentLoaded', function (e) {
                     }
                 }
             },
+            xlsxFilePresent: {
+                validators: {
+                    notEmpty: {
+                        message: 'Please select a file .xlxs'
+                    }
+                }
+            },
         },
         plugins: {
             trigger: new FormValidation.plugins.Trigger(),
