@@ -217,6 +217,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
 
     $('#export_submit').on('click', function (e) {
         e.preventDefault();
+        return;
 
         let isValid = true;
 
