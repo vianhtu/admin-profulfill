@@ -1035,18 +1035,18 @@ function getDownloadTable(): array {
     $data = [];
     while ($row = $rs->fetch_assoc()) {
         $data[] = [
-            "id"             => $row['ID'],
-            "name"           => $row['name'],
-            "email"          => $row['email'],
-            "site_id"        => $row['site_id'],
-            "account_site_id"  => $row['account_site_id'],
-            "type_id"        => $row['type_id'],
-            "author_id"      => $row['author_id'],
-            "status"         => $row['status'],
-            "date"           => $row['date'],
-            "download_date"  => $row['download_date'],
-            "total_items"    => $row['total_items'],
-            "temp_file_name" => $row['file_name']
+            "id"                => $row['ID'],
+            "name"              => $row['name'],
+            "email"             => $row['email'],
+            "site_id"           => $row['site_id'],
+            "account_site_id"   => $row['account_site_id'],
+            "type_id"           => $row['type_id'],
+            "author_id"         => $row['author_id'],
+            "status"            => $row['status'],
+            "date"              => $row['date'],
+            "download_date"     => $row['download_date'],
+            "total_items"       => $row['total_items'],
+            "temp_file_name"    => $row['file_name']
         ];
     }
 
