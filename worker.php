@@ -41,6 +41,7 @@ while (true) {
 
 function processDownload($downloadId, $conn): void
 {
+    return;
     // Gọi AIProcessProducts
     $log = AIProcessDownloadProducts($downloadId);
 
