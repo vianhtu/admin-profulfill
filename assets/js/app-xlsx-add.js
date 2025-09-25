@@ -36,7 +36,7 @@ $(function () {
             });
 
             // Refresh lại select2
-            $container.select2();
+            $container.find('.form-select').select2();
         }
 
         formRepeater.repeater({
