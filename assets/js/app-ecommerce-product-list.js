@@ -29,11 +29,11 @@ function initProductTable(){
     const dt_product_table = document.querySelector('.datatables-products'),
         productAdd = 'app-ecommerce-product-add.html',
         statusObj = {
-            pending: { title: 'pending', class: 'bg-label-primary' },
-            schedule: { title: 'schedule', class: 'bg-label-secondary' },
-            listed: { title: 'listed', class: 'bg-label-success' },
-            inactive: { title: 'inactive', class: 'bg-label-danger' },
-            trademark: { title: 'trademark', class: 'bg-label-warning' }
+            pending: { title: 'Pending', class: 'bg-label-primary' },
+            schedule: { title: 'Schedule', class: 'bg-label-secondary' },
+            listed: { title: 'Listed', class: 'bg-label-success' },
+            inactive: { title: 'Inactive', class: 'bg-label-danger' },
+            trademark: { title: 'Trademark', class: 'bg-label-warning' }
         }
     // E-commerce Products datatable
 
