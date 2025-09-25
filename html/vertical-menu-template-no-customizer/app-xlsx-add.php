@@ -26,6 +26,8 @@ if(!empty($export_data)){
     $account_id = $export_data['accounts_id'];
     $authors_id = $export_data['authors_id'];
     $file_name = $export_data['file_name'];
+    $row_header = $export_data['row_header'];
+    $row_item = $export_data['row_item'];
     $text_add = 'Edit';
     $text_button = 'Update';
     $account = getAccountsByID($account_id);

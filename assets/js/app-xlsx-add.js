@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
         });
     }
 
-    // Add permission form validation
+    // form validation
     const formEl = document.getElementById('addXlsxFile');
     const fv = FormValidation.formValidation(formEl, {
         fields: {
