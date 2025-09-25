@@ -36,7 +36,7 @@ $(function () {
             });
 
             // Refresh lại select2
-            $container.find('.form-select').select2();
+            $container.select2();
         }
 
         formRepeater.repeater({
@@ -70,12 +70,12 @@ $(function () {
                     });
                 });
 
-                updateSelectOptions($(this).closest('.form-repeater'));
+                updateSelectOptions(formRepeater);
             },
             hide: function (deleteElement) {
                 $(this).slideUp(deleteElement);
                 setTimeout(() => {
-                    updateSelectOptions($(this).closest('.form-repeater'));
+                    updateSelectOptions(formRepeater);
                 }, 300);
             }
         });
