@@ -66,7 +66,7 @@ function onPopState(cb) {
 
 // ---- Generic binder: gắn bất kỳ input -> URL + reload DataTables ----
 // optionsBinder: { element: jQuery|DOM, paramName: string, readValue?: fn, writeValue?: fn, defaultValue?: string, useReplace?: bool, debounceMs?: number, resetPagingOnChange?: bool }
-function bindInputToUrlAndTable(optionsBinder) {
+function bindInputToUrlAndTable(table_api,optionsBinder) {
     const {
         element,
         paramName,
@@ -105,10 +105,10 @@ function bindInputToUrlAndTable(optionsBinder) {
     function scheduleReload(resetPaging = true) {
         if (timer) clearTimeout(timer);
         timer = setTimeout(() => {
-            if (typeof api.ajax === 'function') {
-                api.ajax.reload(null, resetPagingOnChange && resetPaging);
-            } else if (typeof api.draw === 'function') {
-                api.draw(false);
+            if (typeof table_api.ajax === 'function') {
+                table_api.ajax.reload(null, resetPagingOnChange && resetPaging);
+            } else if (typeof table_api.draw === 'function') {
+                table_api.draw(false);
             }
             timer = null;
         }, debounceMs);
@@ -173,7 +173,7 @@ function getSelect2filterTable(api, id, html_class, col, label, options = {}, se
         }
 
         // Bind using generic binder (default read/write works for select2 single)
-        bindInputToUrlAndTable({
+        bindInputToUrlAndTable(api,{
             element: $select,
             paramName: id,
             defaultValue: selected || '',
