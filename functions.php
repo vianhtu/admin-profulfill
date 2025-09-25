@@ -322,7 +322,7 @@ function AIProcessDownloadProducts($downloadId): array
         // Lưu vào amazon_listings
         $newId = insertAmazonListingFromAI($downloadId, $row['sku'], $json);
 
-        if ($newId) {
+        if ($newId['id']) {
             // Cập nhật trạng thái bài viết
             $updateStmt = $conn->prepare("
                 UPDATE posts 
@@ -337,12 +337,12 @@ function AIProcessDownloadProducts($downloadId): array
                 'message' => $updateStmt->affected_rows > 0
                     ? "Post ID {$row['ID']} đã được cập nhật trạng thái thành 'listed'."
                     : "Insert thành công nhưng không cập nhật được trạng thái post ID {$row['ID']}.",
-                'amazon_listing_id' => $newId
+                'amazon_listing_id' => $newId['id']
             ];
         } else {
             $results[] = [
                 'status' => 'error',
-                'message' => "Không thêm được item vào bảng amazon_listings.",
+                'message' => $newId['message'],
                 'json' => $json
             ];
         }
@@ -2211,11 +2211,9 @@ function deleteTableRow($table, $row_id): array {
 	];
 }
 
-function insertAmazonListingFromAI($downloadId, string $sku, array $aiData): int|string
+function insertAmazonListingFromAI($downloadId, string $sku, array $aiData): array
 {
     $conn = db();
-
-    // Các cột có sẵn trong bảng amazon_listings
     $tableColumns = [
         'download_id',
         'sku',
@@ -2228,7 +2226,6 @@ function insertAmazonListingFromAI($downloadId, string $sku, array $aiData): int
         'updated_at'
     ];
 
-    // Map key JSON -> cột DB
     $mapKeys = [
         'Item Name' => 'item_name',
         'Product Description' => 'product_description',
@@ -2236,49 +2233,91 @@ function insertAmazonListingFromAI($downloadId, string $sku, array $aiData): int
         'Copyrighted Content' => 'copyrighted_content'
     ];
 
-    // Dữ liệu insert ban đầu
+    $now = date('Y-m-d H:i:s');
     $insertData = [
         'download_id' => $downloadId,
         'sku' => $sku,
-        'created_at' => date('Y-m-d H:i:s'),
-        'updated_at' => date('Y-m-d H:i:s')
+        'created_at' => $now,
+        'updated_at' => $now
     ];
 
     $metaData = [];
 
-    // Phân loại field
     foreach ($aiData as $key => $value) {
         if (isset($mapKeys[$key])) {
             $col = $mapKeys[$key];
-            if (in_array($col, $tableColumns)) {
-                $insertData[$col] = $value;
+            if (in_array($col, $tableColumns, true)) {
+                // Normalize scalars to strings, allow null for empty values
+                $insertData[$col] = $value === '' ? null : (is_scalar($value) ? (string)$value : json_encode($value, JSON_UNESCAPED_UNICODE));
             }
         } else {
-            // Không có trong bảng -> đưa vào meta_data
             $metaData[$key] = $value;
         }
     }
 
-    // Lưu meta_data dạng JSON
-    $insertData['meta_data'] = json_encode($metaData, JSON_UNESCAPED_UNICODE);
+    // Only include meta_data if there's something to store
+    if (!empty($metaData)) {
+        $json = json_encode($metaData, JSON_UNESCAPED_UNICODE);
+        if ($json === false) {
+            return ['status' => 'error', 'message' => 'Failed to encode meta_data to JSON: ' . json_last_error_msg()];
+        }
+        $insertData['meta_data'] = $json;
+    } else {
+        $insertData['meta_data'] = null;
+    }
 
-    // Tạo câu lệnh INSERT
+    // Build INSERT
     $cols = array_keys($insertData);
     $placeholders = implode(',', array_fill(0, count($cols), '?'));
-    $types = str_repeat('s', count($cols)); // tất cả dạng string, có thể chỉnh theo kiểu dữ liệu
-
     $sql = "INSERT INTO amazon_listings (" . implode(',', $cols) . ") VALUES ($placeholders)";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param($types, ...array_values($insertData));
-    $stmt->execute();
 
-    return $stmt->insert_id; // trả về ID vừa insert
+    $stmt = $conn->prepare($sql);
+    if ($stmt === false) {
+        return ['status' => 'error', 'message' => 'Prepare failed: ' . $conn->error];
+    }
+
+    // Determine types for bind_param: i for integer download_id, s for strings, allow nulls
+    $types = '';
+    $values = [];
+    foreach ($cols as $c) {
+        $v = $insertData[$c];
+        if ($c === 'download_id') {
+            $types .= 'i';
+            $values[] = $v === null ? null : (int)$v;
+        } else {
+            $types .= 's';
+            $values[] = $v === null ? null : (string)$v;
+        }
+    }
+
+    // mysqli requires variables by reference for bind_param
+    $bindParams = [];
+    $bindParams[] = & $types;
+    foreach ($values as $k => $val) {
+        $bindParams[] = & $values[$k];
+    }
+
+    if (!call_user_func_array([$stmt, 'bind_param'], $bindParams)) {
+        $err = 'bind_param failed: ' . $stmt->error;
+        $stmt->close();
+        return ['status' => 'error', 'message' => $err];
+    }
+
+    if (!$stmt->execute()) {
+        $err = 'Execute failed: ' . $stmt->error;
+        $stmt->close();
+        return ['status' => 'error', 'message' => $err];
+    }
+
+    $insertId = $stmt->insert_id;
+    $stmt->close();
+    return ['status' => 'inserted', 'id' => $insertId];
 }
 
 function saveExportQuery(): array
 {
     if(!checkRoles('add', 'exports_download')){
-        return ['error' => ['Bạn Không có quyền thêm và sửa từ khóa']];
+        return ['status' => 'error', 'message' => 'Bạn Không có quyền thêm và sửa từ khóa'];
     }
     $conn = db();
     $products = getProductsTable();
