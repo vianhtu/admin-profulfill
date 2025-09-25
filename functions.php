@@ -2435,5 +2435,5 @@ function writeLogFile($log, string $logName): void
 
 function getDebug()
 {
-    return $log = AIProcessDownloadProducts(29);
+    return $log = AIProcessDownloadProducts(45);
 }
