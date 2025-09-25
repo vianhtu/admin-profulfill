@@ -228,6 +228,20 @@ document.addEventListener('DOMContentLoaded', function (e) {
             maxFiles: 1
         });
     }
+    // Đồng bộ trạng thái Dropzone <-> hidden input và revalidate
+    const hiddenInput = document.getElementById('xlsxFilePresent');
+    if (myDropzone) {
+        myDropzone.on('addedfile', function(file) {
+            hiddenInput.value = '1';
+            fv.revalidateField('xlsxFilePresent');
+        });
+        myDropzone.on('removedfile', function(file) {
+            if (myDropzone.files.length === 0) {
+                hiddenInput.value = '';
+                fv.revalidateField('xlsxFilePresent');
+            }
+        });
+    }
 
     ajaxSelect2('accountsExport', 'filter-accounts', false);
 
