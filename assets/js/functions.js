@@ -43,102 +43,122 @@ function ajaxSelect2(select_id, action, multiple = false){
 }
 
 function getSelect2filterTable(api, id, html_class, col, label, options = {}, selected = '') {
-    // ---- URL helpers (tái sử dụng cho mọi input) ----
-    function getUrlParam(name) {
-        return new URLSearchParams(window.location.search).get(name);
-    }
+    // URL helpers
+    function getUrlParam(name) { return new URLSearchParams(window.location.search).get(name); }
     function setUrlParam(name, value, useReplace = false) {
         const url = new URL(window.location.href);
         const params = url.searchParams;
         if (value === '' || value == null) params.delete(name); else params.set(name, value);
-        const newUrl = `${url.pathname}?${params.toString()}`;
+        const newUrl = `${url.pathname}${params.toString() ? '?' + params.toString() : ''}`;
         if (useReplace) window.history.replaceState({}, '', newUrl); else window.history.pushState({}, '', newUrl);
     }
     function deleteUrlParam(name, useReplace = false) {
         const url = new URL(window.location.href);
-        const params = url.searchParams;
-        params.delete(name);
-        const newUrl = `${url.pathname}?${params.toString()}`;
+        url.searchParams.delete(name);
+        const newUrl = `${url.pathname}${url.searchParams.toString() ? '?' + url.searchParams.toString() : ''}`;
         if (useReplace) window.history.replaceState({}, '', newUrl); else window.history.pushState({}, '', newUrl);
     }
-    function onPopState(cb) {
-        window.addEventListener('popstate', cb);
-    }
+    function onPopState(cb) { window.addEventListener('popstate', cb); }
 
-    // ---- Generic binder: gắn bất kỳ input -> URL + reload DataTables ----
-    // optionsBinder: { element: jQuery|DOM, paramName: string, readValue?: fn, writeValue?: fn, defaultValue?: string, useReplace?: bool, debounceMs?: number, resetPagingOnChange?: bool }
-    function bindInputToUrlAndTable(optionsBinder) {
+    // Generic binder with select2-multiple support
+    function bindInputToUrlAndTable(opts) {
         const {
             element,
             paramName,
-            readValue,
-            writeValue,
             defaultValue = '',
             useReplace = false,
             debounceMs = 150,
-            resetPagingOnChange = true
-        } = optionsBinder;
-
+            resetPagingOnChange = true,
+            readValue,
+            writeValue
+        } = opts;
         const $el = element.jquery ? element : $(element);
 
-        const _read = typeof readValue === 'function'
-            ? () => readValue($el)
-            : () => ($el.val && $el.val() !== undefined ? $el.val() : ($el[0] ? $el[0].value : ''));
+        // detect select2 multiple or native multiple
+        const el = $el[0];
+        const isSelect = el && el.tagName === 'SELECT';
+        const isMultiple = isSelect && (el.multiple === true || $el.prop('multiple') === true);
 
-        const _write = typeof writeValue === 'function'
-            ? (v) => writeValue($el, v)
-            : (v) => { if ($el.val) { $el.val(v); $el.trigger('change'); } else if ($el[0]) { $el[0].value = v; } };
+        // Defaults for read/write
+        const detect = {
+            read: () => {
+                if (typeof readValue === 'function') return readValue($el);
+                if (isSelect && isMultiple) {
+                    const val = $el.val() || [];
+                    return Array.isArray(val) ? val.join(',') : String(val || '');
+                }
+                if (isSelect) return $el.val() ?? '';
+                // fallback for other inputs
+                return $el.val && $el.val() !== undefined ? $el.val() : (el ? el.value : '');
+            },
+            write: (v) => {
+                if (typeof writeValue === 'function') return writeValue($el, v);
+                if (isSelect && isMultiple) {
+                    const arr = v ? String(v).split(',') : [];
+                    // set value array for select2 / native select multiple
+                    $el.val(arr).trigger('change.select2 change');
+                    return;
+                }
+                if (isSelect) { $el.val(v).trigger('change.select2 change'); return; }
+                if ($el.val) { $el.val(v); $el.trigger('input change'); } else if (el) { el.value = v; }
+            }
+        };
 
-        // Initial value: URL wins over provided default
+        // Initial value: URL wins
         const urlVal = getUrlParam(paramName);
         const initial = (urlVal !== null) ? urlVal : (defaultValue || '');
+        if (initial !== null && initial !== undefined && initial !== '') detect.write(initial);
+        else if (defaultValue) { detect.write(defaultValue); setUrlParam(paramName, defaultValue, useReplace); }
 
-        if (initial !== null && initial !== undefined && initial !== '') {
-            _write(initial);
-        } else if (defaultValue) {
-            _write(defaultValue);
-            // optionally reflect default into URL without creating history entry
-            setUrlParam(paramName, defaultValue, useReplace);
-        }
-
-        // debounce reload helper
+        // debounce reload
         let timer = null;
         function scheduleReload(resetPaging = true) {
             if (timer) clearTimeout(timer);
             timer = setTimeout(() => {
-                if (typeof api.ajax === 'function') {
-                    api.ajax.reload(null, resetPagingOnChange && resetPaging);
-                } else if (typeof api.draw === 'function') {
-                    api.draw(false);
-                }
+                if (typeof api.ajax === 'function') api.ajax.reload(null, resetPagingOnChange && resetPaging);
+                else if (typeof api.draw === 'function') api.draw(false);
                 timer = null;
             }, debounceMs);
         }
 
-        // input change -> update URL -> reload
-        $el.on('change input', () => {
-            const v = _read() ?? '';
-            if (v === '' || v == null) deleteUrlParam(paramName);
-            else setUrlParam(paramName, String(v));
-            scheduleReload(true);
-        });
+        // attach events
+        if (isSelect && isMultiple) {
+            // Select2 multiple and native multiple emit change; read returns CSV
+            $el.on('change', () => {
+                const v = detect.read() ?? '';
+                if (v === '' || v == null) deleteUrlParam(paramName); else setUrlParam(paramName, String(v));
+                scheduleReload(true);
+            });
+        } else if (isSelect) {
+            $el.on('change', () => {
+                const v = detect.read() ?? '';
+                if (v === '' || v == null) deleteUrlParam(paramName); else setUrlParam(paramName, String(v));
+                scheduleReload(true);
+            });
+        } else {
+            // generic inputs
+            $el.on('input change', () => {
+                const v = detect.read() ?? '';
+                if (v === '' || v == null) deleteUrlParam(paramName); else setUrlParam(paramName, String(v));
+                scheduleReload(true);
+            });
+        }
 
-        // popstate -> sync UI from URL and reload
+        // popstate: sync UI from URL
         onPopState(() => {
             const v = getUrlParam(paramName) || '';
-            _write(v);
+            detect.write(v);
             scheduleReload(true);
         });
 
-        // return control handle if caller needs it
         return {
-            read: () => _read(),
-            write: (v) => _write(v),
-            syncFromUrl: () => { const v = getUrlParam(paramName) || ''; _write(v); }
+            read: () => detect.read(),
+            write: (v) => detect.write(v),
+            syncFromUrl: () => { detect.write(getUrlParam(paramName) || ''); }
         };
     }
 
-    // ---- Original DataTable column setup, now using the binder ----
+    // DataTable column setup using binder
     api.columns(col).every(function () {
         const column = this;
         const $container = $(html_class).empty();
@@ -146,35 +166,36 @@ function getSelect2filterTable(api, id, html_class, col, label, options = {}, se
         // Label
         $container.append(`<label class="form-label" for="${id}">${label}</label>`);
 
-        // Select element
-        const $select = $(`<select id="${id}" class="form-select text-capitalize">
-                         <option value="">All</option>
-                       </select>`).appendTo($container);
+        // If options provided, create select (support multiple via options.multiple=true)
+        if (options && Object.keys(options).length > 0) {
+            const multipleAttr = options.multiple ? ' multiple' : '';
+            const $select = $(`<select id="${id}" class="form-select text-capitalize"${multipleAttr}>
+                           <option value="">All</option>
+                         </select>`).appendTo($container);
+            $.each(options, (key, val) => {
+                const $opt = new Option(val.title, key, false, false);
+                $select.append($opt);
+            });
+            // init select2; let caller pass select2 options in options.select2Config
+            const s2conf = options.select2Config || { dropdownParent: $container };
+            $select.select2(s2conf);
 
-        // Options
-        $.each(options, (key, val) => {
-            const $opt = new Option(val.title, key, false, false);
-            $select.append($opt);
-        });
-
-        // Init select2
-        $select.select2({ dropdownParent: $container });
-
-        // Decide initial UI value: URL wins over selected
-        const urlValue = getUrlParam(id);
-        const initialValue = (urlValue !== null) ? urlValue : (selected || '');
-
-        if (initialValue) {
-            $select.val(initialValue).trigger('change.select2');
-        } else if (selected) {
-            $select.val(selected).trigger('change.select2');
-            // optional: reflect default selected into URL if you prefer
-            // setUrlParam(id, selected, true);
+            // bind; for multiple select2, binder will detect and handle CSV
+            bindInputToUrlAndTable({
+                element: $select,
+                paramName: id,
+                defaultValue: selected || '',
+                useReplace: true,
+                debounceMs: 150,
+                resetPagingOnChange: true
+            });
+            return;
         }
 
-        // Bind using generic binder (default read/write works for select2 single)
+        // otherwise create a text input by default
+        const $input = $(`<input id="${id}" class="form-control" type="text" value="${selected || ''}" />`).appendTo($container);
         bindInputToUrlAndTable({
-            element: $select,
+            element: $input,
             paramName: id,
             defaultValue: selected || '',
             useReplace: true,
