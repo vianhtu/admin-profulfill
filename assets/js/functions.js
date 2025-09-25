@@ -42,102 +42,102 @@ function ajaxSelect2(select_id, action, multiple = false){
     });
 }
 
+// ---- URL helpers (tái sử dụng cho mọi input) ----
+function getUrlParam(name) {
+    return new URLSearchParams(window.location.search).get(name);
+}
+function setUrlParam(name, value, useReplace = false) {
+    const url = new URL(window.location.href);
+    const params = url.searchParams;
+    if (value === '' || value == null) params.delete(name); else params.set(name, value);
+    const newUrl = `${url.pathname}?${params.toString()}`;
+    if (useReplace) window.history.replaceState({}, '', newUrl); else window.history.pushState({}, '', newUrl);
+}
+function deleteUrlParam(name, useReplace = false) {
+    const url = new URL(window.location.href);
+    const params = url.searchParams;
+    params.delete(name);
+    const newUrl = `${url.pathname}?${params.toString()}`;
+    if (useReplace) window.history.replaceState({}, '', newUrl); else window.history.pushState({}, '', newUrl);
+}
+function onPopState(cb) {
+    window.addEventListener('popstate', cb);
+}
+
+// ---- Generic binder: gắn bất kỳ input -> URL + reload DataTables ----
+// optionsBinder: { element: jQuery|DOM, paramName: string, readValue?: fn, writeValue?: fn, defaultValue?: string, useReplace?: bool, debounceMs?: number, resetPagingOnChange?: bool }
+function bindInputToUrlAndTable(optionsBinder) {
+    const {
+        element,
+        paramName,
+        readValue,
+        writeValue,
+        defaultValue = '',
+        useReplace = false,
+        debounceMs = 150,
+        resetPagingOnChange = true
+    } = optionsBinder;
+
+    const $el = element.jquery ? element : $(element);
+
+    const _read = typeof readValue === 'function'
+        ? () => readValue($el)
+        : () => ($el.val && $el.val() !== undefined ? $el.val() : ($el[0] ? $el[0].value : ''));
+
+    const _write = typeof writeValue === 'function'
+        ? (v) => writeValue($el, v)
+        : (v) => { if ($el.val) { $el.val(v); $el.trigger('change'); } else if ($el[0]) { $el[0].value = v; } };
+
+    // Initial value: URL wins over provided default
+    const urlVal = getUrlParam(paramName);
+    const initial = (urlVal !== null) ? urlVal : (defaultValue || '');
+
+    if (initial !== null && initial !== undefined && initial !== '') {
+        _write(initial);
+    } else if (defaultValue) {
+        _write(defaultValue);
+        // optionally reflect default into URL without creating history entry
+        setUrlParam(paramName, defaultValue, useReplace);
+    }
+
+    // debounce reload helper
+    let timer = null;
+    function scheduleReload(resetPaging = true) {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+            if (typeof api.ajax === 'function') {
+                api.ajax.reload(null, resetPagingOnChange && resetPaging);
+            } else if (typeof api.draw === 'function') {
+                api.draw(false);
+            }
+            timer = null;
+        }, debounceMs);
+    }
+
+    // input change -> update URL -> reload
+    $el.on('change input', () => {
+        const v = _read() ?? '';
+        if (v === '' || v == null) deleteUrlParam(paramName);
+        else setUrlParam(paramName, String(v));
+        scheduleReload(true);
+    });
+
+    // popstate -> sync UI from URL and reload
+    onPopState(() => {
+        const v = getUrlParam(paramName) || '';
+        _write(v);
+        scheduleReload(true);
+    });
+
+    // return control handle if caller needs it
+    return {
+        read: () => _read(),
+        write: (v) => _write(v),
+        syncFromUrl: () => { const v = getUrlParam(paramName) || ''; _write(v); }
+    };
+}
+
 function getSelect2filterTable(api, id, html_class, col, label, options = {}, selected = '') {
-    // ---- URL helpers (tái sử dụng cho mọi input) ----
-    function getUrlParam(name) {
-        return new URLSearchParams(window.location.search).get(name);
-    }
-    function setUrlParam(name, value, useReplace = false) {
-        const url = new URL(window.location.href);
-        const params = url.searchParams;
-        if (value === '' || value == null) params.delete(name); else params.set(name, value);
-        const newUrl = `${url.pathname}?${params.toString()}`;
-        if (useReplace) window.history.replaceState({}, '', newUrl); else window.history.pushState({}, '', newUrl);
-    }
-    function deleteUrlParam(name, useReplace = false) {
-        const url = new URL(window.location.href);
-        const params = url.searchParams;
-        params.delete(name);
-        const newUrl = `${url.pathname}?${params.toString()}`;
-        if (useReplace) window.history.replaceState({}, '', newUrl); else window.history.pushState({}, '', newUrl);
-    }
-    function onPopState(cb) {
-        window.addEventListener('popstate', cb);
-    }
-
-    // ---- Generic binder: gắn bất kỳ input -> URL + reload DataTables ----
-    // optionsBinder: { element: jQuery|DOM, paramName: string, readValue?: fn, writeValue?: fn, defaultValue?: string, useReplace?: bool, debounceMs?: number, resetPagingOnChange?: bool }
-    function bindInputToUrlAndTable(optionsBinder) {
-        const {
-            element,
-            paramName,
-            readValue,
-            writeValue,
-            defaultValue = '',
-            useReplace = false,
-            debounceMs = 150,
-            resetPagingOnChange = true
-        } = optionsBinder;
-
-        const $el = element.jquery ? element : $(element);
-
-        const _read = typeof readValue === 'function'
-            ? () => readValue($el)
-            : () => ($el.val && $el.val() !== undefined ? $el.val() : ($el[0] ? $el[0].value : ''));
-
-        const _write = typeof writeValue === 'function'
-            ? (v) => writeValue($el, v)
-            : (v) => { if ($el.val) { $el.val(v); $el.trigger('change'); } else if ($el[0]) { $el[0].value = v; } };
-
-        // Initial value: URL wins over provided default
-        const urlVal = getUrlParam(paramName);
-        const initial = (urlVal !== null) ? urlVal : (defaultValue || '');
-
-        if (initial !== null && initial !== undefined && initial !== '') {
-            _write(initial);
-        } else if (defaultValue) {
-            _write(defaultValue);
-            // optionally reflect default into URL without creating history entry
-            setUrlParam(paramName, defaultValue, useReplace);
-        }
-
-        // debounce reload helper
-        let timer = null;
-        function scheduleReload(resetPaging = true) {
-            if (timer) clearTimeout(timer);
-            timer = setTimeout(() => {
-                if (typeof api.ajax === 'function') {
-                    api.ajax.reload(null, resetPagingOnChange && resetPaging);
-                } else if (typeof api.draw === 'function') {
-                    api.draw(false);
-                }
-                timer = null;
-            }, debounceMs);
-        }
-
-        // input change -> update URL -> reload
-        $el.on('change input', () => {
-            const v = _read() ?? '';
-            if (v === '' || v == null) deleteUrlParam(paramName);
-            else setUrlParam(paramName, String(v));
-            scheduleReload(true);
-        });
-
-        // popstate -> sync UI from URL and reload
-        onPopState(() => {
-            const v = getUrlParam(paramName) || '';
-            _write(v);
-            scheduleReload(true);
-        });
-
-        // return control handle if caller needs it
-        return {
-            read: () => _read(),
-            write: (v) => _write(v),
-            syncFromUrl: () => { const v = getUrlParam(paramName) || ''; _write(v); }
-        };
-    }
-
     // ---- Original DataTable column setup, now using the binder ----
     api.columns(col).every(function () {
         const column = this;
