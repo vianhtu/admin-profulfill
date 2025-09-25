@@ -53,17 +53,15 @@ function initTable(){
                         UserStatus: urlParams.get('UserStatus') || ''
                     };
                     const mapping = { UserRole: 'level', UserTeam: 'team_id', UserStatus: 'status' }; // data names in your columns config
-                    const params = { UserRole: initialFilters.UserRole, UserStatus: initialFilters.UserStatus };
                     d.columns.forEach(col => {
                         for (const key in mapping) {
                             if (col.data === mapping[key]) {
-                                const v = params[key] || '';
+                                const v = initialFilters[key] || '';
                                 col.search.value = v ? `^${v}$` : '';
                                 col.search.regex = !!v;
                             }
                         }
                     });
-                    console.log(d);
                 },
                 dataSrc: function (json) {
                     return json.data;
