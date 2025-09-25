@@ -140,7 +140,7 @@ if(!empty($export_data)){
                 </div>
                 <div class="card-body">
                     <!-- Base Price -->
-                    <div class="mb-6 export_accounts">
+                    <div class="mb-6 form-control-validation export_accounts">
                         <?php renderSelect('accountsExport', 'Select Account', $account, $account_id); ?>
                     </div>
                 </div>
@@ -152,11 +152,11 @@ if(!empty($export_data)){
                     <h5 class="card-title mb-0">File Settings</h5>
                 </div>
                 <div class="card-body">
-                    <div class="mb-6 form-control-validation export_header">
+                    <div class="mb-6 form-control-validation col export_header">
                         <label class="form-label mb-1" for="export_file_header">Row Header</label>
                         <input type="number" min="0" class="form-control" id="export_file_header" name="export_file_header" placeholder="4" value="">
                     </div>
-                    <div class="mb-6 form-control-validation export_start">
+                    <div class="mb-6 form-control-validation col export_start">
                         <label class="form-label mb-1" for="export_file_start">Start Row Item</label>
                         <input type="number" min="0" class="form-control" id="export_file_start" name="export_file_start" placeholder="7" value="">
                     </div>
@@ -170,11 +170,11 @@ if(!empty($export_data)){
                 </div>
                 <div class="card-body">
                     <!-- Type -->
-                    <div class="mb-6 col ecommerce-select2-dropdown">
+                    <div class="mb-6 form-control-validation col ecommerce-select2-dropdown">
                         <?php renderSelect('export_type', 'Type', $options['types'], $type_id); ?>
                     </div>
                     <!-- Site -->
-                    <div class="mb-6 col ecommerce-select2-dropdown">
+                    <div class="mb-6 form-control-validation col ecommerce-select2-dropdown">
                         <?php renderSelect('export_site', 'Site', $options['sites'], $site_id); ?>
                     </div>
                     <!-- authors -->
