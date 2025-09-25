@@ -100,6 +100,22 @@ function initTable(){
                 url: '../../ajax.php?action=get-download-table',
                 type: 'POST',
                 data: function (d) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const initialFilters = {
+                        xlsxTypes: urlParams.get('xlsxTypes') || '',
+                        xlsxSites: urlParams.get('xlsxSites') || '',
+                        xlsxAuthors: urlParams.get('xlsxAuthors') || ''
+                    };
+                    const mapping = { xlsxTypes: 'type_id', xlsxSites: 'site_id', xlsxAuthors: 'author_id' }; // data names in your columns config
+                    d.columns.forEach(col => {
+                        for (const key in mapping) {
+                            if (col.data === mapping[key]) {
+                                const v = initialFilters[key] || '';
+                                col.search.value = v ? `^${v}$` : '';
+                                col.search.regex = !!v;
+                            }
+                        }
+                    });
                     d.accounts = $('#xlsxAccounts').val();
                 },
                 dataSrc: function (json) {
@@ -406,40 +422,9 @@ function initTable(){
             },
             initComplete: function () {
                 const api = this.api();
-
-                // Helper function to create a select dropdown and append options
-                const createFilter = (columnIndex, containerClass, selectId, label, options) => {
-                    const column = api.column(columnIndex);
-                    const select = document.createElement('select');
-                    select.id = selectId;
-                    select.className = 'form-select text-capitalize';
-                    select.innerHTML = `<option value="">All</option>`;
-                    $(containerClass).html('<label class="form-label">'+label+'</label>');
-                    document.querySelector(containerClass).appendChild(select);
-
-                    // Add event listener for filtering
-                    select.addEventListener('change', () => {
-                        const val = select.value ? `^${select.value}$` : '';
-                        column.search(val, true, false).draw();
-                    });
-
-                    // Populate options based on unique column data
-                    Object.entries(options).forEach(([key, val]) => {
-                        const option = document.createElement('option');
-                        option.value = key;
-                        option.textContent = val.title;
-                        select.appendChild(option);
-                    });
-                };
-
-                // Type filter
-                createFilter(11, '.xlsx_types', 'xlsxTypes', 'Types', categoryObj);
-
-                // Sites filter
-                createFilter(4, '.xlsx_sites', 'xlsxSites', 'Sites', sitesObj);
-
-                // Authors filter
-                createFilter(10, '.xlsx_authors', 'xlsxAuthors', 'Authors', authorsObj);
+                getSelect2filterTable(api,'xlsxTypes', '.xlsx_types', 11, 'Type', categoryObj);
+                getSelect2filterTable(api,'xlsxSites', '.xlsx_sites', 4, 'Site', sitesObj);
+                getSelect2filterTable(api,'xlsxAuthors', '.xlsx_authors', 10, 'Author', authorsObj);
 
                 // Accounts filter
                 getAjaxSelect2HTML('xlsx_accounts', 'xlsxAccounts', 'Accounts', 'filter-accounts', true);

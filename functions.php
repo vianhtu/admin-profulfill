@@ -992,26 +992,14 @@ function getDownloadTable(): array {
             OR accounts.name LIKE '%$searchEsc%')";
     }
 
-    // Lọc theo type
-    $filterType = trim($_POST['columns'][11]['search']['value'] ?? '', '^$');
-    if ($filterType !== '') {
-        $escType = $conn->real_escape_string($filterType);
-        $whereClauses[] = "exports.type_id = '$escType'";
-    }
+    // Lọc theo type (int)
+    addTableFilter($whereClauses, 'exports.type_id', 11, 'int', $conn);
 
-    // Lọc theo site
-    $filterSite = trim($_POST['columns'][4]['search']['value'] ?? '', '^$');
-    if ($filterSite !== '') {
-        $escSite = $conn->real_escape_string($filterSite);
-        $whereClauses[] = "exports.site_id = '$escSite'";
-    }
+    // Lọc theo role (int)
+    addTableFilter($whereClauses, 'exports.site_id', 4, 'int', $conn);
 
-    // Lọc theo author
-    $filterAuthor = trim($_POST['columns'][10]['search']['value'] ?? '', '^$');
-    if ($filterAuthor !== '') {
-        $escAuthor = $conn->real_escape_string($filterAuthor);
-        $whereClauses[] = "download.author_id = '$escAuthor'";
-    }
+    // Lọc theo team name (int)
+    addTableFilter($whereClauses, 'download.author_id', 10, 'int', $conn);
 
     // Lọc theo accounts
     $filterAccounts = $_POST['accounts'] ?? [];
@@ -1033,7 +1021,7 @@ function getDownloadTable(): array {
     )->fetch_assoc()['cnt'];
 
     // Lấy dữ liệu
-    $sql = "SELECT DISTINCT download.ID, download.author_id, accounts.email, accounts.site_id AS account_site_id, 
+    $sql = "SELECT download.ID, download.author_id, accounts.email, accounts.site_id AS account_site_id, 
                    exports.site_id, exports.type_id, exports.file_name, accounts.name, 
                    download.status, download.date, download.download_date, download.total_items
             FROM download
