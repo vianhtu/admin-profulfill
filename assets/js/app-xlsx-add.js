@@ -100,7 +100,9 @@ function repeaterOptions(fv){
                 });
 
                 updateSelectOptions($(this).closest('.form-repeater'));
-
+                if(formRepeater.data('repeat-count') === 0){
+                    return;
+                }
                 fv.addField($(this).find('.form-select').prop('name'), {
                     validators: {
                         notEmpty: {}
@@ -114,7 +116,7 @@ function repeaterOptions(fv){
                 }, 300);
             },
             ready: function (setIndexes) {
-                if(formRepeater.data('repeat-count') !== '0'){
+                if(formRepeater.data('repeat-count') === 0){
                     return;
                 }
                 formRepeater.find('.form-select').each(function () {
