@@ -1722,7 +1722,11 @@ function addXlsx(): array {
     $site_id      = (int) ($_POST['site'] ?? 0);
     $type_id      = (int) ($_POST['type'] ?? 0);
     $accounts_id  = (int) ($_POST['account'] ?? 0);
-    $authors_id   = (int) ($_POST['author'] ?? $_SESSION['auth']['user_id']);
+    $authors_id = (int)(
+    isAdmin() && !empty($_POST['author'])
+        ? $_POST['author']
+        : ($_SESSION['auth']['user_id'] ?? 0)
+    );
     $date_create  = date('Y-m-d H:i:s');
     $xlsx_options = $_POST['options'] ?? '';
     $row_header = (int) ($_POST['header'] ?? 0);
