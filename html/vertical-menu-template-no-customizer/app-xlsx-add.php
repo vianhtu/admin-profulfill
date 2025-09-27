@@ -21,6 +21,7 @@ $file_default = [['location'=>'', 'text'=>'', 'value'=>'']];
 $row_header = '';
 $row_item = '';
 $sheet_name = '';
+$repeater_count = 0;
 if(!empty($export_data)){
     $export_id = (int)$export_data['ID'];
     $site_id = (int)$export_data['site_id'];
@@ -40,6 +41,7 @@ if(!empty($export_data)){
     $file_tabs = $file['xlxs']['tabs'] ?? [];
     if(!empty($export_data['file_default']) && $export_data['file_default'] != '[]'){
         $file_default = json_decode($export_data['file_default'], true);
+        $repeater_count = count($file_default);
     }
 }
 ?>
@@ -92,7 +94,7 @@ if(!empty($export_data)){
                     <h5 class="card-title mb-0">Default</h5>
                 </div>
                 <div class="card-body">
-                    <div class="form-repeater">
+                    <div class="form-repeater" data-repeat-count="<?= $repeater_count ?>">
                         <div data-repeater-list="group-a">
                             <?php foreach ($file_default as $key => $value): ?>
                             <div data-repeater-item>
