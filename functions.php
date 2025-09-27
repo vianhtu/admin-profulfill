@@ -1943,7 +1943,7 @@ function downloadXlsx(): array
     $downloadID = isset($_POST['id']) ? (int)$_POST['id'] : 0;
 
     // Kiểm tra trạng thái trước
-    $checkSql = "SELECT accounts.sku, exports.file_default, exports.file_name AS t_file, exports.file_dir, download.file_name AS d_file
+    $checkSql = "SELECT accounts.sku, exports.file_default, exports.file_name AS t_file, exports.file_dir, exports.row_header, exports.row_item, download.file_name AS d_file
                  FROM download
                  INNER JOIN exports ON exports.ID = download.exports_id
                  INNER JOIN accounts ON accounts.ID = exports.accounts_id
@@ -1981,7 +1981,7 @@ function downloadXlsx(): array
         $highestColumnIndex = Coordinate::columnIndexFromString($highestColumn);
 
         $headers = [];
-        $headerRowIndex = 4;
+        $headerRowIndex = (int)$statusRow['row_header'] ?? 4;
 
         // Lặp qua từng cột
         for ($col = 1; $col <= $highestColumnIndex; $col++) {
@@ -2018,7 +2018,7 @@ function downloadXlsx(): array
     $result = $stmt->get_result();
 
     // chạy toàn bộ sản phẩm.
-    $startRow = 8; // bắt đầu row.
+    $startRow = (int)$statusRow['row_item'] ?? 7; // bắt đầu row.
     $counter  = 0; // đếm số sản phẩm đã xử lý
     $parentSku = '';
     $colorIndex = 1;
