@@ -180,15 +180,6 @@ document.addEventListener('DOMContentLoaded', function (e) {
             }
         },
     };
-    if(hiddenInput.value !== ''){
-        valid_fields['export_sheet_name'] = {
-            validators: {
-                notEmpty: {
-                    message: 'Please select a export account.'
-                }
-            }
-        }
-    }
     const fv = FormValidation.formValidation(formEl, {
         fields: valid_fields,
         plugins: {
@@ -201,6 +192,14 @@ document.addEventListener('DOMContentLoaded', function (e) {
             autoFocus: new FormValidation.plugins.AutoFocus()
         }
     });
+
+    // update form.
+    if($('#export_id').val() !== '') {
+        $('#export_file_header, #export_sheet_name, #xlsxFilePresent').on('change', function () {
+            //submit form.
+            formEl.submit(); // submit theo cách HTML chuẩn
+        });
+    }
 
     // previewTemplate: Updated Dropzone default previewTemplate
     // ! Don't change it unless you really know what you are doing
