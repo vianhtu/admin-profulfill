@@ -170,9 +170,11 @@ if(!empty($export_data)){
                         <label class="form-label mb-1" for="export_file_start">Start Row Item</label>
                         <input type="number" min="0" class="form-control" id="export_file_start" name="export_file_start" placeholder="Write new item starting from this line." value="<?= $row_item ?>">
                     </div>
-                    <div class="mb-6 form-control-validation col export_sheet_name<?= $file_name ? ' file-exists' : '' ?>">
+                    <?php if($file_name): ?>
+                    <div class="mb-6 form-control-validation col export_sheet_name">
                         <?php renderSelect('export_sheet_name', 'Sheet Name', $file_tabs, $sheet_name); ?>
                     </div>
+                    <?php endif; ?>
                 </div>
             </div>
             <!-- /File Card -->
