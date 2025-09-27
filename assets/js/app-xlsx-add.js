@@ -46,8 +46,6 @@ function getRepeaterForm(fv){
             text: item.value // hiển thị
         }));
 
-        console.log(header_data);
-
         formRepeater.repeater({
             show: function () {
                 var fromControl = $(this).find('.form-control, .form-select');
@@ -91,6 +89,8 @@ function getRepeaterForm(fv){
                     placeholder: 'Chọn một cột',
                     allowClear: true
                 });
+
+                console.log(selectOptions);
 
                 // Lấy name sau khi repeater đã gán
                 const fieldName = $select.prop('name');
