@@ -5,7 +5,7 @@
 //Jquery to handle the e-commerce product add page
 function init(){
     // get custom header.
-    dropzoneFileUpload();
+    const dz = dropzoneFileUpload();
     repeaterOptions();
     const fv = formValidate();
 
@@ -49,7 +49,7 @@ function init(){
         formData.append('header', $('#export_file_header').val());
         formData.append('startRow', $('#export_file_start').val());
         formData.append('sheet_name', $('#export_sheet_name').length ? $('#export_sheet_name').val() : '');
-        formData.append('file', myDropzone.files[0]);
+        formData.append('file', dz.files[0]);
         formData.append('csrf_token', window.csrfToken);
 
         $.ajax({
@@ -309,6 +309,7 @@ function dropzoneFileUpload(){
             }
         });
     }
+    return myDropzone;
 }
 
 function getRepeaterData() {
