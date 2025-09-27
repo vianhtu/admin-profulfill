@@ -46,6 +46,8 @@ function getRepeaterForm(fv){
             text: item.value // hiển thị
         }));
 
+        console.log(header_data);
+
         formRepeater.repeater({
             show: function () {
                 var fromControl = $(this).find('.form-control, .form-select');
