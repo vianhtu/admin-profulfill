@@ -237,7 +237,7 @@ function formValidate(){
             }
         }
     };
-    return FormValidation.formValidation(formEl, {
+    const fv = FormValidation.formValidation(formEl, {
         fields: valid_fields,
         plugins: {
             trigger: new FormValidation.plugins.Trigger(),
@@ -249,6 +249,8 @@ function formValidate(){
             autoFocus: new FormValidation.plugins.AutoFocus()
         }
     });
+    console.log('Fields in FormValidation:', fv.getFields());
+    return fv;
 }
 
 function dropzoneFileUpload(){
