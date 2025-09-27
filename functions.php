@@ -1449,7 +1449,7 @@ function getXlsxByID($id): array {
 	}
 }
 
-function getXlsxFileHeader(string $filePath, string $sheetName = 'Template', int $headerRowIndex = 4): array {
+function getXlsxFileHeader(string $filePath, string $sheetName = '', int $headerRowIndex = 4): array {
 	// Kiểm tra file tồn tại
 	if (!file_exists($filePath)) {
 		return ['status' => 'error', 'message' => "File không tồn tại: $filePath"];
@@ -1458,18 +1458,24 @@ function getXlsxFileHeader(string $filePath, string $sheetName = 'Template', int
 	try {
 		// Load file Excel
 		$spreadsheet = IOFactory::load($filePath);
+        $xlsx = [];
+        // Lấy mảng tên sheets
+        $sheetNames = $spreadsheet->getSheetNames();
+        foreach ($sheetNames as $name) {
+            $xlsx['tabs'][$name] = $name;
+        }
 
-		// Lấy sheet theo tên
-		$sheet = $spreadsheet->getSheetByName($sheetName);
-		if (!$sheet) {
-			return ['status' => 'error', 'message' => "Sheet '$sheetName' không tồn tại."];
-		}
+        $sheet = $sheetName === ''
+            ? $spreadsheet->getActiveSheet()
+            : ($spreadsheet->getSheetByName($sheetName) ?? null);
+
+        if (!$sheet) {
+            return ['status' => 'error', 'message' => "Sheet '$sheetName' không tồn tại."];
+        }
 
 		// Xác định số cột tối đa
 		$highestColumn = $sheet->getHighestColumn(); // Ví dụ: 'F'
 		$highestColumnIndex = Coordinate::columnIndexFromString($highestColumn);
-
-		$headers = [];
 
 		// Lặp qua từng cột
 		for ($col = 1; $col <= $highestColumnIndex; $col++) {
@@ -1481,14 +1487,14 @@ function getXlsxFileHeader(string $filePath, string $sheetName = 'Template', int
 				continue;
 			}
 
-			$headers[] = [
+            $xlsx['columns'][] = [
 				'column' => Coordinate::stringFromColumnIndex($col),
 				'row' => $headerRowIndex,
 				'value' => $cellValue,
 			];
 		}
 
-		return ['status' => 'success', 'headers' => $headers];
+		return ['status' => 'success', 'xlxs' => $xlsx];
 
 	} catch (\PhpOffice\PhpSpreadsheet\Reader\Exception $e) {
 		return ['status' => 'error', 'message' => 'Lỗi đọc file Excel: ' . $e->getMessage()];
