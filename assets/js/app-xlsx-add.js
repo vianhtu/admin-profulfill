@@ -111,7 +111,9 @@ function repeaterOptions(fv){
                 formRepeater.find('.form-select').each(function () {
                     fv.addField($(this).prop('name'), {
                         validators: {
-                            notEmpty: {}
+                            notEmpty: {
+                                message: 'Please select a field'
+                            }
                         }
                     });
                 });

@@ -45,9 +45,6 @@ if(!empty($export_data)){
 ?>
 <div class="app-ecommerce">
     <form id="addXlsxFile" onsubmit="return false">
-    <script>
-        const header_data = <?php echo json_encode($file_header, JSON_UNESCAPED_UNICODE); ?>;
-    </script>
     <input type="hidden" id="export_id" value="<?= $export_id ?>">
     <!-- Add Product -->
     <div
@@ -99,8 +96,8 @@ if(!empty($export_data)){
                         <div data-repeater-list="group-a">
                             <?php foreach ($file_default as $key => $value): ?>
                             <div data-repeater-item>
-                                <div class="row g-sm-6 mb-6 align-items-end">
-                                    <div class="col-sm-4 form-control-validation">
+                                <div class="row g-sm-6 mb-6 align-items-end form-control-validation">
+                                    <div class="col-sm-4">
                                         <label class="form-label" for="form-repeater-<?= $key ?>-1">Options</label>
                                         <select name="" id="form-repeater-<?= $key ?>-1" class="select2 form-select" data-placeholder="Select a option">
                                             <option value=""></option>
