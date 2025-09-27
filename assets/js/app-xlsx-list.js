@@ -193,7 +193,7 @@ function initTable(){
                 style: 'multi',
                 selector: 'td:nth-child(2)'
             },
-            order: [[1, 'desc']],
+            order: [[1, 'asc']],
             layout: {
                 topStart: {
                     rowClass: 'row m-3 my-0 justify-content-between',
