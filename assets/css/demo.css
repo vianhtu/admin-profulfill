@@ -125,3 +125,7 @@ tr.child-row {
 .datatables-order tr:not(.dt-hasChild){
     border-top-style: hidden;
 }
+/* validate form repeater */
+.form-repeater .fv-plugins-message-container {
+    display: none !important;
+}

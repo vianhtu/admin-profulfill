@@ -100,6 +100,12 @@ function repeaterOptions(fv){
                 });
 
                 updateSelectOptions($(this).closest('.form-repeater'));
+
+                fv.addField($(this).find('.form-select').prop('name'), {
+                    validators: {
+                        notEmpty: {}
+                    }
+                });
             },
             hide: function (deleteElement) {
                 $(this).slideUp(deleteElement);
@@ -111,9 +117,7 @@ function repeaterOptions(fv){
                 formRepeater.find('.form-select').each(function () {
                     fv.addField($(this).prop('name'), {
                         validators: {
-                            notEmpty: {
-                                message: 'Please select a field'
-                            }
+                            notEmpty: {}
                         }
                     });
                 });
