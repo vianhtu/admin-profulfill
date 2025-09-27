@@ -164,11 +164,11 @@ if(!empty($export_data)){
                 <div class="card-body">
                     <div class="mb-6 form-control-validation col export_header">
                         <label class="form-label mb-1" for="export_file_header">Row Header</label>
-                        <input type="number" min="0" class="form-control" id="export_file_header" name="export_file_header" placeholder="row containing column headers" value="<?= $row_header ?>">
+                        <input type="number" min="0" class="form-control" id="export_file_header" name="export_file_header" placeholder="Row containing column headers." value="<?= $row_header ?>">
                     </div>
                     <div class="mb-6 form-control-validation col export_start">
                         <label class="form-label mb-1" for="export_file_start">Start Row Item</label>
-                        <input type="number" min="0" class="form-control" id="export_file_start" name="export_file_start" placeholder="Write new item starting from this line" value="<?= $row_item ?>">
+                        <input type="number" min="0" class="form-control" id="export_file_start" name="export_file_start" placeholder="Write new item starting from this line." value="<?= $row_item ?>">
                     </div>
                     <div class="mb-6 col export_start">
                         <?php renderSelect('export_sheet_name', 'Sheet Name', $file_tabs, $sheet_name); ?>
