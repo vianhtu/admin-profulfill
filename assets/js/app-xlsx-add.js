@@ -4,7 +4,8 @@
 'use strict';
 //Jquery to handle the e-commerce product add page
 
-$(function () {
+function getRepeaterForm(fv){
+
     var formRepeater = $('.form-repeater');
 
     if (formRepeater.length) {
@@ -38,6 +39,12 @@ $(function () {
             // Refresh lại select2
             $container.find('.form-select').select2();
         }
+
+        // get custom header.
+        let selectOptions = header_data.map(item => ({
+            id: item.column, // value
+            text: item.value // hiển thị
+        }));
 
         formRepeater.repeater({
             show: function () {
@@ -73,6 +80,35 @@ $(function () {
                 });
 
                 updateSelectOptions($(this).closest('.form-repeater'));
+
+                const $select = $(this).find('.form-select');
+
+                // Khởi tạo Select2 ngay trong repeater
+                $select.select2({
+                    data: selectOptions,
+                    placeholder: 'Chọn một cột',
+                    allowClear: true
+                });
+
+                // Lấy name sau khi repeater đã gán
+                const fieldName = $select.prop('name');
+
+                // Nếu cần validate giá trị selected không nằm trong selectOptions
+                const currentVal = $select.val();
+                if (selectOptions.length > 0 && currentVal) {
+                    const isValid = selectOptions.some(opt => opt.id === currentVal);
+                    if (!isValid) {
+                        fv.addField(fieldName, {
+                            validators: {
+                                callback: {
+                                    message: 'Giá trị không tồn tại trong danh sách',
+                                    callback: () => false
+                                }
+                            }
+                        });
+                        fv.validateField(fieldName);
+                    }
+                }
             },
             hide: function (deleteElement) {
                 $(this).slideUp(deleteElement);
@@ -99,7 +135,7 @@ $(function () {
 
         updateSelectOptions(formRepeater);
     }
-});
+}
 
 function getRepeaterData() {
     var data = [];
@@ -193,6 +229,8 @@ document.addEventListener('DOMContentLoaded', function (e) {
         }
     });
 
+    getRepeaterForm(fv);
+
     // update form.
     if($('#export_id').val() !== '') {
         $('#export_file_header, #export_sheet_name').on('change', function () {
@@ -260,38 +298,6 @@ document.addEventListener('DOMContentLoaded', function (e) {
     }
 
     ajaxSelect2('accountsExport', 'filter-accounts', false);
-
-    // custom header.
-    const selectOptions = header_data.map(item => ({
-        id: item.column, // value
-        text: item.value // hiển thị
-    }));
-
-    // Khởi tạo Select2
-    $('[data-repeater-item] .form-select').each(function () {
-        const $select = $(this);
-
-        // Lấy giá trị đã được set sẵn trong HTML
-        const currentVal = $select.val();
-
-        // Khởi tạo Select2
-        $select.select2({
-            data: selectOptions,
-            placeholder: 'Chọn một cột',
-            allowClear: true
-        });
-
-        console.log($select.attr('name'));
-
-        // Kiểm tra xem currentVal có tồn tại trong selectOptions không
-        //const isValid = selectOptions.some(opt => opt.id === currentVal);
-
-        //if (!isValid && currentVal) {
-            // Nếu không hợp lệ => báo lỗi với FormValidation
-            //fv.updateFieldStatus($select.attr('name'), 'Invalid', 'validator');
-            //fv.updateMessage($select.attr('name'), 'validator', 'Giá trị không tồn tại trong danh sách');
-        //}
-    });
 
     // Khi FormValidation validate thành công
     fv.on('core.form.valid', function() {
