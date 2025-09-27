@@ -4,66 +4,10 @@
 'use strict';
 //Jquery to handle the e-commerce product add page
 function init(){
-    // get custom header.
-    const dz = dropzoneFileUpload();
     repeaterOptions();
-    requestAnimationFrame(() => {
-        const fv = formValidate();
-        // Khi FormValidation validate thành công
-        fv.on('core.form.valid', function() {
-            const $btn = $('#export_submit');
-            const $spinner = $('#loading_spinner');
-
-            // Hiển thị spinner và disable nút
-            $spinner.removeClass('d-none');
-            $btn.prop('disabled', true);
-
-            let id = $('#export_id').val();
-            const formData = new FormData();
-            formData.append('author', $('#export_author').val());
-            formData.append('site', $('#export_site').val());
-            formData.append('type', $('#export_type').val());
-            formData.append('account', $('#accountsExport').val());
-            formData.append('id', id);
-            formData.append('options', JSON.stringify(getRepeaterData()));
-            formData.append('header', $('#export_file_header').val());
-            formData.append('startRow', $('#export_file_start').val());
-            formData.append('sheet_name', $('#export_sheet_name').length ? $('#export_sheet_name').val() : '');
-            formData.append('file', dz.files[0]);
-            formData.append('csrf_token', window.csrfToken);
-
-            $.ajax({
-                url: '../../ajax.php?action=add-xlsx',
-                method: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function (response) {
-                    if (response.status === 'inserted' || response.status === 'updated') {
-                        const newId = response.id;
-
-                        // Lấy URL hiện tại và thêm id
-                        const url = new URL(window.location.href);
-                        url.searchParams.set('id', newId);
-
-                        // Reload lại với URL mới
-                        window.location.href = url.toString();
-                    } else {
-                        alert('Upload thất bại: ' + response.message);
-                    }
-                },
-                error: function (xhr) {
-                    console.error('Lỗi:', xhr.responseText);
-                    alert('Upload thất bại!');
-                },
-                complete: function () {
-                    // Ẩn spinner và bật lại nút
-                    $spinner.addClass('d-none');
-                    $btn.prop('disabled', false);
-                }
-            });
-        });
-    });
+    const dz = dropzoneFileUpload();
+    const fv = formValidate();
+    addXlsxFile(fv, dz);
 
     // Select2
     var select2 = $('#export_type,#export_site,#export_author,#export_sheet_name');
@@ -331,6 +275,63 @@ function getRepeaterData() {
     });
 
     return data;
+}
+
+function addXlsxFile(fv, dz) {
+    // Khi FormValidation validate thành công
+    fv.on('core.form.valid', function() {
+        const $btn = $('#export_submit');
+        const $spinner = $('#loading_spinner');
+
+        // Hiển thị spinner và disable nút
+        $spinner.removeClass('d-none');
+        $btn.prop('disabled', true);
+
+        let id = $('#export_id').val();
+        const formData = new FormData();
+        formData.append('author', $('#export_author').val());
+        formData.append('site', $('#export_site').val());
+        formData.append('type', $('#export_type').val());
+        formData.append('account', $('#accountsExport').val());
+        formData.append('id', id);
+        formData.append('options', JSON.stringify(getRepeaterData()));
+        formData.append('header', $('#export_file_header').val());
+        formData.append('startRow', $('#export_file_start').val());
+        formData.append('sheet_name', $('#export_sheet_name').length ? $('#export_sheet_name').val() : '');
+        formData.append('file', dz.files[0]);
+        formData.append('csrf_token', window.csrfToken);
+
+        $.ajax({
+            url: '../../ajax.php?action=add-xlsx',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (response.status === 'inserted' || response.status === 'updated') {
+                    const newId = response.id;
+
+                    // Lấy URL hiện tại và thêm id
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('id', newId);
+
+                    // Reload lại với URL mới
+                    window.location.href = url.toString();
+                } else {
+                    alert('Upload thất bại: ' + response.message);
+                }
+            },
+            error: function (xhr) {
+                console.error('Lỗi:', xhr.responseText);
+                alert('Upload thất bại!');
+            },
+            complete: function () {
+                // Ẩn spinner và bật lại nút
+                $spinner.addClass('d-none');
+                $btn.prop('disabled', false);
+            }
+        });
+    });
 }
 
 document.addEventListener('DOMContentLoaded', function (e) {
