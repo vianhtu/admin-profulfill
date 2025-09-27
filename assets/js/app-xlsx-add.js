@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
             if ($('#export_id').val() !== '') {
                 setTimeout(function() {
                     $('#export_submit').trigger('click');
-                }, 2000); // 2000 milliseconds = 2 seconds
+                }, 1000); // 2000 milliseconds = 2 seconds
             }
         });
     }
