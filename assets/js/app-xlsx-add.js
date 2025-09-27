@@ -229,7 +229,7 @@ function formValidate(){
                 }
             }
         },
-        'group-a[*][]': {
+        '[name^="group-a"][name$="[]"]': {
             validators: {
                 notEmpty: {
                     message: 'Please select'
