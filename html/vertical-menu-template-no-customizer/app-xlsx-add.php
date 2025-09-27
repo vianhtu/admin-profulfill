@@ -18,8 +18,8 @@ $text_button = 'Add';
 $file_header = [];
 $file_tabs = [];
 $file_default = [['location'=>'', 'text'=>'', 'value'=>'']];
-$row_header = 4;
-$row_item = 7;
+$row_header = '';
+$row_item = '';
 $sheet_name = '';
 if(!empty($export_data)){
     $export_id = (int)$export_data['ID'];
