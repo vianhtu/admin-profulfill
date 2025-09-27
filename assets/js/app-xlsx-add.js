@@ -122,7 +122,7 @@ function getRepeaterData() {
 
 document.addEventListener('DOMContentLoaded', function (e) {
     // Select2
-    var select2 = $('#export_type,#export_site,#export_author');
+    var select2 = $('#export_type,#export_site,#export_author,#export_sheet_name');
     if (select2.length) {
         select2.each(function () {
             var $this = $(this);
