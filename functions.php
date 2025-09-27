@@ -1779,10 +1779,10 @@ function addXlsx(): array {
     }
 
     $insert = $conn->prepare("
-        INSERT INTO exports (accounts_id, type_id, site_id, authors_id, date_create, file_name, file_dir, file_default, row_header, row_item, sheet_name)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO exports (accounts_id, type_id, site_id, authors_id, date_create, file_name, file_dir, file_default, row_header, row_item)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
-    $insert->bind_param("iiiissssiis", $accounts_id, $type_id, $site_id, $authors_id, $date_create, $originalName, $uniqueName, $xlsx_options, $row_header, $row_item, $sheet_name);
+    $insert->bind_param("iiiissssii", $accounts_id, $type_id, $site_id, $authors_id, $date_create, $originalName, $uniqueName, $xlsx_options, $row_header, $row_item);
 
     if ($insert->execute()) {
         return ['status' => 'inserted', 'id' => $insert->insert_id, 'file' => $uniqueName];
