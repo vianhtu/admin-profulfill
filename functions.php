@@ -1449,7 +1449,7 @@ function getXlsxByID($id): array {
 	}
 }
 
-function getXlsxFileHeader(string $filePath, string $sheetName = '', int $headerRowIndex = 4): array {
+function getXlsxFileHeader(string $filePath, string $sheetName = '', int $headerRowIndex = 1): array {
 	// Kiểm tra file tồn tại
 	if (!file_exists($filePath)) {
 		return ['status' => 'error', 'message' => "File không tồn tại: $filePath"];
