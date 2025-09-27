@@ -107,7 +107,7 @@ echo "<pre>", print_r($file_default, 1), "</pre>";
                                         <select name="" id="form-repeater-<?= $key ?>-1" class="select2 form-select" data-placeholder="Select a option">
                                             <option value=""></option>
                                             <?php foreach ($file_header as $header): ?>
-                                            <option value="<?= $header['location']; ?>"<?= $value['location'] == $header['location'] ? ' selected' : ''; ?><?= $header['text']; ?></option>
+                                            <option value="<?= $header['column']; ?>"<?= $value['location'] == $header['column'] ? ' selected' : ''; ?><?= $header['value']; ?></option>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
