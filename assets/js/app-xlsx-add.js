@@ -108,7 +108,7 @@ function repeaterOptions(){
                 }, 300);
             },
             ready: function (setIndexes) {
-                console.log($(this).find('.form-select'));
+                console.log(formRepeater.find('.form-select'));
             }
         });
 
