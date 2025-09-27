@@ -4,9 +4,9 @@
 'use strict';
 //Jquery to handle the e-commerce product add page
 function init(){
-    repeaterOptions();
     const dz = dropzoneFileUpload();
     const fv = formValidate();
+    repeaterOptions(fv);
     addXlsxFile(fv, dz);
 
     // Select2
@@ -30,7 +30,7 @@ function init(){
     ajaxSelect2('accountsExport', 'filter-accounts', false);
 }
 
-function repeaterOptions(){
+function repeaterOptions(fv){
 
     var formRepeater = $('.form-repeater');
 
@@ -109,7 +109,13 @@ function repeaterOptions(){
             },
             ready: function (setIndexes) {
                 formRepeater.find('.form-select').each(function () {
-                    console.log($(this).prop('name'));
+                    fv.addField($(this).prop('name'), {
+                        validators: {
+                            notEmpty: {
+                                message: 'Please select'
+                            }
+                        }
+                    });
                 });
             }
         });
