@@ -30,7 +30,7 @@ if(!empty($export_data)){
     $file_name = $export_data['file_name'];
     $row_header = (int)$export_data['row_header'];
     $row_item = (int)$export_data['row_item'];
-    $sheet_name = $export_data['sheet_name'];
+    $sheet_name = $export_data['sheet_name'] ?? '';
     $text_add = 'Edit';
     $text_button = 'Update';
     $account = getAccountsByID($account_id);
