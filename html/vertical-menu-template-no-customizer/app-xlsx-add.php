@@ -104,7 +104,9 @@ if(!empty($export_data)){
                                         <label class="form-label" for="form-repeater-<?= $key ?>-1">Options</label>
                                         <select name="" id="form-repeater-<?= $key ?>-1" class="select2 form-select" data-placeholder="Select a option">
                                             <option value=""></option>
-                                            <option value="<?= $value['location']; ?>" selected><?= $value['text']; ?></option>
+                                            <?php foreach ($file_header as $header): ?>
+                                            <option value="<?= $header['location']; ?>"<?= $value['location'] === $header['location'] ? ' selected' : ''; ?><?= $header['text']; ?></option>
+                                            <?php endforeach; ?>
                                         </select>
                                     </div>
 
