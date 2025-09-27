@@ -114,6 +114,9 @@ function repeaterOptions(fv){
                 }, 300);
             },
             ready: function (setIndexes) {
+                if(formRepeater.data('repeat-count') !== 0){
+                    return;
+                }
                 formRepeater.find('.form-select').each(function () {
                     fv.addField($(this).prop('name'), {
                         validators: {
