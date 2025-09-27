@@ -5,10 +5,6 @@
 //Jquery to handle the e-commerce product add page
 function init(){
     // get custom header.
-    let selectOptions = header_data.map(item => ({
-        id: item.column, // value
-        text: item.value // hiển thị
-    }));
     repeaterForm();
 }
 
@@ -152,6 +148,7 @@ function getRepeaterData() {
 }
 
 document.addEventListener('DOMContentLoaded', function (e) {
+    init();
     // Select2
     var select2 = $('#export_type,#export_site,#export_author,#export_sheet_name');
     if (select2.length) {
