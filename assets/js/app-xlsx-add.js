@@ -108,10 +108,8 @@ function repeaterOptions(){
                 }, 300);
             },
             ready: function (setIndexes) {
-                $(this).find('.form-select').each(function () {
-                    console.log($(this).prop('name'));
-                });
-            },
+                console.log($(this).find('.form-select'));
+            }
         });
 
         // Xử lý click nút xóa
