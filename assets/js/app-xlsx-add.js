@@ -5,10 +5,10 @@
 //Jquery to handle the e-commerce product add page
 function init(){
     // get custom header.
-    repeaterForm();
+    repeaterOptions();
 }
 
-function repeaterForm(){
+function repeaterOptions(){
 
     var formRepeater = $('.form-repeater');
 
