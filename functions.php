@@ -1462,7 +1462,9 @@ function getXlsxFileHeader(string $filePath, string $sheetName = '', int $header
         // Lấy mảng tên sheets
         $sheetNames = $spreadsheet->getSheetNames();
         foreach ($sheetNames as $name) {
-            $xlsx['tabs'][$name] = $name;
+            $xlsx['tabs'][$name] = [
+                'title' => $name
+            ];
         }
 
         $sheet = $sheetName === ''
