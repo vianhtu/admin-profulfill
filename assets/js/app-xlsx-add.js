@@ -108,8 +108,9 @@ function repeaterOptions(){
                 }, 300);
             },
             ready: function (setIndexes) {
-                console.log('Repeater đã khởi tạo xong');
-                // Bạn có thể init Select2, FormValidation ở đây
+                $(this).closest('.form-repeater').find('.form-select').each(function () {
+                    console.log($(this).prop('name'));
+                });
             },
         });
 
@@ -175,13 +176,6 @@ function formValidate(){
             validators: {
                 notEmpty: {
                     message: 'Please select a file .xlxs'
-                }
-            }
-        },
-        '[name^="group-a"][name$="[]"]': {
-            validators: {
-                notEmpty: {
-                    message: 'Please select'
                 }
             }
         }
