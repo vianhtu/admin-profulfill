@@ -4,8 +4,8 @@
 'use strict';
 //Jquery to handle the e-commerce product add page
 function init(){
-    const dz = dropzoneFileUpload();
     const fv = formValidate();
+    const dz = dropzoneFileUpload(fv);
     repeaterOptions(fv);
     addXlsxFile(fv, dz);
 
@@ -210,7 +210,7 @@ function formValidate(){
     return fv;
 }
 
-function dropzoneFileUpload(){
+function dropzoneFileUpload(fv){
     const hiddenInput = document.getElementById('xlsxFilePresent');
     // previewTemplate: Updated Dropzone default previewTemplate
     // ! Don't change it unless you really know what you are doing
