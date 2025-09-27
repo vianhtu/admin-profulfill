@@ -183,28 +183,6 @@ function repeaterOptions(){
     }
 }
 
-function repeaterSelect2Validate($select, fv){
-    // Lấy name sau khi repeater đã gán
-    const fieldName = $select.prop('name');
-
-    // Nếu cần validate giá trị selected không nằm trong selectOptions
-    const currentVal = $select.val();
-    if (selectOptions.length > 0 && currentVal) {
-        const isValid = selectOptions.some(opt => opt.id === currentVal);
-        if (!isValid) {
-            fv.addField(fieldName, {
-                validators: {
-                    callback: {
-                        message: 'Giá trị không tồn tại trong danh sách',
-                        callback: () => false
-                    }
-                }
-            });
-            fv.validateField(fieldName);
-        }
-    }
-}
-
 function formValidate(){
     // form validation
     const formEl = document.getElementById('addXlsxFile');
@@ -251,6 +229,13 @@ function formValidate(){
                 }
             }
         },
+        'group-a[*][]': {
+            validators: {
+                notEmpty: {
+                    message: 'Please select'
+                }
+            }
+        }
     };
     return FormValidation.formValidation(formEl, {
         fields: valid_fields,
