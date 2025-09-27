@@ -135,51 +135,62 @@ document.addEventListener('DOMContentLoaded', function (e) {
 
     // form validation
     const formEl = document.getElementById('addXlsxFile');
-    const fv = FormValidation.formValidation(formEl, {
-        fields: {
-            export_file_header: {
-                validators: {
-                    notEmpty: {
-                        message: 'Please enter header row number.'
-                    }
+    const hiddenInput = document.getElementById('xlsxFilePresent');
+    let valid_fields = {
+        export_file_header: {
+            validators: {
+                notEmpty: {
+                    message: 'Please enter header row number.'
                 }
-            },
-            export_file_start: {
-                validators: {
-                    notEmpty: {
-                        message: 'Please enter start item row number.'
-                    }
-                }
-            },
-            accountsExport: {
-                validators: {
-                    notEmpty: {
-                        message: 'Please select a export account.'
-                    }
-                }
-            },
-            export_type: {
-                validators: {
-                    notEmpty: {
-                        message: 'Please select a export type.'
-                    }
-                }
-            },
-            export_site: {
-                validators: {
-                    notEmpty: {
-                        message: 'Please select a site export.'
-                    }
-                }
-            },
-            xlsxFilePresent: {
-                validators: {
-                    notEmpty: {
-                        message: 'Please select a file .xlxs'
-                    }
-                }
-            },
+            }
         },
+        export_file_start: {
+            validators: {
+                notEmpty: {
+                    message: 'Please enter start item row number.'
+                }
+            }
+        },
+        accountsExport: {
+            validators: {
+                notEmpty: {
+                    message: 'Please select a export account.'
+                }
+            }
+        },
+        export_type: {
+            validators: {
+                notEmpty: {
+                    message: 'Please select a export type.'
+                }
+            }
+        },
+        export_site: {
+            validators: {
+                notEmpty: {
+                    message: 'Please select a site export.'
+                }
+            }
+        },
+        xlsxFilePresent: {
+            validators: {
+                notEmpty: {
+                    message: 'Please select a file .xlxs'
+                }
+            }
+        },
+    };
+    if(hiddenInput.value !== ''){
+        valid_fields['export_sheet_name'] = {
+            validators: {
+                notEmpty: {
+                    message: 'Please select a export account.'
+                }
+            }
+        }
+    }
+    const fv = FormValidation.formValidation(formEl, {
+        fields: valid_fields,
         plugins: {
             trigger: new FormValidation.plugins.Trigger(),
             bootstrap5: new FormValidation.plugins.Bootstrap5({
@@ -227,10 +238,9 @@ document.addEventListener('DOMContentLoaded', function (e) {
         });
     }
     // Đồng bộ trạng thái Dropzone <-> hidden input và revalidate
-    const hiddenInput = document.getElementById('xlsxFilePresent');
     if (myDropzone) {
         myDropzone.on('addedfile', function(file) {
-            hiddenInput.value = '1';
+            hiddenInput.value = file.name;
             fv.revalidateField('xlsxFilePresent');
             // Lấy tên file
             document.getElementById('fileTitle').textContent = file.name;
