@@ -242,6 +242,11 @@ document.addEventListener('DOMContentLoaded', function (e) {
             fv.revalidateField('xlsxFilePresent');
             // Lấy tên file
             document.getElementById('fileTitle').textContent = file.name;
+            if ($('#export_id').val() !== '') {
+                setTimeout(function() {
+                    $('#export_submit').trigger('click');
+                }, 2000); // 2000 milliseconds = 2 seconds
+            }
         });
         myDropzone.on('removedfile', function(file) {
             if (myDropzone.files.length === 0) {
