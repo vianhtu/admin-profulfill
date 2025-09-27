@@ -281,14 +281,16 @@ document.addEventListener('DOMContentLoaded', function (e) {
             allowClear: true
         });
 
-        // Kiểm tra xem currentVal có tồn tại trong selectOptions không
-        const isValid = selectOptions.some(opt => opt.id === currentVal);
+        console.log($select.attr('name'));
 
-        if (!isValid && currentVal) {
+        // Kiểm tra xem currentVal có tồn tại trong selectOptions không
+        //const isValid = selectOptions.some(opt => opt.id === currentVal);
+
+        //if (!isValid && currentVal) {
             // Nếu không hợp lệ => báo lỗi với FormValidation
-            fv.updateFieldStatus($select.attr('name'), 'Invalid', 'validator');
-            fv.updateMessage($select.attr('name'), 'validator', 'Giá trị không tồn tại trong danh sách');
-        }
+            //fv.updateFieldStatus($select.attr('name'), 'Invalid', 'validator');
+            //fv.updateMessage($select.attr('name'), 'validator', 'Giá trị không tồn tại trong danh sách');
+        //}
     });
 
     // Khi FormValidation validate thành công
