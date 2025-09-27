@@ -43,7 +43,7 @@ if(!empty($export_data)){
     }
 }
 var_dump($file_header);
-var_dump($file_default);
+var_dump($file_default); echo '<pre>';
 ?>
 <div class="app-ecommerce">
     <form id="addXlsxFile" onsubmit="return false">
