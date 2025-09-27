@@ -242,6 +242,10 @@ document.addEventListener('DOMContentLoaded', function (e) {
             fv.revalidateField('xlsxFilePresent');
             // Lấy tên file
             document.getElementById('fileTitle').textContent = file.name;
+            document.getElementById('#xlsxFilePresent').dispatchEvent(new Event('change', {
+                bubbles: true,
+                cancelable: true
+            }));
         });
         myDropzone.on('removedfile', function(file) {
             if (myDropzone.files.length === 0) {
