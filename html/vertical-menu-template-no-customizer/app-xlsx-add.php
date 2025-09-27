@@ -102,7 +102,7 @@ if(!empty($export_data)){
                                 <div class="row g-sm-6 mb-6 align-items-end">
                                     <div class="col-sm-4 form-control-validation">
                                         <label class="form-label" for="form-repeater-<?= $key ?>-1">Options</label>
-                                        <select name="<?= $key ?>" id="form-repeater-<?= $key ?>-1" class="select2 form-select" data-placeholder="Select a option">
+                                        <select name="" id="form-repeater-<?= $key ?>-1" class="select2 form-select" data-placeholder="Select a option">
                                             <option value=""></option>
                                             <option value="<?= $value['location']; ?>" selected><?= $value['text']; ?></option>
                                         </select>
