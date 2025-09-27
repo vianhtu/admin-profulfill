@@ -42,6 +42,7 @@ if(!empty($export_data)){
         $file_default = json_decode($export_data['file_default'], true);
     }
 }
+var_dump($file_header);
 ?>
 <div class="app-ecommerce">
     <form id="addXlsxFile" onsubmit="return false">
@@ -105,7 +106,7 @@ if(!empty($export_data)){
                                         <select name="" id="form-repeater-<?= $key ?>-1" class="select2 form-select" data-placeholder="Select a option">
                                             <option value=""></option>
                                             <?php foreach ($file_header as $header): ?>
-                                            <option value="<?= $header['location']; ?>"<?= $value['location'] === $header['location'] ? ' selected' : ''; ?><?= $header['text']; ?></option>
+                                            <option value="<?= $header['location']; ?>"<?= $value['location'] == $header['location'] ? ' selected' : ''; ?><?= $header['text']; ?></option>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
