@@ -196,8 +196,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
     // update form.
     if($('#export_id').val() !== '') {
         $('#export_file_header, #export_sheet_name, #xlsxFilePresent').on('change', function () {
-            //submit form.
-            formEl.submit(); // submit theo cách HTML chuẩn
+            $('#export_submit').trigger('click');
         });
     }
 
