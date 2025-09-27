@@ -37,7 +37,7 @@ if(!empty($export_data)){
     $xlsxDir = ROOT_DIR . '/xlsx/'.$export_data['file_dir'];
     $file = getXlsxFileHeader(realpath($xlsxDir), $sheet_name, $row_header);
     $file_header = $file['xlxs']['columns'] ?? [];
-    $file_tabs = $file['tabs']['columns'] ?? [];
+    $file_tabs = $file['xlxs']['tabs'] ?? [];
     if(!empty($export_data['file_default']) && $export_data['file_default'] != '[]'){
         $file_default = json_decode($export_data['file_default'], true);
     }
