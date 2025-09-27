@@ -114,6 +114,7 @@ function repeaterOptions(fv){
                 }, 300);
             },
             ready: function (setIndexes) {
+                console.log(formRepeater.data('repeat-count'));
                 if(formRepeater.data('repeat-count') !== '0'){
                     return;
                 }
