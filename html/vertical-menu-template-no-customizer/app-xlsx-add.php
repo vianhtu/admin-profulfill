@@ -100,7 +100,7 @@ if(!empty($export_data)){
                             <?php foreach ($file_default as $key => $value): ?>
                             <div data-repeater-item>
                                 <div class="row g-sm-6 mb-6 align-items-end">
-                                    <div class="col-sm-4">
+                                    <div class="col-sm-4 form-control-validation">
                                         <label class="form-label" for="form-repeater-<?= $key ?>-1">Options</label>
                                         <select id="form-repeater-<?= $key ?>-1" class="select2 form-select" data-placeholder="Select a option">
                                             <option value=""></option>
