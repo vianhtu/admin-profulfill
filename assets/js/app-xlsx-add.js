@@ -268,10 +268,27 @@ document.addEventListener('DOMContentLoaded', function (e) {
     }));
 
     // Khởi tạo Select2
-    $('[data-repeater-item] .form-select').select2({
-        data: selectOptions,
-        placeholder: 'Chọn một cột',
-        allowClear: true
+    $('[data-repeater-item] .form-select').each(function () {
+        const $select = $(this);
+
+        // Lấy giá trị đã được set sẵn trong HTML
+        const currentVal = $select.val();
+
+        // Khởi tạo Select2
+        $select.select2({
+            data: selectOptions,
+            placeholder: 'Chọn một cột',
+            allowClear: true
+        });
+
+        // Kiểm tra xem currentVal có tồn tại trong selectOptions không
+        const isValid = selectOptions.some(opt => opt.id === currentVal);
+
+        if (!isValid && currentVal) {
+            // Nếu không hợp lệ => báo lỗi với FormValidation
+            fv.updateFieldStatus($select.attr('name'), 'Invalid', 'validator');
+            fv.updateMessage($select.attr('name'), 'validator', 'Giá trị không tồn tại trong danh sách');
+        }
     });
 
     // Khi FormValidation validate thành công
