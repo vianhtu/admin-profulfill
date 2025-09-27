@@ -5,10 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dd67acd4-b783-43b8-b6ae-ced4c44e1a52" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/admin-profulfill.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/admin-profulfill.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../profulfill-products-data/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../profulfill-products-data/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/functions.php" beforeDir="false" afterPath="$PROJECT_DIR$/functions.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/html/vertical-menu-template-no-customizer/app-xlsx-add.php" beforeDir="false" afterPath="$PROJECT_DIR$/html/vertical-menu-template-no-customizer/app-xlsx-add.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../profulfill-products-data/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../profulfill-products-data/.idea/php.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../profulfill-products-data/.idea/profulfill-products-data.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../profulfill-products-data/.idea/profulfill-products-data.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../profulfill-products-data/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../profulfill-products-data/.idea/vcs.xml" afterDir="false" />
@@ -40,7 +41,7 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="PhpDebugGeneral" listening_started="true" />
-  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="$PROJECT_DIR$/../../../../../../xampp/php/php.exe">
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="/opt/homebrew/Cellar/php/8.4.7/bin/php">
     <include_path>
       <path value="$PROJECT_DIR$/vendor/markbaker/matrix" />
       <path value="$PROJECT_DIR$/vendor/phpoffice/phpspreadsheet" />
@@ -96,6 +97,7 @@
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;yarn&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -153,6 +155,8 @@
       <workItem from="1758678857277" duration="17354000" />
       <workItem from="1758763515571" duration="18383000" />
       <workItem from="1758808705423" duration="12334000" />
+      <workItem from="1758936269560" duration="279000" />
+      <workItem from="1758937166947" duration="731000" />
     </task>
     <servers />
   </component>
@@ -170,7 +174,7 @@
       </map>
     </option>
   </component>
-  <component name="WordPressConfiguration">
-    <wordpressPath />
+  <component name="WordPressConfiguration" enabled="true">
+    <wordpressPath>$PROJECT_DIR$/../../..</wordpressPath>
   </component>
 </project>

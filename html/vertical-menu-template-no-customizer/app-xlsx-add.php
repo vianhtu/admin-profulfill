@@ -19,6 +19,7 @@ $file_header = [];
 $file_default = [['location'=>'', 'text'=>'', 'value'=>'']];
 $row_header = 4;
 $row_item = 7;
+$sheet_name = '';
 if(!empty($export_data)){
     $export_id = $export_data['ID'];
     $site_id = $export_data['site_id'];
@@ -28,6 +29,7 @@ if(!empty($export_data)){
     $file_name = $export_data['file_name'];
     $row_header = $export_data['row_header'];
     $row_item = $export_data['row_item'];
+    $sheet_name = $export_data['sheet_name'];
     $text_add = 'Edit';
     $text_button = 'Update';
     $account = getAccountsByID($account_id);
@@ -165,6 +167,10 @@ if(!empty($export_data)){
                     <div class="mb-6 form-control-validation col export_start">
                         <label class="form-label mb-1" for="export_file_start">Start Row Item</label>
                         <input type="number" min="0" class="form-control" id="export_file_start" name="export_file_start" placeholder="7" value="<?= $row_item ?>">
+                    </div>
+                    <div class="mb-6 col export_start">
+                        <label class="form-label mb-1" for="export_sheet_name">Sheet Name</label>
+                        <input type="text" class="form-control" id="export_sheet_name" name="export_sheet_name" placeholder="Default active tab." value="<?= $sheet_name ?>">
                     </div>
                 </div>
             </div>

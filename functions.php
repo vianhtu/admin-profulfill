@@ -1719,6 +1719,7 @@ function addXlsx(): array {
     $xlsx_options = $_POST['options'] ?? '';
     $row_header = (int) ($_POST['header'] ?? 0);
     $row_item = (int) ($_POST['startRow'] ?? 0);
+    $sheet_name = $_POST['sheet_name'] ?? '';
 
     // Nếu có ID, kiểm tra bản ghi để cập nhật
     if ($id) {
@@ -1747,10 +1748,10 @@ function addXlsx(): array {
             $update = $conn->prepare("
                 UPDATE exports SET
                     accounts_id = ?, type_id = ?, site_id = ?, authors_id = ?,
-                    date_create = ?, file_name = ?, file_dir = ?, file_default = ?, row_header = ?, row_item = ?
+                    date_create = ?, file_name = ?, file_dir = ?, file_default = ?, row_header = ?, row_item = ?, sheet_name = ?
                 WHERE id = ?
             ");
-            $update->bind_param("iiiissssiii", $accounts_id, $type_id, $site_id, $authors_id, $date_create, $originalName, $uniqueName, $xlsx_options, $row_header, $row_item, $id);
+            $update->bind_param("iiiissssiisi", $accounts_id, $type_id, $site_id, $authors_id, $date_create, $originalName, $uniqueName, $xlsx_options, $row_header, $row_item, $sheet_name, $id);
 
             if ($update->execute()) {
                 return ['status' => 'updated', 'id' => $id, 'file' => $uniqueName];
@@ -1766,10 +1767,10 @@ function addXlsx(): array {
     }
 
     $insert = $conn->prepare("
-        INSERT INTO exports (accounts_id, type_id, site_id, authors_id, date_create, file_name, file_dir, file_default, row_header, row_item)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO exports (accounts_id, type_id, site_id, authors_id, date_create, file_name, file_dir, file_default, row_header, row_item, sheet_name)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
-    $insert->bind_param("iiiissssii", $accounts_id, $type_id, $site_id, $authors_id, $date_create, $originalName, $uniqueName, $xlsx_options, $row_header, $row_item);
+    $insert->bind_param("iiiissssiis", $accounts_id, $type_id, $site_id, $authors_id, $date_create, $originalName, $uniqueName, $xlsx_options, $row_header, $row_item, $sheet_name);
 
     if ($insert->execute()) {
         return ['status' => 'inserted', 'id' => $insert->insert_id, 'file' => $uniqueName];
