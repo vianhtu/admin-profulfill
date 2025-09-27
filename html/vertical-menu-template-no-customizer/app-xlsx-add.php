@@ -42,7 +42,7 @@ if(!empty($export_data)){
         $file_default = json_decode($export_data['file_default'], true);
     }
 }
-var_dump($file_header);
+echo "<pre>", print_r($file_header, 1), "</pre>";
 echo "<pre>", print_r($file_default, 1), "</pre>";
 ?>
 <div class="app-ecommerce">
