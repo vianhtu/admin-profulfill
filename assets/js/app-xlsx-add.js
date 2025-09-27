@@ -106,7 +106,11 @@ function repeaterOptions(){
                 setTimeout(() => {
                     updateSelectOptions($(this).closest('.form-repeater'));
                 }, 300);
-            }
+            },
+            ready: function (setIndexes) {
+                console.log('Repeater đã khởi tạo xong');
+                // Bạn có thể init Select2, FormValidation ở đây
+            },
         });
 
         // Xử lý click nút xóa
