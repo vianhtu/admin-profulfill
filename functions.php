@@ -2170,7 +2170,7 @@ function downloadXlsx(): array
     if (ob_get_level()) {
         ob_end_clean();
     }
-    if (!is_readable($newFilePath)) {
+    if (is_readable($newFilePath)) {
         header('Content-Description: File Transfer');
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment; filename="' . basename($newFilePath) . '"');
