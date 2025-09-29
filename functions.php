@@ -290,7 +290,7 @@ function gemini_create_and_upload_batch_file(string $jsonl_content): array
 
         return [
             'status' => 'success',
-            'file_name' => $body['name'] // File ID (e.g., files/xxxxxx)
+            'file_name' => $body // File ID (e.g., files/xxxxxx)
         ];
 
     } catch (RequestException $e) {
