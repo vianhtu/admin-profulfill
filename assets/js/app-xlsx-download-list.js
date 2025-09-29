@@ -138,73 +138,17 @@ function initTable(){
                         url: '../../ajax.php?action=download-xlsx',
                         method: 'POST',
                         data: { id: id },
-                        xhrFields: { responseType: 'blob' },
-                        // đảm bảo jQuery không tự parse; có thể để 'text' hoặc bỏ hẳn
-                        dataType: 'text',
+                        xhrFields: { responseType: 'arraybuffer' },
                         beforeSend: function () {
                             $spinner.removeClass('d-none');
                             $tr.addClass('tr-loading');
                         },
-                        success: function (_, status, xhr) {
-                            var blob = xhr && xhr.response;
-                            // Nếu không phải Blob, thử tạo Blob từ responseText
-                            if (!(blob instanceof Blob)) {
-                                var text = xhr && (xhr.responseText || xhr.response || '');
-                                blob = new Blob([text], { type: xhr.getResponseHeader && xhr.getResponseHeader('Content-Type') || 'application/octet-stream' });
-                            }
-
-                            var contentType = xhr.getResponseHeader && xhr.getResponseHeader('Content-Type') || '';
-                            if (contentType.indexOf('application/json') !== -1) {
-                                var reader = new FileReader();
-                                reader.onload = function () {
-                                    try {
-                                        var json = JSON.parse(reader.result);
-                                        alert(json.message || 'Lỗi từ server');
-                                    } catch (e) {
-                                        alert('Không đọc được phản hồi lỗi từ server');
-                                    }
-                                };
-                                reader.readAsText(blob);
-                                return;
-                            }
-
-                            var disposition = xhr.getResponseHeader && xhr.getResponseHeader('Content-Disposition') || '';
-                            var filename = 'download.xlsx';
-                            if (disposition && disposition.indexOf('filename') !== -1) {
-                                var matches = /filename\*=UTF-8''([^;]+)|filename="([^"]+)"|filename=([^;]+)/i.exec(disposition);
-                                if (matches) filename = decodeURIComponent(matches[1] || matches[2] || matches[3] || filename);
-                            }
-
-                            var downloadUrl = URL.createObjectURL(blob);
-                            var a = document.createElement('a');
-                            a.href = downloadUrl;
-                            a.download = filename;
-                            document.body.appendChild(a);
-                            a.click();
-
-                            setTimeout(function () {
-                                URL.revokeObjectURL(downloadUrl);
-                                document.body.removeChild(a);
-                            }, 200);
+                        success: function (response) {
+                            // Read a single header
+                            const contentDisposition = jqXHR.getResponseHeader('Content-Disposition');
+                            console.log(contentDisposition);
                         },
                         error: function (jqXHR, textStatus, errorThrown) {
-                            var resp = jqXHR.response || jqXHR.responseText || '';
-                            var ct = jqXHR.getResponseHeader && jqXHR.getResponseHeader('Content-Type') || '';
-                            if (ct.indexOf('application/json') !== -1 && resp) {
-                                var blob = resp instanceof Blob ? resp : new Blob([resp], { type: ct });
-                                var reader2 = new FileReader();
-                                reader2.onload = function () {
-                                    try {
-                                        var jsonErr = JSON.parse(reader2.result);
-                                        alert(jsonErr.message || 'Lỗi khi tải file');
-                                    } catch (e) {
-                                        alert('Lỗi không xác định');
-                                    }
-                                };
-                                reader2.readAsText(blob);
-                                return;
-                            }
-                            console.error('Lỗi:', textStatus, errorThrown);
                             alert('Không thể tải file. Vui lòng thử lại.');
                         },
                         complete: function () {
