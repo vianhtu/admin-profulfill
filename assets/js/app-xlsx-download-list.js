@@ -133,23 +133,27 @@ function initTable(){
                     $tr.addClass('tr-loading');
                     // Gọi AJAX
                     var id = $tr.find('.user-name').data('id');
+
                     $.ajax({
                         url: '../../ajax.php?action=download-xlsx',
                         method: 'POST',
                         data: { id: id },
-                        // BẮT BUỘC: nhận dưới dạng Blob từ XHR
                         xhrFields: { responseType: 'blob' },
-                        // QUAN TRỌNG: không để jQuery parse JSON tự động; dùng 'text' để ngăn parser
+                        // đảm bảo jQuery không tự parse; có thể để 'text' hoặc bỏ hẳn
                         dataType: 'text',
                         beforeSend: function () {
                             $spinner.removeClass('d-none');
                             $tr.addClass('tr-loading');
                         },
-                        success: function (responseText, status, xhr) {
-                            var blob = xhr.response; // thực tế là Blob khi responseType = 'blob'
-                            var contentType = xhr.getResponseHeader('Content-Type') || '';
+                        success: function (_, status, xhr) {
+                            var blob = xhr && xhr.response;
+                            // Nếu không phải Blob, thử tạo Blob từ responseText
+                            if (!(blob instanceof Blob)) {
+                                var text = xhr && (xhr.responseText || xhr.response || '');
+                                blob = new Blob([text], { type: xhr.getResponseHeader && xhr.getResponseHeader('Content-Type') || 'application/octet-stream' });
+                            }
 
-                            // Nếu server trả JSON lỗi (Content-Type: application/json), đọc blob -> text -> parse JSON
+                            var contentType = xhr.getResponseHeader && xhr.getResponseHeader('Content-Type') || '';
                             if (contentType.indexOf('application/json') !== -1) {
                                 var reader = new FileReader();
                                 reader.onload = function () {
@@ -164,8 +168,7 @@ function initTable(){
                                 return;
                             }
 
-                            // Xử lý file bình thường: lấy filename từ header
-                            var disposition = xhr.getResponseHeader('Content-Disposition') || '';
+                            var disposition = xhr.getResponseHeader && xhr.getResponseHeader('Content-Disposition') || '';
                             var filename = 'download.xlsx';
                             if (disposition && disposition.indexOf('filename') !== -1) {
                                 var matches = /filename\*=UTF-8''([^;]+)|filename="([^"]+)"|filename=([^;]+)/i.exec(disposition);
@@ -185,10 +188,10 @@ function initTable(){
                             }, 200);
                         },
                         error: function (jqXHR, textStatus, errorThrown) {
-                            // Nếu server trả JSON lỗi ở trạng thái lỗi, xử lý tương tự
-                            var resp = jqXHR.response || jqXHR.responseText;
+                            var resp = jqXHR.response || jqXHR.responseText || '';
                             var ct = jqXHR.getResponseHeader && jqXHR.getResponseHeader('Content-Type') || '';
                             if (ct.indexOf('application/json') !== -1 && resp) {
+                                var blob = resp instanceof Blob ? resp : new Blob([resp], { type: ct });
                                 var reader2 = new FileReader();
                                 reader2.onload = function () {
                                     try {
@@ -198,7 +201,7 @@ function initTable(){
                                         alert('Lỗi không xác định');
                                     }
                                 };
-                                reader2.readAsText(resp);
+                                reader2.readAsText(blob);
                                 return;
                             }
                             console.error('Lỗi:', textStatus, errorThrown);
