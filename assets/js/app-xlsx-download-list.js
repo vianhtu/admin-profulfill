@@ -143,13 +143,14 @@ function initTable(){
                             $spinner.removeClass('d-none');
                             $tr.addClass('tr-loading');
                         },
-                        success: function (response) {
+                        success: function (response, textStatus, jqXHR) {
                             // Read a single header
                             const contentDisposition = jqXHR.getResponseHeader('Content-Disposition');
                             console.log(contentDisposition);
                         },
                         error: function (jqXHR, textStatus, errorThrown) {
-                            alert('Không thể tải file. Vui lòng thử lại.');
+                            const contentDisposition = jqXHR.getResponseHeader('Content-Disposition');
+                            console.log(contentDisposition);
                         },
                         complete: function () {
                             $spinner.addClass('d-none');
