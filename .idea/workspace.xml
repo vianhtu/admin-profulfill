@@ -67,6 +67,10 @@
       <path value="$PROJECT_DIR$/../profulfill-products-data/vendor/maennchen/zipstream-php" />
       <path value="$PROJECT_DIR$/../profulfill-products-data/vendor/psr/http-factory" />
       <path value="$PROJECT_DIR$/../profulfill-products-data/vendor/psr/http-client" />
+      <path value="$PROJECT_DIR$/vendor/guzzlehttp/guzzle" />
+      <path value="$PROJECT_DIR$/vendor/guzzlehttp/promises" />
+      <path value="$PROJECT_DIR$/vendor/guzzlehttp/psr7" />
+      <path value="$PROJECT_DIR$/vendor/ralouphie/getallheaders" />
     </include_path>
   </component>
   <component name="ProjectColorInfo">{
@@ -155,7 +159,7 @@
       <workItem from="1758937166947" duration="12981000" />
       <workItem from="1758961511068" duration="13195000" />
       <workItem from="1759110604183" duration="2952000" />
-      <workItem from="1759113604585" duration="5678000" />
+      <workItem from="1759113604585" duration="6372000" />
     </task>
     <servers />
   </component>

@@ -5,6 +5,11 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use GeminiAPI\Client;
 use GeminiAPI\Resources\Parts\TextPart;
+use GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\ServerException;
+use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\RequestException;
 
 function menuArgs():array
 {
@@ -241,8 +246,7 @@ function gemini_2_5_flash(string $prompt): string
 function gemini_batches(array $prompts, string $batch_name = ''): array
 {
     $apiKey = 'AIzaSyALP80h2H1We1RA6Jl5cvFPlbYK0Zh29RE';
-    $client = new Client($apiKey);
-    // Chuẩn bị input inline
+    $http = new GuzzleClient();
     $requests = [];
     foreach ($prompts as $key => $prompt) {
         $requests[] = [
@@ -258,26 +262,51 @@ function gemini_batches(array $prompts, string $batch_name = ''): array
         ];
     }
 
-    // Tạo batch job inline
     try {
-        $batch = $client->batches->create([
-            "model" => "models/gemini-2.5-flash",
-            "input" => $requests,
-            "display_name" => $batch_name
-        ]);
+        $response = $http->post(
+            'https://generativelanguage.googleapis.com/v1beta/batches?key=' . $apiKey,
+            [
+                'json' => [
+                    "model" => "models/gemini-2.5-flash",
+                    "input" => $requests,
+                    "display_name" => $batch_name
+                ],
+                'http_errors' => true, // mặc định true, sẽ ném exception nếu 4xx/5xx
+                'timeout' => 60
+            ]
+        );
 
-        // Trả về batch id để lưu lại
         return [
-            'status' => 'success',
-            'batch_id' => $batch->name ?? null,
-            'raw' => $batch
+            'success' => true,
+            'status'  => $response->getStatusCode(),
+            'data'    => json_decode($response->getBody(), true)
         ];
 
-    } catch (\Exception $e) {
-        // Trả về lỗi để xử lý
+    } catch (ClientException $e) {
+        // Lỗi 4xx
         return [
-            'status' => 'message',
-            'message' => $e->getMessage()
+            'success' => false,
+            'status'  => $e->getResponse()->getStatusCode(),
+            'error'   => $e->getResponse()->getBody()->getContents()
+        ];
+    } catch (ServerException $e) {
+        // Lỗi 5xx
+        return [
+            'success' => false,
+            'status'  => $e->getResponse()->getStatusCode(),
+            'error'   => $e->getResponse()->getBody()->getContents()
+        ];
+    } catch (ConnectException $e) {
+        // Lỗi kết nối
+        return [
+            'success' => false,
+            'error'   => "Connection error: " . $e->getMessage()
+        ];
+    } catch (RequestException $e) {
+        // Các lỗi khác
+        return [
+            'success' => false,
+            'error'   => "Request error: " . $e->getMessage()
         ];
     }
 }
