@@ -147,6 +147,15 @@ function initTable(){
                             // Read a single header
                             const contentDisposition = jqXHR.getResponseHeader('Content-Disposition');
                             console.log(contentDisposition);
+                            const blob = new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                            const url = window.URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = `export-${new Date().toLocaleString()}.xlsx`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            window.URL.revokeObjectURL(url);
                         },
                         error: function (jqXHR, textStatus, errorThrown) {
                             const contentDisposition = jqXHR.getResponseHeader('Content-Disposition');
