@@ -158,7 +158,7 @@ function initTable(){
                                 var dt = new Date();
                                 filename = 'export-' + dt.toLocaleString().replace(/[:\/, ]+/g, '-') + '.xlsx';
                             }
-                            var url = window.URL.createObjectURL(blob);
+                            var url = window.URL.createObjectURL(response);
                             var link = document.createElement('a');
                             link.href = url;
                             link.download = filename;
