@@ -110,6 +110,10 @@ function repeaterOptions(fv){
                 });
             },
             hide: function (deleteElement) {
+                // Lấy tên field trước khi xóa
+                var fieldName = $(this).find('.form-select').prop('name');
+                // Gỡ bỏ khỏi FormValidation
+                fv.removeField(fieldName);
                 $(this).slideUp(deleteElement);
                 setTimeout(() => {
                     updateSelectOptions($(this).closest('.form-repeater'));
