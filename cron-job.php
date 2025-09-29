@@ -1,5 +1,6 @@
 <?php
 require __DIR__ . '/config.php';
+exit();
 
 $conn = db();
 

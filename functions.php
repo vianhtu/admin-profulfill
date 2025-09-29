@@ -389,8 +389,7 @@ function AIProcessDownloadProducts($downloadId): array
         ]];
     }
 
-    $results = [];
-
+    $jsonl_content = '';
     // Optional: wrap each post's work in a transaction to keep consistency
     while ($row = $result->fetch_assoc()) {
         $postId = (int)$row['ID'];
@@ -416,82 +415,25 @@ function AIProcessDownloadProducts($downloadId): array
             '{image}' => $mainImage
         ]);
 
-        // Gọi AI (giữ nguyên cách gọi hiện có)
-        $raw = '';
-        try {
-            $raw = gemini_2_5_flash(buildCompressedPromptFromText($prompt));
-        } catch (Throwable $e) {
-            $results[] = [
-                'status' => 'error',
-                'message' => "AI call failed for post ID {$postId}: " . $e->getMessage()
-            ];
-            continue;
-        }
+        $request_data = ["contents" => [["role" => "user", "parts" => [["text" => $prompt]]]]];
+        $jsonl_content .= json_encode($request_data) . "\n";
+    }
 
-        // Làm sạch và parse JSON
-        $clean = preg_replace('/^```json\s*|\s*```$/', '', trim((string)$raw));
-        $json = json_decode($clean, true);
-        if (json_last_error() !== JSON_ERROR_NONE || !is_array($json)) {
-            $results[] = [
-                'status' => 'error',
-                'message' => "Không parse được JSON cho post ID {$postId}",
-                'raw' => $raw
-            ];
-            continue;
-        }
+    // 1. Tạo File JSONL
+    $jsonlDir = ROOT_DIR . "/jsonl/";
+    if (!is_dir($jsonlDir)) {
+        mkdir($jsonlDir, 0777, true);
+    }
+    $file_name = 'batch_prompts_' . time() . '.jsonl';
+    $file_path = $jsonlDir . $file_name;
 
-        // Try insert; insertAmazonListingFromAI returns int (insert id) or string (error message)
-        $newId = insertAmazonListingFromAI($downloadId, $sku, $json);
-
-        if (!empty($newId['id'])) {
-            // Cập nhật trạng thái bài viết
-            $updateStmt = $conn->prepare("
-                UPDATE posts
-                SET status = 'listed', updated_at = NOW()
-                WHERE ID = ?
-            ");
-            if ($updateStmt === false) {
-                $results[] = [
-                    'status' => 'warning',
-                    'message' => "Insert thành công (amazon_listing_id={$newId['id']}) nhưng prepare update post ID {$postId} thất bại: " . $conn->error,
-                    'amazon_listing_id' => $newId['id']
-                ];
-                continue;
-            }
-            $updateStmt->bind_param("i", $postId);
-            if (!$updateStmt->execute()) {
-                $results[] = [
-                    'status' => 'warning',
-                    'message' => "Insert thành công (amazon_listing_id={$newId['id']}) nhưng execute update post ID {$postId} thất bại: " . $updateStmt->error,
-                    'amazon_listing_id' => $newId['id']
-                ];
-                $updateStmt->close();
-                continue;
-            }
-
-            $affected = $updateStmt->affected_rows;
-            $updateStmt->close();
-
-            $results[] = [
-                'status' => $affected > 0 ? 'success' : 'warning',
-                'message' => $affected > 0
-                    ? "Post ID {$postId} đã được cập nhật trạng thái thành 'listed'."
-                    : "Insert thành công nhưng không cập nhật được trạng thái post ID {$postId}.",
-                'amazon_listing_id' => $newId['id']
-            ];
-        } else {
-            // newId is error string
-            $results[] = [
-                'status' => 'error',
-                'message' => $newId['message'],
-                'json' => $json
-            ];
-        }
+    if (file_put_contents($file_path, $jsonl_content) === false) {
+        return ['status' => 'error', 'message' => "Failed to save JSONL file locally."];
     }
 
     $stmt->close();
 
-    return $results;
+    return [];
 }
 
 function getDataTableParams(array $allowedCols, string $defaultCol = 'ID'): array {
@@ -2617,5 +2559,5 @@ function writeLogFile($log, string $logName): void
 
 function getDebug()
 {
-    return json_encode(gemini_batches(['hi'], 'ffff'));
+    return AIProcessDownloadProducts(96);
 }
