@@ -109,17 +109,6 @@ function repeaterOptions(fv){
                     }
                 });
             },
-            hide: function (deleteElement) {
-                // Lấy tên field trước khi xóa
-                var fieldName = $(this).find('.form-select').prop('name');
-                console.log(deleteElement);
-                // Gỡ bỏ khỏi FormValidation
-                fv.removeField(fieldName);
-                $(this).slideUp(deleteElement);
-                setTimeout(() => {
-                    updateSelectOptions($(this).closest('.form-repeater'));
-                }, 300);
-            },
             ready: function (setIndexes) {
                 if(formRepeater.data('repeat-count') === 0){
                     return;
@@ -138,6 +127,9 @@ function repeaterOptions(fv){
         $(document).on('click', '.btn-delete-row', function (e) {
             e.preventDefault();
             var $row = $(this).closest('[data-repeater-item]');
+            var fieldName = $row.find('.form-select').prop('name');
+            // Gỡ bỏ khỏi FormValidation
+            fv.removeField(fieldName);
             $row.slideUp(function () {
                 $row.remove();
                 updateSelectOptions(formRepeater);
