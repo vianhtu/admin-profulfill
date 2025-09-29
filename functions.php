@@ -283,7 +283,7 @@ function gemini_create_and_upload_batch_file(string $jsonl_content): array
             ]
         );
 
-        $body = json_decode($response->getBody(), true);
+        $body = json_decode($response->getBody()->getContents(), true);
 
         // Dọn dẹp file cục bộ sau khi upload thành công
         unlink($file_path);
