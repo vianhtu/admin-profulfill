@@ -3,7 +3,6 @@ require 'vendor/autoload.php';
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use GeminiAPI\Client;
 use GeminiAPI\Resources\Parts\TextPart;
 
@@ -237,6 +236,50 @@ function gemini_2_5_flash(string $prompt): string
 
     // Trả về kết quả
     return $response->text();
+}
+
+function gemini_batches(array $prompts, string $batch_name = ''): array
+{
+    $apiKey = 'AIzaSyALP80h2H1We1RA6Jl5cvFPlbYK0Zh29RE';
+    $client = new Client($apiKey);
+    // Chuẩn bị input inline
+    $requests = [];
+    foreach ($prompts as $key => $prompt) {
+        $requests[] = [
+            "custom_id" => "req-" . $key,
+            "contents" => [
+                [
+                    "role" => "user",
+                    "parts" => [
+                        ["text" => $prompt]
+                    ]
+                ]
+            ]
+        ];
+    }
+
+    // Tạo batch job inline
+    try {
+        $batch = $client->batches->create([
+            "model" => "models/gemini-2.5-flash",
+            "input" => $requests,
+            "display_name" => $batch_name
+        ]);
+
+        // Trả về batch id để lưu lại
+        return [
+            'status' => 'success',
+            'batch_id' => $batch->name ?? null,
+            'raw' => $batch
+        ];
+
+    } catch (\Exception $e) {
+        // Trả về lỗi để xử lý
+        return [
+            'status' => 'message',
+            'message' => $e->getMessage()
+        ];
+    }
 }
 
 function buildCompressedPromptFromText(string $fullText): string {
@@ -2520,5 +2563,5 @@ function writeLogFile($log, string $logName): void
 
 function getDebug()
 {
-    return $log = AIProcessDownloadProducts(45);
+    return json_encode(gemini_batches(['hi'], 'ffff'));
 }
