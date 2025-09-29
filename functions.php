@@ -415,7 +415,7 @@ function AIProcessDownloadProducts($downloadId): array
             '{image}' => $mainImage
         ]);
 
-        $request_data = ["contents" => [["role" => "user", "parts" => [["text" => $prompt]]]]];
+        $request_data = ["contents" => [["role" => "user", "parts" => [["text" => buildCompressedPromptFromText($prompt)]]]]];
         $jsonl_content .= json_encode($request_data) . "\n";
     }
 
