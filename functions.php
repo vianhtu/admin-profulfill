@@ -419,6 +419,8 @@ function AIProcessDownloadProducts($downloadId): array
         return $upload_result;
     }
 
+    return $upload_result;
+
     $file_id = $upload_result['file_name'];
     $batch_name = "Batch_.$downloadId._" . date('Ymd');
     $job_result = gemini_submit_batch_job($file_id, $batch_name);
