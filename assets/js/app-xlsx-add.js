@@ -288,7 +288,6 @@ function getRepeaterData() {
 }
 
 function addXlsxFile(fv, dz) {
-    console.log(fv.getFields());
     // Khi FormValidation validate thành công
     fv.on('core.form.valid', function() {
         const $btn = $('#export_submit');
