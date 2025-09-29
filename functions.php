@@ -418,6 +418,7 @@ function AIProcessDownloadProducts($downloadId): array
         $request_data = ["contents" => [["role" => "user", "parts" => [["text" => buildCompressedPromptFromText($prompt)]]]]];
         $jsonl_content .= json_encode($request_data) . "\n";
     }
+    $stmt->close();
 
     // 1. Tạo File JSONL and upload.
     $upload_result = gemini_create_and_upload_batch_file($jsonl_content);
@@ -434,6 +435,10 @@ function AIProcessDownloadProducts($downloadId): array
         return $job_result;
     }
 
+    // update. job name to data.
+    $stmt = $conn->prepare("UPDATE download SET batch_name = ?, status = 'running' WHERE ID = ?");
+    $stmt->bind_param("si", $job_result['job_name'], $row['ID']);
+    $stmt->execute();
     $stmt->close();
 
     return [['status' => 'success', 'job_name' => $job_result['job_name']]];
