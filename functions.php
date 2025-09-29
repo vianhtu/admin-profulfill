@@ -373,29 +373,21 @@ function AIProcessDownloadProducts($downloadId): array
 
     // Nếu không có sản phẩm nào → cập nhật download.status = 'ready'
     if ($result->num_rows === 0) {
-        $updateDownload = $conn->prepare("UPDATE download SET status = 'ready' WHERE ID = ?");
-        if ($updateDownload === false) {
-            $stmt->close();
-            return [['status' => 'error', 'message' => 'Prepare update failed: ' . $conn->error]];
-        }
+        $updateDownload = $conn->prepare("UPDATE download SET status = 'error' WHERE ID = ?");
         $updateDownload->bind_param("i", $downloadId);
         $updateDownload->execute();
         $updateDownload->close();
         $stmt->close();
-
         return [[
-            'status' => 'success',
-            'message' => "Không có sản phẩm để xử lý. Đã cập nhật download ID {$downloadId} thành 'ready'."
+            'status' => 'error',
+            'message' => "Không có sản phẩm để xử lý. Đã cập nhật download ID {$downloadId} thành 'error'."
         ]];
     }
 
     $jsonl_content = '';
     // Optional: wrap each post's work in a transaction to keep consistency
     while ($row = $result->fetch_assoc()) {
-        $postId = (int)$row['ID'];
-        $sku = $row['sku'] ?? '';
         $title = $row['title'] ?? '';
-
         // Lấy ảnh chính
         $mainImage = '';
         if (!empty($row['images'])) {
