@@ -384,7 +384,7 @@ function AIProcessDownloadProducts($downloadId): array
         $stmt->close();
 
         return [[
-            'status' => 'done',
+            'status' => 'success',
             'message' => "Không có sản phẩm để xử lý. Đã cập nhật download ID {$downloadId} thành 'ready'."
         ]];
     }
@@ -436,7 +436,7 @@ function AIProcessDownloadProducts($downloadId): array
 
     $stmt->close();
 
-    return $job_result;
+    return [['status' => 'success', 'job_name' => $job_result['job_name']]];
 }
 
 function getDataTableParams(array $allowedCols, string $defaultCol = 'ID'): array {
