@@ -137,29 +137,34 @@ function initTable(){
                         url: '../../ajax.php?action=download-xlsx',
                         method: 'POST',
                         data: { id: id },
-                        // IMPORTANT: nhận về blob; không để jQuery tự parse
+                        // BẮT BUỘC: nhận dưới dạng Blob từ XHR
                         xhrFields: { responseType: 'blob' },
-                        // không set dataType: 'json' hay tương tự; để trống hoặc 'text' nếu cần
+                        // QUAN TRỌNG: không để jQuery parse JSON tự động; dùng 'text' để ngăn parser
+                        dataType: 'text',
                         beforeSend: function () {
                             $spinner.removeClass('d-none');
                             $tr.addClass('tr-loading');
                         },
-                        success: function (blob, status, xhr) {
-                            var ct = xhr.getResponseHeader('Content-Type') || '';
-                            if (ct.indexOf('application/json') !== -1) {
+                        success: function (responseText, status, xhr) {
+                            var blob = xhr.response; // thực tế là Blob khi responseType = 'blob'
+                            var contentType = xhr.getResponseHeader('Content-Type') || '';
+
+                            // Nếu server trả JSON lỗi (Content-Type: application/json), đọc blob -> text -> parse JSON
+                            if (contentType.indexOf('application/json') !== -1) {
                                 var reader = new FileReader();
                                 reader.onload = function () {
                                     try {
                                         var json = JSON.parse(reader.result);
                                         alert(json.message || 'Lỗi từ server');
                                     } catch (e) {
-                                        alert('Lỗi không xác định');
+                                        alert('Không đọc được phản hồi lỗi từ server');
                                     }
                                 };
                                 reader.readAsText(blob);
                                 return;
                             }
 
+                            // Xử lý file bình thường: lấy filename từ header
                             var disposition = xhr.getResponseHeader('Content-Disposition') || '';
                             var filename = 'download.xlsx';
                             if (disposition && disposition.indexOf('filename') !== -1) {
@@ -173,24 +178,27 @@ function initTable(){
                             a.download = filename;
                             document.body.appendChild(a);
                             a.click();
+
                             setTimeout(function () {
                                 URL.revokeObjectURL(downloadUrl);
                                 document.body.removeChild(a);
-                            }, 100);
+                            }, 200);
                         },
                         error: function (jqXHR, textStatus, errorThrown) {
-                            var ct = jqXHR.getResponseHeader('Content-Type') || '';
-                            if (ct.indexOf('application/json') !== -1 && jqXHR.response) {
-                                var reader = new FileReader();
-                                reader.onload = function () {
+                            // Nếu server trả JSON lỗi ở trạng thái lỗi, xử lý tương tự
+                            var resp = jqXHR.response || jqXHR.responseText;
+                            var ct = jqXHR.getResponseHeader && jqXHR.getResponseHeader('Content-Type') || '';
+                            if (ct.indexOf('application/json') !== -1 && resp) {
+                                var reader2 = new FileReader();
+                                reader2.onload = function () {
                                     try {
-                                        var jsonErr = JSON.parse(reader.result);
+                                        var jsonErr = JSON.parse(reader2.result);
                                         alert(jsonErr.message || 'Lỗi khi tải file');
                                     } catch (e) {
                                         alert('Lỗi không xác định');
                                     }
                                 };
-                                reader.readAsText(jqXHR.response);
+                                reader2.readAsText(resp);
                                 return;
                             }
                             console.error('Lỗi:', textStatus, errorThrown);
