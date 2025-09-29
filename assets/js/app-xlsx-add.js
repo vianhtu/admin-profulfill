@@ -112,7 +112,7 @@ function repeaterOptions(fv){
             hide: function (deleteElement) {
                 // Lấy tên field trước khi xóa
                 var fieldName = $(this).find('.form-select').prop('name');
-                console.log(fieldName);
+                console.log(deleteElement);
                 // Gỡ bỏ khỏi FormValidation
                 fv.removeField(fieldName);
                 $(this).slideUp(deleteElement);
