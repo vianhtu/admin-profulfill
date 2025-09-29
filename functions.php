@@ -243,13 +243,31 @@ function gemini_2_5_flash(string $prompt): string
     return $response->text();
 }
 
+/**
+ * Submits an asynchronous batch job for content generation to the Gemini API.
+ *
+ * NOTE: For large batches, the official method requires uploading a JSONL file
+ * and then submitting the job with the file ID. This example attempts
+ * to use an inline array which may be limited or require a different endpoint.
+ * The endpoint is corrected to use the standard batchGenerateContent format.
+ *
+ * @param array $prompts An array of strings, where each string is a prompt.
+ * @param string $batch_name A display name for the batch job.
+ * @return array The response from the API.
+ */
 function gemini_batches(array $prompts, string $batch_name = ''): array
 {
+    // WARNING: Replace with your actual secure API key handling
     $apiKey = 'AIzaSyALP80h2H1We1RA6Jl5cvFPlbYK0Zh29RE';
+    $model_id = 'gemini-2.5-flash'; // Only the model ID part
+
     $http = new GuzzleClient();
     $requests = [];
+
+    // The Batch API request structure for inline requests
     foreach ($prompts as $key => $prompt) {
         $requests[] = [
+            // The structure for each request is typically a single GenerateContentRequest
             "custom_id" => "req-" . $key,
             "contents" => [
                 [
@@ -262,20 +280,27 @@ function gemini_batches(array $prompts, string $batch_name = ''): array
         ];
     }
 
+    // 1. **CORRECTED ENDPOINT**: The endpoint must include the model and the method
+    $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model_id}:batchGenerateContent";
+
     try {
         $response = $http->post(
-            'https://generativelanguage.googleapis.com/v1beta/batches?key=' . $apiKey,
+            $url . '?key=' . $apiKey, // Append API key as query param
             [
                 'json' => [
-                    "model" => "models/gemini-2.5-flash",
-                    "input" => $requests,
-                    "display_name" => $batch_name
+                    // 2. **CORRECTED PAYLOAD**: Use 'requests' key for inline batch data
+                    "requests" => $requests,
+                    "config" => [
+                        // Optional display name goes under 'config'
+                        "display_name" => $batch_name
+                    ]
                 ],
-                'http_errors' => true, // mặc định true, sẽ ném exception nếu 4xx/5xx
+                'http_errors' => true,
                 'timeout' => 60
             ]
         );
 
+        // The API returns an Operation object, which must be polled later.
         return [
             'success' => true,
             'status'  => $response->getStatusCode(),
@@ -287,14 +312,14 @@ function gemini_batches(array $prompts, string $batch_name = ''): array
         return [
             'success' => false,
             'status'  => $e->getResponse()->getStatusCode(),
-            'error'   => $e->getResponse()->getBody()->getContents()
+            'error'   => json_decode($e->getResponse()->getBody()->getContents(), true) ?? $e->getResponse()->getBody()->getContents()
         ];
     } catch (ServerException $e) {
         // Lỗi 5xx
         return [
             'success' => false,
             'status'  => $e->getResponse()->getStatusCode(),
-            'error'   => $e->getResponse()->getBody()->getContents()
+            'error'   => json_decode($e->getResponse()->getBody()->getContents(), true) ?? $e->getResponse()->getBody()->getContents()
         ];
     } catch (ConnectException $e) {
         // Lỗi kết nối
