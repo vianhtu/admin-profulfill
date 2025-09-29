@@ -138,28 +138,38 @@ function initTable(){
                         url: '../../ajax.php?action=download-xlsx',
                         method: 'POST',
                         data: { id: id },
-                        xhrFields: { responseType: 'arraybuffer' },
+                        xhrFields: { responseType: 'blob' },
                         beforeSend: function () {
                             $spinner.removeClass('d-none');
                             $tr.addClass('tr-loading');
                         },
                         success: function (response, textStatus, jqXHR) {
-                            // Read a single header
-                            const contentDisposition = jqXHR.getResponseHeader('Content-Disposition');
-                            console.log(contentDisposition);
-                            const blob = new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-                            const url = window.URL.createObjectURL(blob);
-                            const link = document.createElement('a');
+                            // Lấy filename từ header nếu server gửi Content-Disposition
+                            var disposition = jqXHR.getResponseHeader('Content-Disposition');
+                            var filename = '';
+                            if (disposition && disposition.indexOf('filename') !== -1) {
+                                var matches = disposition.match(/filename\*=UTF-8''([^;]+)|filename="([^"]+)"|filename=([^;]+)/);
+                                if (matches) {
+                                    filename = decodeURIComponent(matches[1] || matches[2] || matches[3] || '');
+                                }
+                            }
+                            if (!filename) {
+                                // fallback filename
+                                var dt = new Date();
+                                filename = 'export-' + dt.toLocaleString().replace(/[:\/, ]+/g, '-') + '.xlsx';
+                            }
+                            var url = window.URL.createObjectURL(blob);
+                            var link = document.createElement('a');
                             link.href = url;
-                            link.download = `export-${new Date().toLocaleString()}.xlsx`;
+                            link.download = filename;
                             document.body.appendChild(link);
                             link.click();
                             document.body.removeChild(link);
                             window.URL.revokeObjectURL(url);
                         },
                         error: function (jqXHR, textStatus, errorThrown) {
-                            const contentDisposition = jqXHR.getResponseHeader('Content-Disposition');
-                            console.log(contentDisposition);
+                            // Thường ở đây server trả lỗi JSON/text, không phải blob
+                            console.error('Download error:', textStatus, errorThrown);
                         },
                         complete: function () {
                             $spinner.addClass('d-none');
