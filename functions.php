@@ -1957,13 +1957,15 @@ function downloadXlsx(): array
 
     if (!$statusRow) {
         // Không tồn tại hoặc chưa sẵn sàng
-        return ['status' => 'error', 'message' => "Chưa sẵn sàng"];
+        echo json_encode(['status' => 'error', 'message' => "Chưa sẵn sàng"]);
+        exit();
     }
 
     // Kiểm tra và load file .xlxs
     $filePath = ROOT_DIR . "/xlsx/" . $statusRow['file_dir'];
     if (!file_exists($filePath)) {
-        return ['status' => 'error', 'message' => "File không tồn tại: $filePath"];
+        echo json_encode(['status' => 'error', 'message' => "File không tồn tại: $filePath"]);
+        exit();
     }
 
     try {
@@ -1973,7 +1975,8 @@ function downloadXlsx(): array
         // Lấy sheet theo tên
         $sheet = $spreadsheet->getSheetByName($sheetName);
         if (!$sheet) {
-            return ['status' => 'error', 'message' => "Sheet '$sheetName' không tồn tại."];
+            echo json_encode(['status' => 'error', 'message' => "Sheet '$sheetName' không tồn tại."]);
+            exit();
         }
 
         // Xác định số cột tối đa
@@ -1996,9 +1999,11 @@ function downloadXlsx(): array
             $headers[Coordinate::stringFromColumnIndex($col)] =  $cellValue;
         }
     } catch (\PhpOffice\PhpSpreadsheet\Reader\Exception $e) {
-        return ['status' => 'error', 'message' => 'Lỗi đọc file Excel: ' . $e->getMessage()];
+        echo json_encode(['status' => 'error', 'message' => 'Lỗi đọc file Excel: ' . $e->getMessage()]);
+        exit();
     } catch (\Throwable $e) {
-        return ['status' => 'error', 'message' => 'Lỗi không xác định: ' . $e->getMessage()];
+        echo json_encode(['status' => 'error', 'message' => 'Lỗi không xác định: ' . $e->getMessage()]);
+        exit();
     }
 
     // Lấy dữ liệu
@@ -2020,7 +2025,6 @@ function downloadXlsx(): array
     // chạy toàn bộ sản phẩm.
     $startRow = (int)$statusRow['row_item'] ?? 7; // bắt đầu row.
     $counter  = 0; // đếm số sản phẩm đã xử lý
-    $parentSku = '';
     $colorIndex = 1;
     while ($row = $result->fetch_assoc()) {
         $counter++; // tăng đếm mỗi sản phẩm
@@ -2162,14 +2166,28 @@ function downloadXlsx(): array
     $updateStmt = $conn->prepare($updateSql);
     $updateStmt->bind_param('ssi', $newFileName, $now, $downloadID);
     $updateStmt->execute();
-
-    return [
-        'headers' => $headers,
-        'status' => 'success',
-        'message' => 'File đã được lưu thành công',
-        'file_name' => $newFileName,
-        'file_path' => $newFilePath
-    ];
+    // Bảo đảm không có output trước khi gửi header
+    if (ob_get_level()) {
+        ob_end_clean();
+    }
+    if (!is_readable($newFilePath)) {
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . basename($newFilePath) . '"');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: ' . filesize($newFilePath));
+        $fp = fopen($newFilePath, 'rb');
+        set_time_limit(0);
+        // Gửi nội dung
+        fpassthru($fp);
+        fclose($fp);
+        exit();
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Lỗi file chưa được tạo hoặc không thể đọc.']);
+        exit();
+    }
 }
 
 function writeRowXlsx($sheet, $headers, $values, $rowNum): void

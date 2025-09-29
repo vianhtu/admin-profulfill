@@ -132,16 +132,96 @@ function initTable(){
                     // Hiện spinner
                     $spinner.removeClass('d-none');
                     $tr.addClass('tr-loading');
+                    let id = $tr.find('.user-name').data('id');
                     // Gọi AJAX
                     $.ajax({
                         url: '../../ajax.php?action=download-xlsx',
                         method: 'POST',
-                        data: { id: $tr.find('.user-name').data('id') },
-                        success: function (response) {
-                            console.log('Thành công:', response);
+                        data: { id: id },
+                        xhr: function () {
+                            var xhr = new window.XMLHttpRequest();
+                            // Tùy chọn: theo dõi tiến trình tải xuống (nếu cần)
+                            xhr.addEventListener('progress', function (e) {
+                                if (e.lengthComputable) {
+                                    // percent = Math.round((e.loaded / e.total) * 100);
+                                    // bạn có thể cập nhật progress bar ở đây nếu muốn
+                                }
+                            }, false);
+                            return xhr;
                         },
-                        error: function (err) {
-                            console.error('Lỗi:', err);
+                        beforeSend: function () {
+                            // Hiển thị spinner và trạng thái loading trên hàng
+                            $spinner.removeClass('d-none');
+                            $tr.addClass('tr-loading');
+                        },
+                        xhrFields: {
+                            responseType: 'blob' // quan trọng: nhận về Blob
+                        },
+                        success: function (data, status, xhr) {
+                            // Nếu server trả JSON lỗi (ví dụ Content-Type: application/json), xử lý
+                            var contentType = xhr.getResponseHeader('Content-Type') || '';
+                            if (contentType.indexOf('application/json') !== -1) {
+                                // Chuyển Blob sang text rồi parse JSON
+                                var reader = new FileReader();
+                                reader.onload = function () {
+                                    try {
+                                        var json = JSON.parse(reader.result);
+                                        console.error('Lỗi từ server:', json);
+                                        alert(json.message || 'Có lỗi xảy ra');
+                                    } catch (e) {
+                                        console.error('Không parse được JSON lỗi', e);
+                                        alert('Có lỗi không xác định');
+                                    }
+                                };
+                                reader.readAsText(data);
+                                return;
+                            }
+
+                            // Lấy filename từ header Content-Disposition nếu có
+                            var disposition = xhr.getResponseHeader('Content-Disposition') || '';
+                            var filename = 'download.xlsx';
+                            if (disposition && disposition.indexOf('filename') !== -1) {
+                                var matches = /filename\*=UTF-8''([^;]+)|filename="([^"]+)"|filename=([^;]+)/i.exec(disposition);
+                                if (matches) {
+                                    filename = decodeURIComponent(matches[1] || matches[2] || matches[3] || filename);
+                                }
+                            }
+
+                            // Tạo URL cho blob và click link để tải
+                            var blob = data;
+                            var url = window.URL || window.webkitURL;
+                            var downloadUrl = url.createObjectURL(blob);
+
+                            var a = document.createElement('a');
+                            a.href = downloadUrl;
+                            a.download = filename;
+                            document.body.appendChild(a);
+                            a.click();
+
+                            // Dọn dẹp
+                            setTimeout(function () {
+                                url.revokeObjectURL(downloadUrl);
+                                document.body.removeChild(a);
+                            }, 100);
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            // Nếu server trả về JSON lỗi trong trường hợp lỗi status khác
+                            var ct = jqXHR.getResponseHeader('Content-Type') || '';
+                            if (ct.indexOf('application/json') !== -1 && jqXHR.response) {
+                                try {
+                                    var reader2 = new FileReader();
+                                    reader2.onload = function () {
+                                        var jsonErr = JSON.parse(reader2.result);
+                                        alert(jsonErr.message || 'Lỗi khi tải file');
+                                    };
+                                    reader2.readAsText(jqXHR.response);
+                                    return;
+                                } catch (e) {
+                                    // fallthrough
+                                }
+                            }
+                            console.error('Lỗi:', textStatus, errorThrown);
+                            alert('Không thể tải file. Vui lòng thử lại.');
                         },
                         complete: function () {
                             // Ẩn spinner sau khi hoàn tất
