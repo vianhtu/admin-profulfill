@@ -243,6 +243,63 @@ function gemini_2_5_flash(string $prompt): string
     return $response->text();
 }
 
+function gemini_create_and_upload_batch_file(string $jsonl_content): array
+{
+    $http_client = new GuzzleClient();
+
+    // 1. Tạo File JSONL
+    $jsonlDir = ROOT_DIR . "/jsonl/";
+    if (!is_dir($jsonlDir)) {
+        mkdir($jsonlDir, 0777, true);
+    }
+    $file_name = 'batch_prompts_' . time() . '.jsonl';
+    $file_path = $jsonlDir . $file_name;
+
+    if (file_put_contents($file_path, $jsonl_content) === false) {
+        return ['status' => 'error', 'message' => "Failed to save JSONL file locally."];
+    }
+
+    // 2. Tải File lên File API
+    $upload_url = 'https://generativelanguage.googleapis.com/v1beta/files?key=AIzaSyALP80h2H1We1RA6Jl5cvFPlbYK0Zh29RE';
+    try {
+        $response = $http_client->post(
+            $upload_url,
+            [
+                'multipart' => [
+                    [
+                        'name' => 'file',
+                        // Sử dụng fopen để truyền nội dung file
+                        'contents' => fopen($file_path, 'r'),
+                        'filename' => $file_name,
+                        'headers'  => ['Content-Type' => 'application/jsonl']
+                    ],
+                    [
+                        'name' => 'display_name',
+                        'contents' => $file_name
+                    ]
+                ],
+                'http_errors' => true,
+                'timeout' => 120
+            ]
+        );
+
+        $body = json_decode($response->getBody(), true);
+
+        // Dọn dẹp file cục bộ sau khi upload thành công
+        unlink($file_path);
+
+        return [
+            'status' => 'success',
+            'file_name' => $body['name'] // File ID (e.g., files/xxxxxx)
+        ];
+
+    } catch (RequestException $e) {
+        // Dọn dẹp file cục bộ trong trường hợp lỗi upload
+        if (file_exists($file_path)) unlink($file_path);
+        return ['status' => 'error', 'message' => $e->getMessage()];
+    }
+}
+
 /**
  * Submits an asynchronous batch job for content generation to the Gemini API.
  *
