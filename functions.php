@@ -446,7 +446,7 @@ function AIProcessDownloadProducts($downloadId): array
     }
     $stmt->close();
 
-    return $jsonl_content;
+    return [$jsonl_content];
 
     // 1. Tạo File JSONL and upload.
     $batch_name = "Batch-{$downloadId}-" . date('Ymd');
