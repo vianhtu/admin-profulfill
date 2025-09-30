@@ -463,17 +463,17 @@ function AIProcessDownloadProducts($downloadId): array
     // 1. Tạo File JSONL and upload.
     $batch_name = "Batch-{$downloadId}-" . date('Ymd');
     $batch_result = gemini_create_and_upload_batch_file($jsonl_content, $batch_name);
-    return $batch_result;
     if ($batch_result['status'] == 'error') {
         return $batch_result;
     }
+    $batch_id = $batch_result['batch']['name'];
     // update. job name to data.
     $stmt = $conn->prepare("UPDATE download SET batch_name = ?, status = 'running' WHERE ID = ?");
-    $stmt->bind_param("si", $batch_result['name'], $row['ID']);
+    $stmt->bind_param("si", $batch_id, $row['ID']);
     $stmt->execute();
     $stmt->close();
 
-    return [['status' => 'success', 'name' => $batch_result['name']]];
+    return [['status' => 'success', 'name' => $batch_id]];
 }
 
 function getDataTableParams(array $allowedCols, string $defaultCol = 'ID'): array {
