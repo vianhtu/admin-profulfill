@@ -325,12 +325,15 @@ function gemini_create_and_upload_batch_file(string $jsonl_content, string $batc
         }
 
         $fileUriRaw = $decoded['file']['uri'] ?? $decoded['file']['name'] ?? null;
-        $fileId = basename($fileUriRaw);
+        if (!preg_match('#files/[^/]+$#', $fileUriRaw, $matches)) {
+            return ['status' => 'error', 'message' => "No file id in url: {$fileUriRaw}"];
+        }
+
         $payload = [
             'batch' => [
                 'display_name' => $batch_name,
                 'input_config' => [
-                    'file_name' => $fileId,
+                    'file_name' => $matches[0],
                 ],
             ],
         ];
