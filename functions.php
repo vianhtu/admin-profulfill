@@ -335,6 +335,8 @@ function gemini_create_and_upload_batch_file(string $jsonl_content, string $batc
             ],
         ];
 
+        return $payload;
+
         $response = $client->request('POST', '/v1beta/models/gemini-2.5-flash:batchGenerateContent', [
             'headers' => [
                 'x-goog-api-key' => $geminiApiKey,
