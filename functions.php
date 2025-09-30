@@ -393,8 +393,8 @@ function gemini_get_batches_by_name($batch_name)
     }
 
     $data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
-
-    return $data;
+    $responsesFile = $data['response']['responsesFile'] ?? null;
+    return $responsesFile;
 }
 
 function buildCompressedPromptFromText(string $fullText): string {
