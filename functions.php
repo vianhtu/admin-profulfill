@@ -326,7 +326,6 @@ function gemini_create_and_upload_batch_file(string $jsonl_content, string $batc
 
         $fileUriRaw = $decoded['file']['uri'] ?? $decoded['file']['name'] ?? null;
         $fileId = basename($fileUriRaw);
-        return [$fileId];
         $payload = [
             'batch' => [
                 'display_name' => $batch_name,
