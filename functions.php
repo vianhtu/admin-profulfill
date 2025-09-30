@@ -419,8 +419,14 @@ function gemini_get_batches_by_name($batch_name)
             if (trim($line) === '') continue;
             $json = json_decode($line, true);
             if (json_last_error() === JSON_ERROR_NONE) {
-                // xử lý từng đối tượng JSON
-                $items[$json['key']] = $json['response']['candidates'][0]['content']['parts'][0]['text'];
+                // Làm sạch và parse JSON
+                $raw = $json['response']['candidates'][0]['content']['parts'][0]['text'];
+                $clean = preg_replace('/^```json\s*|\s*```$/', '', trim((string)$raw));
+                $json = json_decode($clean, true);
+                if (json_last_error() !== JSON_ERROR_NONE || !is_array($json)) {
+                    continue;
+                }
+                $items[$json['key']] = $json;
             }
         }
         //$data = json_decode($body);
