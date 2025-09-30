@@ -400,20 +400,20 @@ function gemini_get_batches_by_name($batch_name)
             return ['status' => 'running', 'message' => "No file in response"];
         }
 
-        $response = $client->request('GET', "/download/v1beta/{$responsesFile}:download?alt=media", [
+        $_response = $client->request('GET', "/download/v1beta/{$responsesFile}:download?alt=media", [
             'headers' => [
                 'x-goog-api-key' => $geminiApiKey
             ],
             'http_errors' => false,
         ]);
-        $status = $response->getStatusCode();
-        $body = $response->getBody();
+        $_status = $_response->getStatusCode();
+        $_body = (string)$_response->getBody();
 
-        if ($status < 200 || $status >= 300) {
-            return ['status' => 'error', 'message' => "Request failed: HTTP {$status} : {$body}"];
+        if ($_status < 200 || $_status >= 300) {
+            return ['status' => 'error', 'message' => "Request failed: HTTP {$_status} : {$_body}"];
         }
         //$data = json_decode($body);
-        return ['status' => 'success', 'batch' => $body];
+        return ['status' => 'success', 'batch' => $_body];
     } catch (GuzzleException $e) {
         return ['status' => 'error', 'message' => "HTTP error: " . $e->getMessage()];
     } catch (JsonException $e) {
