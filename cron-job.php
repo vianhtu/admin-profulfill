@@ -4,10 +4,10 @@ exit();
 
 $conn = db();
 
-// Lấy 10 row từ bảng download có status = 'schedule'
+// Lấy 10 row từ bảng download có status = 'running'
 $sql = "SELECT ID,status,locked_at
         FROM download
-        WHERE status IN ('schedule', 'running')
+        WHERE status = 'running'
         ORDER BY id ASC
         LIMIT 10";
 
@@ -21,9 +21,9 @@ if ($result && $result->num_rows > 0) {
             // Chưa bị khóa → chạy luôn
             $runWorker = true;
         } else {
-            // locked_at có giá trị → kiểm tra quá 2 phút chưa
+            // locked_at có giá trị → kiểm tra quá 5 phút chưa
             $lockedTime = strtotime($row['locked_at']);
-            if (time() - $lockedTime > 60) { // 60 giây = 1 phút
+            if (time() - $lockedTime > 300) { // 60 giây = 1 phút
                 $runWorker = true;
             }
         }

@@ -370,6 +370,33 @@ function gemini_create_and_upload_batch_file(string $jsonl_content, string $batc
     }
 }
 
+function gemini_get_batches_by_name($batch_name)
+{
+    $geminiApiKey = "AIzaSyALP80h2H1We1RA6Jl5cvFPlbYK0Zh29RE";
+    $client = new GuzzleClient([
+        'base_uri' => 'https://generativelanguage.googleapis.com',
+        'timeout' => 60,
+    ]);
+    $response = $client->request('GET', '/v1beta/'. $batch_name, [
+        'headers' => [
+            'x-goog-api-key' => $geminiApiKey,
+            'Content-Type' => 'application/json',
+        ],
+        'http_errors' => false,
+    ]);
+
+    $status = $response->getStatusCode();
+    $body = (string)$response->getBody();
+
+    if ($status < 200 || $status >= 300) {
+        return ['status' => 'error', 'message' => "Request failed: HTTP {$status} : {$body}"];
+    }
+
+    $data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+
+    return $data;
+}
+
 function buildCompressedPromptFromText(string $fullText): string {
     $promptOneLine = preg_replace('/\s+/', ' ', $fullText);
     return trim($promptOneLine);
@@ -2602,5 +2629,5 @@ function writeLogFile($log, string $logName): void
 
 function getDebug()
 {
-    return AIProcessDownloadProducts(96);
+    return gemini_get_batches_by_name('batches/dm0sic1dyzdom69kymtcnhleii8lwpcv8dcf');
 }

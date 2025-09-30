@@ -7,37 +7,7 @@ $conn = db();
 // Nếu được truyền ID từ cron-job.php thì xử lý trước job đó
 $downloadId = isset($argv[1]) ? (int)$argv[1] : 0;
 
-while (true) {
-    if ($downloadId) {
-        // Xử lý job được truyền vào
-        processDownload($downloadId, $conn);
-        $downloadId = 0; // reset để vòng lặp lấy job mới
-    } else {
-        // Tìm job mới
-        $sql = "SELECT ID 
-                FROM download
-                WHERE status IN ('schedule', 'running')
-                  AND (locked_at IS NULL OR locked_at < NOW() - INTERVAL 1 MINUTE)
-                ORDER BY id ASC
-                LIMIT 1
-                ";
-        $result = $conn->query($sql);
 
-        if ($result && $result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-
-            // Lock job
-            $stmt = $conn->prepare("UPDATE download SET status='running', locked_at=NOW() WHERE ID=?");
-            $stmt->bind_param("i", $row['ID']);
-            $stmt->execute();
-
-            processDownload($row['ID'], $conn);
-        } else {
-            // Không còn job → thoát
-            break;
-        }
-    }
-}
 
 function processDownload($downloadId, $conn): void
 {
