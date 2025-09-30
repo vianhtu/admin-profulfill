@@ -412,7 +412,7 @@ function gemini_get_batches_by_name($batch_name)
         if ($status < 200 || $status >= 300) {
             return ['status' => 'error', 'message' => "Request failed: HTTP {$status} : {$body}"];
         }
-        $data = json_decode($body, true);
+        $data = json_decode($body);
         return ['status' => 'success', 'batch' => $data];
     } catch (GuzzleException $e) {
         return ['status' => 'error', 'message' => "HTTP error: " . $e->getMessage()];
