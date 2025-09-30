@@ -407,7 +407,7 @@ function gemini_get_batches_by_name($batch_name)
             'http_errors' => false,
         ]);
         $status = $response->getStatusCode();
-        $body = (string)$response->getBody();
+        $body = $response->getBody();
 
         if ($status < 200 || $status >= 300) {
             return ['status' => 'error', 'message' => "Request failed: HTTP {$status} : {$body}"];
