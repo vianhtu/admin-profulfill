@@ -358,14 +358,14 @@ function gemini_create_and_upload_batch_file(string $jsonl_content, string $batc
         return ['status' => 'success', 'batch' => $data];
 
     } catch (GuzzleException $e) {
-        unlink($file_path);
+        //unlink($file_path);
         return ['status' => 'error', 'message' => "HTTP error: " . $e->getMessage()];
     } catch (JsonException $e) {
-        unlink($file_path);
+        //unlink($file_path);
         return ['status' => 'error', 'message' => "JSON parse error: " . $e->getMessage()];
     } finally {
         if (file_exists($file_path)) {
-            @unlink($file_path);
+            //@unlink($file_path);
         }
     }
 }
