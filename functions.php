@@ -424,14 +424,12 @@ function gemini_get_batches_by_name($batch_name)
                 $clean = preg_replace('/^```json\s*|\s*```$/', '', trim((string)$raw));
                 $item_json = json_decode($clean, true);
                 if (json_last_error() !== JSON_ERROR_NONE || !is_array($item_json)) {
-                    $items[$json['key']] = ['status' => 'error', 'message' => "Invalid JSON: " . $clean];
                     continue;
                 }
                 $items[$json['key']] = $item_json;
             }
         }
-        //$data = json_decode($body);
-        return ['status' => 'success', 'batch' => $items];
+        return ['status' => 'success', 'items' => $items];
     } catch (GuzzleException $e) {
         return ['status' => 'error', 'message' => "HTTP error: " . $e->getMessage()];
     } catch (JsonException $e) {
