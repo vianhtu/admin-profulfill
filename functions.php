@@ -420,7 +420,7 @@ function gemini_get_batches_by_name($batch_name)
             $json = json_decode($line, true);
             if (json_last_error() === JSON_ERROR_NONE) {
                 // xử lý từng đối tượng JSON
-                $items[] = $json;
+                $items[$json['key']] = $json['response']['candidates'][0]['content']['parts'][0]['text'];
             }
         }
         //$data = json_decode($body);
