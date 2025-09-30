@@ -1,5 +1,7 @@
 <?php
 require 'vendor/autoload.php';
+
+use GuzzleHttp\Exception\GuzzleException;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -377,41 +379,47 @@ function gemini_get_batches_by_name($batch_name)
         'base_uri' => 'https://generativelanguage.googleapis.com',
         'timeout' => 60,
     ]);
-    $response = $client->request('GET', '/v1beta/'. $batch_name, [
-        'headers' => [
-            'x-goog-api-key' => $geminiApiKey
-        ],
-        'http_errors' => false,
-    ]);
+    try {
+        $response = $client->request('GET', '/v1beta/' . $batch_name, [
+            'headers' => [
+                'x-goog-api-key' => $geminiApiKey
+            ],
+            'http_errors' => false,
+        ]);
 
-    $status = $response->getStatusCode();
-    $body = (string)$response->getBody();
+        $status = $response->getStatusCode();
+        $body = (string)$response->getBody();
 
-    if ($status < 200 || $status >= 300) {
-        return ['status' => 'error', 'message' => "Request failed: HTTP {$status} : {$body}"];
-    }
+        if ($status < 200 || $status >= 300) {
+            return ['status' => 'error', 'message' => "Request failed: HTTP {$status} : {$body}"];
+        }
 
-    $data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
-    $responsesFile = $data['response']['responsesFile'] ?? null;
-    if($responsesFile === null) {
-        return ['status' => 'running', 'message' => "No file in response"];
-    }
+        $data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+        $responsesFile = $data['response']['responsesFile'] ?? null;
+        if ($responsesFile === null) {
+            return ['status' => 'running', 'message' => "No file in response"];
+        }
 
-    $response = $client->request('GET', "/download/v1beta/{$responsesFile}:download?alt=media", [
-        'headers' => [
-            'x-goog-api-key' => $geminiApiKey
-        ],
-        'http_errors' => false,
-    ]);
-    $status = $response->getStatusCode();
-    $body = (string)$response->getBody();
+        $response = $client->request('GET', "/download/v1beta/{$responsesFile}:download?alt=media", [
+            'headers' => [
+                'x-goog-api-key' => $geminiApiKey
+            ],
+            'http_errors' => false,
+        ]);
+        $status = $response->getStatusCode();
+        $body = (string)$response->getBody();
 
-    if ($status < 200 || $status >= 300) {
-        return ['status' => 'error', 'message' => "Request failed: HTTP {$status} : {$body}"];
+        if ($status < 200 || $status >= 300) {
+            return ['status' => 'error', 'message' => "Request failed: HTTP {$status} : {$body}"];
+        }
+    } catch (GuzzleException $e) {
+        return ['status' => 'error', 'message' => "HTTP error: " . $e->getMessage()];
+    } catch (JsonException $e) {
+        return ['status' => 'error', 'message' => "JSON parse error: " . $e->getMessage()];
     }
     //$data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
 
-    return $body;
+    return ['status' => 'success', 'batch' => $body];
 }
 
 function buildCompressedPromptFromText(string $fullText): string {
