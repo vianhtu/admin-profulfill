@@ -2629,5 +2629,5 @@ function writeLogFile($log, string $logName): void
 
 function getDebug()
 {
-    return gemini_get_batches_by_name('batches/dm0sic1dyzdom69kymtcnhleii8lwpcv8dcf');
+    return gemini_get_batches_by_name('batches/x1h4wv6mewq3dzgn3qw0kkdsdjfblym39y0v');
 }
