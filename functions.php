@@ -260,7 +260,7 @@ function gemini_create_and_upload_batch_file(string $jsonl_content): array
     }
 
     // 2. Tải File lên File API
-    $upload_url = 'https://generativelanguage.googleapis.com/v1beta/files?key=AIzaSyALP80h2H1We1RA6Jl5cvFPlbYK0Zh29RE';
+    $upload_url = 'https://generativelanguage.googleapis.com/upload/v1beta/files?key=AIzaSyALP80h2H1We1RA6Jl5cvFPlbYK0Zh29RE';
     try {
         $response = $http_client->post(
             $upload_url,
