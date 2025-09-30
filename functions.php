@@ -412,14 +412,13 @@ function gemini_get_batches_by_name($batch_name)
         if ($status < 200 || $status >= 300) {
             return ['status' => 'error', 'message' => "Request failed: HTTP {$status} : {$body}"];
         }
+        $data = json_decode($body, true);
+        return ['status' => 'success', 'batch' => $data];
     } catch (GuzzleException $e) {
         return ['status' => 'error', 'message' => "HTTP error: " . $e->getMessage()];
     } catch (JsonException $e) {
         return ['status' => 'error', 'message' => "JSON parse error: " . $e->getMessage()];
     }
-    //$data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
-
-    return ['status' => 'success', 'batch' => $body];
 }
 
 function buildCompressedPromptFromText(string $fullText): string {
