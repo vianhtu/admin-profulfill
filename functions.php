@@ -449,7 +449,7 @@ function AIProcessDownloadProducts($downloadId): array
     if (!$batch_result['status'] == 'error') {
         return $batch_result;
     }
-
+    return $batch_result;
     // update. job name to data.
     $stmt = $conn->prepare("UPDATE download SET batch_name = ?, status = 'running' WHERE ID = ?");
     $stmt->bind_param("si", $batch_result['name'], $row['ID']);
