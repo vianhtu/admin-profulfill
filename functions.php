@@ -2530,6 +2530,10 @@ function saveExportQuery(): array
         }
 
         $conn->commit();
+        $ai = AIProcessDownloadProducts($new_id);
+        if($ai['status'] === 'error'){
+            return $ai;
+        }
         return ['status' => 'inserted', 'id' => $new_id];
 
     } catch (Exception $e) {
