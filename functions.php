@@ -413,7 +413,7 @@ function gemini_get_batches_by_name($batch_name)
             return ['status' => 'error', 'message' => "Request failed: HTTP {$status} : {$body}"];
         }
         //$data = json_decode($body);
-        return ['status' => 'success', 'batch' => $data];
+        return ['status' => 'success', 'batch' => $body];
     } catch (GuzzleException $e) {
         return ['status' => 'error', 'message' => "HTTP error: " . $e->getMessage()];
     } catch (JsonException $e) {
