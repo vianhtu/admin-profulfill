@@ -372,7 +372,7 @@ function gemini_create_and_upload_batch_file(string $jsonl_content, string $batc
     }
 }
 
-function gemini_get_batches_by_name($batch_name)
+function gemini_get_batches_by_name($batch_name): array
 {
     $geminiApiKey = "AIzaSyALP80h2H1We1RA6Jl5cvFPlbYK0Zh29RE";
     $client = new GuzzleClient([
