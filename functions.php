@@ -442,11 +442,14 @@ function AIProcessDownloadProducts($downloadId): array
         ]);
 
         $request_data = [
-            "contents" => [
-                [
-                    "parts" => [
-                        [
-                            "text" => buildCompressedPromptFromText($prompt)
+            "key" => 'request-' . $row['ID'],
+            "request" => [
+                "contents" => [
+                    [
+                        "parts" => [
+                            [
+                                "text" => buildCompressedPromptFromText($prompt)
+                            ]
                         ]
                     ]
                 ]
