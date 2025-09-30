@@ -412,8 +412,19 @@ function gemini_get_batches_by_name($batch_name)
         if ($_status < 200 || $_status >= 300) {
             return ['status' => 'error', 'message' => "Request failed: HTTP {$_status} : {$_body}"];
         }
+
+        $lines = explode("\n", $_body);
+        $items = [];
+        foreach ($lines as $line) {
+            if (trim($line) === '') continue;
+            $json = json_decode($line, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                // xử lý từng đối tượng JSON
+                $items[] = $json;
+            }
+        }
         //$data = json_decode($body);
-        return ['status' => 'success', 'batch' => $_body];
+        return ['status' => 'success', 'batch' => $items];
     } catch (GuzzleException $e) {
         return ['status' => 'error', 'message' => "HTTP error: " . $e->getMessage()];
     } catch (JsonException $e) {
