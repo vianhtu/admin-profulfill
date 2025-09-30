@@ -450,7 +450,8 @@ function AIProcessDownloadProducts($downloadId): array
                             [
                                 "text" => buildCompressedPromptFromText($prompt)
                             ]
-                        ]
+                        ],
+                        "role" => "user"
                     ]
                 ]
             ]
