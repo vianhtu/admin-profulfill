@@ -245,8 +245,6 @@ function gemini_2_5_flash(string $prompt): string
 
 function gemini_create_and_upload_batch_file(string $jsonl_content): array
 {
-    $http_client = new GuzzleClient();
-
     // 1. Tạo File JSONL
     $jsonlDir = ROOT_DIR . "/jsonl/";
     if (!is_dir($jsonlDir)) {
@@ -258,45 +256,81 @@ function gemini_create_and_upload_batch_file(string $jsonl_content): array
     if (file_put_contents($file_path, $jsonl_content) === false) {
         return ['status' => 'error', 'message' => "Failed to save JSONL file locally."];
     }
+    $file_type = mime_content_type($file_path) ?: 'application/jsonl';
+    $file_size = filesize($file_path);
 
-    // 2. Tải File lên File API
-    $upload_url = 'https://generativelanguage.googleapis.com/upload/v1beta/files?key=AIzaSyALP80h2H1We1RA6Jl5cvFPlbYK0Zh29RE';
+    $client = new GuzzleClient([
+        'base_uri' => 'https://generativelanguage.googleapis.com',
+        'timeout' => 60,
+    ]);
+
     try {
-        $response = $http_client->post(
-            $upload_url,
-            [
-                'multipart' => [
-                    [
-                        'name' => 'file',
-                        // Sử dụng fopen để truyền nội dung file
-                        'contents' => fopen($file_path, 'r'),
-                        'filename' => $file_name,
-                        'headers'  => ['Content-Type' => 'application/jsonl']
-                    ],
-                    [
-                        'name' => 'display_name',
-                        'contents' => $file_name
-                    ]
-                ],
-                'http_errors' => true,
-                'timeout' => 120
-            ]
-        );
+        // 1) Start resumable upload: send metadata and get upload URL from response headers
+        $startResp = $client->request('POST', '/upload/v1beta/files', [
+            'headers' => [
+                'x-goog-api-key' => 'AIzaSyALP80h2H1We1RA6Jl5cvFPlbYK0Zh29RE',
+                'X-Goog-Upload-Protocol' => 'resumable',
+                'X-Goog-Upload-Command' => 'start',
+                'X-Goog-Upload-Header-Content-Length' => (string)$file_size,
+                'X-Goog-Upload-Header-Content-Type' => $file_type,
+                'Content-Type' => 'application/jsonl',
+            ],
+            'body' => json_encode(['file' => ['display_name' => $file_name]]),
+            'http_errors' => false,
+        ]);
 
-        $body = json_decode($response->getBody()->getContents(), true);
+        $status = $startResp->getStatusCode();
+        if ($status < 200 || $status >= 300) {
+            return ['status' => 'error', 'message' => "Start request failed: HTTP {$status} :".$startResp->getBody()];
+        }
 
-        // Dọn dẹp file cục bộ sau khi upload thành công
-        unlink($file_path);
+        $uploadUrl = null;
+        foreach ($startResp->getHeaders() as $name => $values) {
+            if (strtolower($name) === 'x-goog-upload-url') {
+                $uploadUrl = $values[0];
+                break;
+            }
+        }
 
-        return [
-            'status' => 'success',
-            'file_name' => $body // File ID (e.g., files/xxxxxx)
-        ];
+        if (!$uploadUrl) {
+            return ['status' => 'error', 'message' => "Upload URL not found in response headers"];
+        }
 
-    } catch (RequestException $e) {
-        // Dọn dẹp file cục bộ trong trường hợp lỗi upload
-        if (file_exists($file_path)) unlink($file_path);
-        return ['status' => 'error', 'message' => $e->getMessage()];
+        // 2) Upload and finalize in a single request
+        $uploadResp = $client->request('POST', $uploadUrl, [
+            'headers' => [
+                'Content-Length' => (string)$file_size,
+                'X-Goog-Upload-Offset' => '0',
+                'X-Goog-Upload-Command' => 'upload, finalize',
+            ],
+            'body' => fopen($file_path, 'rb'),
+            'http_errors' => false,
+            'verify' => true,
+        ]);
+
+        $status2 = $uploadResp->getStatusCode();
+        $body2 = (string)$uploadResp->getBody();
+        if ($status2 < 200 || $status2 >= 300) {
+            return ['status' => 'error', 'message' => "Upload failed: HTTP {$status2} : {$body2}"];
+        }
+
+        $decoded = json_decode($body2, true, 512, JSON_THROW_ON_ERROR);
+        if (!isset($decoded['file']['uri'])) {
+            return ['status' => 'error', 'message' => "No file.uri in response: {$body2}"];
+        }
+
+        if (file_exists($file_path)) {
+            // optional cleanup; comment out if you want to keep the file
+            unlink($file_path);
+        }
+
+        $fileUri = $decoded['file']['uri'];
+        return ['status' => 'success', 'file_name' => $fileUri];
+
+    } catch (GuzzleException $e) {
+        return ['status' => 'error', 'message' => "HTTP error: " . $e->getMessage()];
+    } catch (JsonException $e) {
+        return ['status' => 'error', 'message' => "JSON parse error: " . $e->getMessage()];
     }
 }
 
