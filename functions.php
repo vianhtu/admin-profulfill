@@ -463,7 +463,7 @@ function AIProcessDownloadProducts($downloadId): array
     // 1. Tạo File JSONL and upload.
     $batch_name = "Batch-{$downloadId}-" . date('Ymd');
     $batch_result = gemini_create_and_upload_batch_file($jsonl_content, $batch_name);
-
+    return $batch_result;
     if ($batch_result['status'] == 'error') {
         return $batch_result;
     }
