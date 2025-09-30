@@ -387,7 +387,7 @@ function AIProcessDownloadProducts($downloadId): array
         return [['status' => 'error', 'message' => "Câu lệnh AI rỗng hoặc thiếu {title}/{image}."]];
     }
 
-    // Lấy danh sách sản phẩm cần xử lý (bỏ LIMIT 1 để xử lý nhiều sản phẩm)
+    // Lấy danh sách sản phẩm cần xử lý
     $stmt = $conn->prepare("
         SELECT DISTINCT p.ID, p.title, p.sku, p.images
         FROM posts p
