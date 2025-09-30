@@ -243,8 +243,9 @@ function gemini_2_5_flash(string $prompt): string
     return $response->text();
 }
 
-function gemini_create_and_upload_batch_file(string $jsonl_content): array
+function gemini_create_and_upload_batch_file(string $jsonl_content, string $batch_name): array
 {
+    $geminiApiKey = "AIzaSyALP80h2H1We1RA6Jl5cvFPlbYK0Zh29RE";
     // 1. Tạo File JSONL
     $jsonlDir = ROOT_DIR . "/jsonl/";
     if (!is_dir($jsonlDir)) {
@@ -268,7 +269,7 @@ function gemini_create_and_upload_batch_file(string $jsonl_content): array
         // 1) Start resumable upload: send metadata and get upload URL from response headers
         $startResp = $client->request('POST', '/upload/v1beta/files', [
             'headers' => [
-                'x-goog-api-key' => 'AIzaSyALP80h2H1We1RA6Jl5cvFPlbYK0Zh29RE',
+                'x-goog-api-key' => $geminiApiKey,
                 'X-Goog-Upload-Protocol' => 'resumable',
                 'X-Goog-Upload-Command' => 'start',
                 'X-Goog-Upload-Header-Content-Length' => (string)$file_size,
@@ -281,6 +282,7 @@ function gemini_create_and_upload_batch_file(string $jsonl_content): array
 
         $status = $startResp->getStatusCode();
         if ($status < 200 || $status >= 300) {
+            unlink($file_path);
             return ['status' => 'error', 'message' => "Start request failed: HTTP {$status} :".$startResp->getBody()];
         }
 
@@ -293,6 +295,7 @@ function gemini_create_and_upload_batch_file(string $jsonl_content): array
         }
 
         if (!$uploadUrl) {
+            unlink($file_path);
             return ['status' => 'error', 'message' => "Upload URL not found in response headers"];
         }
 
@@ -311,62 +314,55 @@ function gemini_create_and_upload_batch_file(string $jsonl_content): array
         $status2 = $uploadResp->getStatusCode();
         $body2 = (string)$uploadResp->getBody();
         if ($status2 < 200 || $status2 >= 300) {
+            unlink($file_path);
             return ['status' => 'error', 'message' => "Upload failed: HTTP {$status2} : {$body2}"];
         }
 
         $decoded = json_decode($body2, true, 512, JSON_THROW_ON_ERROR);
         if (!isset($decoded['file']['uri'])) {
+            unlink($file_path);
             return ['status' => 'error', 'message' => "No file.uri in response: {$body2}"];
         }
 
-        if (file_exists($file_path)) {
-            // optional cleanup; comment out if you want to keep the file
-            unlink($file_path);
-        }
-
         $fileUri = $decoded['file']['uri'];
-        return ['status' => 'success', 'file_name' => $fileUri];
-
-    } catch (GuzzleException $e) {
-        return ['status' => 'error', 'message' => "HTTP error: " . $e->getMessage()];
-    } catch (JsonException $e) {
-        return ['status' => 'error', 'message' => "JSON parse error: " . $e->getMessage()];
-    }
-}
-
-function gemini_submit_batch_job(string $file_id, string $batch_name): array
-{
-    $http_client = new GuzzleClient();
-    $job_url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:batchGenerateContent?key=AIzaSyALP80h2H1We1RA6Jl5cvFPlbYK0Zh29RE';
-    try {
-        $response = $http_client->post(
-            $job_url,
-            [
-                'json' => [
-                    // Cấu trúc payload bắt buộc: top-level 'batch' object
-                    "batch" => [
-                        "display_name" => $batch_name,
-                        "input_config" => [
-                            // Phải trỏ đến File ID đã upload
-                            "file_name" => $file_id
-                        ]
-                        // Output config có thể thêm vào đây nếu cần
-                    ]
+        $payload = [
+            'batch' => [
+                'display_name' => $batch_name,
+                'input_config' => [
+                    'file_name' => $fileUri,
                 ],
-                'http_errors' => true,
-                'timeout' => 60
-            ]
-        );
-
-        $body = json_decode($response->getBody(), true);
-
-        return [
-            'status' => 'success',
-            'job_name' => $body['name'] // Operation ID (e.g., operations/xxxxxx)
+            ],
         ];
 
-    } catch (RequestException $e) {
-        return ['status' => 'error', 'message' => $e->getMessage()];
+        $response = $client->request('POST', '/v1beta/models/gemini-2.5-flash:batchGenerateContent', [
+            'headers' => [
+                'x-goog-api-key' => $geminiApiKey,
+                'Content-Type' => 'application/json',
+            ],
+            'json' => $payload,
+            'http_errors' => false,
+        ]);
+
+        $status = $response->getStatusCode();
+        $body = (string)$response->getBody();
+
+        if ($status < 200 || $status >= 300) {
+            return ['status' => 'error', 'message' => "Request failed: HTTP {$status} : {$body}"];
+        }
+
+        $data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+        return ['status' => 'success', 'batch' => $data];
+
+    } catch (GuzzleException $e) {
+        unlink($file_path);
+        return ['status' => 'error', 'message' => "HTTP error: " . $e->getMessage()];
+    } catch (JsonException $e) {
+        unlink($file_path);
+        return ['status' => 'error', 'message' => "JSON parse error: " . $e->getMessage()];
+    } finally {
+        if (file_exists($file_path)) {
+            @unlink($file_path);
+        }
     }
 }
 
