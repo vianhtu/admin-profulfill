@@ -1,11 +1,10 @@
 <?php
 require __DIR__ . '/config.php';
-exit();
 
 $conn = db();
 
 // Lấy 10 row từ bảng download có status = 'running'
-$sql = "SELECT ID,status,locked_at
+$sql = "SELECT ID,locked_at, batch_name
         FROM download
         WHERE status = 'running'
         ORDER BY id ASC
@@ -35,7 +34,7 @@ if ($result && $result->num_rows > 0) {
             $stmt->execute();
 
             // Spawn worker
-            $cmd = "php " . __DIR__ . "/worker.php {$row['ID']} > /dev/null 2>&1 &";
+            $cmd = "php " . __DIR__ . "/worker.php {$row['ID']} {$row['batch_name']} > /dev/null 2>&1 &";
             exec($cmd);
         }
     }

@@ -5,42 +5,39 @@ require __DIR__ . '/functions.php';
 $conn = db();
 
 // Nếu được truyền ID từ cron-job.php thì xử lý trước job đó
-$downloadId = isset($argv[1]) ? (int)$argv[1] : 0;
+$downloadId = (int)$argv[1] ?? 0;
+$batch_name = $argv[2] ?? '';
 
+if ($downloadId == 0 || $batch_name == '') {
+    exit();
+}
 
-
-function processDownload($downloadId, $conn): void
-{
-    // Gọi AIProcessProducts
-    $log = AIProcessDownloadProducts($downloadId);
-
-    // Xác định status mới
-    $status = null;
-    if (!empty($log['status'])) {
-        if (in_array($log['status'], ['error', 'warning'])) {
-            $status = 'error';
-        } elseif ($log['status'] === 'done') {
-            $status = 'ready';
-        } elseif ($log['status'] === 'success') {
-            $status = null; // chỉ bỏ lock
+$items = gemini_get_batches_by_name($batch_name);
+if ($items['status'] == 'success' && count($items['items']) > 0) {
+    try {
+        foreach ($items['items'] as $key => $item) {
+            $id = (int)str_replace('request-', '', $key);
+            $newId = insertAmazonListingFromAI($downloadId, $id, $item);
+            // Cập nhật trạng thái bài viết
+            $updateStmt = $conn->prepare("UPDATE posts SET status = 'listed', updated_at = NOW() WHERE ID = ?");
+            $updateStmt->bind_param("i", $id);
+            $updateStmt->execute();
+            $updateStmt->close();
         }
-    }
-
-    // Cập nhật DB
-    if ($status !== null) {
-        $stmt = $conn->prepare("
-            UPDATE download
-            SET status = ?, locked_at = NULL
-            WHERE ID = ?
-        ");
+        $status = 'ready';
+        $stmt = $conn->prepare("UPDATE download SET status = ?, locked_at = NULL WHERE ID = ?");
         $stmt->bind_param("si", $status, $downloadId);
-    } else {
-        $stmt = $conn->prepare("
-            UPDATE download
-            SET locked_at = NULL
-            WHERE ID = ?
-        ");
-        $stmt->bind_param("i", $downloadId);
+        $stmt->execute();
+        $stmt->close();
+    } catch (Exception $e) {
+        writeLog($e->getMessage());
     }
-    $stmt->execute();
+} else {
+    writeLog($items['message'] ?? 'Unknown error');
+}
+
+function writeLog($message) {
+    $logFile = __DIR__ . "/worker.log";
+    $time    = date("Y-m-d H:i:s");
+    file_put_contents($logFile, "[$time] $message" . PHP_EOL, FILE_APPEND);
 }
