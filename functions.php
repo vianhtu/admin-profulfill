@@ -422,11 +422,11 @@ function gemini_get_batches_by_name($batch_name)
                 // Làm sạch và parse JSON
                 $raw = $json['response']['candidates'][0]['content']['parts'][0]['text'];
                 $clean = preg_replace('/^```json\s*|\s*```$/', '', trim((string)$raw));
-                $json = json_decode($clean, true);
-                if (json_last_error() !== JSON_ERROR_NONE || !is_array($json)) {
+                $item_json = json_decode($clean, true);
+                if (json_last_error() !== JSON_ERROR_NONE || !is_array($item_json)) {
                     continue;
                 }
-                $items[$json['key']] = $json;
+                $items[$json['key']] = $item_json;
             }
         }
         //$data = json_decode($body);
