@@ -464,7 +464,7 @@ function AIProcessDownloadProducts($downloadId): array
     $batch_name = "Batch-{$downloadId}-" . date('Ymd');
     $batch_result = gemini_create_and_upload_batch_file($jsonl_content, $batch_name);
 
-    if (!$batch_result['status'] == 'error') {
+    if ($batch_result['status'] == 'error') {
         return $batch_result;
     }
     // update. job name to data.
