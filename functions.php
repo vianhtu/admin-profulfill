@@ -441,12 +441,22 @@ function AIProcessDownloadProducts($downloadId): array
             '{image}' => $mainImage
         ]);
 
-        $request_data = ["contents" => [["role" => "user", "parts" => [["text" => buildCompressedPromptFromText($prompt)]]]]];
-        $jsonl_content .= json_encode($request_data) . "\n";
+        $request_data = [
+            "contents" => [
+                [
+                    "parts" => [
+                        [
+                            "text" => buildCompressedPromptFromText($prompt)
+                        ]
+                    ]
+                ]
+            ]
+        ];
+        $jsonl_content .= json_encode($request_data, JSON_UNESCAPED_UNICODE) . "\n";
     }
     $stmt->close();
 
-    return [$jsonl_content];
+    return $jsonl_content;
 
     // 1. Tạo File JSONL and upload.
     $batch_name = "Batch-{$downloadId}-" . date('Ymd');
