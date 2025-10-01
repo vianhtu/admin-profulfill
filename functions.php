@@ -958,7 +958,7 @@ function getProductCopyrightWarning(): array
     $total = $conn->query("
         SELECT COUNT(*) AS total
         FROM amazon_listings AS a
-        INNER JOIN posts AS p ON p.sku = a.sku
+        INNER JOIN posts AS p ON p.ID = a.post_id
         WHERE $where
     ")->fetch_assoc()['total'] ?? 0;
 
