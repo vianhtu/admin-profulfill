@@ -31,6 +31,7 @@ if ($items['status'] == 'success' && count($items['items']) > 0) {
         $stmt->bind_param("sii", $status, $total_token, $downloadId);
         $stmt->execute();
         $stmt->close();
+        writeLog('Success: ' . $total_token . ' token used');
     } catch (Exception $e) {
         writeLog($e->getMessage());
     }
