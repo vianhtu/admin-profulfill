@@ -932,7 +932,7 @@ function getProductCopyrightWarning(): array
 
     // Lấy danh sách items
     $sql = "
-        SELECT a.copyright_warning, a.copyrighted_content, p.title, p.images, p.post_id, p.ID
+        SELECT a.copyright_warning, a.copyrighted_content, p.title, p.images, p.sku, p.ID
         FROM amazon_listings AS a
         INNER JOIN posts AS p ON p.ID = a.post_id
         WHERE $where
@@ -946,7 +946,7 @@ function getProductCopyrightWarning(): array
         $mainImg = !empty($imgs->main) ? preg_replace('/il_\d+xN/', 'il_500xN', $imgs->main) : '';
         $data[] = [
             "id" => $row['ID'],
-            "post_id" => $row['post_id'],
+            "sku" => $row['sku'],
             "title" => $row['title'],
             "img"  => $mainImg,
             "copyrighted_content" => $row['copyrighted_content'],
