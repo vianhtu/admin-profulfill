@@ -932,7 +932,7 @@ function getProductCopyrightWarning(): array
 
     // Lấy danh sách items
     $sql = "
-        SELECT a.copyright_warning, a.copyrighted_content, p.title, p.images, p.sku, p.ID
+        SELECT a.copyright_warning, a.copyrighted_content, p.title, p.images, p.post_id, p.ID
         FROM amazon_listings AS a
         INNER JOIN posts AS p ON p.sku = a.sku
         WHERE $where
@@ -946,7 +946,7 @@ function getProductCopyrightWarning(): array
         $mainImg = !empty($imgs->main) ? preg_replace('/il_\d+xN/', 'il_500xN', $imgs->main) : '';
         $data[] = [
             "id" => $row['ID'],
-            "sku" => $row['sku'],
+            "post_id" => $row['post_id'],
             "title" => $row['title'],
             "img"  => $mainImg,
             "copyrighted_content" => $row['copyrighted_content'],
@@ -2154,7 +2154,7 @@ function downloadXlsx(): array
     // Lấy dữ liệu
     $sql = "SELECT DISTINCT al.item_name, al.product_description, al.meta_data, p.sku, p.images
             FROM amazon_listings AS al
-            INNER JOIN posts p ON al.sku = p.sku
+            INNER JOIN posts p ON al.post_id = p.ID
             WHERE al.download_id = ?
             AND (TRIM(al.copyright_warning) = ''
             OR TRIM(al.copyrighted_content) = ''
@@ -2402,12 +2402,12 @@ function deleteTableRow($table, $row_id): array {
 	];
 }
 
-function insertAmazonListingFromAI($downloadId, string $sku, array $aiData): array
+function insertAmazonListingFromAI($downloadId, string $post_id, array $aiData): array
 {
     $conn = db();
     $tableColumns = [
         'download_id',
-        'sku',
+        'post_id',
         'item_name',
         'product_description',
         'copyright_warning',
@@ -2427,7 +2427,7 @@ function insertAmazonListingFromAI($downloadId, string $sku, array $aiData): arr
     $now = date('Y-m-d H:i:s');
     $insertData = [
         'download_id' => $downloadId,
-        'sku' => $sku,
+        'post_id' => $post_id,
         'created_at' => $now,
         'updated_at' => $now
     ];
