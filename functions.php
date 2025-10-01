@@ -934,7 +934,7 @@ function getProductCopyrightWarning(): array
     $sql = "
         SELECT a.copyright_warning, a.copyrighted_content, p.title, p.images, p.post_id, p.ID
         FROM amazon_listings AS a
-        INNER JOIN posts AS p ON p.sku = a.sku
+        INNER JOIN posts AS p ON p.ID = a.post_id
         WHERE $where
         ORDER BY a.created_at DESC
         LIMIT $limit OFFSET $offset
