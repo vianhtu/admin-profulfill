@@ -426,7 +426,10 @@ function gemini_get_batches_by_name($batch_name): array
                 if (json_last_error() !== JSON_ERROR_NONE || !is_array($item_json)) {
                     continue;
                 }
-                $items[$json['key']] = $item_json;
+                $items[$json['key']] = [
+                    'data' => $item_json,
+                    'total_token' => (int)$json['response']['usageMetadata']['totalTokenCount'],
+                ];
             }
         }
         return ['status' => 'success', 'items' => $items];
