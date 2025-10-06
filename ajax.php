@@ -3,6 +3,7 @@ declare(strict_types=1);
 require __DIR__ . '/config.php';
 require __DIR__ . '/functions.php';
 require __DIR__ . '/functions-telnyx.php';
+require __DIR__ . '/functions-teams.php';
 header('Content-Type: application/json; charset=utf-8');
 // Nếu chưa login hoặc cookie nhớ đăng nhập không hợp lệ → chặn
 if (!is_logged_in() && !attempt_cookie_login()) {
@@ -68,6 +69,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             break;
         case 'get-phones-table':
             echo json_encode(getPhonesTable());
+            break;
+        case 'get-teams-table':
+            echo json_encode(getTeamsTable());
             break;
         case 'get-authors-table':
             echo json_encode(getAuthorsTable());

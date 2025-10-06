@@ -43,7 +43,7 @@ function initTable(){
             serverSide: true,
             processing: true,
             ajax: {
-                url: '../../ajax.php?action=get-authors-table',
+                url: '../../ajax.php?action=get-teams-table',
                 type: 'POST',
                 data: function (d) {},
                 dataSrc: function (json) {
@@ -54,12 +54,8 @@ function initTable(){
                 // columns according to JSON
                 { data: 'id' },
                 { data: 'id', orderable: false, render: DataTable.render.select() },
-                { data: 'username' },
-                { data: 'level' },
-                { data: 'team_id' },
-                { data: 'wage' },
+                { data: 'name' },
                 { data: 'status' },
-                { data: 'date' },
                 { data: 'action' }
             ],
             columnDefs: [
@@ -92,8 +88,8 @@ function initTable(){
                     targets: 2,
                     responsivePriority: 3,
                     render: function (data, type, full, meta) {
-                        var name = full['username'];
-                        var email = full['email'];
+                        var name = full['name'];
+                        var email = '';
                         var image = '';
                         var output;
 
@@ -133,47 +129,8 @@ function initTable(){
                     }
                 },
                 {
-                    targets: 3,
-                    render: function (data, type, full, meta) {
-                        var role = full['level'];
-                        var roleBadgeObj = {
-                            'Keywords': '<i class="icon-base ti tabler-letter-case-lower icon-md text-primary me-2"></i>',
-                            'Phones': '<i class="icon-base ti tabler-device-mobile-message icon-md text-warning me-2"></i>',
-                            'Data Scraper': '<i class="icon-base ti tabler-database-import icon-md text-success me-2"></i>',
-                            'Manager': '<i class="icon-base ti tabler-automation icon-md text-info me-2"></i>',
-                            'Admin': '<i class="icon-base ti tabler-device-desktop icon-md text-danger me-2"></i>'
-                        };
-                        if( role === null){
-                            role = 'Admin';
-                        }
-                        return (
-                            "<span class='text-truncate d-flex align-items-center text-heading'>" +
-                            (roleBadgeObj[role] || '') + // Ensures badge exists for the role
-                            role +
-                            '</span>'
-                        );
-                    }
-                },
-                {
-                    // team
-                    targets: 4,
-                    render: function (data, type, full, meta) {
-                        const team = full['team_id'];
-                        return '<span class="text-heading"><i class="icon-base ti tabler-users-group icon-md me-2"></i>' + team + '</span>';
-                    }
-                },
-                {
-                    // wage
-                    targets: 5,
-                    render: function (data, type, full, meta) {
-                        const wage = full['wage'];
-                        return '<div class="d-flex flex-column"><span class="text-heading">' + wage + '</span>' +
-                            '<small>' + full['insurance'] + '</small></div>';
-                    }
-                },
-                {
                     // User Status
-                    targets: 6,
+                    targets: 3,
                     render: function (data, type, full, meta) {
                         const status = full['status'];
 
@@ -187,36 +144,28 @@ function initTable(){
                     }
                 },
                 {
-                    // date
-                    targets: 7,
-                    render: function (data, type, full, meta) {
-                        const date = full['date'];
-                        return '<span class="text-heading">' + date + '</span>';
-                    }
-                },
-                {
                     targets: -1,
                     title: 'Actions',
                     searchable: false,
                     orderable: false,
                     render: (data, type, full, meta) => {
                         return `
-              <div class="d-flex align-items-center">
-                <a href="javascript:;" class="btn btn-text-secondary rounded-pill waves-effect btn-icon delete-record">
-                  <i class="icon-base ti tabler-trash icon-22px"></i>
-                </a>
-                <a href="${userView}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon">
-                  <i class="icon-base ti tabler-eye icon-22px"></i>
-                </a>
-                <a href="javascript:;" class="btn btn-text-secondary rounded-pill waves-effect btn-icon dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                  <i class="icon-base ti tabler-dots-vertical icon-22px"></i>
-                </a>
-                <div class="dropdown-menu dropdown-menu-end m-0">
-                  <a href="javascript:;" class="dropdown-item">Edit</a>
-                  <a href="javascript:;" class="dropdown-item">Suspend</a>
-                </div>
-              </div>
-            `;
+                      <div class="d-flex align-items-center">
+                        <a href="javascript:;" class="btn btn-text-secondary rounded-pill waves-effect btn-icon delete-record">
+                          <i class="icon-base ti tabler-trash icon-22px"></i>
+                        </a>
+                        <a href="${userView}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon">
+                          <i class="icon-base ti tabler-eye icon-22px"></i>
+                        </a>
+                        <a href="javascript:;" class="btn btn-text-secondary rounded-pill waves-effect btn-icon dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                          <i class="icon-base ti tabler-dots-vertical icon-22px"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end m-0">
+                          <a href="javascript:;" class="dropdown-item">Edit</a>
+                          <a href="javascript:;" class="dropdown-item">Suspend</a>
+                        </div>
+                      </div>
+                    `;
                     }
                 }
             ],
