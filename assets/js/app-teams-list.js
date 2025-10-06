@@ -64,7 +64,7 @@ function initTable(){
                     responsivePriority: 3,
                     render: function (data, type, full, meta) {
                         var name = full['name'];
-                        var email = 'members: ' + full['members'];
+                        var email = full['members'];
                         var url = 'index.php?menu=teams' + '&id=' + full['id'];
                         var output;
 
@@ -90,9 +90,9 @@ function initTable(){
                             '" class="text-heading text-truncate"><span class="fw-medium">' +
                             name +
                             '</span></a>' +
-                            '<small>' +
+                            '<i class="icon-base ti tabler-users">' +
                             email +
-                            '</small>' +
+                            '</i>' +
                             '</div>' +
                             '</div>';
                         return row_output;
