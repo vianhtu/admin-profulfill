@@ -1,10 +1,5 @@
 <!-- Users List Table -->
 <div class="card">
-    <div class="card-header border-bottom">
-        <h5 class="card-title mb-0">Filters</h5>
-        <div class="d-flex justify-content-between align-items-center row pt-4 gap-4 gap-md-0">
-        </div>
-    </div>
     <div class="card-datatable">
         <table class="datatables-users table">
             <thead class="border-top">
