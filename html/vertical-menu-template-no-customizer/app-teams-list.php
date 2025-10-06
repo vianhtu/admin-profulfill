@@ -20,7 +20,7 @@
             id="offcanvasAddUser"
             aria-labelledby="offcanvasAddUserLabel">
         <div class="offcanvas-header border-bottom">
-            <h5 id="offcanvasAddUserLabel" class="offcanvas-title">Add User</h5>
+            <h5 id="offcanvasAddUserLabel" class="offcanvas-title">Add New Team</h5>
             <button
                     type="button"
                     class="btn-close text-reset"

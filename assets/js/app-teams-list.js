@@ -165,7 +165,7 @@ function initTable(){
                     features: [
                         {
                             search: {
-                                placeholder: 'Search User',
+                                placeholder: 'Search Team',
                                 text: '_INPUT_'
                             }
                         },
