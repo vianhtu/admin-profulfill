@@ -1,42 +1,17 @@
-/**
- * Page User List
- */
-
 'use strict';
-let rolesObj = {};
-let teamsObj = {};
 async function init() {
-    try {
-        // 1️⃣ Gọi API trước
-        let options = await fetchTableFilter('get-authors-table-filter');
-        rolesObj = options['role'];
-        teamsObj = options['team'];
-        // 2️⃣ Sau khi có dữ liệu → tạo bảng
-        initTable();
-    } catch (err) {
-        alert('Do not load filter options.');
-    }
+    initTable();
 }
 
 function initTable(){
     // Variable declaration for table
     const dt_user_table = document.querySelector('.datatables-users'),
-        userView = 'app-user-view-account.html',
+        userView = '',
         statusObj = {
             1: { title: 'Pending', class: 'bg-label-warning' },
             2: { title: 'Active', class: 'bg-label-success' },
             3: { title: 'Inactive', class: 'bg-label-secondary' }
         };
-    var select2 = $('.select2');
-
-    if (select2.length) {
-        var $this = select2;
-        $this.wrap('<div class="position-relative"></div>').select2({
-            placeholder: 'Select Country',
-            dropdownParent: $this.parent()
-        });
-    }
-
     // Users datatable
     if (dt_user_table) {
         const dt_user = new DataTable(dt_user_table, {
