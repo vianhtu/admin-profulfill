@@ -133,7 +133,7 @@ function initTable(){
                 style: 'multi',
                 selector: 'td:nth-child(2)'
             },
-            order: [[2, 'desc']],
+            order: [[1, 'desc']],
             layout: {
                 topStart: {
                     rowClass: 'row m-3 my-0 justify-content-between',
@@ -183,7 +183,7 @@ function initTable(){
             language: {
                 sLengthMenu: '_MENU_',
                 search: '',
-                searchPlaceholder: 'Search User',
+                searchPlaceholder: 'Search Team',
                 paginate: {
                     next: '<i class="icon-base ti tabler-chevron-right scaleX-n1-rtl icon-18px"></i>',
                     previous: '<i class="icon-base ti tabler-chevron-left scaleX-n1-rtl icon-18px"></i>',
@@ -197,7 +197,7 @@ function initTable(){
                     display: DataTable.Responsive.display.modal({
                         header: function (row) {
                             const data = row.data();
-                            return 'Details of ' + data['full_name'];
+                            return 'Details of ' + data['name'];
                         }
                     }),
                     type: 'column',
@@ -227,59 +227,6 @@ function initTable(){
                         return false;
                     }
                 }
-            }
-        });
-
-        //? The 'delete-record' class is necessary for the functionality of the following code.
-        function deleteRecord(event) {
-            let row = document.querySelector('.dtr-expanded');
-            if (event) {
-                row = event.target.parentElement.closest('tr');
-            }
-            if (row) {
-                dt_user.row(row).remove().draw();
-            }
-        }
-
-        function bindDeleteEvent() {
-            const userListTable = document.querySelector('.datatables-users');
-            const modal = document.querySelector('.dtr-bs-modal');
-
-            if (userListTable && userListTable.classList.contains('collapsed')) {
-                if (modal) {
-                    modal.addEventListener('click', function (event) {
-                        if (event.target.parentElement.classList.contains('delete-record')) {
-                            deleteRecord();
-                            const closeButton = modal.querySelector('.btn-close');
-                            if (closeButton) closeButton.click(); // Simulates a click on the close button
-                        }
-                    });
-                }
-            } else {
-                const tableBody = userListTable?.querySelector('tbody');
-                if (tableBody) {
-                    tableBody.addEventListener('click', function (event) {
-                        if (event.target.parentElement.classList.contains('delete-record')) {
-                            deleteRecord(event);
-                        }
-                    });
-                }
-            }
-        }
-
-        // Initial event binding
-        bindDeleteEvent();
-
-        // Re-bind events when modal is shown or hidden
-        document.addEventListener('show.bs.modal', function (event) {
-            if (event.target.classList.contains('dtr-bs-modal')) {
-                bindDeleteEvent();
-            }
-        });
-
-        document.addEventListener('hide.bs.modal', function (event) {
-            if (event.target.classList.contains('dtr-bs-modal')) {
-                bindDeleteEvent();
             }
         });
     }
