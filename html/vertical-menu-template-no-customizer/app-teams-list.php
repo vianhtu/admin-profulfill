@@ -6,7 +6,7 @@
             <tr>
                 <th></th>
                 <th></th>
-                <th>Team</th>
+                <th>Teams</th>
                 <th>Status</th>
                 <th>Actions</th>
             </tr>
