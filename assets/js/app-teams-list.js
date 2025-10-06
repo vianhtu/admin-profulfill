@@ -178,7 +178,7 @@ function initTable(){
                                     buttons: []
                                 },
                                 {
-                                    text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-plus icon-xs"></i> <span class="d-none d-sm-inline-block">Add New User</span></span>',
+                                    text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-plus icon-xs"></i> <span class="d-none d-sm-inline-block">Add New Team</span></span>',
                                     className: 'add-new btn btn-primary',
                                     attr: {
                                         'data-bs-toggle': 'offcanvas',
