@@ -383,8 +383,12 @@ if (empty($_SESSION['csrf_token'])) {
         case 'phones_numbers': ?>
             <script src="../../assets/js/app-phones-list.js"></script>
         <?php break;
-        case 'teams': ?>
-            <script src="../../assets/js/app-teams-list.js"></script>
+        case 'teams':
+            if( isset( $_GET['action'] ) && $_GET['action'] == 'edit') { ?>
+                <script src="../../assets/js/app-teams-list-edit.js"></script>
+            <?php } else { ?>
+                <script src="../../assets/js/app-teams-list.js"></script>
+            <?php } ?>
         <?php break;
         case 'users': ?>
             <script src="../../assets/js/app-user-list.js"></script>
