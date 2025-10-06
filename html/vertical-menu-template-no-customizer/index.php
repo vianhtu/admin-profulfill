@@ -265,6 +265,9 @@ if (empty($_SESSION['csrf_token'])) {
                   case 'phones_sms':
                       include 'app-phones-sms.php';
                       break;
+                  case 'teams':
+                      include 'app-teams-list.php';
+                      break;
                   case 'users':
                       include 'app-user-list.php';
                       break;
@@ -357,9 +360,6 @@ if (empty($_SESSION['csrf_token'])) {
         case 'copyright': ?>
             <script src="../../assets/js/app-ecommerce-product-copyright.js"></script>
         <?php break;
-        case 'users': ?>
-            <script src="../../assets/js/app-user-list.js"></script>
-            <?php break;
         case 'keywords': ?>
             <script src="../../assets/js/app-ecommerce-keywords-list.js"></script>
             <?php break;
@@ -378,6 +378,12 @@ if (empty($_SESSION['csrf_token'])) {
             <?php break;
         case 'phones_numbers': ?>
             <script src="../../assets/js/app-phones-list.js"></script>
+        <?php break;
+        case 'teams': ?>
+            <script src="../../assets/js/app-teams-list.js"></script>
+        <?php break;
+        case 'users': ?>
+            <script src="../../assets/js/app-user-list.js"></script>
         <?php break;
         case 'roles-permissions': ?>
             <script src="../../assets/js/app-access-permission.js"></script>
