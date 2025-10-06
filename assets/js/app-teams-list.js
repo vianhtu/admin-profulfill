@@ -65,21 +65,16 @@ function initTable(){
                     render: function (data, type, full, meta) {
                         var name = full['name'];
                         var email = '';
-                        var image = '';
+                        var url = 'index.php?menu=teams' + '&id=' + full['id'];
                         var output;
 
-                        if (image) {
-                            // For Avatar image
-                            output = '<img src="' + assetsPath + 'img/avatars/' + image + '" alt="Avatar" class="rounded-circle">';
-                        } else {
-                            // For Avatar badge
-                            var stateNum = Math.floor(Math.random() * 6);
-                            var states = ['success', 'danger', 'warning', 'info', 'dark', 'primary', 'secondary'];
-                            var state = states[stateNum];
-                            var initials = (name.match(/\b\w/g) || []).map(char => char.toUpperCase());
-                            initials = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
-                            output = '<span class="avatar-initial rounded-circle bg-label-' + state + '">' + initials + '</span>';
-                        }
+                        // For Avatar badge
+                        var stateNum = Math.floor(Math.random() * 6);
+                        var states = ['success', 'danger', 'warning', 'info', 'dark', 'primary', 'secondary'];
+                        var state = states[stateNum];
+                        var initials = (name.match(/\b\w/g) || []).map(char => char.toUpperCase());
+                        initials = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
+                        output = '<span class="avatar-initial rounded-circle bg-label-' + state + '">' + initials + '</span>';
 
                         // Creates full output for row
                         var row_output =
@@ -91,7 +86,7 @@ function initTable(){
                             '</div>' +
                             '<div class="d-flex flex-column">' +
                             '<a href="' +
-                            userView +
+                            url +
                             '" class="text-heading text-truncate"><span class="fw-medium">' +
                             name +
                             '</span></a>' +
