@@ -39,6 +39,7 @@ function getTeamsTable():array
             FROM team
             LEFT JOIN authors ON authors.team_id = team.ID
             $where
+            GROUP BY team.ID
             ORDER BY team.{$params['orderColumn']} {$params['orderDir']}
             LIMIT {$params['start']}, {$params['length']}";
     $rs = $conn->query($sql);
