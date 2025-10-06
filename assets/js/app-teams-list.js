@@ -90,9 +90,9 @@ function initTable(){
                             '" class="text-heading text-truncate"><span class="fw-medium">' +
                             name +
                             '</span></a>' +
-                            '<i class="icon-base ti tabler-users">' +
+                            '<small><i class="icon-base ti tabler-users icon-15px"></i>' +
                             email +
-                            '</i>' +
+                            '</small>' +
                             '</div>' +
                             '</div>';
                         return row_output;
