@@ -15,11 +15,8 @@
                 <th></th>
                 <th></th>
                 <th>User</th>
-                <th>Role</th>
                 <th>Team</th>
-                <th>Salary</th>
                 <th>Status</th>
-                <th>Date</th>
                 <th>Actions</th>
             </tr>
             </thead>
