@@ -3,9 +3,6 @@
     <div class="card-header border-bottom">
         <h5 class="card-title mb-0">Filters</h5>
         <div class="d-flex justify-content-between align-items-center row pt-4 gap-4 gap-md-0">
-            <div class="col-md-4 user_role"></div>
-            <div class="col-md-4 user_team"></div>
-            <div class="col-md-4 user_status"></div>
         </div>
     </div>
     <div class="card-datatable">
@@ -14,7 +11,6 @@
             <tr>
                 <th></th>
                 <th></th>
-                <th>User</th>
                 <th>Team</th>
                 <th>Status</th>
                 <th>Actions</th>
