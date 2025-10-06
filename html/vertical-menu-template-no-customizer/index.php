@@ -266,7 +266,11 @@ if (empty($_SESSION['csrf_token'])) {
                       include 'app-phones-sms.php';
                       break;
                   case 'teams':
-                      include 'app-teams-list.php';
+                      if( isset( $_GET['action'] ) && $_GET['action'] == 'edit') {
+                          include 'app-teams-list-edit.php';
+                      } else {
+                          include 'app-teams-list.php';
+                      }
                       break;
                   case 'users':
                       include 'app-user-list.php';

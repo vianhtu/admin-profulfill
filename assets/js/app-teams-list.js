@@ -65,7 +65,7 @@ function initTable(){
                     render: function (data, type, full, meta) {
                         var name = full['name'];
                         var email = full['members'];
-                        var url = 'index.php?menu=teams' + '&id=' + full['id'];
+                        var url = 'index.php?menu=teams&action=edit' + '&id=' + full['id'];
                         var output;
 
                         // For Avatar badge
