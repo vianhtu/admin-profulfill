@@ -45,24 +45,7 @@ function initTable(){
             ajax: {
                 url: '../../ajax.php?action=get-authors-table',
                 type: 'POST',
-                data: function (d) {
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const initialFilters = {
-                        UserRole: urlParams.get('UserRole') || '',
-                        UserTeam: urlParams.get('UserTeam') || '',
-                        UserStatus: urlParams.get('UserStatus') || ''
-                    };
-                    const mapping = { UserRole: 'level', UserTeam: 'team_id', UserStatus: 'status' }; // data names in your columns config
-                    d.columns.forEach(col => {
-                        for (const key in mapping) {
-                            if (col.data === mapping[key]) {
-                                const v = initialFilters[key] || '';
-                                col.search.value = v ? `^${v}$` : '';
-                                col.search.regex = !!v;
-                            }
-                        }
-                    });
-                },
+                data: function (d) {},
                 dataSrc: function (json) {
                     return json.data;
                 }
@@ -335,12 +318,6 @@ function initTable(){
                         return false;
                     }
                 }
-            },
-            initComplete: function () {
-                const api = this.api();
-                getSelect2filterTable(api,'UserRole', '.user_role', 3, 'Role', rolesObj);
-                getSelect2filterTable(api,'UserTeam', '.user_team', 4, 'Team', teamsObj);
-                getSelect2filterTable(api,'UserStatus', '.user_status', 6, 'Status', statusObj);
             }
         });
 
