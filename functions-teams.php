@@ -24,7 +24,7 @@ function getTeamsTable():array
     // Lọc theo search
     if ($params['searchValue'] !== '') {
         $searchEsc = $conn->real_escape_string($params['searchValue']);
-        $whereClauses[] = "name LIKE '%$searchEsc%'";
+        $whereClauses[] = "team.name LIKE '%$searchEsc%'";
     }
 
     $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
@@ -35,10 +35,11 @@ function getTeamsTable():array
     )->fetch_assoc()['cnt'];
 
     // Lấy dữ liệu
-    $sql = "SELECT ID, name, status
+    $sql = "SELECT team.ID, team.name, team.status, COUNT(authors.ID) AS members
             FROM team
+            LEFT JOIN authors ON authors.team_id = team.ID
             $where
-            ORDER BY {$params['orderColumn']} {$params['orderDir']}
+            ORDER BY team.{$params['orderColumn']} {$params['orderDir']}
             LIMIT {$params['start']}, {$params['length']}";
     $rs = $conn->query($sql);
 
@@ -48,7 +49,8 @@ function getTeamsTable():array
         $data[] = [
             "id"          => $row['ID'],
             "name"        => $row['name'],
-            "status"      => $row['status']
+            "status"      => $row['status'],
+            "members"     => $row['members']
         ];
     }
 

@@ -64,7 +64,7 @@ function initTable(){
                     responsivePriority: 3,
                     render: function (data, type, full, meta) {
                         var name = full['name'];
-                        var email = '';
+                        var email = 'members: ' + full['members'];
                         var url = 'index.php?menu=teams' + '&id=' + full['id'];
                         var output;
 
