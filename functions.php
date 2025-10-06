@@ -8,10 +8,6 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use GeminiAPI\Client;
 use GeminiAPI\Resources\Parts\TextPart;
 use GuzzleHttp\Client as GuzzleClient;
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\ServerException;
-use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\RequestException;
 
 function menuArgs():array
 {
@@ -72,6 +68,7 @@ function menuArgs():array
                 ],
             ]
         ],
+        'Teams' => ['icon' => 'tabler-brand-asana', 'link' => 'teams', 'roles' => ['view','add','edit','delete']],
         'Users' => ['icon' => 'tabler-users', 'link' => 'users', 'roles' => ['view','add','edit','delete']],
         'Roles & Permissions' => ['icon' => 'tabler-lock', 'link' => 'roles-permissions', 'roles' => ['view','add','edit','delete']]
     ];
