@@ -328,15 +328,39 @@ function gemini_create_and_upload_batch_file(string $jsonl_content, string $batc
             return ['status' => 'error', 'message' => "No file id in url: {$fileUriRaw}"];
         }
 
-        $payload = [
-            'batch' => [
-                'display_name' => $batch_name,
-                'input_config' => [
-                    'file_name' => $matches[0],
-                ],
-            ],
-        ];
+        return gemini_create_batches($batch_name, $matches[0]);
 
+    } catch (GuzzleException $e) {
+        unlink($file_path);
+        return ['status' => 'error', 'message' => "HTTP error: " . $e->getMessage()];
+    } catch (JsonException $e) {
+        unlink($file_path);
+        return ['status' => 'error', 'message' => "JSON parse error: " . $e->getMessage()];
+    } finally {
+        if (file_exists($file_path)) {
+            @unlink($file_path);
+        }
+    }
+}
+
+function gemini_create_batches($batch_name, $file_name) : array
+{
+    $geminiApiKey = "AIzaSyALP80h2H1We1RA6Jl5cvFPlbYK0Zh29RE";
+    $client = new GuzzleClient([
+        'base_uri' => 'https://generativelanguage.googleapis.com',
+        'timeout' => 60,
+    ]);
+
+    $payload = [
+        'batch' => [
+            'display_name' => $batch_name,
+            'input_config' => [
+                'file_name' =>$file_name,
+            ],
+        ],
+    ];
+
+    try {
         $response = $client->request('POST', '/v1beta/models/gemini-2.5-flash:batchGenerateContent', [
             'headers' => [
                 'x-goog-api-key' => $geminiApiKey,
@@ -355,17 +379,10 @@ function gemini_create_and_upload_batch_file(string $jsonl_content, string $batc
 
         $data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
         return ['status' => 'success', 'batch' => $data];
-
     } catch (GuzzleException $e) {
-        unlink($file_path);
         return ['status' => 'error', 'message' => "HTTP error: " . $e->getMessage()];
     } catch (JsonException $e) {
-        unlink($file_path);
         return ['status' => 'error', 'message' => "JSON parse error: " . $e->getMessage()];
-    } finally {
-        if (file_exists($file_path)) {
-            @unlink($file_path);
-        }
     }
 }
 
@@ -395,6 +412,8 @@ function gemini_get_batches_by_name($batch_name): array
         $responsesFile = $data['response']['responsesFile'] ?? null;
         if ($responsesFile === null) {
             return ['status' => 'running', 'message' => "No file in response"];
+        } elseif ($data['metadata']['state'] !== 'BATCH_STATE_EXPIRED') {
+            return ['status' => 'expired', 'file_name' => $data['metadata']['inputConfig']['fileName']];
         }
 
         $_response = $client->request('GET', "/download/v1beta/{$responsesFile}:download?alt=media", [

@@ -35,6 +35,19 @@ if ($items['status'] == 'success' && count($items['items']) > 0) {
     } catch (Exception $e) {
         writeLog($e->getMessage());
     }
+} elseif ($items['status'] == 'expired'){
+    $batch_result = gemini_create_batches($batch_name, $items['file_name']);
+    if ($batch_result['status'] == 'error') {
+        writeLog($batch_result['message']);
+    } else {
+        $batch_id = $batch_result['batch']['name'];
+        // update. job name to data.
+        $stmt = $conn->prepare("UPDATE download SET batch_name = ?, status = 'running' WHERE ID = ?");
+        $stmt->bind_param("si", $batch_id, $downloadId);
+        $stmt->execute();
+        $stmt->close();
+        writeLog('Expired create new batch: ' . $batch_id);
+    }
 } else {
     writeLog($items['message'] ?? 'Unknown error');
 }
