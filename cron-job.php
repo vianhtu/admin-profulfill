@@ -7,7 +7,7 @@ $conn = db();
 $sql = "SELECT ID,locked_at, batch_name
         FROM download
         WHERE status = 'running'
-        AND (locked_at IS NULL OR locked_at < DATE_SUB(NOW(), INTERVAL 10 MINUTE))
+        AND (locked_at IS NULL OR locked_at < DATE_SUB(NOW(), INTERVAL 60 MINUTE))
         ORDER BY id ASC
         LIMIT 10";
 
