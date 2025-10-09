@@ -409,13 +409,14 @@ function gemini_get_batches_by_name($batch_name): array
         }
 
         $data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
-        $responsesFile = $data['response']['responsesFile'] ?? null;
-        if ($responsesFile === null) {
-            return ['status' => 'running', 'message' => "No file in response"];
-        } elseif ($data['metadata']['state'] !== 'BATCH_STATE_EXPIRED') {
+
+        if($data['metadata']['state'] === 'BATCH_STATE_EXPIRED'){
             return ['status' => 'expired', 'file_name' => $data['metadata']['inputConfig']['fileName']];
+        } elseif ($data['metadata']['state'] !== 'BATCH_STATE_SUCCEEDED'){
+            return ['status' => 'running', 'message' => "No file in response"];
         }
 
+        $responsesFile = $data['response']['responsesFile'];
         $_response = $client->request('GET', "/download/v1beta/{$responsesFile}:download?alt=media", [
             'headers' => [
                 'x-goog-api-key' => $geminiApiKey
