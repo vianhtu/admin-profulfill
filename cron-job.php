@@ -16,7 +16,7 @@ $result = $conn->query($sql);
 if ($result && $result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         // Cập nhật locked_at để tránh tiến trình khác lấy trùng
-        $stmt = $conn->prepare("UPDATE download SET locked_at = NOW(), status = 'running' WHERE ID = ?");
+        $stmt = $conn->prepare("UPDATE download SET locked_at = NOW() WHERE ID = ?");
         $stmt->bind_param("i", $row['ID']);
         $stmt->execute();
 
