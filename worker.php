@@ -42,7 +42,7 @@ if ($items['status'] == 'success' && count($items['items']) > 0) {
     } else {
         $batch_id = $batch_result['batch']['name'];
         // update. job name to data.
-        $stmt2 = $conn->prepare("UPDATE download SET batch_name = ?, status = 'running' WHERE ID = ?");
+        $stmt2 = $conn->prepare("UPDATE download SET batch_name = ? WHERE ID = ?");
         $stmt2->bind_param("si", $batch_id, $downloadId);
         $stmt2->execute();
         $stmt2->close();
