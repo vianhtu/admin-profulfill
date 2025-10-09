@@ -2,6 +2,13 @@
 require __DIR__ . '/config.php';
 require __DIR__ . '/functions.php';
 
+function writeLog($message): void
+{
+    $logFile = __DIR__ . "/worker.log";
+    $time    = date("Y-m-d H:i:s");
+    file_put_contents($logFile, "[$time] $message" . PHP_EOL, FILE_APPEND);
+}
+
 $conn = db();
 
 // Nếu được truyền ID từ cron-job.php thì xử lý trước job đó
@@ -50,10 +57,4 @@ if ($items['status'] == 'success' && count($items['items']) > 0) {
     }
 } else {
     writeLog($items['message'] ?? 'Unknown error');
-}
-
-function writeLog($message) {
-    $logFile = __DIR__ . "/worker.log";
-    $time    = date("Y-m-d H:i:s");
-    file_put_contents($logFile, "[$time] $message" . PHP_EOL, FILE_APPEND);
 }
