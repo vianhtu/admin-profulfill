@@ -17,11 +17,10 @@ if ($items['status'] == 'success' && count($items['items']) > 0) {
     try {
         $total_token = 0;
         foreach ($items['items'] as $key => $item) {
-            $id = (int)str_replace('request-', '', $key);
-            $newId = insertAmazonListingFromAI($downloadId, $id, $item['data']);
+            $newId = insertAmazonListingFromAI($downloadId, $key, $item['data']);
             // Cập nhật trạng thái bài viết
             $updateStmt = $conn->prepare("UPDATE posts SET status = 'listed', updated_at = NOW() WHERE ID = ?");
-            $updateStmt->bind_param("i", $id);
+            $updateStmt->bind_param("i", $key);
             $updateStmt->execute();
             $updateStmt->close();
             $total_token += $item['total_token'];
