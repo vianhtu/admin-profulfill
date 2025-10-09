@@ -2688,5 +2688,7 @@ function writeLogFile($log, string $logName): void
 
 function getDebug()
 {
-    return gemini_get_batches_by_name('batches/dm0sic1dyzdom69kymtcnhleii8lwpcv8dcf');
+    // Spawn worker
+    $cmd = "php " . __DIR__ . "/worker.php 160 batches/zveexi5kg4q7m6pso182yyzuynwt1t4uqwtw > /dev/null 2>&1 &";
+    exec($cmd);
 }
