@@ -2690,6 +2690,6 @@ function writeLogFile($log, string $logName): void
 function getDebug()
 {
     // Spawn worker
-    $cmd = "php " . __DIR__ . "/worker.php 192 batches/fba10vd0j7lw03i43vyxee0jso3ycoveg3s0 > /dev/null 2>&1 &";
+    $cmd = "php " . __DIR__ . "/worker.php 160 batches/zveexi5kg4q7m6pso182yyzuynwt1t4uqwtw > /dev/null 2>&1 &";
     exec($cmd);
 }
