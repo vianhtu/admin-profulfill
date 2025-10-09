@@ -36,7 +36,7 @@ if ($items['status'] == 'success' && count($items['items']) > 0) {
         writeLog($e->getMessage());
     }
 } elseif ($items['status'] == 'expired'){
-    $batch_result = gemini_create_batches($batch_name, $items['file_name']);
+    $batch_result = gemini_create_batches($downloadId, $items['file_name']);
     if ($batch_result['status'] == 'error') {
         writeLog($batch_result['message']);
     } else {
