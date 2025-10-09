@@ -353,7 +353,7 @@ function gemini_create_batches($batch_name, $file_name) : array
 
     $payload = [
         'batch' => [
-            'display_name' => $batch_name,
+            'display_name' => (string)$batch_name,
             'input_config' => [
                 'file_name' =>$file_name,
             ],
