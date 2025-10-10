@@ -443,13 +443,10 @@ function gemini_get_batches_by_name($batch_name): array
     $data = $res['data'];
     $state = $data['metadata']['state'] ?? null;
     if ($state === 'BATCH_STATE_EXPIRED') {
-        return [
-            'status' => 'expired',
-            'file_name' => $data['metadata']['inputConfig']['fileName'] ?? null,
-        ];
+        return ['status' => 'expired', 'file_name' => $data['metadata']['inputConfig']['fileName'] ?? null];
     }
     if ($state !== 'BATCH_STATE_SUCCEEDED') {
-        return ['status' => 'running', 'message' => 'Batch not completed yet'];
+        return ['status' => 'running', 'message' => 'Batch not completed yet', $state];
     }
 
     $responsesFile = $data['response']['responsesFile'] ?? null;
