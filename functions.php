@@ -236,14 +236,19 @@ function gemini_request(string $method, string $uri, array $json = [], bool $bod
 {
     try {
         $client = gemini_client();
-        $response = $client->request($method, $uri, [
+        $options = [
             'headers' => [
-                'x-goog-api-key' => GEMINI_API_KEY,
-                'Content-Type' => 'application/json',
+                'x-goog-api-key' => GEMINI_API_KEY
             ],
-            'json' => $json,
             'http_errors' => false,
-        ]);
+        ];
+
+        if ($method === 'POST') {
+            $options['headers']['Content-Type'] = 'application/json';
+            $options['json'] = $json;
+        }
+
+        $response = $client->request($method, $uri, $options);
 
         $status = $response->getStatusCode();
         $body = (string)$response->getBody();
