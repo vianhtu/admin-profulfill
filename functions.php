@@ -224,82 +224,89 @@ function checkRoles(string|array $role = '', string $menu = ''): bool
     return !empty($userRoles[$menu][$role]);
 }
 
-function gemini_2_5_flash(string $prompt): string
+function gemini_client(): GuzzleClient
 {
-    // Thay bằng API key của bạn
-    $apiKey = 'AIzaSyALP80h2H1We1RA6Jl5cvFPlbYK0Zh29RE';
-
-    // Khởi tạo client
-    $client = new Client($apiKey);
-
-    // Gọi model Gemini 2.5 Flash
-    $response = $client
-        ->withV1BetaVersion()
-        ->generativeModel('gemini-2.5-flash')
-        ->generateContent(new TextPart($prompt));
-
-    // Trả về kết quả
-    return $response->text();
+    return new GuzzleClient([
+        'base_uri' => 'https://generativelanguage.googleapis.com',
+        'timeout' => 120,
+    ]);
 }
 
-function gemini_create_and_upload_batch_file(string $jsonl_content, string $batch_name): array
+function gemini_request(string $method, string $uri, array $json = [], bool $body = false): array
 {
-    $geminiApiKey = "AIzaSyALP80h2H1We1RA6Jl5cvFPlbYK0Zh29RE";
-    // 1. Tạo File JSONL
-    $jsonlDir = ROOT_DIR . "/jsonl/";
-    if (!is_dir($jsonlDir)) {
-        mkdir($jsonlDir, 0777, true);
-    }
-    $file_name = 'batch_prompts_' . time() . '.jsonl';
-    $file_path = $jsonlDir . $file_name;
-
-    if (file_put_contents($file_path, $jsonl_content) === false) {
-        return ['status' => 'error', 'message' => "Failed to save JSONL file locally."];
-    }
-    $file_type = mime_content_type($file_path) ?: 'application/jsonl';
-    $file_size = filesize($file_path);
-
-    $client = new GuzzleClient([
-        'base_uri' => 'https://generativelanguage.googleapis.com',
-        'timeout' => 60,
-    ]);
-
     try {
-        // 1) Start resumable upload: send metadata and get upload URL from response headers
-        $startResp = $client->request('POST', '/upload/v1beta/files', [
+        $client = gemini_client();
+        $response = $client->request($method, $uri, [
             'headers' => [
-                'x-goog-api-key' => $geminiApiKey,
+                'x-goog-api-key' => GEMINI_API_KEY,
+                'Content-Type' => 'application/json',
+            ],
+            'json' => $json,
+            'http_errors' => false,
+        ]);
+
+        $status = $response->getStatusCode();
+        $body = (string)$response->getBody();
+
+        if ($status < 200 || $status >= 300) {
+            return ['status' => 'error', 'message' => "HTTP {$status} : {$body}", 'code' => $status];
+        }
+
+        if ($body) {
+            return ['status' => 'success', 'body' => $body, 'code' => $status];
+        }
+
+        $data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+        return ['status' => 'success', 'data' => $data, 'code' => $status];
+    } catch (GuzzleException $e) {
+        return ['status' => 'error', 'message' => 'HTTP error: ' . $e->getMessage()];
+    } catch (JsonException $e) {
+        return ['status' => 'error', 'message' => 'JSON parse error: ' . $e->getMessage()];
+    }
+}
+
+function gemini_start_resumable_upload(string $file_name, int $file_size, string $file_type): array
+{
+    try {
+        $client = gemini_client();
+        $resp = $client->request('POST', '/upload/v1beta/files', [
+            'headers' => [
+                'x-goog-api-key' => GEMINI_API_KEY,
                 'X-Goog-Upload-Protocol' => 'resumable',
                 'X-Goog-Upload-Command' => 'start',
                 'X-Goog-Upload-Header-Content-Length' => (string)$file_size,
                 'X-Goog-Upload-Header-Content-Type' => $file_type,
-                'Content-Type' => 'application/jsonl',
+                'Content-Type' => 'application/json',
             ],
             'body' => json_encode(['file' => ['display_name' => $file_name]]),
             'http_errors' => false,
         ]);
-
-        $status = $startResp->getStatusCode();
+        $status = $resp->getStatusCode();
+        $body = (string)$resp->getBody();
         if ($status < 200 || $status >= 300) {
-            unlink($file_path);
-            return ['status' => 'error', 'message' => "Start request failed: HTTP {$status} :".$startResp->getBody()];
+            return ['status' => 'error', 'message' => "Start request failed: HTTP {$status} : {$body}", 'code' => $status];
         }
-
         $uploadUrl = null;
-        foreach ($startResp->getHeaders() as $name => $values) {
+        foreach ($resp->getHeaders() as $name => $values) {
             if (strtolower($name) === 'x-goog-upload-url') {
                 $uploadUrl = $values[0];
                 break;
             }
         }
-
         if (!$uploadUrl) {
-            unlink($file_path);
-            return ['status' => 'error', 'message' => "Upload URL not found in response headers"];
+            return ['status' => 'error', 'message' => 'Upload URL not found in response headers'];
         }
+        return ['status' => 'success', 'uploadUrl' => $uploadUrl];
+    } catch (GuzzleException $e) {
+        return ['status' => 'error', 'message' => 'HTTP error: ' . $e->getMessage()];
+    }
+}
 
-        // 2) Upload and finalize in a single request
-        $uploadResp = $client->request('POST', $uploadUrl, [
+function gemini_upload_finalize(string $uploadUrl, string $file_path, int $file_size): array
+{
+    try {
+        $client = gemini_client();
+        $resp = $client->request('POST', $uploadUrl, [
             'headers' => [
                 'Content-Length' => (string)$file_size,
                 'X-Goog-Upload-Offset' => '0',
@@ -309,152 +316,167 @@ function gemini_create_and_upload_batch_file(string $jsonl_content, string $batc
             'http_errors' => false,
             'verify' => true,
         ]);
-
-        $status2 = $uploadResp->getStatusCode();
-        $body2 = (string)$uploadResp->getBody();
-        if ($status2 < 200 || $status2 >= 300) {
-            unlink($file_path);
-            return ['status' => 'error', 'message' => "Upload failed: HTTP {$status2} : {$body2}"];
+        $status = $resp->getStatusCode();
+        $body = (string)$resp->getBody();
+        if ($status < 200 || $status >= 300) {
+            return ['status' => 'error', 'message' => "Upload failed: HTTP {$status} : {$body}", 'code' => $status];
         }
-
-        $decoded = json_decode($body2, true, 512, JSON_THROW_ON_ERROR);
-        if (!isset($decoded['file']['uri'])) {
-            unlink($file_path);
-            return ['status' => 'error', 'message' => "No file.uri in response: {$body2}"];
-        }
-
-        $fileUriRaw = $decoded['file']['uri'] ?? $decoded['file']['name'] ?? null;
-        if (!preg_match('#files/[^/]+$#', $fileUriRaw, $matches)) {
-            return ['status' => 'error', 'message' => "No file id in url: {$fileUriRaw}"];
-        }
-
-        return gemini_create_batches($batch_name, $matches[0]);
-
+        $data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+        return ['status' => 'success', 'data' => $data];
     } catch (GuzzleException $e) {
-        unlink($file_path);
-        return ['status' => 'error', 'message' => "HTTP error: " . $e->getMessage()];
+        return ['status' => 'error', 'message' => 'HTTP error: ' . $e->getMessage()];
     } catch (JsonException $e) {
-        unlink($file_path);
-        return ['status' => 'error', 'message' => "JSON parse error: " . $e->getMessage()];
-    } finally {
-        if (file_exists($file_path)) {
-            @unlink($file_path);
-        }
+        return ['status' => 'error', 'message' => 'JSON parse error: ' . $e->getMessage()];
     }
 }
 
-function gemini_create_batches($batch_name, $file_name) : array
+function gemini_create_and_upload_batch_file(string $jsonl_content, $downloadId): array
 {
-    $geminiApiKey = "AIzaSyALP80h2H1We1RA6Jl5cvFPlbYK0Zh29RE";
-    $client = new GuzzleClient([
-        'base_uri' => 'https://generativelanguage.googleapis.com',
-        'timeout' => 60,
-    ]);
+    $jsonlDir = ROOT_DIR . "/jsonl/";
+    if (!is_dir($jsonlDir) && !mkdir($jsonlDir, 0777, true) && !is_dir($jsonlDir)) {
+        return ['status' => 'error', 'message' => 'Failed to create jsonl directory'];
+    }
+    $file_name = 'batch_prompts_' . time() . '.jsonl';
+    $file_path = $jsonlDir . $file_name;
+    if (file_put_contents($file_path, $jsonl_content) === false) {
+        return ['status' => 'error', 'message' => 'Failed to save JSONL file locally.'];
+    }
+    $file_type = mime_content_type($file_path) ?: 'application/jsonl';
+    $file_size = filesize($file_path);
+    $start = gemini_start_resumable_upload($file_name, $file_size, $file_type);
+    if ($start['status'] !== 'success') {
+        @unlink($file_path);
+        return $start;
+    }
+    $uploadUrl = $start['uploadUrl'];
+    $upload = gemini_upload_finalize($uploadUrl, $file_path, $file_size);
+    if ($upload['status'] !== 'success') {
+        @unlink($file_path);
+        return $upload;
+    }
+    $decoded = $upload['data'];
+    if (!isset($decoded['file']['uri']) && !isset($decoded['file']['name'])) {
+        @unlink($file_path);
+        return ['status' => 'error', 'message' => "No file.uri/name in response"];
+    }
+    $fileUriRaw = $decoded['file']['uri'] ?? $decoded['file']['name'];
+    if (!preg_match('#files/[^/]+$#', $fileUriRaw, $matches)) {
+        @unlink($file_path);
+        return ['status' => 'error', 'message' => "No file id in url: {$fileUriRaw}"];
+    }
+    $fileId = $matches[0];
+    $cacheRes = gemini_create_cache($downloadId);
+    if ($cacheRes['status'] !== 'success') {
+        @unlink($file_path);
+        return $cacheRes;
+    }
+    $batchRes = gemini_create_batches($downloadId, $fileId);
+    @unlink($file_path);
+    return $batchRes;
+}
+
+function gemini_create_cache($downloadId): array
+{
+    $promptCache = getAISitePrompt($downloadId);
+    if (empty($promptCache)) {
+        return ['status' => 'error', 'message' => "Prompt is null: {$downloadId}"];
+    }
 
     $payload = [
+        'model' => 'models/gemini-2.5-flash',
+        'contents' => [
+            [
+                'role' => 'user',
+                'parts' => [
+                    ['text' => buildCompressedPromptFromText($promptCache)]
+                ]
+            ]
+        ],
+        'ttl' => '48h',
+        'displayName' => 'cache-' . $downloadId
+    ];
+
+    $res = gemini_request('POST', '/v1beta/cachedContents', $payload);
+    if ($res['status'] !== 'success') {
+        return $res;
+    }
+
+    $data = $res['data'];
+    if (!empty($data['name'])) {
+        return ['status' => 'success', 'id' => $data['name']];
+    }
+
+    return ['status' => 'error', 'message' => 'Cache created but ID not found in response.'];
+}
+
+function gemini_create_batches($downloadId, $file_name): array
+{
+    $payload = [
         'batch' => [
-            'display_name' => (string)$batch_name,
+            'display_name' => (string)$downloadId,
             'input_config' => [
-                'file_name' =>$file_name,
+                'file_name' => $file_name,
             ],
         ],
     ];
 
-    try {
-        $response = $client->request('POST', '/v1beta/models/gemini-2.5-flash:batchGenerateContent', [
-            'headers' => [
-                'x-goog-api-key' => $geminiApiKey,
-                'Content-Type' => 'application/json',
-            ],
-            'json' => $payload,
-            'http_errors' => false,
-        ]);
-
-        $status = $response->getStatusCode();
-        $body = (string)$response->getBody();
-
-        if ($status < 200 || $status >= 300) {
-            return ['status' => 'error', 'message' => "Request failed: HTTP {$status} : {$body}"];
-        }
-
-        $data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
-        return ['status' => 'success', 'batch' => $data];
-    } catch (GuzzleException $e) {
-        return ['status' => 'error', 'message' => "HTTP error: " . $e->getMessage()];
-    } catch (JsonException $e) {
-        return ['status' => 'error', 'message' => "JSON parse error: " . $e->getMessage()];
+    $res = gemini_request('POST', '/v1beta/models/gemini-2.5-flash:batchGenerateContent', $payload);
+    if ($res['status'] !== 'success') {
+        return $res;
     }
+
+    return ['status' => 'success', 'batch' => $res['data']];
 }
 
 function gemini_get_batches_by_name($batch_name): array
 {
-    $geminiApiKey = "AIzaSyALP80h2H1We1RA6Jl5cvFPlbYK0Zh29RE";
-    $client = new GuzzleClient([
-        'base_uri' => 'https://generativelanguage.googleapis.com',
-        'timeout' => 60,
-    ]);
-    try {
-        $response = $client->request('GET', '/v1beta/' . $batch_name, [
-            'headers' => [
-                'x-goog-api-key' => $geminiApiKey
-            ],
-            'http_errors' => false,
-        ]);
-
-        $status = $response->getStatusCode();
-        $body = (string)$response->getBody();
-
-        if ($status < 200 || $status >= 300) {
-            return ['status' => 'error', 'message' => "Request failed: HTTP {$status} : {$body}"];
-        }
-
-        $data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
-
-        if($data['metadata']['state'] === 'BATCH_STATE_EXPIRED'){
-            return ['status' => 'expired', 'file_name' => $data['metadata']['inputConfig']['fileName']];
-        } elseif ($data['metadata']['state'] !== 'BATCH_STATE_SUCCEEDED'){
-            return ['status' => 'running', 'message' => "No file in response"];
-        }
-
-        $responsesFile = $data['response']['responsesFile'];
-        $_response = $client->request('GET', "/download/v1beta/{$responsesFile}:download?alt=media", [
-            'headers' => [
-                'x-goog-api-key' => $geminiApiKey
-            ],
-            'http_errors' => false,
-        ]);
-        $_status = $_response->getStatusCode();
-        $_body = (string)$_response->getBody();
-
-        if ($_status < 200 || $_status >= 300) {
-            return ['status' => 'error', 'message' => "Request failed: HTTP {$_status} : {$_body}"];
-        }
-
-        $lines = explode("\n", $_body);
-        $items = [];
-        foreach ($lines as $line) {
-            if (trim($line) === '') continue;
-            $json = json_decode($line, true);
-            if (json_last_error() === JSON_ERROR_NONE) {
-                // Làm sạch và parse JSON
-                $raw = $json['response']['candidates'][0]['content']['parts'][0]['text'];
-                $clean = preg_replace('/^```json\s*|\s*```$/', '', trim((string)$raw));
-                $item_json = json_decode($clean, true);
-                if (json_last_error() !== JSON_ERROR_NONE || !is_array($item_json)) {
-                    continue;
-                }
-                $items[$json['key']] = [
-                    'data' => $item_json,
-                    'total_token' => (int)$json['response']['usageMetadata']['totalTokenCount'],
-                ];
-            }
-        }
-        return ['status' => 'success', 'items' => $items];
-    } catch (GuzzleException $e) {
-        return ['status' => 'error', 'message' => "HTTP error: " . $e->getMessage()];
-    } catch (JsonException $e) {
-        return ['status' => 'error', 'message' => "JSON parse error: " . $e->getMessage()];
+    $res = gemini_request('GET', "/v1beta/{$batch_name}");
+    if ($res['status'] !== 'success'){
+        return $res;
     }
+
+    $data = $res['data'];
+    $state = $data['metadata']['state'] ?? null;
+    if ($state === 'BATCH_STATE_EXPIRED') {
+        return [
+            'status' => 'expired',
+            'file_name' => $data['metadata']['inputConfig']['fileName'] ?? null,
+        ];
+    }
+    if ($state !== 'BATCH_STATE_SUCCEEDED') {
+        return ['status' => 'running', 'message' => 'Batch not completed yet'];
+    }
+
+    $responsesFile = $data['response']['responsesFile'] ?? null;
+    if (empty($responsesFile)) {
+        return ['status' => 'error', 'message' => 'responsesFile not found in batch response'];
+    }
+
+    $resp = gemini_request('GET', "/download/v1beta/{$responsesFile}:download?alt=media", [], true);
+    if ($resp['status'] !== 'success'){
+        return $resp;
+    }
+    $body = $resp['body'];
+    $lines = preg_split("/\r\n|\n|\r/", $body);
+    $items = [];
+    foreach ($lines as $line) {
+        if (trim($line) === '') continue;
+        $json = json_decode($line, true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            // Làm sạch và parse JSON
+            $raw = $json['response']['candidates'][0]['content']['parts'][0]['text'];
+            $clean = preg_replace('/^```json\s*|\s*```$/', '', trim((string)$raw));
+            $item_json = json_decode($clean, true);
+            if (json_last_error() !== JSON_ERROR_NONE || !is_array($item_json)) {
+                continue;
+            }
+            $items[$json['key']] = [
+                'data' => $item_json,
+                'total_token' => (int)$json['response']['usageMetadata']['totalTokenCount'],
+            ];
+        }
+    }
+    return ['status' => 'success', 'items' => $items];
 }
 
 function buildCompressedPromptFromText(string $fullText): string {
@@ -469,10 +491,7 @@ function AIProcessDownloadProducts($downloadId): array
         return [['status' => 'error', 'message' => 'Invalid database connection.']];
     }
 
-    $promptTemplate = getAISitePrompt($downloadId);
-    if (!$promptTemplate || !str_contains($promptTemplate, '{title}') || !str_contains($promptTemplate, '{image}')) {
-        return [['status' => 'error', 'message' => "Câu lệnh AI rỗng hoặc thiếu {title}/{image}."]];
-    }
+    $promptTemplate = "Input: title : {title} image : {image}";
 
     // Lấy danh sách sản phẩm cần xử lý
     $stmt = $conn->prepare("
@@ -531,11 +550,12 @@ function AIProcessDownloadProducts($downloadId): array
         $request_data = [
             "key" => $row['ID'],
             "request" => [
+                "cachedContent" => "cachedContents/cache-" . $downloadId,
                 "contents" => [
                     [
                         "parts" => [
                             [
-                                "text" => buildCompressedPromptFromText($prompt)
+                                "text" => $prompt
                             ]
                         ],
                         "role" => "user"
@@ -547,7 +567,7 @@ function AIProcessDownloadProducts($downloadId): array
     }
     $stmt->close();
 
-    // 1. Tạo File JSONL and upload.
+    // 2. Tạo File JSONL and upload.
     $batch_result = gemini_create_and_upload_batch_file($jsonl_content, $downloadId);
     if ($batch_result['status'] == 'error') {
         return $batch_result;

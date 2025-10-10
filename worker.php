@@ -2,14 +2,13 @@
 require __DIR__ . '/config.php';
 require __DIR__ . '/functions.php';
 
+$conn = db();
 function writeLog($message): void
 {
     $logFile = __DIR__ . "/worker.log";
     $time    = date("Y-m-d H:i:s");
     file_put_contents($logFile, "[$time] $message" . PHP_EOL, FILE_APPEND);
 }
-
-$conn = db();
 
 // Nếu được truyền ID từ cron-job.php thì xử lý trước job đó
 $downloadId = (int)$argv[1] ?? 0;
@@ -42,18 +41,12 @@ if ($items['status'] == 'success' && count($items['items']) > 0) {
         writeLog($e->getMessage());
     }
 } elseif ($items['status'] == 'expired'){
-    $batch_result = gemini_create_batches($downloadId, $items['file_name']);
-    if ($batch_result['status'] == 'error') {
-        writeLog($batch_result['message']);
-    } else {
-        $batch_id = $batch_result['batch']['name'];
-        // update. job name to data.
-        $stmt2 = $conn->prepare("UPDATE download SET batch_name = ? WHERE ID = ?");
-        $stmt2->bind_param("si", $batch_id, $downloadId);
-        $stmt2->execute();
-        $stmt2->close();
-        writeLog('Expired create new batch: ' . $batch_id);
-    }
+    $status = 'error';
+    $_stmt = $conn->prepare("UPDATE download SET status = ?, locked_at = NULL WHERE ID = ?");
+    $_stmt->bind_param("si", $status, $downloadId);
+    $_stmt->execute();
+    $_stmt->close();
+    writeLog('Expired stop batch: ' . $downloadId);
 } else {
     writeLog($items['message'] ?? 'Unknown error');
 }

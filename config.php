@@ -14,6 +14,7 @@ define('REMEMBER_COOKIE', 'APPREMEMBER_' . APP_NAME);
 define('REMEMBER_DURATION', 30 * 24 * 60 * 60); // 30 ngày
 
 define('ROOT_DIR', __DIR__);
+define('GEMINI_API_KEY', 'AIzaSyALP80h2H1We1RA6Jl5cvFPlbYK0Zh29RE');
 
 // ===== DB connection =====
 function db(): mysqli {
