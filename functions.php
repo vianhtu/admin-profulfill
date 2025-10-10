@@ -251,17 +251,17 @@ function gemini_request(string $method, string $uri, array $json = [], bool $bod
         $response = $client->request($method, $uri, $options);
 
         $status = $response->getStatusCode();
-        $body = (string)$response->getBody();
+        $raw = (string)$response->getBody();
 
         if ($status < 200 || $status >= 300) {
-            return ['status' => 'error', 'message' => "HTTP {$status} : {$body}", 'code' => $status];
+            return ['status' => 'error', 'message' => "HTTP {$status} : {$raw}", 'code' => $status];
         }
 
         if ($body) {
-            return ['status' => 'success', 'body' => $body, 'code' => $status];
+            return ['status' => 'success', 'body' => $raw, 'code' => $status];
         }
 
-        $data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+        $data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
         return ['status' => 'success', 'data' => $data, 'code' => $status];
     } catch (GuzzleException $e) {
         return ['status' => 'error', 'message' => 'HTTP error: ' . $e->getMessage()];
@@ -446,7 +446,7 @@ function gemini_get_batches_by_name($batch_name): array
         return ['status' => 'expired', 'file_name' => $data['metadata']['inputConfig']['fileName'] ?? null];
     }
     if ($state !== 'BATCH_STATE_SUCCEEDED') {
-        return ['status' => 'running', 'message' => 'Batch not completed yet', $res];
+        return ['status' => 'running', 'message' => 'Batch not completed yet'];
     }
 
     $responsesFile = $data['response']['responsesFile'] ?? null;
