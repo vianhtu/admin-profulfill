@@ -372,7 +372,7 @@ function initTable(){
                                 {
                                     extend: 'collection',
                                     className: 'btn btn-label-secondary dropdown-toggle',
-                                    text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-upload icon-xs"></i> <span class="d-none d-sm-inline-block">Actions</span></span>',
+                                    text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-automation icon-xs"></i> <span class="d-none d-sm-inline-block">Actions</span></span>',
                                     buttons: [
                                     ]
                                 },
