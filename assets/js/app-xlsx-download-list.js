@@ -320,15 +320,12 @@ function initTable(){
                     orderable: false,
                     render: (data, type, full, meta) => {
                         return `
-              <div class="d-flex align-items-center">
-                <a href="javascript:;" class="btn btn-text-secondary rounded-pill waves-effect btn-icon">
-                  <i class="icon-base ti tabler-edit icon-22px"></i>
-                </a>
-                <a href="javascript:;" data-id="${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon delete-record">
-                  <i class="icon-base ti tabler-trash icon-22px"></i>
-                </a>
-              </div>
-            `;
+                      <div class="d-flex align-items-center">
+                        <a href="javascript:;" data-id="${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon delete-record">
+                          <i class="icon-base ti tabler-trash icon-22px"></i>
+                        </a>
+                      </div>
+                    `;
                     }
                 },
                 {
@@ -380,10 +377,6 @@ function initTable(){
                                             action: function (e, dt, node, config) {
                                                 var $btn = $(node);
                                                 var originalHtml = $btn.html();
-
-                                                // thay icon bằng spinner-border (Bootstrap 5)
-                                                $btn.html('<span class="spinner-border spinner-border-sm text-light" role="status"></span> Loading...');
-
                                                 // lấy các id đã chọn từ DataTable (ví dụ chọn hàng)
                                                 var selectedIds = [];
                                                 if (dt && dt.rows && dt.rows({ selected: true }).data().length) {
@@ -395,6 +388,9 @@ function initTable(){
                                                 if(selectedIds.length === 0){
                                                     alert('Select at least one record to process');
                                                 }
+
+                                                // thay icon bằng spinner-border (Bootstrap 5)
+                                                $btn.html('<span class="spinner-border spinner-border-sm text-light" role="status"></span> Loading...');
 
                                                 // AJAX request
                                                 $.ajax({
