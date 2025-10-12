@@ -55,9 +55,10 @@ function updateProgressBars(dt) {
         success: function (response) {
             // response có thể là mảng [{id:..., progress:..., status:...}, ...]
             response.forEach(function (item) {
+                console.log('Item:', item);
                 // Nếu status không còn "running" thì ẩn progress overlay
                 if (item.status !== 'running') {
-                    console.log('Status:', item);
+
                 }
             });
         },
