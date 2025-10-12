@@ -399,7 +399,20 @@ function initTable(){
                                                     data: {ids:selectedIds},
                                                     dataType: 'json',
                                                     success: function (response) {
-                                                        console.log('Response:', response);
+                                                        if (response.status === 'success' && response.ids) {
+                                                            // table là instance DataTable của bạn
+                                                            Object.keys(response.ids).forEach(function(id) {
+                                                                var row = table.row('#' + id);
+                                                                if (row.node()) {
+                                                                    var data = row.data();
+                                                                    // điều chỉnh trường status tùy cấu trúc data của bạn
+                                                                    data.status = 'running';
+                                                                    row.data(data).draw(false);
+                                                                }
+                                                            });
+                                                        } else {
+                                                            console.log('Unexpected response', response);
+                                                        }
                                                     },
                                                     error: function (xhr) {
                                                         console.error('Lỗi:', xhr.responseText);
