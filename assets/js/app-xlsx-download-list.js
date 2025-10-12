@@ -407,6 +407,9 @@ function initTable(){
                                                                 var rowSelector = '#' + id;
                                                                 var rowNode = dt.row(rowSelector).node();
 
+                                                                console.log('rowNode:', rowNode);
+                                                                console.log('rowSelector:', rowSelector);
+
                                                                 if (rowNode) {
                                                                     // thay columnIndex bằng index cột status trong DataTable (bắt đầu từ 0)
                                                                     var columnIndex = 3; // ví dụ: cột status là cột thứ 4
