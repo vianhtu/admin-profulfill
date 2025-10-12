@@ -33,6 +33,8 @@ function updateProgressBars(dt) {
         var $row = $(rowNode);
         var $statusCell = $row.find('.status-cell');
 
+        console.log($statusCell);
+
         if ($statusCell.length) {
             var text = $statusCell.text().trim().toLowerCase();
             if (text.indexOf('running') !== -1) {
@@ -41,7 +43,7 @@ function updateProgressBars(dt) {
             }
         }
     });
-    console.log('IDs to update:', ids);
+
     if (ids.length === 0) {
         return; // Không có row nào cần cập nhật
     }
