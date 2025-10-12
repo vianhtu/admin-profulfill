@@ -41,7 +41,7 @@ function updateProgressBars(dt) {
             }
         }
     });
-    console.log(ids);
+
     if (ids.length === 0) {
         return; // Không có row nào cần cập nhật
     }
