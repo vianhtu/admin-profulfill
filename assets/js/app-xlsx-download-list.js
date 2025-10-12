@@ -376,12 +376,16 @@ function initTable(){
                                             className: 'dropdown-item',
                                             action: function (e, dt, node, config) {
                                                 var $btn = $(node);
+                                                let columnIndex = 5;
                                                 var originalHtml = $btn.html();
                                                 // lấy các id đã chọn từ DataTable (ví dụ chọn hàng)
                                                 var selectedIds = [];
+                                                var spinnerHtml = '<div class="d-flex align-items-center"><div class="spinner-border spinner-border-sm me-2" role="status"></div><span>Loading...</span></div>';
                                                 if (dt && dt.rows && dt.rows({ selected: true }).data().length) {
                                                     dt.rows({ selected: true }).data().each(function (d) {
                                                         selectedIds.push(d.id || d.ID || d[0]);
+                                                        // đặt spinner HTML vào ô status
+                                                        dt.cell(this.index(), columnIndex).data(spinnerHtml);
                                                     });
                                                 }
 
@@ -407,7 +411,6 @@ function initTable(){
                                                                     var data = this.data();
                                                                     var rowId = data.id || data.ID || data[0];
                                                                     if (String(rowId) === String(id)) {
-                                                                        let columnIndex = 5;
                                                                         let status = 'running';
                                                                         if(payload.status === 'error'){
                                                                             status = 'error';
