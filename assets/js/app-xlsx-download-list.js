@@ -407,19 +407,22 @@ function initTable(){
                                                                     var data = this.data();
                                                                     var rowId = data.id || data.ID || data[0];
                                                                     if (String(rowId) === String(id)) {
-                                                                        var columnIndex = 5;
-                                                                        let status = payload.status === 'success' ? 'running' : 'error';
+                                                                        let columnIndex = 5;
+                                                                        let status = 'running';
+                                                                        if(payload.status === 'error'){
+                                                                            status = 'error';
+                                                                            console.log('Error:', payload);
+                                                                        }
                                                                         this.cell(this.index(), columnIndex).data(status);
                                                                     }
                                                                 });
                                                             });
-                                                            dt.draw(false);
                                                         } else {
                                                             console.log('Unexpected response', response);
                                                         }
                                                     },
                                                     error: function (xhr) {
-                                                        console.error('Lỗi:', xhr.responseText);
+                                                        console.error('Error:', xhr.responseText);
                                                         alert('Upload thất bại!');
                                                     },
                                                     complete: function () {
