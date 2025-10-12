@@ -374,6 +374,55 @@ function initTable(){
                                     className: 'btn btn-label-secondary dropdown-toggle',
                                     text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-automation icon-xs"></i> <span class="d-none d-sm-inline-block">Actions</span></span>',
                                     buttons: [
+                                        {
+                                            text: '<i class="ti ti-refresh"></i> Run AJAX',
+                                            className: 'btn btn-sm btn-secondary',
+                                            action: function (e, dt, node, config) {
+                                                var $btn = $(node);
+                                                var originalHtml = $btn.html();
+
+                                                // show spinner
+                                                $btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>');
+
+                                                // lấy các id đã chọn từ DataTable (ví dụ chọn hàng)
+                                                var selectedIds = [];
+                                                if (dt && dt.rows && dt.rows({ selected: true }).data().length) {
+                                                    dt.rows({ selected: true }).data().each(function (d) {
+                                                        selectedIds.push(d.id || d.ID || d[0]);
+                                                    });
+                                                }
+
+                                                // AJAX request
+                                                $.ajax({
+                                                    url: 'api/do-something.php',
+                                                    method: 'POST',
+                                                    data: { action: 'bulkProcess', ids: selectedIds },
+                                                    dataType: 'json',
+                                                    headers: { 'X-CSRF-TOKEN': window.csrfToken || '' }
+                                                })
+                                                    .done(function (res) {
+                                                        if (res && res.success) {
+                                                            // toast / alert tuỳ ý
+                                                            // làm mới datatable nếu source là ajax
+                                                            if (dt && dt.ajax) dt.ajax.reload(null, false);
+                                                            // thông báo
+                                                            if (window.toastr) toastr.success(res.message || 'Hoàn tất');
+                                                            else alert(res.message || 'Hoàn tất');
+                                                        } else {
+                                                            if (window.toastr) toastr.error(res.message || 'Lỗi từ server');
+                                                            else alert(res.message || 'Lỗi từ server');
+                                                        }
+                                                    })
+                                                    .fail(function (xhr, status) {
+                                                        if (window.toastr) toastr.error('Yêu cầu thất bại: ' + status);
+                                                        else alert('Yêu cầu thất bại: ' + status);
+                                                    })
+                                                    .always(function () {
+                                                        // restore button html
+                                                        $btn.html(originalHtml);
+                                                    });
+                                            }
+                                        }
                                     ]
                                 },
                                 {
