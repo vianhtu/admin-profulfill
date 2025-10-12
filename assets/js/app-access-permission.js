@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
         },
         {
           // Name
-          targets: 2,
+          targets: 2, width: '70%',
           render: function (data, type, full, meta) {
             let name = full['name'];
             return '<span class="text-nowrap text-heading">' + name + '</span>';
