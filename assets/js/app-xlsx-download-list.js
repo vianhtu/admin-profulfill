@@ -480,6 +480,7 @@ function initTable(){
             },
             initComplete: function () {
                 const api = this.api();
+                getSelect2filterTable(api,'xlsxStatus', '.xlsx_status', 5, 'Status', statusObj);
                 getSelect2filterTable(api,'xlsxTypes', '.xlsx_types', 11, 'Type', categoryObj);
                 getSelect2filterTable(api,'xlsxSites', '.xlsx_sites', 4, 'Site', sitesObj);
                 getSelect2filterTable(api,'xlsxAuthors', '.xlsx_authors', 10, 'Author', authorsObj);
