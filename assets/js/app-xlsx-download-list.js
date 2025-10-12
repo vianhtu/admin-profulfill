@@ -55,10 +55,15 @@ function updateProgressBars(dt) {
         success: function (response) {
             // response có thể là mảng [{id:..., progress:..., status:...}, ...]
             response.forEach(function (item) {
-                console.log('Item:', item);
                 // Nếu status không còn "running" thì ẩn progress overlay
                 if (item.status !== 'running') {
-
+                    dt.rows().every(function() {
+                        var data = this.data();
+                        var rowId = data.id || data.ID || data[0];
+                        if (String(rowId) === String(item.id)) {
+                            this.cell(this.index(), 5).data(item.status);
+                        }
+                    });
                 }
             });
         },
