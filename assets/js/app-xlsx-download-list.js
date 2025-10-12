@@ -382,11 +382,11 @@ function initTable(){
                                                 var selectedIds = [];
                                                 var spinnerHtml = '<div class="d-flex align-items-center"><div class="spinner-border spinner-border-sm me-2" role="status"></div><span>Loading...</span></div>';
                                                 if (dt && dt.rows && dt.rows({ selected: true }).data().length) {
-                                                    dt.rows({ selected: true }).data().each(function (d) {
-                                                        selectedIds.push(d.id || d.ID || d[0]);
-                                                        // đặt spinner HTML vào ô status
-                                                        dt.cell(this.index(), columnIndex).data(spinnerHtml);
-                                                    });
+                                                    var data = this.data();
+                                                    var rowId = data.id || data.ID || data[0];
+                                                    selectedIds.push(rowId);
+                                                    var rowNode = this.node();
+                                                    dt.cell(rowNode, columnIndex).data(spinnerHtml);
                                                 }
 
                                                 if(selectedIds.length === 0){
