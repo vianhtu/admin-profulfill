@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
         },
         {
           // User Role
-          targets: 3,
+          targets: 3, width: '20%',
           orderable: false,
           render: function (data, type, full, meta) {
             return `<a href="#" class="text-nowrap">${full['count']}</a>`;
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
         },
         {
           // Actions
-          targets: -1,
+          targets: -1, width: '10%',
           searchable: false,
           title: 'Actions',
           orderable: false,
