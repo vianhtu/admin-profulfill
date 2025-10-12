@@ -401,31 +401,19 @@ function initTable(){
                                                     success: function (response) {
                                                         if (response.status === 'success' && response.ids) {
                                                             Object.keys(response.ids).forEach(function(id) {
-                                                                var payload = response.ids[id]; // payload có {status: 'success', name: '195', ...}
-
-                                                                // chọn hàng theo rowId
+                                                                var payload = response.ids[id];
                                                                 var rowSelector = '#' + id;
-                                                                var rowNode = dt.row(rowSelector).node();
 
-                                                                console.log('rowNode:', rowNode);
-                                                                console.log('rowSelector:', rowSelector);
-
-                                                                if (rowNode) {
-                                                                    // thay columnIndex bằng index cột status trong DataTable (bắt đầu từ 0)
-                                                                    var columnIndex = 3; // ví dụ: cột status là cột thứ 4
-                                                                    dt.cell(rowNode, columnIndex).data(payload.status);
-                                                                    // nếu cần cập nhật hiển thị khác (ví dụ HTML), set data phù hợp
-                                                                } else {
-                                                                    // nếu không dùng rowId, tìm row bằng so sánh data.id
-                                                                    dt.rows().every(function() {
-                                                                        var data = this.data();
-                                                                        var rowId = data.id || data.ID || data[0];
-                                                                        if (String(rowId) === String(id)) {
-                                                                            var columnIndex = 3;
-                                                                            this.cell(this.index(), columnIndex).data(payload.status);
-                                                                        }
-                                                                    });
-                                                                }
+                                                                // nếu không dùng rowId, tìm row bằng so sánh data.id
+                                                                dt.rows().every(function() {
+                                                                    var data = this.data();
+                                                                    var rowId = data.id || data.ID || data[0];
+                                                                    console.log('Row ID:', rowId);
+                                                                    if (String(rowId) === String(id)) {
+                                                                        var columnIndex = 3;
+                                                                        this.cell(this.index(), columnIndex).data(payload.status);
+                                                                    }
+                                                                });
                                                             });
                                                             dt.draw(false);
                                                         } else {
