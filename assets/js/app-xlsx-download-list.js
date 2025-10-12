@@ -402,15 +402,13 @@ function initTable(){
                                                         if (response.status === 'success' && response.ids) {
                                                             Object.keys(response.ids).forEach(function(id) {
                                                                 var payload = response.ids[id];
-                                                                var rowSelector = '#' + id;
-
                                                                 // nếu không dùng rowId, tìm row bằng so sánh data.id
                                                                 dt.rows().every(function() {
                                                                     var data = this.data();
                                                                     var rowId = data.id || data.ID || data[0];
-                                                                    console.log('Row ID:', rowId);
                                                                     if (String(rowId) === String(id)) {
-                                                                        var columnIndex = 3;
+                                                                        var columnIndex = 5;
+                                                                        console.log('Row ID:', rowId);
                                                                         this.cell(this.index(), columnIndex).data(payload.status);
                                                                     }
                                                                 });
