@@ -570,22 +570,19 @@ function actionDownloadTableGemini()
         return ['status'  => 'error', 'message' => 'Bạn Không có quyền chạy lệnh.'];
     }
 
-    // Lấy ids từ request (POST).
     $idsInput = isset($_POST['ids']) ? $_POST['ids'] : null;
     if (empty($idsInput)) {
         return ['status'  => 'error', 'message' => 'Không có ids được gửi lên.'];
     }
 
-    // Filter and cast to integers to avoid SQL injection and invalid values
-    $idsFiltered = array_values(array_filter(array_map('intval', $idsInput), function($v) {
-        return $v > 0;
-    }));
-    if (empty($idsFiltered)) {
+    $idsFiltered = array_map('intval', $idsInput);
+    if (count($idsFiltered) === 0) {
         return ['status' => 'error', 'message' => 'Không có ids hợp lệ.'];
     }
 
-    $stmt = $conn->prepare("SELECT ID FROM download WHERE ID IN (?) AND status != 'ready'");
-    $stmt->bind_param("s", implode(',', $idsFiltered));
+    $idList = implode(',', $idsFiltered);
+    $sql = "SELECT ID FROM download WHERE ID IN ($idList) AND status != 'ready'";
+    $stmt = $conn->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
     $ids = [];
