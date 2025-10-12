@@ -392,6 +392,8 @@ function initTable(){
                                                     });
                                                 }
 
+                                                console.log(selectedIds);
+
                                                 // AJAX request
                                                 $.ajax({
                                                     url: 'api/do-something.php',
