@@ -41,11 +41,10 @@ function updateProgressBars(dt) {
             }
         }
     });
+    console.log('IDs to update:', ids);
     if (ids.length === 0) {
         return; // Không có row nào cần cập nhật
     }
-
-    console.log('IDs to update:', ids);
 
     // Gọi AJAX lấy dữ liệu % tiến trình
     $.ajax({
