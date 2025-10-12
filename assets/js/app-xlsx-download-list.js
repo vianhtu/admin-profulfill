@@ -95,11 +95,12 @@ function initTable(){
                 data: function (d) {
                     const urlParams = new URLSearchParams(window.location.search);
                     const initialFilters = {
+                        xlsxStatus: urlParams.get('xlsxStatus') || '',
                         xlsxTypes: urlParams.get('xlsxTypes') || '',
                         xlsxSites: urlParams.get('xlsxSites') || '',
                         xlsxAuthors: urlParams.get('xlsxAuthors') || ''
                     };
-                    const mapping = { xlsxTypes: 'type_id', xlsxSites: 'site_id', xlsxAuthors: 'author_id' }; // data names in your columns config
+                    const mapping = {xlsxStatus: 'status', xlsxTypes: 'type_id', xlsxSites: 'site_id', xlsxAuthors: 'author_id' }; // data names in your columns config
                     d.columns.forEach(col => {
                         for (const key in mapping) {
                             if (col.data === mapping[key]) {
