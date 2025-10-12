@@ -109,7 +109,7 @@ function initTable(){
                 }
             },
             drawCallback: function(settings) {
-                updateProgressBars();
+                updateProgressBars(dt_user);
                 $('#DataTables_Table_0 .user-name .avatar-wrapper').on('click', function () {
                     const $icon = $(this);
                     const $container = $(this).find('.position-relative');
