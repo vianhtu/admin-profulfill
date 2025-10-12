@@ -280,6 +280,9 @@ function initTable(){
                     targets: 5,
                     render: function (data, type, full, meta) {
                         const status = full['status'];
+                        if (statusObj[status] === undefined) {
+                            return status;
+                        }
                         return (
                             '<span class="file-status badge ' +
                             statusObj[status].class +
