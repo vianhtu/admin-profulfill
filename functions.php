@@ -2433,6 +2433,7 @@ function insertAmazonListingFromAI($downloadId, string $post_id, array $aiData):
         'product_description',
         'copyright_warning',
         'copyrighted_content',
+        'watermark_warning',
         'meta_data',
         'created_at',
         'updated_at'
@@ -2442,7 +2443,8 @@ function insertAmazonListingFromAI($downloadId, string $post_id, array $aiData):
         'Item Name' => 'item_name',
         'Product Description' => 'product_description',
         'Copyright Warning' => 'copyright_warning',
-        'Copyrighted Content' => 'copyrighted_content'
+        'Copyrighted Content' => 'copyrighted_content',
+        'Watermark Warning' => 'watermark_warning'
     ];
 
     $now = date('Y-m-d H:i:s');
