@@ -408,8 +408,8 @@ function initTable(){
                                                                     var rowId = data.id || data.ID || data[0];
                                                                     if (String(rowId) === String(id)) {
                                                                         var columnIndex = 5;
-                                                                        console.log('Row ID:', rowId);
-                                                                        this.cell(this.index(), columnIndex).data(payload.status);
+                                                                        let status = payload.status === 'success' ? 'running' : 'error';
+                                                                        this.cell(this.index(), columnIndex).data(status);
                                                                     }
                                                                 });
                                                             });
