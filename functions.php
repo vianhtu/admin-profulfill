@@ -5,8 +5,6 @@ use GuzzleHttp\Exception\GuzzleException;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use GeminiAPI\Client;
-use GeminiAPI\Resources\Parts\TextPart;
 use GuzzleHttp\Client as GuzzleClient;
 
 function menuArgs():array
@@ -141,7 +139,8 @@ function renderMenu($currentMenu): void
     }
 }
 
-function renderSelect($id, $label, $options, $selected = null) {
+function renderSelect($id, $label, $options, $selected = null): void
+{
 	echo "<label class='form-label mb-1' for='{$id}'>{$label}</label>";
 	echo "<select id='{$id}' name='{$id}' class='select2 form-select'>";
     echo "<option value=''>Select a {$label}</option>";
