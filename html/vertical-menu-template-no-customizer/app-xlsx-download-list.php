@@ -22,7 +22,6 @@ if(!checkRoles('view', 'exports_download')){
                 <th></th>
                 <th></th>
                 <th>Files</th>
-                <th>Account</th>
                 <th>Sites</th>
                 <th>Status</th>
                 <th>Date</th>

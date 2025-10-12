@@ -61,7 +61,7 @@ function updateProgressBars(dt) {
                         var data = this.data();
                         var rowId = data.id || data.ID || data[0];
                         if (String(rowId) === String(item.id)) {
-                            this.cell(this.index(), 5).data(item.status);
+                            this.cell(this.index(), 4).data(item.status);
                         }
                     });
                 }
@@ -178,7 +178,6 @@ function initTable(){
                 { data: 'id' },
                 { data: 'id', orderable: false, render: DataTable.render.select() },
                 { data: 'name' },
-                { data: 'email' },
                 { data: 'site_id' },
                 { data: 'status' },
                 { data: 'date'},
@@ -251,17 +250,8 @@ function initTable(){
                     }
                 },
                 {
-                    // Email
-                    targets: 3,
-                    orderable: false,
-                    render: function (data, type, full, meta) {
-                        let email = full['email'];
-                        return '<span>' + email + '</span>';
-                    }
-                },
-                {
                     // Site
-                    targets: 4,
+                    targets: 3,
                     orderable: false,
                     render: function (data, type, full, meta) {
                         let id = full['site_id'];
@@ -270,7 +260,7 @@ function initTable(){
                 },
                 {
                     // author
-                    targets: 5,
+                    targets: 4,
                     render: function (data, type, full, meta) {
                         const status = full['status'];
                         if (statusObj[status] === undefined) {
@@ -287,7 +277,7 @@ function initTable(){
                 },
                 {
                     // Date
-                    targets: 6,
+                    targets: 5,
                     render: function (data, type, full, meta) {
                         const date = full['date'];
                         return '<span>' + date + '</span>';
@@ -295,7 +285,7 @@ function initTable(){
                 },
                 {
                     // Download Date
-                    targets: 7,
+                    targets: 6,
                     render: function (data, type, full, meta) {
                         const download_date = full['download_date'];
                         return '<span>' + download_date + '</span>';
@@ -303,14 +293,14 @@ function initTable(){
                 },
                 {
                     // Total Items
-                    targets: 8,
+                    targets: 7,
                     render: function (data, type, full, meta) {
                         const total_items = full['total_items'];
                         return '<span class="total-complete">' + total_items + '</span>';
                     }
                 },
                 {
-                    targets: 9,
+                    targets: 8,
                     title: 'Actions',
                     searchable: false,
                     orderable: false,
@@ -325,12 +315,12 @@ function initTable(){
                     }
                 },
                 {
-                    targets: 10, // chỉ số cột bạn muốn ẩn
+                    targets: 9, // chỉ số cột bạn muốn ẩn
                     visible: false,
                     searchable: true // vẫn cho phép lọc
                 },
                 {
-                    targets: 11, // chỉ số cột bạn muốn ẩn
+                    targets: 10, // chỉ số cột bạn muốn ẩn
                     visible: false,
                     searchable: true // vẫn cho phép lọc
                 }
@@ -371,7 +361,7 @@ function initTable(){
                                             text: '<span class="d-flex align-items-center"><i class="icon-base ti tabler-brand-google-podcasts me-1"></i>Google Gemini 2.5 Flash</span>',
                                             className: 'dropdown-item',
                                             action: function (e, dt, node, config) {
-                                                let columnIndex = 5;
+                                                let columnIndex = 4;
                                                 // lấy các id đã chọn từ DataTable (ví dụ chọn hàng)
                                                 var selectedIds = [];
                                                 if (dt && dt.rows && dt.rows({ selected: true }).data().length) {
@@ -481,10 +471,10 @@ function initTable(){
             },
             initComplete: function () {
                 const api = this.api();
-                getSelect2filterTable(api,'xlsxStatus', '.xlsx_status', 5, 'Status', statusObj);
-                getSelect2filterTable(api,'xlsxTypes', '.xlsx_types', 11, 'Type', categoryObj);
-                getSelect2filterTable(api,'xlsxSites', '.xlsx_sites', 4, 'Site', sitesObj);
-                getSelect2filterTable(api,'xlsxAuthors', '.xlsx_authors', 10, 'Author', authorsObj);
+                getSelect2filterTable(api,'xlsxStatus', '.xlsx_status', 4, 'Status', statusObj);
+                getSelect2filterTable(api,'xlsxTypes', '.xlsx_types', 10, 'Type', categoryObj);
+                getSelect2filterTable(api,'xlsxSites', '.xlsx_sites', 3, 'Site', sitesObj);
+                getSelect2filterTable(api,'xlsxAuthors', '.xlsx_authors', 9, 'Author', authorsObj);
 
                 // Accounts filter
                 getAjaxSelect2HTML('xlsx_accounts', 'xlsxAccounts', 'Accounts', 'filter-accounts', true);

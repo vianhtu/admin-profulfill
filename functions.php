@@ -1178,16 +1178,16 @@ function getDownloadTable(): array {
             OR accounts.name LIKE '%$searchEsc%')";
     }
     // Lọc theo status (string)
-    addTableFilter($whereClauses, 'download.status', 5, 'string', $conn);
+    addTableFilter($whereClauses, 'download.status', 4, 'string', $conn);
 
     // Lọc theo type (int)
-    addTableFilter($whereClauses, 'exports.type_id', 11, 'int', $conn);
+    addTableFilter($whereClauses, 'exports.type_id', 10, 'int', $conn);
 
     // Lọc theo role (int)
-    addTableFilter($whereClauses, 'exports.site_id', 4, 'int', $conn);
+    addTableFilter($whereClauses, 'exports.site_id', 3, 'int', $conn);
 
     // Lọc theo team name (int)
-    addTableFilter($whereClauses, 'download.author_id', 10, 'int', $conn);
+    addTableFilter($whereClauses, 'download.author_id', 9, 'int', $conn);
 
     // Lọc theo accounts
     $filterAccounts = $_POST['accounts'] ?? [];
