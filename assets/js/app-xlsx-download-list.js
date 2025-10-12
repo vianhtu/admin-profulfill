@@ -400,16 +400,15 @@ function initTable(){
                                                     dataType: 'json',
                                                     success: function (response) {
                                                         if (response.status === 'success' && response.ids) {
-                                                            // table là instance DataTable của bạn
-                                                            Object.keys(response.ids).forEach(function(id) {
-                                                                var row = dt.row('#' + id);
-                                                                if (row.node()) {
-                                                                    var data = row.data();
-                                                                    // điều chỉnh trường status tùy cấu trúc data của bạn
+                                                            dt.rows().every(function() {
+                                                                var data = this.data();
+                                                                var rowId = data.id || data.ID || data[0]; // chọn đúng key id trong data
+                                                                if (response.ids.hasOwnProperty(rowId)) {
                                                                     data.status = 'running';
-                                                                    row.data(data).draw(false);
+                                                                    this.data(data);
                                                                 }
                                                             });
+                                                            dt.draw(false);
                                                         } else {
                                                             console.log('Unexpected response', response);
                                                         }
