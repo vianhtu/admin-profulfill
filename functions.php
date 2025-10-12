@@ -2645,12 +2645,34 @@ function splitKeywordsIntoColumns(array $keywords, int $numColumns = 5): array {
     return array_map(fn($col) => implode('; ', $col), $columns);
 }
 
-function timeAgo(string $datetime): string {
+/**
+ * Trả về chuỗi mô tả khoảng thời gian tương đối (ví dụ "2 hours ago").
+ *
+ * @param string $datetime Chuỗi ngày giờ hợp lệ (ví dụ "2025-10-12 09:00:00")
+ * @param string $locale   Mã ngôn ngữ để mở rộng sau này (hiện chưa dùng)
+ * @return string
+ * @throws InvalidArgumentException Nếu $datetime không thể parse
+ */
+function timeAgo(string $datetime, string $locale = 'en'): string
+{
+    // Chuyển chuỗi sang timestamp; kiểm tra tính hợp lệ
     $time = strtotime($datetime);
-    $diff = time() - $time;
+    if ($time === false) {
+        throw new InvalidArgumentException("Invalid datetime string: $datetime");
+    }
 
-    if ($diff < 60) return 'Just now';
+    $now = time();
+    $diff = $now - $time;
 
+    // Trường hợp tương lai hoặc bằng thời điểm hiện tại
+    if ($diff < 0) {
+        return 'In the future'; // hoặc có thể trả về 'Just now' theo yêu cầu
+    }
+    if ($diff < 60) {
+        return 'Just now';
+    }
+
+    // Đơn vị theo thứ tự từ lớn xuống nhỏ
     $units = [
         31536000 => 'year',
         2592000  => 'month',
@@ -2662,14 +2684,20 @@ function timeAgo(string $datetime): string {
     ];
 
     foreach ($units as $seconds => $label) {
-        $value = floor($diff / $seconds);
+        $value = (int) floor($diff / $seconds);
         if ($value >= 1) {
-            return $value . ' ' . $label . ($value > 1 ? 's' : '') . ' ago';
+            // dạng số nhiều nếu cần
+            $plural = $value > 1 ? 's' : '';
+            return "$value $label$plural ago";
         }
     }
+
+    // Fallback an toàn (không nên tới đây)
+    return 'Just now';
 }
 
-function formatCurrencyVND($input) {
+function formatCurrencyVND($input): string
+{
     // Ép kiểu về số nguyên
     $number = intval($input);
 
@@ -2677,19 +2705,7 @@ function formatCurrencyVND($input) {
     return number_format($number, 0, ',', ',') . ' VND';
 }
 
-function writeLogFile($log, string $logName): void
-{
-    $logEntry = sprintf(
-        "Status: %s | Message: %s\n",
-        date('Y-m-d H:i:s'),
-        $log['status'] ?? 'unknown',
-        $log['message'] ?? json_encode($log, JSON_UNESCAPED_UNICODE)
-    );
-
-    file_put_contents(__DIR__ . '/' . $logName, $logEntry, FILE_APPEND);
-}
-
-function getDebug()
+function getDebug(): void
 {
     // Spawn worker
     $cmd = "php " . __DIR__ . "/worker.php 183 batches/fp3csj2juoxprk56fcx8heweuj14s8fz0jfy > /dev/null 2>&1 &";
