@@ -563,6 +563,22 @@ function AIProcessDownloadProducts($downloadId): array
     return [['status' => 'success', 'name' => $batch_id]];
 }
 
+function actionDownloadTableGemini()
+{
+    $conn = db();
+    if(!checkRoles(['add','delete'], 'exports_download')){
+        return ['status'  => 'error', 'message' => 'Bạn Không có quyền chạy lệnh.'];
+    }
+
+    // Lấy ids từ request (POST).
+    $idsInput = isset($_POST['ids']) ? $_POST['ids'] : null;
+    if (empty($idsInput)) {
+        return ['status'  => 'error', 'message' => 'Không có ids được gửi lên.'];
+    }
+
+    return $idsInput;
+}
+
 function getDataTableParams(array $allowedCols, string $defaultCol = 'ID'): array {
     $draw             = intval($_POST['draw'] ?? 1);
     $start            = intval($_POST['start'] ?? 0);

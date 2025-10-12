@@ -394,33 +394,21 @@ function initTable(){
 
                                                 // AJAX request
                                                 $.ajax({
-                                                    url: 'api/do-something.php',
+                                                    url: '../../ajax.php?action=action-download-table-gemini25flash',
                                                     method: 'POST',
-                                                    data: { action: 'bulkProcess', ids: selectedIds },
+                                                    data: {ids:selectedIds},
                                                     dataType: 'json',
-                                                    headers: { 'X-CSRF-TOKEN': window.csrfToken || '' }
-                                                })
-                                                    .done(function (res) {
-                                                        if (res && res.success) {
-                                                            // toast / alert tuỳ ý
-                                                            // làm mới datatable nếu source là ajax
-                                                            if (dt && dt.ajax) dt.ajax.reload(null, false);
-                                                            // thông báo
-                                                            if (window.toastr) toastr.success(res.message || 'Hoàn tất');
-                                                            else alert(res.message || 'Hoàn tất');
-                                                        } else {
-                                                            if (window.toastr) toastr.error(res.message || 'Lỗi từ server');
-                                                            else alert(res.message || 'Lỗi từ server');
-                                                        }
-                                                    })
-                                                    .fail(function (xhr, status) {
-                                                        if (window.toastr) toastr.error('Yêu cầu thất bại: ' + status);
-                                                        else alert('Yêu cầu thất bại: ' + status);
-                                                    })
-                                                    .always(function () {
-                                                        // restore button html
+                                                    success: function (response) {
+                                                        console.log('Response:', response);
+                                                    },
+                                                    error: function (xhr) {
+                                                        console.error('Lỗi:', xhr.responseText);
+                                                        alert('Upload thất bại!');
+                                                    },
+                                                    complete: function () {
                                                         $btn.html(originalHtml);
-                                                    });
+                                                    }
+                                                });
                                             }
                                         }
                                     ]
