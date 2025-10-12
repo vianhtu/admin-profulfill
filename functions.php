@@ -581,7 +581,7 @@ function actionDownloadTableGemini(): array
     }
 
     $idList = implode(',', $idsFiltered);
-    $sql = "SELECT ID FROM download WHERE ID IN ($idList) AND status != 'ready'";
+    $sql = "SELECT ID FROM download WHERE ID IN ($idList) AND status = 'schedule' OR status = 'error'";
     $stmt = $conn->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
