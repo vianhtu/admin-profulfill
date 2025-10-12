@@ -400,12 +400,28 @@ function initTable(){
                                                     dataType: 'json',
                                                     success: function (response) {
                                                         if (response.status === 'success' && response.ids) {
-                                                            dt.rows().every(function() {
-                                                                var data = this.data();
-                                                                var rowId = data.id || data.ID || data[0]; // chọn đúng key id trong data
-                                                                if (response.ids.hasOwnProperty(rowId)) {
-                                                                    data.status = 'running';
-                                                                    this.data(data);
+                                                            Object.keys(response.ids).forEach(function(id) {
+                                                                var payload = response.ids[id]; // payload có {status: 'success', name: '195', ...}
+
+                                                                // chọn hàng theo rowId
+                                                                var rowSelector = '#' + id;
+                                                                var rowNode = dt.row(rowSelector).node();
+
+                                                                if (rowNode) {
+                                                                    // thay columnIndex bằng index cột status trong DataTable (bắt đầu từ 0)
+                                                                    var columnIndex = 3; // ví dụ: cột status là cột thứ 4
+                                                                    dt.cell(rowNode, columnIndex).data(payload.status);
+                                                                    // nếu cần cập nhật hiển thị khác (ví dụ HTML), set data phù hợp
+                                                                } else {
+                                                                    // nếu không dùng rowId, tìm row bằng so sánh data.id
+                                                                    dt.rows().every(function() {
+                                                                        var data = this.data();
+                                                                        var rowId = data.id || data.ID || data[0];
+                                                                        if (String(rowId) === String(id)) {
+                                                                            var columnIndex = 3;
+                                                                            this.cell(this.index(), columnIndex).data(payload.status);
+                                                                        }
+                                                                    });
                                                                 }
                                                             });
                                                             dt.draw(false);
