@@ -370,9 +370,7 @@ function initTable(){
                                             text: '<span class="d-flex align-items-center"><i class="icon-base ti tabler-brand-google-podcasts me-1"></i>Google Gemini 2.5 Flash</span>',
                                             className: 'dropdown-item',
                                             action: function (e, dt, node, config) {
-                                                var $btn = $(node);
                                                 let columnIndex = 5;
-                                                var originalHtml = $btn.html();
                                                 // lấy các id đã chọn từ DataTable (ví dụ chọn hàng)
                                                 var selectedIds = [];
                                                 if (dt && dt.rows && dt.rows({ selected: true }).data().length) {
@@ -388,9 +386,6 @@ function initTable(){
                                                 if(selectedIds.length === 0){
                                                     alert('Select at least one record to process');
                                                 }
-
-                                                // thay icon bằng spinner-border (Bootstrap 5)
-                                                $btn.html('<span class="spinner-border spinner-border-sm text-light" role="status"></span> Loading...');
 
                                                 // AJAX request
                                                 $.ajax({
@@ -423,9 +418,6 @@ function initTable(){
                                                     error: function (xhr) {
                                                         console.error('Error:', xhr.responseText);
                                                         alert('Upload thất bại!');
-                                                    },
-                                                    complete: function () {
-                                                        $btn.html(originalHtml);
                                                     }
                                                 });
                                             }
