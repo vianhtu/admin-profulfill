@@ -1177,6 +1177,8 @@ function getDownloadTable(): array {
             OR accounts.email LIKE '%$searchEsc%' 
             OR accounts.name LIKE '%$searchEsc%')";
     }
+    // Lọc theo status (string)
+    addTableFilter($whereClauses, 'download.status', 5, 'string', $conn);
 
     // Lọc theo type (int)
     addTableFilter($whereClauses, 'exports.type_id', 11, 'int', $conn);

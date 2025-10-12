@@ -76,10 +76,10 @@ function updateProgressBars(dt) {
 // Datatable (js)
 function initTable(){
     const statusObj = {
-        schedule: { title: 'schedule', class: 'bg-label-secondary' },
-        running: { title: 'running', class: 'bg-label-warning' },
-        ready: { title: 'ready', class: 'bg-label-success' },
-        error: { title: 'error', class: 'bg-label-danger' }
+        schedule: { title: 'Schedule', class: 'bg-label-secondary' },
+        running: { title: 'Running', class: 'bg-label-warning' },
+        ready: { title: 'Ready', class: 'bg-label-success' },
+        error: { title: 'Error', class: 'bg-label-danger' }
     }
 
     // Variable declaration for table
