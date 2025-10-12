@@ -8,9 +8,10 @@ if(!checkRoles('view', 'exports_download')){
     <div class="card-header border-bottom">
         <h5 class="card-title mb-0">Filters</h5>
         <div class="d-flex justify-content-between align-items-center row pt-4 gap-4 gap-md-0">
-            <div class="col-md-3 xlsx_types"></div>
-            <div class="col-md-3 xlsx_sites"></div>
-            <div class="col-md-3 xlsx_authors"></div>
+            <div class="col-md-3 xlsx_status"></div>
+            <div class="col-md-2 xlsx_types"></div>
+            <div class="col-md-2 xlsx_sites"></div>
+            <div class="col-md-2 xlsx_authors"></div>
             <div class="col-md-3 xlsx_accounts"></div>
         </div>
     </div>
