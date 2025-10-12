@@ -31,9 +31,7 @@ function updateProgressBars(dt) {
         var data = this.data();
         var rowNode = this.node();
         var $row = $(rowNode);
-        var $statusCell = $row.find('.status-cell');
-
-        console.log($statusCell);
+        var $statusCell = $row.find('.file-status');
 
         if ($statusCell.length) {
             var text = $statusCell.text().trim().toLowerCase();
@@ -43,7 +41,7 @@ function updateProgressBars(dt) {
             }
         }
     });
-
+    console.log(ids);
     if (ids.length === 0) {
         return; // Không có row nào cần cập nhật
     }
