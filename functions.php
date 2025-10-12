@@ -370,11 +370,6 @@ function gemini_create_and_upload_batch_file(string $jsonl_content, $downloadId)
         return ['status' => 'error', 'message' => "No file id in url: {$fileUriRaw}"];
     }
     $fileId = $matches[0];
-    $cacheRes = gemini_create_cache($downloadId);
-    if ($cacheRes['status'] !== 'success') {
-        @unlink($file_path);
-        return $cacheRes;
-    }
     $batchRes = gemini_create_batches($downloadId, $fileId);
     @unlink($file_path);
     return $batchRes;
@@ -489,13 +484,8 @@ function buildCompressedPromptFromText(string $fullText): string {
 function AIProcessDownloadProducts($downloadId): array
 {
     $conn = db();
-    if (!($conn instanceof mysqli)) {
-        return [['status' => 'error', 'message' => 'Invalid database connection.']];
-    }
+    $promptTemplate = getAISitePrompt($downloadId);
 
-    $promptTemplate = "Input: title : {title} image : {image}";
-
-    // Lấy danh sách sản phẩm cần xử lý
     $stmt = $conn->prepare("
         SELECT DISTINCT p.ID, p.title, p.sku, p.images
         FROM posts p
@@ -503,9 +493,6 @@ function AIProcessDownloadProducts($downloadId): array
         WHERE dr.download_id = ?
         AND p.status = 'schedule'
     ");
-    if ($stmt === false) {
-        return [['status' => 'error', 'message' => 'Prepare failed: ' . $conn->error]];
-    }
     $stmt->bind_param("i", $downloadId);
     if (!$stmt->execute()) {
         $stmt->close();
@@ -513,31 +500,25 @@ function AIProcessDownloadProducts($downloadId): array
     }
     $result = $stmt->get_result();
 
-    // Nếu không có sản phẩm nào → cập nhật download.status = 'ready'
+    // Nếu không có sản phẩm nào → cập nhật download.status = 'error'
     if ($result->num_rows === 0) {
         $updateDownload = $conn->prepare("UPDATE download SET status = 'error' WHERE ID = ?");
         $updateDownload->bind_param("i", $downloadId);
         $updateDownload->execute();
         $updateDownload->close();
         $stmt->close();
-        return [[
-            'status' => 'error',
-            'message' => "Không có sản phẩm để xử lý. Đã cập nhật download ID {$downloadId} thành 'error'."
-        ]];
+        return [['status' => 'error', 'message' => "Không có sản phẩm để xử lý. Đã cập nhật download ID {$downloadId} thành 'error'."]];
     }
 
     $jsonl_content = '';
-    // Optional: wrap each post's work in a transaction to keep consistency
     while ($row = $result->fetch_assoc()) {
         $title = $row['title'] ?? '';
-        // Lấy ảnh chính
         $mainImage = '';
         if (!empty($row['images'])) {
             $imagesArray = json_decode($row['images'], true);
             if (json_last_error() === JSON_ERROR_NONE && is_array($imagesArray)) {
                 $mainImage = $imagesArray['main'] ?? '';
                 if (!empty($mainImage)) {
-                    // Thay thế mọi "il_<số>xN" thành "il_1024xN"
                     $mainImage = preg_replace('/il_\d+xN/', 'il_1024xN', $mainImage);
                 }
             }
@@ -552,12 +533,11 @@ function AIProcessDownloadProducts($downloadId): array
         $request_data = [
             "key" => $row['ID'],
             "request" => [
-                "cachedContent" => "cachedContents/cache-" . $downloadId,
                 "contents" => [
                     [
                         "parts" => [
                             [
-                                "text" => $prompt
+                                "text" => buildCompressedPromptFromText($prompt)
                             ]
                         ],
                         "role" => "user"
@@ -2711,8 +2691,7 @@ function writeLogFile($log, string $logName): void
 
 function getDebug()
 {
-    return gemini_get_batches_by_name('batches/pfkuo7v9zi9t6rioyvad7vxcwhveowf06wqq');
     // Spawn worker
-    //$cmd = "php " . __DIR__ . "/worker.php 183 batches/fp3csj2juoxprk56fcx8heweuj14s8fz0jfy > /dev/null 2>&1 &";
-    //exec($cmd);
+    $cmd = "php " . __DIR__ . "/worker.php 183 batches/fp3csj2juoxprk56fcx8heweuj14s8fz0jfy > /dev/null 2>&1 &";
+    exec($cmd);
 }
