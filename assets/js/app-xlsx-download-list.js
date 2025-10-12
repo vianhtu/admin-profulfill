@@ -493,7 +493,7 @@ function initTable(){
                 });
             }
         });
-        setInterval(updateProgressBars(dt_user), 15000);
+        setInterval(() => updateProgressBars(dt_user), 15000);
     }
 
     setTimeout(() => {
