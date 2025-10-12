@@ -588,10 +588,11 @@ function actionDownloadTableGemini(): array
     $ids = [];
     while ($row = $result->fetch_assoc()) {
         $downloadId = $row['ID'];
-        $ids[$row['ID']] = AIProcessDownloadProducts($downloadId);
+        //$ids[$row['ID']] = AIProcessDownloadProducts($downloadId);
     }
 
-    return ['status' => 'success', 'ids' => $ids];
+    //return ['status' => 'success', 'ids' => $ids];
+    return ['status' => 'success', 'ids' => [197=>['status' => 'success', 'name' => '197']]];
 }
 
 function getDataTableParams(array $allowedCols, string $defaultCol = 'ID'): array {
