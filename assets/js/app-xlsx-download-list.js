@@ -375,8 +375,8 @@ function initTable(){
                                     text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-automation icon-xs"></i> <span class="d-none d-sm-inline-block">Actions</span></span>',
                                     buttons: [
                                         {
-                                            text: '<i class="ti ti-refresh"></i> Run AJAX',
-                                            className: 'btn btn-sm btn-secondary',
+                                            text: '<span class="d-flex align-items-center"><i class="icon-base ti tabler-brand-google-podcasts me-1"></i>Google Gemini 2.5 Flash</span>',
+                                            className: 'dropdown-item',
                                             action: function (e, dt, node, config) {
                                                 var $btn = $(node);
                                                 var originalHtml = $btn.html();
