@@ -24,16 +24,20 @@ async function init() {
 }
 
 // Hàm cập nhật progress bar
-function updateProgressBars() {
-    // Lấy tất cả các progress overlay đang hiển thị (status = running)
+function updateProgressBars(dt) {
+    // Lấy tất cả các progress đang hiển thị (status = running)
     var ids = [];
-    $('#DataTables_Table_0').find('.progress-overlay').each(function () {
-        var $overlay = $(this);
-        if (!$overlay.hasClass('d-none')) {
-            // Tìm ID của row (giả sử lưu ở data-id của <tr>)
-            var rowId = $overlay.closest('.user-name').data('id');
-            if (rowId) {
-                ids.push(rowId);
+    dt.rows().every(function () {
+        var data = this.data();
+        var rowNode = this.node();
+        var $row = $(rowNode);
+        var $statusCell = $row.find('.status-cell');
+
+        if ($statusCell.length) {
+            var text = $statusCell.text().trim().toLowerCase();
+            if (text.indexOf('running') !== -1) {
+                var id = data && (data.id || data.ID) ? (data.id || data.ID) : $row.data('id');
+                if (id !== undefined && id !== null) ids.push(id);
             }
         }
     });
@@ -50,18 +54,9 @@ function updateProgressBars() {
         success: function (response) {
             // response có thể là mảng [{id:..., progress:..., status:...}, ...]
             response.forEach(function (item) {
-                var $bar = $('#DataTables_Table_0').find('[data-id="' + item.id + '"] .progress-bar');
-                // Cập nhật width và aria-valuenow
-                $bar.css('width', item.progress + '%')
-                    .attr('aria-valuenow', item.progress);
-
                 // Nếu status không còn "running" thì ẩn progress overlay
                 if (item.status !== 'running') {
-                    let file_status = $bar.closest('tr').find('.file-status');
-                    file_status.text('ready');
-                    file_status.removeClass('bg-label-warning');
-                    file_status.addClass('bg-label-success');
-                    $bar.closest('.progress-overlay').addClass('d-none');
+                    console.log('Status:', item);
                 }
             });
         },
@@ -218,13 +213,6 @@ function initTable(){
                         var name = sitesObj[full['account_site_id']].title + ' - ' + full['name'];
                         var account_name = full['temp_file_name'] + ' - ' + categoryObj[full['type_id']].title;
                         var image = './../../assets/svg/icons/xlsx_icon.svg';
-                        // Nếu status = 'running' thì không thêm class d-none
-                        var progress = full['status'] === 'running' ?
-                            '<div class="progress-overlay">' +
-                            '<div class="progress" style="height: 4px;">' +
-                            '<div class="progress-bar bg-info" role="progressbar" style="width: 0%;"></div>' +
-                            '</div>' +
-                            '</div>' : '';
                         var output = '<div class="position-relative">' +
                             '<img src="' + image + '" alt="file.xlsx" class="rounded">' +
                             '<div class="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center">'+
@@ -232,7 +220,6 @@ function initTable(){
                             '    <span class="visually-hidden">Loading...</span>' +
                             '</div>' +
                             '</div>' +
-                            progress +
                             '</div>';
 
                         var row_output =
