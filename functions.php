@@ -2706,9 +2706,10 @@ function formatCurrencyVND($input): string
     return number_format($number, 0, ',', ',') . ' VND';
 }
 
-function getDebug(): void
+function getDebug()
 {
+    return gemini_get_batches_by_name('batches/zwddup4vdx5tpo5srm92tz6rvgvah3rxqifu');
     // Spawn worker
-    $cmd = "php " . __DIR__ . "/worker.php 183 batches/fp3csj2juoxprk56fcx8heweuj14s8fz0jfy > /dev/null 2>&1 &";
-    exec($cmd);
+    //$cmd = "php " . __DIR__ . "/worker.php 173 batches/zwddup4vdx5tpo5srm92tz6rvgvah3rxqifu > /dev/null 2>&1 &";
+    //exec($cmd);
 }
