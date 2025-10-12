@@ -563,7 +563,7 @@ function AIProcessDownloadProducts($downloadId): array
     return [['status' => 'success', 'name' => $batch_id]];
 }
 
-function actionDownloadTableGemini()
+function actionDownloadTableGemini(): array
 {
     $conn = db();
     if(!checkRoles(['add','delete'], 'exports_download')){
@@ -587,8 +587,8 @@ function actionDownloadTableGemini()
     $result = $stmt->get_result();
     $ids = [];
     while ($row = $result->fetch_assoc()) {
-        $ids[] = $row['ID'];
         $downloadId = $row['ID'];
+        $ids[$row['ID']] = AIProcessDownloadProducts($downloadId);
     }
 
     return ['status' => 'success', 'ids' => $ids];
