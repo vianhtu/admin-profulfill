@@ -392,7 +392,9 @@ function initTable(){
                                                     });
                                                 }
 
-                                                console.log(selectedIds);
+                                                if(selectedIds.length === 0){
+                                                    alert('Select at least one record to process');
+                                                }
 
                                                 // AJAX request
                                                 $.ajax({
