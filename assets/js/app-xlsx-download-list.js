@@ -493,10 +493,9 @@ function initTable(){
                 });
             }
         });
+        setInterval(updateProgressBars(dt_user), 15000);
     }
 
-    // Filter form control to default size
-    // ? setTimeout used for user-list table initialization
     setTimeout(() => {
         const elementsToModify = [
             { selector: '.dt-buttons .btn', classToRemove: 'btn-secondary' },
@@ -528,6 +527,4 @@ function initTable(){
 }
 document.addEventListener('DOMContentLoaded', function (e) {
     init();
-    // Chạy ngay khi load và lặp lại mỗi 30 giây
-    setInterval(updateProgressBars, 15000);
 });
