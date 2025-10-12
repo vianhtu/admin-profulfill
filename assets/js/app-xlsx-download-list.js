@@ -281,7 +281,7 @@ function initTable(){
                     render: function (data, type, full, meta) {
                         const status = full['status'];
                         if (statusObj[status] === undefined) {
-                            return status;
+                            return '<div class="d-flex align-items-center"><div class="spinner-border spinner-border-sm me-2" role="status"></div><span>Loading...</span></div>';
                         }
                         return (
                             '<span class="file-status badge ' +
@@ -383,14 +383,13 @@ function initTable(){
                                                 var originalHtml = $btn.html();
                                                 // lấy các id đã chọn từ DataTable (ví dụ chọn hàng)
                                                 var selectedIds = [];
-                                                var spinnerHtml = '<div class="d-flex align-items-center"><div class="spinner-border spinner-border-sm me-2" role="status"></div><span>Loading...</span></div>';
                                                 if (dt && dt.rows && dt.rows({ selected: true }).data().length) {
                                                     dt.rows({ selected: true }).every(function () {
                                                         var data = this.data();
                                                         var rowId = data.id || data.ID || data[0];
                                                         selectedIds.push(rowId);
                                                         var rowNode = this.node();
-                                                        dt.cell(rowNode, columnIndex).data(spinnerHtml);
+                                                        dt.cell(rowNode, columnIndex).data('loading');
                                                     });
                                                 }
 
