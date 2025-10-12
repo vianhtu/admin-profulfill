@@ -45,6 +45,8 @@ function updateProgressBars(dt) {
         return; // Không có row nào cần cập nhật
     }
 
+    console.log('IDs to update:', ids);
+
     // Gọi AJAX lấy dữ liệu % tiến trình
     $.ajax({
         url: '../../ajax.php?action=get-download-products-process', // endpoint của bạn
