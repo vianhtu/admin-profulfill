@@ -576,7 +576,25 @@ function actionDownloadTableGemini()
         return ['status'  => 'error', 'message' => 'Không có ids được gửi lên.'];
     }
 
-    return $idsInput;
+    // Filter and cast to integers to avoid SQL injection and invalid values
+    $idsFiltered = array_values(array_filter(array_map('intval', $idsInput), function($v) {
+        return $v > 0;
+    }));
+    if (empty($idsFiltered)) {
+        return ['status' => 'error', 'message' => 'Không có ids hợp lệ.'];
+    }
+
+    $stmt = $conn->prepare("SELECT ID FROM download WHERE ID IN (?) AND status != 'ready'");
+    $stmt->bind_param("s", implode(',', $idsFiltered));
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $ids = [];
+    while ($row = $result->fetch_assoc()) {
+        $ids[] = $row['ID'];
+        $downloadId = $row['ID'];
+    }
+
+    return ['status' => 'success', 'ids' => $ids];
 }
 
 function getDataTableParams(array $allowedCols, string $defaultCol = 'ID'): array {
