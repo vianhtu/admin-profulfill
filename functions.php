@@ -1151,7 +1151,7 @@ function getOrdersTable(): array {
 }
 
 function getDownloadTable(): array {
-    $allowedCols = ['ID', 'status', 'date', 'download_date'];
+    $allowedCols = ['ID', 'status', 'date', 'download_date', 'total_items'];
     // Lấy tham số từ DataTables
     $params = getDataTableParams($allowedCols);
     if(!checkRoles('view', 'exports_download')){
