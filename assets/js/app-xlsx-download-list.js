@@ -382,7 +382,7 @@ function initTable(){
                                                 var originalHtml = $btn.html();
 
                                                 // thay icon bằng spinner-border (Bootstrap 5)
-                                                $btn.html('<div class="spinner-border spinner-border-sm text-light" role="status"><span class="visually-hidden">Loading...</span></div>');
+                                                $btn.html('<span class="spinner-border spinner-border-sm text-light" role="status"></span> Loading...');
 
                                                 // lấy các id đã chọn từ DataTable (ví dụ chọn hàng)
                                                 var selectedIds = [];
