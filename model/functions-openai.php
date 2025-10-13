@@ -81,7 +81,7 @@ function openai_create_and_upload_batch_file(string $jsonl_content): array
                 ],
                 [
                     'name'     => 'expires_after[days]',
-                    'contents' => '2',
+                    'contents' => '1',
                 ]
             ],
             'http_errors' => false,
@@ -118,7 +118,7 @@ function openai_create_batches($file_name): array
     $payload = [
         'input_file_id'     => $file_name,
         'endpoint'          => '/v1/responses',
-        'completion_window' => '48h',
+        'completion_window' => '24h',
     ];
 
     $res = openai_request('POST', '/v1/batches', $payload);
