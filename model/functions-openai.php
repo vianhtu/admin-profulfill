@@ -63,7 +63,7 @@ function openai_create_and_upload_batch_file(string $jsonl_content): array
         $client = openai_client();
         $resp = $client->request('POST', '/v1/files', [
             'headers' => [
-                'Authorization' => 'Bearer' . getOption('openai_key', null, 0)
+                'Authorization' => 'Bearer ' . getOption('openai_key', null, 0)
             ],
             'multipart' => [
                 [
