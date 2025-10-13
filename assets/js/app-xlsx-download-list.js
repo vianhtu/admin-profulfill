@@ -361,56 +361,14 @@ function initTable(){
                                             text: '<span class="d-flex align-items-center"><i class="icon-base ti tabler-brand-google-podcasts me-1"></i>Google Gemini 2.5 Flash</span>',
                                             className: 'dropdown-item',
                                             action: function (e, dt, node, config) {
-                                                let columnIndex = 4;
-                                                // lấy các id đã chọn từ DataTable (ví dụ chọn hàng)
-                                                var selectedIds = [];
-                                                if (dt && dt.rows && dt.rows({ selected: true }).data().length) {
-                                                    dt.rows({ selected: true }).every(function () {
-                                                        var data = this.data();
-                                                        var rowId = data.id || data.ID || data[0];
-                                                        selectedIds.push(rowId);
-                                                        var rowNode = this.node();
-                                                        dt.cell(rowNode, columnIndex).data('loading');
-                                                    });
-                                                }
-
-                                                if(selectedIds.length === 0){
-                                                    alert('Select at least one record to process');
-                                                }
-
-                                                // AJAX request
-                                                $.ajax({
-                                                    url: '../../ajax.php?action=action-download-table-gemini25flash',
-                                                    method: 'POST',
-                                                    data: {ids:selectedIds},
-                                                    dataType: 'json',
-                                                    success: function (response) {
-                                                        if (response.status === 'success' && response.ids) {
-                                                            Object.keys(response.ids).forEach(function(id) {
-                                                                var payload = response.ids[id];
-                                                                // nếu không dùng rowId, tìm row bằng so sánh data.id
-                                                                dt.rows().every(function() {
-                                                                    var data = this.data();
-                                                                    var rowId = data.id || data.ID || data[0];
-                                                                    if (String(rowId) === String(id)) {
-                                                                        let status = 'running';
-                                                                        if(payload.status === 'error'){
-                                                                            status = 'error';
-                                                                            console.log('Error:', payload);
-                                                                        }
-                                                                        this.cell(this.index(), columnIndex).data(status);
-                                                                    }
-                                                                });
-                                                            });
-                                                        } else {
-                                                            console.log('Unexpected response', response);
-                                                        }
-                                                    },
-                                                    error: function (xhr) {
-                                                        console.error('Error:', xhr.responseText);
-                                                        alert('Upload thất bại!');
-                                                    }
-                                                });
+                                                actionModel(dt,'gemini-2.5-flash', 'google');
+                                            }
+                                        },
+                                        {
+                                            text: '<span class="d-flex align-items-center"><i class="icon-base ti tabler-brand-openai me-1"></i>OpenAI GPT 5</span>',
+                                            className: 'dropdown-item',
+                                            action: function (e, dt, node, config) {
+                                                actionModel(dt,'gpt-5', 'openai');
                                             }
                                         }
                                     ]
@@ -484,6 +442,60 @@ function initTable(){
                 });
             }
         });
+
+        function actionModel(dt, model, ai){
+            let columnIndex = 4;
+            // lấy các id đã chọn từ DataTable (ví dụ chọn hàng)
+            let selectedIds = [];
+            if (dt && dt.rows && dt.rows({ selected: true }).data().length) {
+                dt.rows({ selected: true }).every(function () {
+                    let data = this.data();
+                    let rowId = data.id || data.ID || data[0];
+                    selectedIds.push(rowId);
+                    let rowNode = this.node();
+                    dt.cell(rowNode, columnIndex).data('loading');
+                });
+            }
+
+            if(selectedIds.length === 0){
+                alert('Select at least one record to process');
+            }
+
+            // AJAX request
+            $.ajax({
+                url: '../../ajax.php?action=action-download-table-model',
+                method: 'POST',
+                data: {ids:selectedIds, ai: ai, model:model},
+                dataType: 'json',
+                success: function (response) {
+                    if (response.status === 'success' && response.ids) {
+                        Object.keys(response.ids).forEach(function(id) {
+                            let payload = response.ids[id];
+                            // nếu không dùng rowId, tìm row bằng so sánh data.id
+                            dt.rows().every(function() {
+                                let data = this.data();
+                                let rowId = data.id || data.ID || data[0];
+                                if (String(rowId) === String(id)) {
+                                    let status = 'running';
+                                    if(payload.status === 'error'){
+                                        status = 'error';
+                                        console.log('Error:', payload);
+                                    }
+                                    this.cell(this.index(), columnIndex).data(status);
+                                }
+                            });
+                        });
+                    } else {
+                        console.log('Unexpected response', response);
+                    }
+                },
+                error: function (xhr) {
+                    console.error('Error:', xhr.responseText);
+                    alert('Upload thất bại!');
+                }
+            });
+        }
+
         setInterval(() => updateProgressBars(dt_user), 15000);
     }
 

@@ -96,8 +96,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 		case 'filter-export-file':
 			echo json_encode(getFilesTableFilter());
 			break;
-        case 'action-download-table-gemini25flash':
-            echo json_encode(actionDownloadTableGemini());
+        case 'action-download-table-model':
+            echo json_encode(actionDownloadTableModel());
             break;
         case 'add-keywords':
 			echo json_encode(addKeywords());

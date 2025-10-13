@@ -334,7 +334,7 @@ function gemini_upload_finalize(string $uploadUrl, string $file_path, int $file_
     }
 }
 
-function gemini_create_and_upload_batch_file(string $jsonl_content, $downloadId): array
+function gemini_create_and_upload_batch_file(string $jsonl_content, $downloadId, $model): array
 {
     $jsonlDir = ROOT_DIR . "/jsonl/";
     if (!is_dir($jsonlDir) && !mkdir($jsonlDir, 0777, true) && !is_dir($jsonlDir)) {
@@ -369,7 +369,7 @@ function gemini_create_and_upload_batch_file(string $jsonl_content, $downloadId)
         return ['status' => 'error', 'message' => "No file id in url: {$fileUriRaw}"];
     }
     $fileId = $matches[0];
-    $batchRes = gemini_create_batches($downloadId, $fileId);
+    $batchRes = gemini_create_batches($downloadId, $fileId, $model);
     @unlink($file_path);
     return $batchRes;
 }
@@ -408,7 +408,7 @@ function gemini_create_cache($downloadId): array
     return ['status' => 'error', 'message' => 'Cache created but ID not found in response.'];
 }
 
-function gemini_create_batches($downloadId, $file_name): array
+function gemini_create_batches($downloadId, $file_name, $model): array
 {
     $payload = [
         'batch' => [
@@ -419,12 +419,12 @@ function gemini_create_batches($downloadId, $file_name): array
         ],
     ];
 
-    $res = gemini_request('POST', '/v1beta/models/gemini-2.5-flash:batchGenerateContent', $payload);
+    $res = gemini_request('POST', "/v1beta/models/{$model}:batchGenerateContent", $payload);
     if ($res['status'] !== 'success') {
         return $res;
     }
 
-    return ['status' => 'success', 'batch' => $res['data']];
+    return ['status' => 'success', 'batch_id' => $res['batch']['name']];
 }
 
 function gemini_get_batches_by_name($batch_name): array
@@ -480,10 +480,10 @@ function buildCompressedPromptFromText(string $fullText): string {
     return trim($promptOneLine);
 }
 
-function AIProcessDownloadProducts($downloadId): array
+function AIProcessDownloadProducts($downloadId, $model, $ai): array
 {
     $conn = db();
-    $promptTemplate = getAISitePrompt($downloadId);
+    $promptTemplate = AIGetPrompt($downloadId);
 
     $stmt = $conn->prepare("
         SELECT DISTINCT p.ID, p.title, p.sku, p.images
@@ -529,31 +529,21 @@ function AIProcessDownloadProducts($downloadId): array
             '{image}' => $mainImage
         ]);
 
-        $request_data = [
-            "key" => $row['ID'],
-            "request" => [
-                "contents" => [
-                    [
-                        "parts" => [
-                            [
-                                "text" => buildCompressedPromptFromText($prompt)
-                            ]
-                        ],
-                        "role" => "user"
-                    ]
-                ]
-            ]
-        ];
+        $request_data = AIJsonlContent($row['ID'], $prompt, $ai, $model);
+        if(empty($request_data)) {
+            continue;
+        }
+
         $jsonl_content .= json_encode($request_data, JSON_UNESCAPED_UNICODE) . "\n";
     }
     $stmt->close();
 
     // 2. Tạo File JSONL and upload.
-    $batch_result = gemini_create_and_upload_batch_file($jsonl_content, $downloadId);
+    $batch_result = AIBatchApi($jsonl_content, $downloadId, $ai, $model);
     if ($batch_result['status'] == 'error') {
         return $batch_result;
     }
-    $batch_id = $batch_result['batch']['name'];
+    $batch_id = $batch_result['batch_id'];
     // update. job name to data.
     $stmt = $conn->prepare("UPDATE download SET batch_name = ?, status = 'running' WHERE ID = ?");
     $stmt->bind_param("si", $batch_id, $downloadId);
@@ -563,16 +553,87 @@ function AIProcessDownloadProducts($downloadId): array
     return [['status' => 'success', 'name' => $batch_id]];
 }
 
-function actionDownloadTableGemini(): array
+function AIGetPrompt($downloadId)
+{
+    $conn = db();
+    $stmt = $conn->prepare("
+        SELECT DISTINCT site.prompt
+        FROM site
+        INNER JOIN exports ON exports.site_id = site.ID
+        INNER JOIN download ON download.exports_id = exports.ID
+        WHERE download.ID = ?
+        LIMIT 1
+    ");
+
+    $stmt->bind_param("i", $downloadId);
+    $stmt->execute();
+    $stmt->bind_result($prompt);
+
+    if ($stmt->fetch()) {
+        return $prompt;
+    } else {
+        return '';
+    }
+}
+
+function AIJsonlContent($id, $prompt, $ai, $model = ''): array
+{
+    $prompt = buildCompressedPromptFromText($prompt);
+    return match ($ai) {
+        'google' => [
+            "key" => $id,
+            "request" => [
+                "contents" => [
+                    [
+                        "parts" => [
+                            [
+                                "text" => $prompt
+                            ]
+                        ],
+                        "role" => "user"
+                    ]
+                ]
+            ]
+        ],
+        'openai' => [
+            "custom_id" => $id,
+            "method" => "POST",
+            "url" => "/v1/responses",
+            "body" => [
+                "model" => $model,
+                "input" => [
+                    [
+                        "role" => "user",
+                        "content" => $prompt
+                    ]
+                ]
+            ]
+        ],
+        default => [],
+    };
+}
+
+function AIBatchApi($jsonl_content, $downloadId, $ai, $model): array
+{
+    return match ($ai) {
+        'google' => gemini_create_and_upload_batch_file($jsonl_content, $downloadId, $model),
+        'openai' => openai_create_and_upload_batch_file($jsonl_content),
+        default => ['status'=> 'error', 'message' => 'Dịch vụ AI không được hỗ trợ.'],
+    };
+}
+
+function actionDownloadTableModel(): array
 {
     $conn = db();
     if(!checkRoles(['add','delete'], 'exports_download')){
         return ['status'  => 'error', 'message' => 'Bạn Không có quyền chạy lệnh.'];
     }
 
-    $idsInput = isset($_POST['ids']) ? $_POST['ids'] : null;
-    if (empty($idsInput)) {
-        return ['status'  => 'error', 'message' => 'Không có ids được gửi lên.'];
+    $idsInput = $_POST['ids'] ?? null;
+    $model = $_POST['model'] ?? null;
+    $ai = $_POST['ai'] ?? null;
+    if (empty($idsInput) || empty($model) || empty($ai) ) {
+        return ['status'  => 'error', 'message' => 'Không có ids hoặc modal được gửi lên.'];
     }
 
     $idsFiltered = array_map('intval', $idsInput);
@@ -588,7 +649,7 @@ function actionDownloadTableGemini(): array
     $ids = [];
     while ($row = $result->fetch_assoc()) {
         $downloadId = $row['ID'];
-        $ids[$row['ID']] = AIProcessDownloadProducts($downloadId);
+        $ids[$row['ID']] = AIProcessDownloadProducts($downloadId, $model, $ai);
     }
 
     return ['status' => 'success', 'ids' => $ids];
@@ -616,29 +677,6 @@ function getDataTableParams(array $allowedCols, string $defaultCol = 'ID'): arra
         'orderDir'    => $orderDir,
         'searchValue' => $searchValue
     ];
-}
-
-function getAISitePrompt($downloadId)
-{
-    $conn = db();
-    $stmt = $conn->prepare("
-        SELECT DISTINCT site.prompt
-        FROM site
-        INNER JOIN exports ON exports.site_id = site.ID
-        INNER JOIN download ON download.exports_id = exports.ID
-        WHERE download.ID = ?
-        LIMIT 1
-    ");
-
-    $stmt->bind_param("i", $downloadId);
-    $stmt->execute();
-    $stmt->bind_result($prompt);
-
-    if ($stmt->fetch()) {
-        return $prompt;
-    } else {
-        return '';
-    }
 }
 
 function getAllTypes(): array {
