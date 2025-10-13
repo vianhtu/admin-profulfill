@@ -108,7 +108,7 @@ function openai_create_and_upload_batch_file(string $jsonl_content): array
         return ['status' => 'error', 'message' => 'JSON parse error: ' . $e->getMessage()];
     } finally {
         if( file_exists( $file_path )) {
-            @unlink($file_path);
+            //@unlink($file_path);
         }
     }
 }
