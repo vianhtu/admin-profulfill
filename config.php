@@ -15,7 +15,7 @@ define('REMEMBER_DURATION', 30 * 24 * 60 * 60); // 30 ngày
 
 define('ROOT_DIR', __DIR__);
 define('GEMINI_API_KEY', 'AIzaSyALP80h2H1We1RA6Jl5cvFPlbYK0Zh29RE');
-define('OPENAI_API_KEY', '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');
+define('OPENAI_API_KEY', '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');
 
 // ===== DB connection =====
 function db(): mysqli {
