@@ -135,20 +135,21 @@ function find_author_by_login(string $userOrEmail): ?array {
 }
 function get_username_by_id(int $id): ?array {
 	$stmt = db()->prepare("
-        SELECT authors.ID, username, level, rl.roles
+        SELECT authors.ID, username, team_id, level, rl.roles
         FROM authors
         LEFT JOIN roles_permissions rl ON rl.ID = authors.level
         WHERE authors.ID = ?
         LIMIT 1");
 	$stmt->bind_param('i', $id);
 	$stmt->execute();
-	$stmt->bind_result($author_id, $username, $level, $rolesJson);
+	$stmt->bind_result($author_id, $username, $team_id, $level, $rolesJson);
 	if ($stmt->fetch()){
 		$stmt->close();
         $roles = $rolesJson === null ? [] : json_decode($rolesJson, true);
 		return [
 			'id' => (int)$author_id,
 			'username' => (string)$username,
+            'team' => (int)$team_id,
 			'level' => (int)$level,
 			'roles' => $roles,
 		];
