@@ -365,10 +365,10 @@ function initTable(){
                                             }
                                         },
                                         {
-                                            text: '<span class="d-flex align-items-center"><i class="icon-base ti tabler-brand-openai me-1"></i>OpenAI GPT 5</span>',
+                                            text: '<span class="d-flex align-items-center"><i class="icon-base ti tabler-brand-openai me-1"></i>OpenAI GPT 5 Nano</span>',
                                             className: 'dropdown-item',
                                             action: function (e, dt, node, config) {
-                                                actionModel(dt,'gpt-5', 'openai');
+                                                actionModel(dt,'gpt-5-nano-2025-08-07', 'openai');
                                             }
                                         }
                                     ]
