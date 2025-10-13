@@ -90,7 +90,7 @@ function openai_create_and_upload_batch_file(string $jsonl_content): array
         $body = (string)$resp->getBody();
         if ($status < 200 || $status >= 300) {
             @unlink($file_path);
-            return ['status' => 'error', 'message' => "Openai Start request file upload failed: HTTP {$status} : {$body}", 'code' => $status, getOption('openai_key', null, 0)];
+            return ['status' => 'error', 'message' => "Openai Start request file upload failed: HTTP {$status} : {$body}", 'code' => $status];
         }
         $data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
         if(empty($data['id'])){
