@@ -81,7 +81,7 @@ function openai_create_and_upload_batch_file(string $jsonl_content): array
                 ],
                 [
                     'name'     => 'expires_after[seconds]',
-                    'contents' => '86400',
+                    'contents' => '172800',
                 ]
             ],
             'http_errors' => false,
