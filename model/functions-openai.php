@@ -4,7 +4,7 @@ use GuzzleHttp\Client as GuzzleClient;
 function openai_client(): GuzzleClient
 {
     return new GuzzleClient([
-        'base_uri' => 'https://api.openai.com/v1',
+        'base_uri' => 'https://api.openai.com',
         'timeout' => 120,
     ]);
 }
@@ -61,7 +61,7 @@ function openai_create_and_upload_batch_file(string $jsonl_content): array
 
     try {
         $client = gemini_client();
-        $resp = $client->request('POST', '/files', [
+        $resp = $client->request('POST', '/v1/files', [
             'headers' => [
                 'Authorization' => 'Bearer ' . OPENAI_API_KEY
             ],
@@ -77,11 +77,11 @@ function openai_create_and_upload_batch_file(string $jsonl_content): array
                 ],
                 [
                     'name'     => 'expires_after[anchor]',
-                    'contents' => 'created_at',
+                    'contents' => 'last_active_at',
                 ],
                 [
-                    'name'     => 'expires_after[seconds]',
-                    'contents' => '172800',
+                    'name'     => 'expires_after[days]',
+                    'contents' => '2',
                 ],
             ],
             'http_errors' => false,
@@ -89,7 +89,7 @@ function openai_create_and_upload_batch_file(string $jsonl_content): array
         $status = $resp->getStatusCode();
         $body = (string)$resp->getBody();
         if ($status < 200 || $status >= 300) {
-            //@unlink($file_path);
+            @unlink($file_path);
             return ['status' => 'error', 'message' => "Start request failed: HTTP {$status} : {$body}", 'code' => $status];
         }
         $data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
@@ -108,7 +108,7 @@ function openai_create_and_upload_batch_file(string $jsonl_content): array
         return ['status' => 'error', 'message' => 'JSON parse error: ' . $e->getMessage()];
     } finally {
         if( file_exists( $file_path )) {
-            //@unlink($file_path);
+            @unlink($file_path);
         }
     }
 }
@@ -121,7 +121,7 @@ function openai_create_batches($file_name): array
         'completion_window' => '48h',
     ];
 
-    $res = openai_request('POST', '/batches', $payload);
+    $res = openai_request('POST', '/v1/batches', $payload);
     if ($res['status'] !== 'success') {
         return $res;
     }
