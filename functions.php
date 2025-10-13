@@ -581,7 +581,7 @@ function AIJsonlContent($id, $prompt, $ai, $model = ''): array
     $prompt = buildCompressedPromptFromText($prompt);
     return match ($ai) {
         'google' => [
-            "key" => $id,
+            "key" => (string)$id,
             "request" => [
                 "contents" => [
                     [
@@ -596,7 +596,7 @@ function AIJsonlContent($id, $prompt, $ai, $model = ''): array
             ]
         ],
         'openai' => [
-            "custom_id" => $id,
+            "custom_id" => (string)$id,
             "method" => "POST",
             "url" => "/v1/responses",
             "body" => [
