@@ -622,7 +622,7 @@ function AIBatchApi($jsonl_content, $downloadId, $ai, $model): array
     };
 }
 
-function getOption($key, $team = '', $authors = '', $default = null)
+function getOption($key, $team = null, $authors = null, $default = null)
 {
     $team = $team ?? ($_SESSION['auth']['team'] ?? 0);
     $authors = $authors ?? ($_SESSION['auth']['user_id'] ?? 0);

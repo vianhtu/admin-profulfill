@@ -15,7 +15,7 @@ function openai_request(string $method, string $uri, array $json = [], bool $bod
         $client = openai_client();
         $options = [
             'headers' => [
-                'Authorization' => 'Bearer ' . getOption('openai_key', '', 0)
+                'Authorization' => 'Bearer ' . getOption('openai_key', null, 0)
             ],
             'http_errors' => false,
         ];
@@ -63,7 +63,7 @@ function openai_create_and_upload_batch_file(string $jsonl_content): array
         $client = openai_client();
         $resp = $client->request('POST', '/v1/files', [
             'headers' => [
-                'Authorization' => 'Bearer' . getOption('openai_key', '', 0)
+                'Authorization' => 'Bearer' . getOption('openai_key', null, 0)
             ],
             'multipart' => [
                 [
