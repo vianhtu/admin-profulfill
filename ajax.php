@@ -2,8 +2,10 @@
 declare(strict_types=1);
 require __DIR__ . '/config.php';
 require __DIR__ . '/functions.php';
-require __DIR__ . '/functions-telnyx.php';
-require __DIR__ . '/functions-teams.php';
+require __DIR__ . '/functions/functions-telnyx.php';
+require __DIR__ . '/model/functions-gemini.php';
+require __DIR__ . '/model/functions-openai.php';
+require __DIR__ . '/tables/functions-teams.php';
 header('Content-Type: application/json; charset=utf-8');
 // Nếu chưa login hoặc cookie nhớ đăng nhập không hợp lệ → chặn
 if (!is_logged_in() && !attempt_cookie_login()) {
