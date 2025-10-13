@@ -64,7 +64,7 @@ function user_agent_fingerprint(): string { return hash('sha256', $_SERVER['HTTP
 // ===== Auth core =====
 function login_user(array $username): void {
 	session_regenerate_id(true);
-	$_SESSION['auth'] = ['user'=>$username['username'], 'ua'=>user_agent_fingerprint(), 't'=>time(), 'user_id'=> $username['id'], 'level'=>$username['level'], 'roles'=>$username['roles']];
+	$_SESSION['auth'] = ['user'=>$username['username'], 'ua'=>user_agent_fingerprint(), 't'=>time(), 'user_id'=> $username['id'], 'team' => $username['team'], 'level'=>$username['level'], 'roles'=>$username['roles']];
 }
 function is_logged_in(): bool {
 	return !empty($_SESSION['auth']['user']) && hash_equals($_SESSION['auth']['ua'], user_agent_fingerprint());
@@ -109,7 +109,7 @@ function logout_user(): void {
 // ===== Login lookup (email OR username) =====
 function find_author_by_login(string $userOrEmail): ?array {
 	$sql = "
-        SELECT authors.ID, username, pass, level, rl.roles
+        SELECT authors.ID, username, pass, team_id, level, rl.roles
         FROM authors
         LEFT JOIN roles_permissions rl ON rl.ID = authors.level
         WHERE username = ? OR email = ?
@@ -117,7 +117,7 @@ function find_author_by_login(string $userOrEmail): ?array {
 	$stmt = db()->prepare($sql);
 	$stmt->bind_param('ss', $userOrEmail, $userOrEmail);
 	$stmt->execute();
-	$stmt->bind_result($id, $username, $hash, $level, $rolesJson);
+	$stmt->bind_result($id, $username, $hash, $team_id, $level, $rolesJson);
 	if ($stmt->fetch()) {
 		$stmt->close();
 		$roles = $rolesJson === null ? [] : json_decode($rolesJson, true);
@@ -125,6 +125,7 @@ function find_author_by_login(string $userOrEmail): ?array {
             'id' => (int)$id,
             'username' => (string)$username,
             'hash' => (string)$hash,
+            'team' => (int)$team_id,
             'level' => (int)$level,
             'roles' => $roles
         ];
