@@ -622,6 +622,22 @@ function AIBatchApi($jsonl_content, $downloadId, $ai, $model): array
     };
 }
 
+function getOption($key, $team = '', $authors = '', $default = null)
+{
+    $team = $team ?? ($_SESSION['auth']['team'] ?? 0);
+    $authors = $authors ?? ($_SESSION['auth']['user_id'] ?? 0);
+    $conn = db();
+    $stmt = $conn->prepare("SELECT value FROM options WHERE name = ? AND team_id = ? AND authors_id = ? LIMIT 1");
+    $stmt->bind_param("sii", $key, $team, $authors);
+    $stmt->execute();
+    $stmt->bind_result($value);
+    if ($stmt->fetch()) {
+        return $value;
+    } else {
+        return $default;
+    }
+}
+
 function actionDownloadTableModel(): array
 {
     $conn = db();
