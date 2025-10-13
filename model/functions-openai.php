@@ -127,6 +127,6 @@ function openai_create_batches($file_name): array
         return $res;
     }
 
-    return ['status' => 'success', 'batch_id' => $res['id']];
+    return ['status' => 'success', 'batch_id' => $res['data']['id']];
 }
 
