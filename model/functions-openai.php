@@ -15,7 +15,7 @@ function openai_request(string $method, string $uri, array $json = [], bool $bod
         $client = openai_client();
         $options = [
             'headers' => [
-                'Authorization' => 'Bearer' . OPENAI_API_KEY
+                'Authorization' => 'Bearer ' . getenv(OPENAI_API_KEY)
             ],
             'http_errors' => false,
         ];
