@@ -100,7 +100,9 @@ if ($downloadId == 0 || $batch_name == '' || $ai_name == '' || $team_id == 0) {
     exit();
 }
 
+session_start();
 $_SESSION['auth'] = ['user_id' => 0, 'team' => $team_id];
+
 switch ($ai_name) {
     case 'google':
         $batch = gemini_get_batches_by_name($batch_name);
