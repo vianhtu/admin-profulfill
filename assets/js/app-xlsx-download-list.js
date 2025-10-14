@@ -534,7 +534,11 @@ function initTable(){
                                         status = 'error';
                                         console.log('Error:', payload);
                                     }
-                                    this.cell(this.index(), columnIndex).data(status);
+                                    // Cập nhật giá trị progress
+                                    data.ai_name = ai;
+                                    data.status = status;
+                                    //this.cell(this.index(), columnIndex).data(status);
+                                    this.data(data).draw(false);
                                 }
                             });
                         });
