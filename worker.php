@@ -12,6 +12,81 @@ function writeLog($message): void
     file_put_contents($logFile, "[$time] $message" . PHP_EOL, FILE_APPEND);
 }
 
+function updateDownload($id, $fields): void
+{
+    $conn = db();
+
+    // Tạo danh sách "field = ?" từ mảng $fields
+    $setParts = [];
+    $values = [];
+    $types = "";
+
+    foreach ($fields as $column => $value) {
+        $setParts[] = "$column = ?";
+        $values[] = $value;
+
+        // Xác định kiểu dữ liệu cho bind_param
+        if (is_int($value)) {
+            $types .= "i";
+        } elseif (is_float($value)) {
+            $types .= "d";
+        } else {
+            $types .= "s";
+        }
+    }
+
+    // Ghép chuỗi SET
+    $setClause = implode(", ", $setParts);
+
+    // Thêm điều kiện WHERE
+    $sql = "UPDATE download SET $setClause WHERE id = ?";
+
+    $stmt = $conn->prepare($sql);
+
+    // Thêm id vào cuối mảng values
+    $values[] = $id;
+    $types .= "i";
+
+    // bind_param yêu cầu truyền tham chiếu
+    $stmt->bind_param($types, ...$values);
+
+    $stmt->execute();
+    $stmt->close();
+}
+
+function updatePostStatus($ids): bool
+{
+    $conn = db();
+
+    // Đảm bảo $ids là mảng số nguyên
+    $ids = array_map('intval', $ids);
+
+    if (empty($ids)) {
+        return false;
+    }
+
+    // Tạo chuỗi placeholder tương ứng số lượng id
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+
+    $sql = "UPDATE posts 
+            SET status = 'listed', updated_at = NOW() 
+            WHERE ID IN ($placeholders)";
+
+    $stmt = $conn->prepare($sql);
+
+    // Tạo kiểu dữ liệu cho bind_param (toàn bộ là integer)
+    $types = str_repeat('i', count($ids));
+
+    // bind_param cần truyền tham chiếu
+    $stmt->bind_param($types, ...$ids);
+
+    $result = $stmt->execute();
+
+    $stmt->close();
+
+    return $result;
+}
+
 // Nếu được truyền ID từ cron-job.php thì xử lý trước job đó
 $downloadId = (int)$argv[1] ?? 0;
 $batch_name = $argv[2] ?? '';
@@ -22,43 +97,44 @@ if ($downloadId == 0 || $batch_name == '' || $ai_name == '') {
 }
 switch ($ai_name) {
     case 'google':
-        $items = gemini_get_batches_by_name($batch_name);
+        $batch = gemini_get_batches_by_name($batch_name);
         break;
     case 'openai':
-        $items = openai_get_batches_by_name($batch_name);
+        $batch = openai_get_batches_by_name($batch_name);
         break;
     default:
         exit();
 }
 
-if ($items['status'] == 'success' && count($items['items']) > 0) {
-    try {
-        $total_token = 0;
-        foreach ($items['items'] as $key => $item) {
-            $newId = insertAmazonListingFromAI($downloadId, $key, $item['data']);
-            // Cập nhật trạng thái bài viết
-            $updateStmt = $conn->prepare("UPDATE posts SET status = 'listed', updated_at = NOW() WHERE ID = ?");
-            $updateStmt->bind_param("i", $key);
-            $updateStmt->execute();
-            $updateStmt->close();
-            $total_token += $item['total_token'];
-        }
-        $status = 'ready';
-        $stmt = $conn->prepare("UPDATE download SET status = ?, total_token = ? , locked_at = NULL WHERE ID = ?");
-        $stmt->bind_param("sii", $status, $total_token, $downloadId);
-        $stmt->execute();
-        $stmt->close();
-        writeLog('Success: ' . $total_token . ' token used');
-    } catch (Exception $e) {
-        writeLog($e->getMessage());
-    }
-} elseif ($items['status'] == 'expired'){
-    $status = 'error';
-    $_stmt = $conn->prepare("UPDATE download SET status = ?, locked_at = NULL WHERE ID = ?");
-    $_stmt->bind_param("si", $status, $downloadId);
-    $_stmt->execute();
-    $_stmt->close();
-    writeLog('Expired stop batch: ' . $downloadId);
-} else {
+if($batch['status'] !== 'success'){
     writeLog($items['message'] ?? 'Unknown error');
+    exit();
+}
+
+if($batch['data']['status'] == 'expired' || $batch['data']['status'] == 'error'){
+    updateDownload($downloadId, [
+        'status' => $batch['data']['status']
+    ]);
+} elseif ($batch['data']['status'] == 'running' && $batch['data']['completed'] != 0){
+    updateDownload($downloadId, [
+        'completed_items' => $batch['data']['completed']
+    ]);
+} elseif ($batch['data']['status'] == 'ready' && !empty($batch['data']['file'])){
+    $products = $batch['data']['file'];
+    $ids = [];
+    foreach ($products as $item) {
+        $ids[] = insertAmazonListingFromAI($downloadId, $item[''], $item['data']);
+        // Cập nhật trạng thái bài viết
+    }
+    $input_tokens = $batch['data']['input_tokens'] ?? 0;
+    $output_tokens = $batch['data']['output_tokens'] ?? 0;
+    updateDownload($downloadId, [
+        'status'            => $batch['data']['status'],
+        'completed_items'   => $batch['data']['completed'] ?? 0,
+        'failed_items'      => $batch['data']['failed'] ?? 0,
+        'input_tokens'      => $input_tokens,
+        'output_tokens'     => $output_tokens,
+        'total_token'       => $input_tokens + $output_tokens,
+        'locked_at'         => NULL
+    ]);
 }
