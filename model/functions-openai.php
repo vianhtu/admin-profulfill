@@ -151,8 +151,13 @@ function openai_get_batches_by_name($batch_name): array{
         foreach ($lines as $line) {
             if (trim($line) === '') continue;
             $json = json_decode($line, true);
+            $raw = $json['response']['body']['output'][1]['content'][0]['text'];
             if (json_last_error() === JSON_ERROR_NONE) {
-                $files_json[] = $json;
+
+                $files_json[] = [
+                    'id' => $json['custom_id'],
+                    'raw' => $raw,
+                ];
             }
         }
     }
