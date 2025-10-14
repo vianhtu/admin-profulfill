@@ -327,9 +327,10 @@ function initTable(){
                         const failed_items = full['failed_items'] ?? 0;
                         const completed_items = full['completed_items'] ?? 0;
                         const total_token = full['total_token'] ?? 0;
+                        const icon_ai = aiObj[full['ai_name']] ? aiObj[full['ai_name']].class : 'tabler-alert-small';
                         return '<div class="d-flex flex-column">' +
                             '<span class="total-complete"><span class="text-dark">' +
-                            '<i class="icon-base ti '+aiObj[full['ai_name']].class+' me-1"></i>' +
+                            '<i class="icon-base ti '+icon_ai+' me-1"></i>' +
                             '<span class="text-warning me-1">'+total_items+'</span></span>' +
                             '<span class="text-danger me-1">'+failed_items+'</span>' +
                             '<span class="text-success">'+completed_items+'</span>' +
