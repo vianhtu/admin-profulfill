@@ -641,15 +641,16 @@ function getOption($key, $team = null, $authors = null, $default = null)
 function actionDownloadTableModel(): array
 {
     $conn = db();
-    if(!checkRoles(['add','delete'], 'exports_download')){
-        return ['status'  => 'error', 'message' => 'Bạn Không có quyền chạy lệnh.'];
+    if (!checkRoles(['add','delete'], 'exports_download')) {
+        return ['status' => 'error', 'message' => 'Bạn không có quyền chạy lệnh.'];
     }
 
     $idsInput = $_POST['ids'] ?? null;
-    $model = $_POST['model'] ?? null;
-    $ai = $_POST['ai'] ?? null;
-    if (empty($idsInput) || empty($model) || empty($ai) ) {
-        return ['status'  => 'error', 'message' => 'Không có ids hoặc modal được gửi lên.'];
+    $model    = $_POST['model'] ?? null;
+    $ai       = $_POST['ai'] ?? null;
+
+    if (empty($idsInput) || empty($model) || empty($ai)) {
+        return ['status' => 'error', 'message' => 'Không có ids hoặc model AI được gửi lên.'];
     }
 
     $idsFiltered = array_map('intval', $idsInput);
@@ -657,18 +658,33 @@ function actionDownloadTableModel(): array
         return ['status' => 'error', 'message' => 'Không có ids hợp lệ.'];
     }
 
-    $idList = implode(',', $idsFiltered);
-    $sql = "SELECT ID FROM download WHERE ID IN ($idList) AND status = 'schedule' OR status = 'error'";
+    $placeholders = implode(',', array_fill(0, count($idsFiltered), '?'));
+    $sql = "SELECT ID FROM download 
+            WHERE ID IN ($placeholders) 
+              AND (status = 'schedule' OR status = 'error')";
+
     $stmt = $conn->prepare($sql);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $ids = [];
-    while ($row = $result->fetch_assoc()) {
-        $downloadId = $row['ID'];
-        $ids[$row['ID']] = AIProcessDownloadProducts($downloadId, $model, $ai);
+    if (!$stmt) {
+        return ['status' => 'error', 'message' => 'Lỗi prepare SQL: ' . $conn->error];
     }
 
-    return ['status' => 'success', 'ids' => $ids];
+    $types = str_repeat('i', count($idsFiltered));
+    $stmt->bind_param($types, ...$idsFiltered);
+
+    if (!$stmt->execute()) {
+        return ['status' => 'error', 'message' => 'Lỗi execute SQL: ' . $stmt->error];
+    }
+
+    $result = $stmt->get_result();
+    $processedIds = [];
+    while ($row = $result->fetch_assoc()) {
+        $downloadId = $row['ID'];
+        $processedIds[$downloadId] = AIProcessDownloadProducts($downloadId, $model, $ai);
+    }
+
+    $stmt->close();
+
+    return ['status' => 'success', 'ids' => $processedIds];
 }
 
 function getDataTableParams(array $allowedCols, string $defaultCol = 'ID'): array {
