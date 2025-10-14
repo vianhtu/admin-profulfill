@@ -2807,9 +2807,9 @@ function formatCurrencyVND($input): string
 
 function getDebug()
 {
-    $ddd = openai_get_batches_by_name('batch_68ed14538c0481909b884178b3757591');
-    return count($ddd['data']['file']);
+    //$ddd = openai_get_batches_by_name('batch_68ed14538c0481909b884178b3757591');
+    //return count($ddd['data']['file']);
     // Spawn worker
-    //$cmd = "php " . __DIR__ . "/worker.php 197 batch_68ed14538c0481909b884178b3757591 openai 1 > /dev/null 2>&1 &";
-    //exec($cmd);
+    $cmd = "php " . __DIR__ . "/worker.php 197 batch_68ed14538c0481909b884178b3757591 openai 1 > /dev/null 2>&1 &";
+    exec($cmd);
 }
