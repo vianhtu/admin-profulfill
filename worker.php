@@ -114,8 +114,6 @@ switch ($ai_name) {
         exit();
 }
 
-writeLog(json_encode($batch));
-
 if($batch['status'] !== 'success'){
     writeLog($batch['message'] ?? 'Unknown error');
     exit();
@@ -130,6 +128,7 @@ if($batch['data']['status'] == 'expired' || $batch['data']['status'] == 'error')
         'completed_items' => $batch['data']['completed']
     ]);
 } elseif ($batch['data']['status'] == 'ready' && !empty($batch['data']['file'])){
+    writeLog(json_encode($batch['data']['file']));
     $products = $batch['data']['file'];
     $ids = []; $log = [];
     foreach ($products as $item) {
