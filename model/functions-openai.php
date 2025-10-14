@@ -139,13 +139,31 @@ function openai_get_batches_by_name($batch_name): array{
     }
 
     $data = $res['data'];
+    $files_json = [];
+    if(!empty($data['output_file_id'])){
+        $file = openai_request('GET', "/v1/files/{$data['output_file_id']}/content", [], true);
+        if ($file['status'] !== 'success'){
+            $file['message'] = 'Openai Get File ' . $file['message'];
+            return $file;
+        }
+        $file_content = $file['body'];
+        $lines = preg_split("/\r\n|\n|\r/", $file_content);
+        foreach ($lines as $line) {
+            if (trim($line) === '') continue;
+            $json = json_decode($line, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $files_json[] = $json;
+            }
+        }
+    }
+
     $res['data'] = [
         'status' => $data['status'] ?? '',
         'completed' => $data['request_counts']['completed'] ?? 0,
         'failed' => $data['request_counts']['failed'] ?? 0,
         'input_tokens' => $data['usage']['input_tokens'] ?? 0,
         'output_tokens' => $data['usage']['output_tokens'] ?? 0,
-        'output_file_id' => $data['output_file_id'] ?? '',
+        'data' => $files_json,
     ];
     return $res;
 }
