@@ -62,7 +62,11 @@ function updateProgressBars(dt) {
                         var data = this.data();
                         var rowId = data.id || data.ID || data[0];
                         if (String(rowId) === String(item.id)) {
-                            this.cell(this.index(), 4).data(item.status);
+                            data.failed_items = item.failed;
+                            data.completed_items = item.completed;
+                            data.total_token = item.token;
+                            data.status = item.status;
+                            this.data(data).draw(false);
                             if(item.status === 'ready'){
                                 $bar.addClass('d-none');
                             }
@@ -537,7 +541,6 @@ function initTable(){
                                     // Cập nhật giá trị progress
                                     data.ai_name = ai;
                                     data.status = status;
-                                    //this.cell(this.index(), columnIndex).data(status);
                                     this.data(data).draw(false);
                                 }
                             });

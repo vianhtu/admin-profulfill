@@ -1343,7 +1343,7 @@ function getDownloadProductsProcess(): array
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
 
     $sql = "
-    SELECT ID, total_items, completed_items, status
+    SELECT ID, total_items, completed_items, failed_items, total_token, status
     FROM download
     WHERE ID IN ($placeholders)";
 
@@ -1370,6 +1370,8 @@ function getDownloadProductsProcess(): array
             'id'       => (int)$row['ID'],
             'progress' => $progress,
             'completed'=> $completed_items,
+            'failed'   => (int)$row['failed_items'],
+            'token'    => (int)$row['total_token'],
             'total'    => $total,
             'status'   => $row['status']
         ];
