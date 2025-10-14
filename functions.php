@@ -1265,7 +1265,7 @@ function getDownloadTable(): array {
     // Lấy dữ liệu
     $sql = "SELECT download.ID, download.author_id, exports.site_id, exports.type_id, exports.file_name, accounts.name, accounts.site_id AS account_site_id,
                    download.status, download.date, download.download_date, download.total_items, download.failed_items, download.completed_items,
-                   download.total_token, download.input_tokens, download.output_tokens, download.ai_name
+                   download.total_token, download.ai_name
             FROM download
             $join
             $where
