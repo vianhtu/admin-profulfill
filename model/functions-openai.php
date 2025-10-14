@@ -32,7 +32,7 @@ function openai_request(string $method, string $uri, array $json = [], bool $bod
         $raw = (string)$response->getBody();
 
         if ($status < 200 || $status >= 300) {
-            return ['status' => 'error', 'message' => "HTTP {$status} : {$raw}", 'code' => $status];
+            return ['status' => 'error', 'message' => "HTTP {$status} : {$raw}", 'code' => $status, getOption('openai_key', null, 0)];
         }
 
         if ($body) {
