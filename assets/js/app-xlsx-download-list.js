@@ -308,7 +308,9 @@ function initTable(){
                             '<span class="text-secondary fw-bold">'+completed_items+'</span>' +
                             '</span>' +
                             '<small>' +
-                            '<span><i class="icon-base ti tabler-plus icon-xs"></i>'+total_token+'</span>' +
+                            '<span>'+total_token+'</span>' +
+                            '<span>'+input_tokens+'</span>' +
+                            '<span>'+output_tokens+'</span>' +
                             '</small>' +
                             '</div>';
                     }
