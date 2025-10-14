@@ -1,6 +1,8 @@
 <?php
 require __DIR__ . '/config.php';
 require __DIR__ . '/functions.php';
+require __DIR__ . '/model/functions-gemini.php';
+require __DIR__ . '/model/functions-openai.php';
 
 $conn = db();
 function writeLog($message): void
@@ -13,12 +15,22 @@ function writeLog($message): void
 // Nếu được truyền ID từ cron-job.php thì xử lý trước job đó
 $downloadId = (int)$argv[1] ?? 0;
 $batch_name = $argv[2] ?? '';
+$ai_name    = $argv[3] ?? '';
 
-if ($downloadId == 0 || $batch_name == '') {
+if ($downloadId == 0 || $batch_name == '' || $ai_name == '') {
     exit();
 }
+switch ($ai_name) {
+    case 'google':
+        $items = gemini_get_batches_by_name($batch_name);
+        break;
+    case 'openai':
+        $items = openai_get_batches_by_name($batch_name);
+        break;
+    default:
+        exit();
+}
 
-$items = gemini_get_batches_by_name($batch_name);
 if ($items['status'] == 'success' && count($items['items']) > 0) {
     try {
         $total_token = 0;
