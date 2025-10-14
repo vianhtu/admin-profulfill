@@ -133,6 +133,20 @@ function openai_create_batches($file_name): array
 
 function openai_get_batches_by_name($batch_name): array{
     $res = openai_request('GET', "/v1/batches/{$batch_name}");
+    if ($res['status'] !== 'success'){
+        $res['message'] = 'Openai Get Batches ' . $res['message'];
+        return $res;
+    }
+
+    $data = $res['data'];
+    $res['data'] = [
+        'status' => $data['status'] ?? '',
+        'completed' => $data['data']['request_counts']['completed'] ?? 0,
+        'failed' => $data['data']['request_counts']['failed'] ?? 0,
+        'input_tokens' => $data['data']['usage']['input_tokens'] ?? 0,
+        'output_tokens' => $data['data']['usage']['output_tokens'] ?? 0,
+        'output_file_id' => $data['data']['output_file_id'] ?? '',
+    ];
     return $res;
 }
 
