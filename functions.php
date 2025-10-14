@@ -1325,42 +1325,37 @@ function getDownloadProductsProcess(): array
 
     // Tạo placeholder cho câu lệnh IN
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
-    $types = str_repeat('i', count($ids));
 
     $sql = "
-        SELECT 
-            dr.download_id,
-            COUNT(*) AS total,
-            SUM(CASE WHEN p.status = 'schedule' THEN 1 ELSE 0 END) AS schedule
-        FROM download_relationships dr
-        JOIN posts p ON p.ID = dr.post_id
-        WHERE dr.download_id IN ($placeholders)
-        GROUP BY dr.download_id
-    ";
+    SELECT ID, total_items, completed_items, status
+    FROM download
+    WHERE download.download_id IN ($placeholders)";
 
     $stmt = $conn->prepare($sql);
+
+    // Tạo chuỗi kiểu dữ liệu, tất cả là integer
+    $types = str_repeat('i', count($ids));
+
+    // bind_param cần tham chiếu, nên dùng call_user_func_array
     $stmt->bind_param($types, ...$ids);
+
     $stmt->execute();
     $result = $stmt->get_result();
 
     $data = [];
     while ($row = $result->fetch_assoc()) {
-        $total   = (int)$row['total'];
-        $schedule = (int)$row['schedule'];
+        $total   = (int)$row['total_items'];
+        $completed_items = (int)$row['completed_items'];
 
         // Tính % hoàn thành
-        $progress = $total > 0 ? round((($total - $schedule) / $total) * 100) : 0;
-        $pending = $total - $schedule;
-
-        // Xác định status
-        $status = ($schedule > 0) ? 'running' : 'ready';
+        $progress = $total > 0 ? round((($total - $completed_items) / $total) * 100) : 0;
 
         $data[] = [
-            'id'       => (int)$row['download_id'],
+            'id'       => (int)$row['ID'],
             'progress' => $progress,
-            'pending'  => $pending,
+            'completed'=> $completed_items,
             'total'    => $total,
-            'status'   => $status
+            'status'   => $row['status']
         ];
     }
 
