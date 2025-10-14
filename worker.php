@@ -96,6 +96,8 @@ $batch_name = $argv[2] ?? '';
 $ai_name    = $argv[3] ?? '';
 $team_id    = (int)$argv[4] ?? 0;
 
+writeLog("team_id {$team_id} ai_name {$ai_name} batch_name {$batch_name} downloadId {$downloadId}.");
+
 if ($downloadId == 0 || $batch_name == '' || $ai_name == '' || $team_id == 0) {
     exit();
 }
