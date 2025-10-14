@@ -55,8 +55,7 @@ function updateProgressBars(dt) {
         success: function (response) {
             response.forEach(function (item) {
                 let $bar = $('#DataTables_Table_0').find('[data-id="' + item.id + '"] .progress-bar');
-                // Nếu status không còn "running" thì ẩn progress overlay
-                if (item.status !== 'running') {
+                if (item.status === 'running') {
                     dt.rows().every(function() {
                         let data = this.data();
                         let rowId = data.id || data.ID || data[0];
@@ -66,14 +65,13 @@ function updateProgressBars(dt) {
                             data.total_token = item.token;
                             data.status = item.status;
                             this.data(data).draw(false);
-                            if(item.status === 'ready'){
-                                $bar.addClass('d-none');
-                            }
                             console.log(item.data);
                         }
                     });
+                    $bar.css('width', item.progress + '%').attr('aria-valuenow', item.progress);
+                } else {
+                    $bar.addClass('d-none');
                 }
-                $bar.css('width', item.progress + '%').attr('aria-valuenow', item.progress);
             });
         },
         error: function (xhr, status, error) {
