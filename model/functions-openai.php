@@ -16,12 +16,13 @@ function openai_request(string $method, string $uri, array $json = [], bool $bod
         $options = [
             'headers' => [
                 'Authorization' => 'Bearer ' . getOption('openai_key', null, 0),
-                'Content-Type' => 'application/json'
+                'Accept'        => 'application/json'
             ],
             'http_errors' => false,
         ];
 
         if ($method === 'POST') {
+            $options['headers']['Content-Type'] = 'application/json';
             $options['json'] = $json;
         }
 
