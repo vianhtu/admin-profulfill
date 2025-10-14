@@ -308,7 +308,7 @@ function initTable(){
                             '<span class="text-secondary fw-bold">'+completed_items+'</span>' +
                             '</span>' +
                             '<small>' +
-                            '<span>'+total_token+'=</span>' +
+                            '<span>Tokens: '+total_token+'=</span>' +
                             '<span>'+input_tokens+'+</span>' +
                             '<span>'+output_tokens+'</span>' +
                             '</small>' +
