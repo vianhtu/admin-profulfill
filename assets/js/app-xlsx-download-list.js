@@ -309,7 +309,7 @@ function initTable(){
                         const total_token = full['total_token'] ?? 0;
                         return '<div class="d-flex flex-column">' +
                             '<span class="total-complete"><span class="text-dark fw-bold me-1">' +
-                            '<i class="icon-base ti '+aiObj[full['ai_name']['class']]+' me-1"></i>' +
+                            '<i class="icon-base ti '+aiObj[full['ai_name'].class]+' me-1"></i>' +
                             '<span class="text-primary fw-bold">'+total_items+'</span></span>' +
                             '<span class="text-danger fw-bold me-1">'+failed_items+'</span>' +
                             '<span class="text-secondary fw-bold">'+completed_items+'</span>' +
