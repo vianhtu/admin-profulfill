@@ -319,9 +319,7 @@ function initTable(){
                             '<span class="text-danger">'+failed_items+'</span>' +
                             '<span class="text-success">'+completed_items+'</span>' +
                             '</span>' +
-                            '<small>' +
-                            '<span>tokens: '+formatNumberVN(total_token)+'</span>' +
-                            '</small>' +
+                            '<small>tokens: ' + formatNumberVN(total_token) + '</small>' +
                             '</div>';
                     }
                 },
