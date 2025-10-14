@@ -285,7 +285,12 @@ function initTable(){
                     targets: 5,
                     render: function (data, type, full, meta) {
                         const formattedDate = toLocalDate(full['date']);
-                        return '<span>' + formattedDate + '</span>';
+                        return '<div class="d-flex flex-column">' +
+                            '<span>' + formattedDate + '</span>' +
+                            '<small>' +
+                            '<span>'+ authorsObj[full['author_id']].title +'</span>' +
+                            '</small>' +
+                            '</div>';
                     }
                 },
                 {
