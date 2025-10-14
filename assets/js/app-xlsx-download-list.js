@@ -53,14 +53,13 @@ function updateProgressBars(dt) {
         data: { ids: ids },
         dataType: 'json',
         success: function (response) {
-            // response có thể là mảng [{id:..., progress:..., status:...}, ...]
             response.forEach(function (item) {
-                var $bar = $('#DataTables_Table_0').find('[data-id="' + item.id + '"] .progress-bar');
+                let $bar = $('#DataTables_Table_0').find('[data-id="' + item.id + '"] .progress-bar');
                 // Nếu status không còn "running" thì ẩn progress overlay
                 if (item.status !== 'running') {
                     dt.rows().every(function() {
-                        var data = this.data();
-                        var rowId = data.id || data.ID || data[0];
+                        let data = this.data();
+                        let rowId = data.id || data.ID || data[0];
                         if (String(rowId) === String(item.id)) {
                             data.failed_items = item.failed;
                             data.completed_items = item.completed;
@@ -70,10 +69,10 @@ function updateProgressBars(dt) {
                             if(item.status === 'ready'){
                                 $bar.addClass('d-none');
                             }
+                            console.log(item.data);
                         }
                     });
                 }
-                // update process bar.
                 $bar.css('width', item.progress + '%').attr('aria-valuenow', item.progress);
             });
         },
