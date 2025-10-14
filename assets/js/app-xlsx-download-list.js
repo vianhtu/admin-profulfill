@@ -55,6 +55,7 @@ function updateProgressBars(dt) {
         success: function (response) {
             // response có thể là mảng [{id:..., progress:..., status:...}, ...]
             response.forEach(function (item) {
+                var $bar = $('#DataTables_Table_0').find('[data-id="' + item.id + '"] .progress-bar');
                 // Nếu status không còn "running" thì ẩn progress overlay
                 if (item.status !== 'running') {
                     dt.rows().every(function() {
@@ -62,11 +63,13 @@ function updateProgressBars(dt) {
                         var rowId = data.id || data.ID || data[0];
                         if (String(rowId) === String(item.id)) {
                             this.cell(this.index(), 4).data(item.status);
+                            if(item.status === 'ready'){
+                                $bar.addClass('d-none');
+                            }
                         }
                     });
                 }
                 // update process bar.
-                var $bar = $('#DataTables_Table_0').find('[data-id="' + item.id + '"] .progress-bar');
                 $bar.css('width', item.progress + '%').attr('aria-valuenow', item.progress);
             });
         },
