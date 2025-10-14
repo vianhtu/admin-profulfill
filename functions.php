@@ -1329,7 +1329,7 @@ function getDownloadProductsProcess(): array
     $sql = "
     SELECT ID, total_items, completed_items, status
     FROM download
-    WHERE download.download_id IN ($placeholders)";
+    WHERE ID IN ($placeholders)";
 
     $stmt = $conn->prepare($sql);
 
