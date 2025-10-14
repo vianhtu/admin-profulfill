@@ -497,6 +497,11 @@ function initTable(){
                 dt.rows({ selected: true }).every(function () {
                     let data = this.data();
                     let rowId = data.id || data.ID || data[0];
+                    let status = data.status || data.Status || data[4];
+                    // Nếu status không nằm trong mảng thì bỏ qua
+                    if (!["schedule", "error"].includes(status)) {
+                        return;
+                    }
                     selectedIds.push(rowId);
                     let rowNode = this.node();
                     dt.cell(rowNode, columnIndex).data('loading');
