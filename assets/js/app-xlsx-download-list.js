@@ -296,8 +296,8 @@ function initTable(){
                     targets: 7,
                     render: function (data, type, full, meta) {
                         const total_items = full['total_items'] ?? 0;
-                        const failed_items = full['total_items'] ?? 0;
-                        const completed_items = full['total_items'] ?? 0;
+                        const failed_items = full['failed_items'] ?? 0;
+                        const completed_items = full['completed_items'] ?? 0;
                         return '<span class="total-complete">' + total_items + '/' + failed_items + '/' + completed_items + '</span>';
                     }
                 },
