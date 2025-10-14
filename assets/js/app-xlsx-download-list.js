@@ -287,6 +287,9 @@ function initTable(){
                     // Download Date
                     targets: 6,
                     render: function (data, type, full, meta) {
+                        if (full['download_date'] === null) {
+                            return '<span class="text-danger">Not yet</span>';
+                        }
                         const formattedDate = toLocalDate(full['download_date']);
                         return '<span>' + formattedDate + '</span>';
                     }
