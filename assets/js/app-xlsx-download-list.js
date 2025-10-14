@@ -65,6 +65,9 @@ function updateProgressBars(dt) {
                         }
                     });
                 }
+                // update process bar.
+                var $bar = $('#DataTables_Table_0').find('[data-id="' + item.id + '"] .progress-bar');
+                $bar.css('width', item.progress + '%').attr('aria-valuenow', item.progress);
             });
         },
         error: function (xhr, status, error) {
@@ -242,7 +245,7 @@ function initTable(){
                             '</div>' +
                             progress +
                             '</div>';
-                        
+
                         var row_output =
                             '<div class="d-flex justify-content-start align-items-center user-name" data-id="'+full['id']+'">' +
                             '<div class="avatar-wrapper">' +
