@@ -131,12 +131,15 @@ if($batch['data']['status'] == 'expired' || $batch['data']['status'] == 'error')
     $products = $batch['data']['file'];
     $ids = []; $log = [];
     foreach ($products as $item) {
-        $_insert = insertAmazonListingFromAI($downloadId, $item['id'], $item['json']);
-        writeLog(json_encode($_insert));
-        if($_insert['status'] == 'inserted'){
-            $ids[] = $_insert['id'];
-        } else {
-            writeLog("Insert {$item['id']} failed: {$_insert['message']}");
+        try {
+            $_insert = insertAmazonListingFromAI($downloadId, $item['id'], $item['json']);
+            if($_insert['status'] == 'inserted'){
+                $ids[] = $_insert['id'];
+            } else {
+                writeLog("Insert {$item['id']} failed: {$_insert['message']}");
+            }
+        } catch (\Exception $e) {
+            writeLog("Insert {$item['id']} failed: {$e->getMessage()}");
         }
     }
     if(!updatePostStatus($ids)){
