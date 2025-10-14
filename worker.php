@@ -130,17 +130,19 @@ if($batch['data']['status'] == 'expired' || $batch['data']['status'] == 'error')
 } elseif ($batch['data']['status'] == 'ready' && !empty($batch['data']['file'])){
     $products = $batch['data']['file'];
     $ids = []; $log = [];
-    foreach ($products as $item) {
-        try {
-            $_insert = insertAmazonListingFromAI($downloadId, $item['id'], $item['json']);
-            if($_insert['status'] == 'inserted'){
-                $ids[] = $_insert['id'];
-            } else {
-                writeLog("Insert {$item['id']} failed: {$_insert['message']}");
+    $chunks = array_chunk($products, 100);
+    foreach ($chunks as $batch) {
+        foreach ($batch as $item) {
+            try {
+                $_insert = insertAmazonListingFromAI($downloadId, $item['id'], $item['json']);
+                if($_insert['status'] == 'inserted'){
+                    $ids[] = $_insert['id'];
+                } else {
+                    writeLog("Insert {$item['id']} failed: {$_insert['message']}");
+                }
+            } catch (\Exception $e) {
+                writeLog("Insert {$item['id']} failed: {$e->getMessage()}");
             }
-        } catch (\Exception $e) {
-            writeLog("Insert {$item['id']} failed: {$e->getMessage()}");
-            exit();
         }
     }
     if(!updatePostStatus($ids)){
