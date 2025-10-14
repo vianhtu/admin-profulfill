@@ -1266,7 +1266,7 @@ function getDownloadTable(): array {
     $sql = "SELECT download.ID, download.author_id, accounts.email, accounts.site_id AS account_site_id, 
                    exports.site_id, exports.type_id, exports.file_name, accounts.name, 
                    download.status, download.date, download.download_date, download.total_items, download.failed_items, download.completed_items,
-                   download.total_token, download.input_tokens, download.output_tokens
+                   download.total_token, download.input_tokens, download.output_tokens, download.ai_name
             FROM download
             $join
             $where
@@ -1294,7 +1294,8 @@ function getDownloadTable(): array {
             "total_token"       => $row['total_token'],
             "input_tokens"      => $row['input_tokens'],
             "output_tokens"     => $row['output_tokens'],
-            "temp_file_name"    => $row['file_name']
+            "temp_file_name"    => $row['file_name'],
+            "ai_name"           => $row['ai_name'],
         ];
     }
 
