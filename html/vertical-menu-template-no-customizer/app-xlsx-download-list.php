@@ -24,8 +24,8 @@ if(!checkRoles('view', 'exports_download')){
                 <th>Files</th>
                 <th>Sites</th>
                 <th>Status</th>
-                <th>Date</th>
-                <th>Download</th>
+                <th>Create Date</th>
+                <th>Last Download</th>
                 <th>Total/Error/Done</th>
                 <th>Actions</th>
                 <th style="display:none;"></th>
