@@ -298,7 +298,13 @@ function initTable(){
                         const total_items = full['total_items'] ?? 0;
                         const failed_items = full['failed_items'] ?? 0;
                         const completed_items = full['completed_items'] ?? 0;
-                        return '<span class="total-complete">' + total_items + '/' + failed_items + '/' + completed_items + '</span>';
+                        const total_token = full['total_token'] ?? 0;
+                        const input_tokens = full['input_tokens'] ?? 0;
+                        const output_tokens = full['output_tokens'] ?? 0;
+                        return '<div class="d-flex flex-column">' +
+                            '<span class="total-complete">' + total_items + '/' + failed_items + '/' + completed_items + '</span>' +
+                            '<small>t:' + total_token + ' i:' + input_tokens + ' u:' + output_tokens + '</small>' +
+                            '</div>';
                     }
                 },
                 {
