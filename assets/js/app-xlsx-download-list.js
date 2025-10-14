@@ -66,7 +66,6 @@ function updateProgressBars(dt) {
                             data.status = item.status;
                             this.cell(this.index(), 4).data(data.status);
                             this.cell(this.index(), 7).data(data.total_items);
-                            console.log(data);
                         }
                     });
                     $bar.css('width', item.progress + '%').attr('aria-valuenow', item.progress);
