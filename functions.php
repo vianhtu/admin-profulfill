@@ -1290,8 +1290,6 @@ function getDownloadTable(): array {
             "failed_items"      => $row['failed_items'],
             "completed_items"   => $row['completed_items'],
             "total_token"       => $row['total_token'],
-            "input_tokens"      => $row['input_tokens'],
-            "output_tokens"     => $row['output_tokens'],
             "temp_file_name"    => $row['file_name'],
             "ai_name"           => $row['ai_name'],
         ];

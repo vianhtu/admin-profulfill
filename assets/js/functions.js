@@ -218,3 +218,16 @@ function showAlert(alertId, message, type = 'danger') {
     }, 3000);
 
 }
+
+function toLocalDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        timeZone: 'Asia/Ho_Chi_Minh'
+    });
+}

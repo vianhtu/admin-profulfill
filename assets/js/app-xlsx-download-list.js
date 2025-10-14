@@ -279,16 +279,16 @@ function initTable(){
                     // Date
                     targets: 5,
                     render: function (data, type, full, meta) {
-                        const date = full['date'];
-                        return '<span>' + date + '</span>';
+                        const formattedDate = toLocalDate(full['date']);
+                        return '<span>' + formattedDate + '</span>';
                     }
                 },
                 {
                     // Download Date
                     targets: 6,
                     render: function (data, type, full, meta) {
-                        const download_date = full['download_date'];
-                        return '<span>' + download_date + '</span>';
+                        const formattedDate = toLocalDate(full['date']);
+                        return '<span>' + formattedDate + '</span>';
                     }
                 },
                 {
@@ -299,8 +299,6 @@ function initTable(){
                         const failed_items = full['failed_items'] ?? 0;
                         const completed_items = full['completed_items'] ?? 0;
                         const total_token = full['total_token'] ?? 0;
-                        const input_tokens = full['input_tokens'] ?? 0;
-                        const output_tokens = full['output_tokens'] ?? 0;
                         return '<div class="d-flex flex-column">' +
                             '<span class="total-complete"><span class="text-dark fw-bold me-1">' +
                             '<span class="text-primary fw-bold">'+total_items+'</span></span>' +
