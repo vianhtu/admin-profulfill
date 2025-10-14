@@ -64,8 +64,9 @@ function updateProgressBars(dt) {
                             data.completed_items = item.completed;
                             data.total_token = item.token;
                             data.status = item.status;
-                            this.data(data).draw(false);
-                            console.log(item.data);
+                            this.cell(this.index(), 4).data(data.status);
+                            this.cell(this.index(), 7).data(data.total_items);
+                            console.log(data);
                         }
                     });
                     $bar.css('width', item.progress + '%').attr('aria-valuenow', item.progress);
