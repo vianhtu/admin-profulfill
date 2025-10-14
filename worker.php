@@ -128,7 +128,6 @@ if($batch['data']['status'] == 'expired' || $batch['data']['status'] == 'error')
         'completed_items' => $batch['data']['completed']
     ]);
 } elseif ($batch['data']['status'] == 'ready' && !empty($batch['data']['file'])){
-    writeLog(json_encode($batch['data']['file']));
     $products = $batch['data']['file'];
     $ids = []; $log = [];
     foreach ($products as $item) {
@@ -139,6 +138,7 @@ if($batch['data']['status'] == 'expired' || $batch['data']['status'] == 'error')
             writeLog("Insert {$item['id']} failed: {$_insert['message']}");
         }
     }
+    writeLog(json_encode($_insert));
     if(!updatePostStatus($ids)){
         writeLog('Update post status failed :' . implode(', ', $ids));
     }
