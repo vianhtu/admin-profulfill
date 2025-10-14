@@ -509,7 +509,8 @@ function initTable(){
             }
 
             if(selectedIds.length === 0){
-                alert('Select at least one record to process');
+                alert('select a file is status schedule or error.');
+                return;
             }
 
             // AJAX request
