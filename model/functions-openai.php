@@ -162,8 +162,24 @@ function openai_get_batches_by_name($batch_name): array{
         }
     }
 
+    $status = $data['status'] ?? 'error';
+    switch ($data['status']){
+        case 'in_progress':
+            $status = 'running';
+            break;
+        case 'completed':
+            $status = 'ready';
+            break;
+        case 'expired':
+            $status = 'expired';
+            break;
+        case 'failed':
+            $status = 'error';
+            break;
+    }
+
     $res['data'] = [
-        'status' => $data['status'] ?? '',
+        'status' => $status,
         'completed' => $data['request_counts']['completed'] ?? 0,
         'failed' => $data['request_counts']['failed'] ?? 0,
         'input_tokens' => $data['usage']['input_tokens'] ?? 0,
