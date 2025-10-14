@@ -114,7 +114,7 @@ switch ($ai_name) {
         exit();
 }
 
-writeLog(json_encode($_SESSION['auth']));
+writeLog(json_encode($batch));
 
 if($batch['status'] !== 'success'){
     writeLog($batch['message'] ?? 'Unknown error');
