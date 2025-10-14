@@ -307,7 +307,9 @@ function initTable(){
                             '<span class="text-danger fw-bold me-1">'+failed_items+'</span>' +
                             '<span class="text-secondary fw-bold">'+completed_items+'</span>' +
                             '</span>' +
-                            '<small>t:' + total_token + ' i:' + input_tokens + ' u:' + output_tokens + '</small>' +
+                            '<small>' +
+                            '<span><i class="icon-base ti tabler-plus icon-xs"></i>'+total_token+'</span>' +
+                            '</small>' +
                             '</div>';
                     }
                 },
