@@ -2789,6 +2789,7 @@ function formatCurrencyVND($input): string
 
 function getDebug()
 {
+    $_SESSION['auth'] = ['user_id' => 1, 'team' => 1];
     return openai_get_batches_by_name('batch_68ed14538c0481909b884178b3757591');
     // Spawn worker
     //$cmd = "php " . __DIR__ . "/worker.php 173 batches/zwddup4vdx5tpo5srm92tz6rvgvah3rxqifu > /dev/null 2>&1 &";
