@@ -156,7 +156,7 @@ function openai_get_batches_by_name($batch_name): array{
 
                 $files_json[] = [
                     'id' => $json['custom_id'],
-                    'raw' => $raw,
+                    'json' => json_decode($raw, true),
                 ];
             }
         }
@@ -168,7 +168,7 @@ function openai_get_batches_by_name($batch_name): array{
         'failed' => $data['request_counts']['failed'] ?? 0,
         'input_tokens' => $data['usage']['input_tokens'] ?? 0,
         'output_tokens' => $data['usage']['output_tokens'] ?? 0,
-        'data' => $files_json,
+        'file' => $files_json,
     ];
     return $res;
 }
