@@ -152,6 +152,8 @@ if($batch['data']['status'] == 'expired' || $batch['data']['status'] == 'error')
         'total_token'       => $input_tokens + $output_tokens,
         'locked_at'         => NULL
     ])){
-        writeLog('Update download failed :' . implode(', ', $ids));
-    }
+        writeLog("Update download {$downloadId} failed.");
+    } else {
+        writeLog("Update {$downloadId} success: input_tokens {$input_tokens} output_tokens {$output_tokens} completed_items {$batch['data']['completed']} failed_items {$batch['data']['failed']}");
+    };
 }
