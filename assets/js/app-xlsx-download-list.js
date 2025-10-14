@@ -305,7 +305,7 @@ function initTable(){
                             '<span class="total-complete"><span class="text-dark fw-bold me-1">' +
                             '<span class="text-primary fw-bold">'+total_items+'</span></span>' +
                             '<span class="text-danger fw-bold me-1">'+failed_items+'</span>' +
-                            '<span class="text-success fw-bold">'+completed_items+'</span>' +
+                            '<span class="text-secondary fw-bold">'+completed_items+'</span>' +
                             '</span>' +
                             '<small>t:' + total_token + ' i:' + input_tokens + ' u:' + output_tokens + '</small>' +
                             '</div>';
