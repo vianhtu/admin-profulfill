@@ -510,7 +510,7 @@ function initTable(){
 
             if(selectedIds.length === 0){
                 alert('select a file is status schedule or error.');
-                return;
+                return false;
             }
 
             // AJAX request
