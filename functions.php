@@ -2526,9 +2526,8 @@ function deleteTableRow($table, $row_id): array {
 	];
 }
 
-function insertAmazonListingFromAI($downloadId, string $post_id, array $aiData): array
+function insertAmazonListingFromAI($conn, $downloadId, string $post_id, array $aiData): array
 {
-    $conn = db();
     $tableColumns = [
         'download_id',
         'post_id',

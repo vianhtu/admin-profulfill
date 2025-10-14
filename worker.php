@@ -12,10 +12,8 @@ function writeLog($message): void
     file_put_contents($logFile, "[$time] $message" . PHP_EOL, FILE_APPEND);
 }
 
-function updateDownload($id, $fields): bool
+function updateDownload($conn, $id, $fields): bool
 {
-    $conn = db();
-
     // Tạo danh sách "field = ?" từ mảng $fields
     $setParts = [];
     $values = [];
@@ -57,10 +55,8 @@ function updateDownload($id, $fields): bool
     return $result;
 }
 
-function updatePostStatus($ids): bool
+function updatePostStatus($conn, $ids): bool
 {
-    $conn = db();
-
     // Đảm bảo $ids là mảng số nguyên
     $ids = array_map('intval', $ids);
 
@@ -97,6 +93,7 @@ $ai_name    = $argv[3] ?? '';
 $team_id    = (int)$argv[4] ?? 0;
 
 if ($downloadId == 0 || $batch_name == '' || $ai_name == '' || $team_id == 0) {
+    $conn->close();
     exit();
 }
 
@@ -111,47 +108,47 @@ switch ($ai_name) {
         $batch = openai_get_batches_by_name($batch_name);
         break;
     default:
+        $conn->close();
         exit();
 }
 
 if($batch['status'] !== 'success'){
     writeLog($batch['message'] ?? 'Unknown error');
+    $conn->close();
     exit();
 }
 
 if($batch['data']['status'] == 'expired' || $batch['data']['status'] == 'error'){
-    updateDownload($downloadId, [
+    updateDownload($conn, $downloadId, [
         'status' => $batch['data']['status']
     ]);
 } elseif ($batch['data']['status'] == 'running' && $batch['data']['completed'] != 0){
-    updateDownload($downloadId, [
+    updateDownload($conn, $downloadId, [
         'completed_items' => $batch['data']['completed']
     ]);
 } elseif ($batch['data']['status'] == 'ready' && !empty($batch['data']['file'])){
     $products = $batch['data']['file'];
-    $ids = []; $log = [];
-    $chunks = array_chunk($products, 100);
-    foreach ($chunks as $batch) {
-        foreach ($batch as $item) {
-            try {
-                $_insert = insertAmazonListingFromAI($downloadId, $item['id'], $item['json']);
-                if($_insert['status'] == 'inserted'){
-                    $ids[] = $_insert['id'];
-                } else {
-                    writeLog("Insert {$item['id']} failed: {$_insert['message']}");
-                }
-            } catch (\Exception $e) {
-                writeLog("Insert {$item['id']} failed: {$e->getMessage()}");
+    $ids = [];
+    foreach ($products as $item) {
+        try {
+            $_insert = insertAmazonListingFromAI($conn, $downloadId, $item['id'], $item['json']);
+            if($_insert['status'] == 'inserted'){
+                $ids[] = $_insert['id'];
+            } else {
+                writeLog("Insert {$item['id']} failed: {$_insert['message']}");
             }
+        } catch (\Exception $e) {
+            writeLog("Insert {$item['id']} failed: {$e->getMessage()}");
         }
     }
-    if(!updatePostStatus($ids)){
+    if(!updatePostStatus($conn, $ids)){
         writeLog('Update post status failed :' . implode(', ', $ids));
+        $conn->close();
         exit();
     }
     $input_tokens = $batch['data']['input_tokens'] ?? 0;
     $output_tokens = $batch['data']['output_tokens'] ?? 0;
-    if(!updateDownload($downloadId, [
+    if(!updateDownload($conn, $downloadId, [
         'status'            => $batch['data']['status'],
         'completed_items'   => $batch['data']['completed'] ?? 0,
         'failed_items'      => $batch['data']['failed'] ?? 0,
@@ -164,4 +161,5 @@ if($batch['data']['status'] == 'expired' || $batch['data']['status'] == 'error')
     } else {
         writeLog("Update {$downloadId} success: input_tokens {$input_tokens} output_tokens {$output_tokens} completed_items {$batch['data']['completed']} failed_items {$batch['data']['failed']}");
     };
+    $conn->close();
 }
