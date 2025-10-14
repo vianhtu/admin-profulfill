@@ -12,7 +12,7 @@ function writeLog($message): void
     file_put_contents($logFile, "[$time] $message" . PHP_EOL, FILE_APPEND);
 }
 
-function updateDownload($id, $fields): void
+function updateDownload($id, $fields): bool
 {
     $conn = db();
 
@@ -50,8 +50,11 @@ function updateDownload($id, $fields): void
     // bind_param yêu cầu truyền tham chiếu
     $stmt->bind_param($types, ...$values);
 
-    $stmt->execute();
+    $result = $stmt->execute();
+
     $stmt->close();
+
+    return $result;
 }
 
 function updatePostStatus($ids): bool
@@ -121,14 +124,21 @@ if($batch['data']['status'] == 'expired' || $batch['data']['status'] == 'error')
     ]);
 } elseif ($batch['data']['status'] == 'ready' && !empty($batch['data']['file'])){
     $products = $batch['data']['file'];
-    $ids = [];
+    $ids = []; $log = [];
     foreach ($products as $item) {
-        $ids[] = insertAmazonListingFromAI($downloadId, $item[''], $item['data']);
-        // Cập nhật trạng thái bài viết
+        $_insert = insertAmazonListingFromAI($downloadId, $item['id'], $item['json']);
+        if($_insert['status'] == 'inserted'){
+            $ids[] = $_insert['id'];
+        } else {
+            writeLog("Insert {$item['id']} failed: {$_insert['message']}");
+        }
+    }
+    if(!updatePostStatus($ids)){
+        writeLog('Update post status failed :' . implode(', ', $ids));
     }
     $input_tokens = $batch['data']['input_tokens'] ?? 0;
     $output_tokens = $batch['data']['output_tokens'] ?? 0;
-    updateDownload($downloadId, [
+    if(!updateDownload($downloadId, [
         'status'            => $batch['data']['status'],
         'completed_items'   => $batch['data']['completed'] ?? 0,
         'failed_items'      => $batch['data']['failed'] ?? 0,
@@ -136,5 +146,7 @@ if($batch['data']['status'] == 'expired' || $batch['data']['status'] == 'error')
         'output_tokens'     => $output_tokens,
         'total_token'       => $input_tokens + $output_tokens,
         'locked_at'         => NULL
-    ]);
+    ])){
+        writeLog('Update download failed :' . implode(', ', $ids));
+    }
 }
