@@ -141,11 +141,11 @@ function openai_get_batches_by_name($batch_name): array{
     $data = $res['data'];
     $res['data'] = [
         'status' => $data['status'] ?? '',
-        'completed' => $data['data']['request_counts']['completed'] ?? 0,
-        'failed' => $data['data']['request_counts']['failed'] ?? 0,
-        'input_tokens' => $data['data']['usage']['input_tokens'] ?? 0,
-        'output_tokens' => $data['data']['usage']['output_tokens'] ?? 0,
-        'output_file_id' => $data['data']['output_file_id'] ?? '',
+        'completed' => $data['request_counts']['completed'] ?? 0,
+        'failed' => $data['request_counts']['failed'] ?? 0,
+        'input_tokens' => $data['usage']['input_tokens'] ?? 0,
+        'output_tokens' => $data['usage']['output_tokens'] ?? 0,
+        'output_file_id' => $data['output_file_id'] ?? '',
     ];
     return $res;
 }
