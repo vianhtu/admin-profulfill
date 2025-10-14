@@ -15,7 +15,8 @@ function openai_request(string $method, string $uri, array $json = [], bool $bod
         $client = openai_client();
         $options = [
             'headers' => [
-                'Authorization' => 'Bearer ' . getOption('openai_key', null, 0)
+                'Authorization' => 'Bearer ' . getOption('openai_key', null, 0),
+                'Accept'        => 'application/json'
             ],
             'http_errors' => false,
         ];
