@@ -225,6 +225,14 @@ function initTable(){
                         var name = sitesObj[full['account_site_id']].title + ' - ' + full['name'];
                         var account_name = full['temp_file_name'] + ' - ' + categoryObj[full['type_id']].title;
                         var image = './../../assets/svg/icons/xlsx_icon.svg';
+
+                        var progress = full['status'] === 'running' ?
+                            '<div class="progress-overlay">' +
+                            '<div class="progress" style="height: 4px;">' +
+                            '<div class="progress-bar bg-info" role="progressbar" style="width: 0%;"></div>' +
+                            '</div>' +
+                            '</div>' : '';
+
                         var output = '<div class="position-relative">' +
                             '<img src="' + image + '" alt="file.xlsx" class="rounded">' +
                             '<div class="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center">'+
@@ -232,8 +240,9 @@ function initTable(){
                             '    <span class="visually-hidden">Loading...</span>' +
                             '</div>' +
                             '</div>' +
+                            progress +
                             '</div>';
-
+                        
                         var row_output =
                             '<div class="d-flex justify-content-start align-items-center user-name" data-id="'+full['id']+'">' +
                             '<div class="avatar-wrapper">' +
