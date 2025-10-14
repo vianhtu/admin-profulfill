@@ -545,8 +545,8 @@ function AIProcessDownloadProducts($downloadId, $model, $ai): array
     }
     $batch_id = $batch_result['batch_id'];
     // update. job name to data.
-    $stmt = $conn->prepare("UPDATE download SET batch_name = ?, status = 'running' WHERE ID = ?");
-    $stmt->bind_param("si", $batch_id, $downloadId);
+    $stmt = $conn->prepare("UPDATE download SET batch_name = ?, ai_name = ?, status = 'running' WHERE ID = ?");
+    $stmt->bind_param("ssi", $batch_id, $ai, $downloadId);
     $stmt->execute();
     $stmt->close();
 
