@@ -110,7 +110,7 @@ switch ($ai_name) {
 }
 
 if($batch['status'] !== 'success'){
-    writeLog($items['message'] ?? 'Unknown error');
+    writeLog($batch['message'] ?? 'Unknown error');
     exit();
 }
 
