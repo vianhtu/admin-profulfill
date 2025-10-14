@@ -140,10 +140,12 @@ if($batch['data']['status'] == 'expired' || $batch['data']['status'] == 'error')
             }
         } catch (\Exception $e) {
             writeLog("Insert {$item['id']} failed: {$e->getMessage()}");
+            exit();
         }
     }
     if(!updatePostStatus($ids)){
         writeLog('Update post status failed :' . implode(', ', $ids));
+        exit();
     }
     $input_tokens = $batch['data']['input_tokens'] ?? 0;
     $output_tokens = $batch['data']['output_tokens'] ?? 0;
