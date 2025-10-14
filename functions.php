@@ -1348,7 +1348,7 @@ function getDownloadProductsProcess(): array
         $completed_items = (int)$row['completed_items'];
 
         // Tính % hoàn thành
-        $progress = $total > 0 ? round((($total - $completed_items) / $completed_items) * 100) : 0;
+        $progress = $total > 0 ? round(($completed_items / $total) * 100) : 0;
 
         $data[] = [
             'id'       => (int)$row['ID'],
