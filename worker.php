@@ -3,7 +3,7 @@ require __DIR__ . '/config.php';
 require __DIR__ . '/functions.php';
 require __DIR__ . '/model/functions-gemini.php';
 require __DIR__ . '/model/functions-openai.php';
-
+exit();
 $conn = db();
 function writeLog($message): void
 {
