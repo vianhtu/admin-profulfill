@@ -94,10 +94,12 @@ function updatePostStatus($ids): bool
 $downloadId = (int)$argv[1] ?? 0;
 $batch_name = $argv[2] ?? '';
 $ai_name    = $argv[3] ?? '';
+$team_id    = (int)$argv[4] ?? 0;
 
-if ($downloadId == 0 || $batch_name == '' || $ai_name == '') {
+if ($downloadId == 0 || $batch_name == '' || $ai_name == '' || $team_id == 0) {
     exit();
 }
+$_SESSION['auth'] = ['user_id' => 0, 'team' => $team_id];
 switch ($ai_name) {
     case 'google':
         $batch = gemini_get_batches_by_name($batch_name);
