@@ -287,7 +287,7 @@ function initTable(){
                     // Download Date
                     targets: 6,
                     render: function (data, type, full, meta) {
-                        const formattedDate = toLocalDate(full['date']);
+                        const formattedDate = toLocalDate(full['download_date']);
                         return '<span>' + formattedDate + '</span>';
                     }
                 },
