@@ -26,7 +26,7 @@ if(!checkRoles('view', 'exports_download')){
                 <th>Status</th>
                 <th>Date</th>
                 <th>Download</th>
-                <th>Total</th>
+                <th>Total/Failed/Completed</th>
                 <th>Actions</th>
                 <th style="display:none;"></th>
                 <th style="display:none;"></th>
