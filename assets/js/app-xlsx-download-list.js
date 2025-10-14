@@ -302,7 +302,11 @@ function initTable(){
                         const input_tokens = full['input_tokens'] ?? 0;
                         const output_tokens = full['output_tokens'] ?? 0;
                         return '<div class="d-flex flex-column">' +
-                            '<span class="total-complete">' + total_items + '/' + failed_items + '/' + completed_items + '</span>' +
+                            '<span class="total-complete"><span class="text-dark fw-bold me-1">' +
+                            '<span class="text-primary fw-bold">'+total_items+'</span></span>' +
+                            '<span class="text-danger fw-bold me-1">'+failed_items+'</span>' +
+                            '<span class="text-success fw-bold">'+completed_items+'</span>' +
+                            '</span>' +
                             '<small>t:' + total_token + ' i:' + input_tokens + ' u:' + output_tokens + '</small>' +
                             '</div>';
                     }
