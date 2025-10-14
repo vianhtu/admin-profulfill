@@ -22,7 +22,7 @@ if(!checkRoles('view', 'exports_download')){
                 <th></th>
                 <th></th>
                 <th>Files</th>
-                <th>Sites</th>
+                <th>Upload Sites</th>
                 <th>Status</th>
                 <th>Create Date</th>
                 <th>Last Download</th>
