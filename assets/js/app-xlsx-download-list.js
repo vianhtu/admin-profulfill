@@ -358,10 +358,10 @@ function initTable(){
                                     text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-automation icon-xs"></i> <span class="d-none d-sm-inline-block">Actions</span></span>',
                                     buttons: [
                                         {
-                                            text: '<span class="d-flex align-items-center"><i class="icon-base ti tabler-brand-google-podcasts me-1"></i>Google Gemini 2.5 Flash</span>',
+                                            text: '<span class="d-flex align-items-center"><i class="icon-base ti tabler-brand-google-podcasts me-1"></i>Google Gemini 2.5 Lite</span>',
                                             className: 'dropdown-item',
                                             action: function (e, dt, node, config) {
-                                                actionModel(dt,'gemini-2.5-flash', 'google');
+                                                actionModel(dt,'gemini-flash-lite-latest', 'google');
                                             }
                                         },
                                         {
