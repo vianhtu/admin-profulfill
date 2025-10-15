@@ -2809,13 +2809,12 @@ function getDebug()
     session_start();
     $_SESSION['auth'] = ['user_id' => 0, 'team' => 1];
     $batch = openai_get_batches_by_name('batch_68ed14538c0481909b884178b3757591');
-    return $batch;
     $products = $batch['data']['file'];
     $log = [];
     $conn = db();
     foreach ($products as $item) {
         try {
-            $_insert = insertAmazonListingFromAI($conn, $downloadId, $item['id'], $item['json']);
+            $_insert = insertAmazonListingFromAI($conn, 197, $item['id'], $item['json']);
             $log[] = $_insert;
         } catch (\Exception $e) {
             return $e->getMessage();
