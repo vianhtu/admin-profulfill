@@ -140,6 +140,7 @@ function openai_get_batches_by_name($batch_name): array{
 
     $data = $res['data'];
     $files_json = [];
+    $error_log = [];
     if(!empty($data['output_file_id'])){
         $file = openai_request('GET', "/v1/files/{$data['output_file_id']}/content", [], true);
         if ($file['status'] !== 'success'){
@@ -148,7 +149,6 @@ function openai_get_batches_by_name($batch_name): array{
         }
         $file_content = $file['body'];
         $lines = preg_split("/\r\n|\n|\r/", $file_content);
-        $error_log = [];
         foreach ($lines as $index => $line) {
             // bỏ qua line rỗng.
             if (trim($line) === ''){
@@ -178,8 +178,7 @@ function openai_get_batches_by_name($batch_name): array{
 
             $files_json[] = [
                 'id' => $json['custom_id'],
-                'json' => $decoded_raw,
-                'error' => $error_log[$index] ?? null,
+                'json' => $decoded_raw
             ];
         }
     }
@@ -207,6 +206,7 @@ function openai_get_batches_by_name($batch_name): array{
         'input_tokens' => $data['usage']['input_tokens'] ?? 0,
         'output_tokens' => $data['usage']['output_tokens'] ?? 0,
         'file' => $files_json,
+        'error' => $error_log
     ];
     return $res;
 }
