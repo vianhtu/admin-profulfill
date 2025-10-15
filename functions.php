@@ -2809,6 +2809,7 @@ function getDebug()
     $batch = openai_get_batches_by_name('batch_68ed14538c0481909b884178b3757591');
     $products = $batch['data']['file'];
     $log = [];
+    $conn = db();
     foreach ($products as $item) {
         try {
             $_insert = insertAmazonListingFromAI($conn, $downloadId, $item['id'], $item['json']);
