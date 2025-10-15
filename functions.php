@@ -2807,6 +2807,7 @@ function formatCurrencyVND($input): string
 function getDebug()
 {
     $batch = openai_get_batches_by_name('batch_68ed14538c0481909b884178b3757591');
+    return $batch;
     $products = $batch['data']['file'];
     $log = [];
     $conn = db();
