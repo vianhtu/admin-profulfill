@@ -1,6 +1,6 @@
 <?php
 require __DIR__ . '/config.php';
-exit();
+
 $conn = db();
 
 // Lấy 10 row từ bảng download có status = 'running'
