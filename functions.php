@@ -2813,12 +2813,13 @@ function getDebug()
     $log = [];
     $conn = db();
     foreach ($products as $item) {
-        try {
-            $_insert = insertAmazonListingFromAI($conn, 197, $item['id'], $item['json']);
-            $log[] = $_insert;
-        } catch (\Exception $e) {
-            return $e->getMessage();
-        }
+        //try {
+            //$_insert = insertAmazonListingFromAI($conn, 197, $item['id'], $item['json']);
+            //$log[] = $_insert;
+        //} catch (\Exception $e) {
+            //return $e->getMessage();
+        //}
+        $log[$item['id']] = gettype($item['json']);
     }
     return $log;
 }
