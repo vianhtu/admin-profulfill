@@ -2818,6 +2818,6 @@ function getDebug()
 {
     session_start();
     $_SESSION['auth'] = ['user_id' => 0, 'team' => 1];
-    $cmd = "php " . __DIR__ . "/worker.php 197 batch_68ed14538c0481909b884178b3757591 openai 1 > /dev/null 2>&1 &";
+    $cmd = "php " . __DIR__ . "/worker.php 196 batch_68edd78c58908190a7cdf5777118cc1a openai 1 > /dev/null 2>&1 &";
     exec($cmd);
 }
