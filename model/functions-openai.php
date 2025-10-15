@@ -148,17 +148,39 @@ function openai_get_batches_by_name($batch_name): array{
         }
         $file_content = $file['body'];
         $lines = preg_split("/\r\n|\n|\r/", $file_content);
-        foreach ($lines as $line) {
-            if (trim($line) === '') continue;
-            $json = json_decode($line, true);
-            $raw = $json['response']['body']['output'][1]['content'][0]['text'];
-            if (json_last_error() === JSON_ERROR_NONE) {
-
-                $files_json[] = [
-                    'id' => $json['custom_id'],
-                    'json' => json_decode($raw, true),
-                ];
+        $error_log = [];
+        foreach ($lines as $index => $line) {
+            // bỏ qua line rỗng.
+            if (trim($line) === ''){
+                $error_log[$index] = ['message' => 'Line is empty'];
+                continue;
             }
+            $json = json_decode($line, true);
+            // nếu json lỗi.
+            if (json_last_error() !== JSON_ERROR_NONE || !is_array($json)) {
+                $error_log[$index] = ['message' => json_last_error_msg() ?: 'Decoded JSON is not an array'];
+                continue;
+            }
+            // item json null.
+            $raw = $json['response']['body']['output'][1]['content'][0]['text'] ?? null;
+            if ($raw === null) {
+                $error_log[$index] = ['message' => 'No output json'];
+                continue;
+            }
+            $decoded_raw = json_decode($raw, true);
+            if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded_raw)) {
+                $error_log[$index] = [
+                    'custom_id' => $json['custom_id'] ?? null,
+                    'message' => json_last_error_msg() ?: 'Decoded JSON is not an array'
+                ];
+                continue;
+            }
+
+            $files_json[] = [
+                'id' => $json['custom_id'],
+                'json' => $decoded_raw,
+                'error' => $error_log[$index] ?? null,
+            ];
         }
     }
 
