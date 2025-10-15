@@ -1,6 +1,6 @@
 <?php
 require __DIR__ . '/config.php';
-
+exit();
 $conn = db();
 
 // Lấy 10 row từ bảng download có status = 'running'
@@ -20,9 +20,12 @@ if ($result && $result->num_rows > 0) {
         $stmt = $conn->prepare("UPDATE download SET locked_at = NOW() WHERE ID = ?");
         $stmt->bind_param("i", $row['ID']);
         $stmt->execute();
+        $stmt->close();
 
         // Spawn worker
         $cmd = "php " . __DIR__ . "/worker.php {$row['ID']} {$row['batch_name']} {$row['ai_name']} {$row['team_id']} > /dev/null 2>&1 &";
         exec($cmd);
     }
 }
+$result->close();
+$conn->close();

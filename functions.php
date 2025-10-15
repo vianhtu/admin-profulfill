@@ -2571,7 +2571,6 @@ function insertAmazonListingFromAI($conn, $downloadId, string $post_id, array $a
         }
     }
 
-    // Only include meta_data if there's something to store
     if (!empty($metaData)) {
         $json = json_encode($metaData, JSON_UNESCAPED_UNICODE);
         if ($json === false) {
@@ -2582,52 +2581,52 @@ function insertAmazonListingFromAI($conn, $downloadId, string $post_id, array $a
         $insertData['meta_data'] = null;
     }
 
-    // Build INSERT
-    $cols = array_keys($insertData);
-    $placeholders = implode(',', array_fill(0, count($cols), '?'));
-    $sql = "INSERT INTO amazon_listings (" . implode(',', $cols) . ") VALUES ($placeholders)";
-
-    $stmt = $conn->prepare($sql);
-    if ($stmt === false) {
-        return ['status' => 'error', 'message' => 'Prepare failed: ' . $conn->error];
-    }
-
-    // Determine types for bind_param: i for integer download_id, s for strings, allow nulls
-    $types = '';
-    $values = [];
-    foreach ($cols as $c) {
-        $v = $insertData[$c];
-        if ($c === 'download_id') {
-            $types .= 'i';
-            $values[] = $v === null ? null : (int)$v;
-        } else {
-            $types .= 's';
-            $values[] = $v === null ? null : (string)$v;
+    try {
+        $cols = array_keys($insertData);
+        $placeholders = implode(',', array_fill(0, count($cols), '?'));
+        $sql = "INSERT INTO amazon_listings (" . implode(',', $cols) . ") VALUES ($placeholders)";
+        $stmt = $conn->prepare($sql);
+        if ($stmt === false) {
+            return ['status' => 'error', 'message' => 'Prepare failed: ' . $conn->error];
         }
-    }
 
-    // mysqli requires variables by reference for bind_param
-    $bindParams = [];
-    $bindParams[] = & $types;
-    foreach ($values as $k => $val) {
-        $bindParams[] = & $values[$k];
-    }
+        $types = '';
+        $values = [];
+        foreach ($cols as $c) {
+            $v = $insertData[$c];
+            if ($c === 'download_id') {
+                $types .= 'i';
+                $values[] = $v === null ? null : (int)$v;
+            } else {
+                $types .= 's';
+                $values[] = $v === null ? null : (string)$v;
+            }
+        }
 
-    if (!call_user_func_array([$stmt, 'bind_param'], $bindParams)) {
-        $err = 'bind_param failed: ' . $stmt->error;
+        $bindParams = [];
+        $bindParams[] = &$types;
+        foreach ($values as $k => $val) {
+            $bindParams[] = &$values[$k];
+        }
+
+        if (!call_user_func_array([$stmt, 'bind_param'], $bindParams)) {
+            $err = 'bind_param failed: ' . $stmt->error;
+            $stmt->close();
+            return ['status' => 'error', 'message' => $err];
+        }
+
+        if (!$stmt->execute()) {
+            $err = 'Execute failed: ' . $stmt->error;
+            $stmt->close();
+            return ['status' => 'error', 'message' => $err];
+        }
+
+        $insertId = $stmt->insert_id;
         $stmt->close();
-        return ['status' => 'error', 'message' => $err];
+        return ['status' => 'inserted', 'id' => $insertId];
+    } catch (\Throwable $e) {
+        return ['status' => 'error', 'message' => $e->getMessage()];
     }
-
-    if (!$stmt->execute()) {
-        $err = 'Execute failed: ' . $stmt->error;
-        $stmt->close();
-        return ['status' => 'error', 'message' => $err];
-    }
-
-    $insertId = $stmt->insert_id;
-    $stmt->close();
-    return ['status' => 'inserted', 'id' => $insertId];
 }
 
 function saveExportQuery(): array
@@ -2819,19 +2818,6 @@ function getDebug()
 {
     session_start();
     $_SESSION['auth'] = ['user_id' => 0, 'team' => 1];
-    $batch = openai_get_batches_by_name('batch_68ed14538c0481909b884178b3757591');
-    return $batch;
-    $products = $batch['data']['file'];
-    $log = [];
-    $conn = db();
-    foreach ($products as $item) {
-        //try {
-            //$_insert = insertAmazonListingFromAI($conn, 197, $item['id'], $item['json']);
-            //$log[] = $_insert;
-        //} catch (\Exception $e) {
-            //return $e->getMessage();
-        //}
-        $log[$item['id']] = gettype($item['json']);
-    }
-    return $log;
+    $cmd = "php " . __DIR__ . "/worker.php 197 batch_68ed14538c0481909b884178b3757591 openai 1 > /dev/null 2>&1 &";
+    exec($cmd);
 }
