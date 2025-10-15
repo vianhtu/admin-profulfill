@@ -147,6 +147,12 @@ if($batch['data']['status'] == 'expired' || $batch['data']['status'] == 'error')
             writeLog("Insert {$item['id']} failed: {$insert['message']}");
         }
     }
+
+    if(!empty($batch['data']['error'])){
+        $file_error = json_encode($batch['data']['error']);
+        writeLog("Output json error : {$file_error}");
+    }
+
     if(!updatePostStatus($conn, $ids)){
         $conn->close();
         exit();
