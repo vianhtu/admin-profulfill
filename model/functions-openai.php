@@ -9,30 +9,27 @@ function openai_client(): GuzzleClient
     ]);
 }
 
-function openai_request(string $method, string $uri, array $json = [], bool $body = false): array
+function openai_request(string $method, string $uri, array $options = [], bool $body = false): array
 {
     try {
         $client = openai_client();
-        $options = [
+        $openai_key = getOption('openai_key', null, 0);
+        if (empty($openai_key)) {
+            return ['status' => 'error', 'message' => 'API key is not set'];
+        }
+        $client_options = mergeOptions([
             'headers' => [
-                'Authorization' => 'Bearer ' . getOption('openai_key', null, 0),
-                'Accept'        => 'application/json'
+                'Authorization' => 'Bearer ' . $openai_key
             ],
             'http_errors' => false,
-        ];
+        ], $options);
 
-        if ($method === 'POST') {
-            $options['headers']['Content-Type'] = 'application/json';
-            $options['json'] = $json;
-        }
-
-        $response = $client->request($method, $uri, $options);
-
+        $response = $client->request($method, $uri, $client_options);
         $status = $response->getStatusCode();
         $raw = (string)$response->getBody();
 
         if ($status < 200 || $status >= 300) {
-            return ['status' => 'error', 'message' => "HTTP {$status} : {$raw}", 'code' => $status, getOption('openai_key', null, 0)];
+            return ['status' => 'error', 'message' => "HTTP {$status} : {$raw}", 'code' => $status];
         }
 
         if ($body) {
@@ -60,81 +57,60 @@ function openai_create_and_upload_batch_file(string $jsonl_content): array
         return ['status' => 'error', 'message' => 'Openai Failed to save JSONL file locally.'];
     }
 
-    try {
-        $client = openai_client();
-        $resp = $client->request('POST', '/v1/files', [
-            'headers' => [
-                'Authorization' => 'Bearer ' . getOption('openai_key', null, 0)
+    $options = [
+        'multipart' => [
+            [
+                'name'     => 'purpose',
+                'contents' => 'batch',
             ],
-            'multipart' => [
-                [
-                    'name'     => 'purpose',
-                    'contents' => 'batch',
-                ],
-                [
-                    'name'     => 'file',
-                    'contents' => fopen($file_path, 'rb'),
-                    'filename' => $file_name,
-                ],
-                [
-                    'name'     => 'expires_after[anchor]',
-                    'contents' => 'created_at',
-                ],
-                [
-                    'name'     => 'expires_after[seconds]',
-                    'contents' => '172800',
-                ]
+            [
+                'name'     => 'file',
+                'contents' => fopen($file_path, 'rb'),
+                'filename' => $file_name,
             ],
-            'http_errors' => false,
-        ]);
-        $status = $resp->getStatusCode();
-        $body = (string)$resp->getBody();
-        if ($status < 200 || $status >= 300) {
-            @unlink($file_path);
-            return ['status' => 'error', 'message' => "Openai Start request file upload failed: HTTP {$status} : {$body}", 'code' => $status];
-        }
-        $data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
-        if(empty($data['id'])){
-            @unlink($file_path);
-            return ['status' => 'error', 'message' => "Openai No file.uri/name in upload response"];
-        }
-        $batchRes = openai_create_batches($data['id']);
-        @unlink($file_path);
-        return $batchRes;
-    } catch (GuzzleException $e) {
-        @unlink($file_path);
-        return ['status' => 'error', 'message' => 'Openai HTTP error: ' . $e->getMessage()];
-    } catch (JsonException $e) {
-        @unlink($file_path);
-        return ['status' => 'error', 'message' => 'Openai JSON parse error: ' . $e->getMessage()];
-    } finally {
-        if( file_exists( $file_path )) {
-            @unlink($file_path);
-        }
-    }
-}
-
-function openai_create_batches($file_name): array
-{
-    $payload = [
-        'input_file_id'     => $file_name,
-        'endpoint'          => '/v1/responses',
-        'completion_window' => '24h',
+            [
+                'name'     => 'expires_after[anchor]',
+                'contents' => 'created_at',
+            ],
+            [
+                'name'     => 'expires_after[seconds]',
+                'contents' => '172800',
+            ]
+        ]
     ];
 
-    $res = openai_request('POST', '/v1/batches', $payload);
-    if ($res['status'] !== 'success') {
-        $res['message'] = 'Openai Create Batches ' . $res['message'];
-        return $res;
+    $request_upload_file = openai_request('POST', '/v1/files', $options);
+    if ($request_upload_file['status'] !== 'success' || empty($request_upload_file['data']['id'])) {
+        $request_upload_file['message'] = 'Openai Upload File Error : ' . $request_upload_file['message'] ?: 'No file ID returned';
+        @unlink($file_path);
+        return $request_upload_file;
     }
 
-    return ['status' => 'success', 'batch_id' => $res['data']['id']];
+    $payload = [
+        'headers' => [
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json'
+        ],
+        'json' => [
+            'input_file_id'     => $request_upload_file['data']['id'],
+            'endpoint'          => '/v1/responses',
+            'completion_window' => '24h',
+        ]
+    ];
+    $request_create_batch = openai_request('POST', '/v1/batches', $payload);
+    @unlink($file_path);
+    if ($request_create_batch['status'] !== 'success') {
+        $request_create_batch['message'] = 'Openai Create Batches Error : ' . $request_create_batch['message'];
+        return $request_create_batch;
+    }
+
+    return ['status' => 'success', 'batch_id' => $request_create_batch['data']['id']];
 }
 
 function openai_get_batches_by_name($batch_name): array{
-    $res = openai_request('GET', "/v1/batches/{$batch_name}");
+    $res = openai_request('GET', "/v1/batches/{$batch_name}", ['headers'=> ['Accept' => 'application/json']]);
     if ($res['status'] !== 'success'){
-        $res['message'] = 'Openai Get Batches ' . $res['message'];
+        $res['message'] = 'Openai Get Batches Error : ' . $res['message'];
         return $res;
     }
 
@@ -144,7 +120,7 @@ function openai_get_batches_by_name($batch_name): array{
     if(!empty($data['output_file_id'])){
         $file = openai_request('GET', "/v1/files/{$data['output_file_id']}/content", [], true);
         if ($file['status'] !== 'success'){
-            $file['message'] = 'Openai Get File ' . $file['message'];
+            $file['message'] = 'Openai Get File Error : ' . $file['message'];
             return $file;
         }
         $file_content = $file['body'];

@@ -2804,6 +2804,17 @@ function formatCurrencyVND($input): string
     return number_format($number, 0, ',', ',') . ' VND';
 }
 
+function mergeOptions(array $base, array $override): array {
+    foreach ($override as $key => $value) {
+        if (is_array($value) && isset($base[$key]) && is_array($base[$key])) {
+            $base[$key] = mergeOptions($base[$key], $value);
+        } else {
+            $base[$key] = $value;
+        }
+    }
+    return $base;
+}
+
 function getDebug()
 {
     session_start();
