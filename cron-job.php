@@ -8,7 +8,7 @@ $sql = "SELECT d.ID,d.locked_at, d.batch_name, d.ai_name, a.team_id
         FROM download d
         INNER JOIN authors a ON a.ID = d.author_id
         WHERE d.status = 'running'
-        AND (d.locked_at IS NULL OR d.locked_at < DATE_SUB(NOW(), INTERVAL 10 MINUTE))
+        AND (d.locked_at IS NULL OR d.locked_at < DATE_SUB(NOW(), INTERVAL 3 MINUTE))
         ORDER BY d.ID ASC
         LIMIT 10";
 
