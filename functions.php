@@ -483,8 +483,6 @@ function buildCompressedPromptFromText(string $fullText): string {
 function AIProcessDownloadProducts($downloadId, $model, $ai): array
 {
     $conn = db();
-    $promptTemplate = AIGetPrompt($downloadId);
-
     $stmt = $conn->prepare("
         SELECT DISTINCT p.ID, p.title, p.sku, p.images
         FROM posts p
@@ -509,7 +507,8 @@ function AIProcessDownloadProducts($downloadId, $model, $ai): array
         return [['status' => 'error', 'message' => "Không có sản phẩm để xử lý. Đã cập nhật download ID {$downloadId} thành 'error'."]];
     }
 
-    $jsonl_content = '';
+    $jsonl_content  = '';
+    $promptTemplate = AIGetPrompt($downloadId);
     while ($row = $result->fetch_assoc()) {
         $title = $row['title'] ?? '';
         $mainImage = '';
@@ -524,12 +523,12 @@ function AIProcessDownloadProducts($downloadId, $model, $ai): array
         }
 
         // Tạo prompt
-        $prompt = strtr($promptTemplate, [
-            '{title}' => $title,
-            '{image}' => $mainImage
-        ]);
+        $input =  [
+            'title' => $title,
+            'image' => $mainImage
+        ];
 
-        $request_data = AIJsonlContent($row['ID'], $prompt, $ai, $model);
+        $request_data = AIJsonlContent($row['ID'], $promptTemplate, $input, $ai, $model);
         if(empty($request_data)) {
             continue;
         }
@@ -553,32 +552,50 @@ function AIProcessDownloadProducts($downloadId, $model, $ai): array
     return [['status' => 'success', 'name' => $batch_id]];
 }
 
-function AIGetPrompt($downloadId)
+function AIGetPrompt($downloadId): array
 {
     $conn = db();
     $stmt = $conn->prepare("
-        SELECT DISTINCT site.prompt
-        FROM site
-        INNER JOIN exports ON exports.site_id = site.ID
-        INNER JOIN download ON download.exports_id = exports.ID
+        SELECT site.system_prompt,  site.developer_prompt, type.user_prompt
+        FROM download
+        INNER JOIN exports ON exports.ID = download.exports_id
+        INNER JOIN site ON site.ID = exports.site_id
+        INNER JOIN type ON type.ID = exports.type_id
         WHERE download.ID = ?
         LIMIT 1
     ");
 
     $stmt->bind_param("i", $downloadId);
     $stmt->execute();
-    $stmt->bind_result($prompt);
+    $stmt->bind_result($systemPrompt, $developerPrompt, $userPrompt);
 
     if ($stmt->fetch()) {
-        return $prompt;
+        $result = [
+            'system_prompt'    => $systemPrompt,
+            'developer_prompt' => $developerPrompt,
+            'user_prompt'      => $userPrompt
+        ];
     } else {
-        return '';
+        $result = [];
     }
+
+    $stmt->close();
+    return $result;
 }
 
-function AIJsonlContent($id, $prompt, $ai, $model = ''): array
+function AIJsonlContent($id, $prompts, $input, $ai, $model = ''): array
 {
-    $prompt = buildCompressedPromptFromText($prompt);
+    $p = [];
+    foreach (['system_prompt', 'developer_prompt', 'user_prompt'] as $key) {
+        $p[$key] = !empty($prompts[$key])
+            ? buildCompressedPromptFromText($prompts[$key])
+            : '';
+    }
+
+    $system_prompt    = $p['system_prompt'];
+    $developer_prompt = $p['developer_prompt'];
+    $user_prompt      = $p['user_prompt'];
+
     return match ($ai) {
         'google' => [
             "key" => (string)$id,
@@ -587,7 +604,7 @@ function AIJsonlContent($id, $prompt, $ai, $model = ''): array
                     [
                         "parts" => [
                             [
-                                "text" => $prompt
+                                "text" => ""
                             ]
                         ],
                         "role" => "user"
@@ -603,8 +620,29 @@ function AIJsonlContent($id, $prompt, $ai, $model = ''): array
                 "model" => $model,
                 "input" => [
                     [
+                        "role" => "system",
+                        "content" => $system_prompt
+                    ],
+                    [
+                        "role" => "developer",
+                        "content" => $developer_prompt
+                    ],
+                    [
                         "role" => "user",
-                        "content" => $prompt
+                        "content" => [
+                            [
+                                "type" => "input_text",
+                                "text" => "original title : {$input['']}"
+                            ],
+                            [
+                                "type" => "input_image",
+                                "image_url" => $input[''] ?? ''
+                            ],
+                            [
+                                "type" => "input_text",
+                                "text" => $user_prompt
+                            ]
+                        ]
                     ]
                 ]
             ]
@@ -2816,8 +2854,10 @@ function mergeOptions(array $base, array $override): array {
 
 function getDebug()
 {
-    session_start();
-    $_SESSION['auth'] = ['user_id' => 0, 'team' => 1];
-    $cmd = "php " . __DIR__ . "/worker.php 196 batch_68edd78c58908190a7cdf5777118cc1a openai 1 > /dev/null 2>&1 &";
-    exec($cmd);
+    $input =  [
+        'title' => 'Football Poster Canvas Wall Art Home Decor No Frame',
+        'image' => 'https://i.etsystatic.com/36362662/r/il/398219/5978031028/il_1588xN.5978031028_dulp.jpg'
+    ];
+    $promptTemplate = AIGetPrompt(208);
+    return AIJsonlContent(45566, $promptTemplate, $input, 'openai', 'gpt-5-nano-2025-08-07');
 }
