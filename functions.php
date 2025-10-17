@@ -632,11 +632,11 @@ function AIJsonlContent($id, $prompts, $input, $ai, $model = ''): array
                         "content" => [
                             [
                                 "type" => "input_text",
-                                "text" => "original title : {$input['']}"
+                                "text" => "original title : {$input['title']}"
                             ],
                             [
                                 "type" => "input_image",
-                                "image_url" => $input[''] ?? ''
+                                "image_url" => $input['image'] ?? ''
                             ],
                             [
                                 "type" => "input_text",
