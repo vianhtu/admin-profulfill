@@ -621,11 +621,17 @@ function AIJsonlContent($id, $prompts, $input, $ai, $model = ''): array
                 "input" => [
                     [
                         "role" => "system",
-                        "content" => $system_prompt
+                        "content" => [
+                            "type" => "input_text",
+                            "text" => $system_prompt
+                        ]
                     ],
                     [
                         "role" => "developer",
-                        "content" => $developer_prompt
+                        "content" => [
+                            "type" => "input_text",
+                            "text" => $developer_prompt
+                        ]
                     ],
                     [
                         "role" => "user",
@@ -640,7 +646,7 @@ function AIJsonlContent($id, $prompts, $input, $ai, $model = ''): array
                             ],
                             [
                                 "type" => "input_text",
-                                "text" => "Input category {$user_prompt}"
+                                "text" => "Input category : {$user_prompt}"
                             ]
                         ]
                     ]
