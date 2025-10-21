@@ -2856,7 +2856,7 @@ function getDebug()
 {
     $input =  [
         'title' => 'Football Poster Canvas Wall Art Home Decor No Frame',
-        'image' => 'https://i.etsystatic.com/36362662/r/il/398219/5978031028/il_1588xN.5978031028_dulp.jpg'
+        'image' => 'https://i.etsystatic.com/36362662/r/il/398219/5978031028/il_512xN.5978031028_dulp.jpg'
     ];
     $promptTemplate = AIGetPrompt(208);
     return AIJsonlContent(45566, $promptTemplate, $input, 'openai', 'gpt-5-nano-2025-08-07');
