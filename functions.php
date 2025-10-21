@@ -632,7 +632,7 @@ function AIJsonlContent($id, $prompts, $input, $ai, $model = ''): array
                         "content" => [
                             [
                                 "type" => "input_text",
-                                "text" => "original title : {$input['title']}"
+                                "text" => "Input title : {$input['title']}"
                             ],
                             [
                                 "type" => "input_image",
@@ -640,7 +640,7 @@ function AIJsonlContent($id, $prompts, $input, $ai, $model = ''): array
                             ],
                             [
                                 "type" => "input_text",
-                                "text" => $user_prompt
+                                "text" => "Input category {$user_prompt}"
                             ]
                         ]
                     ]
