@@ -595,6 +595,7 @@ function AIJsonlContent($id, $prompts, $input, $ai, $model = ''): array
     $system_prompt    = $p['system_prompt'];
     $developer_prompt = $p['developer_prompt'];
     $user_prompt      = $p['user_prompt'];
+    $image_url        = preg_replace('/il_\d+xN/', 'il_512xN', $input['image']);
 
     return match ($ai) {
         'google' => [
@@ -636,7 +637,7 @@ function AIJsonlContent($id, $prompts, $input, $ai, $model = ''): array
                             ],
                             [
                                 "type" => "input_image",
-                                "image_url" => $input['image'] ?? ''
+                                "image_url" => $image_url
                             ],
                             [
                                 "type" => "input_text",
