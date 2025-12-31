@@ -2367,6 +2367,7 @@ function downloadXlsx(): array
 
     // Lấy dữ liệu
     $result = getDownloadXlsxData($downloadID);
+    return $result;
 
     // chạy toàn bộ sản phẩm.
     $startRow = (int)$statusRow['row_item'] ?? 7; // bắt đầu row.

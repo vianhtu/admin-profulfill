@@ -145,12 +145,13 @@ function initTable(){
                         url: '../../ajax.php?action=download-xlsx',
                         method: 'POST',
                         data: { id: id },
-                        xhrFields: { responseType: 'blob' },
+                        //xhrFields: { responseType: 'blob' },
                         beforeSend: function () {
                             $spinner.removeClass('d-none');
                             $tr.addClass('tr-loading');
                         },
                         success: function (response, textStatus, jqXHR) {
+                            console.log(response); return;
                             // Lấy filename từ header nếu server gửi Content-Disposition
                             var disposition = jqXHR.getResponseHeader('Content-Disposition');
                             var filename = '';
