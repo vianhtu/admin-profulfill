@@ -174,9 +174,12 @@ function initTable(){
                             document.body.removeChild(link);
                             window.URL.revokeObjectURL(url);
                         },
-                        error: function (jqXHR, textStatus, errorThrown) {
-                            // Thường ở đây server trả lỗi JSON/text, không phải blob
-                            console.error('Download error:', textStatus, errorThrown);
+                        error: function (jqXHR) {
+                            var reader = new FileReader();
+                            reader.onload = function() {
+                                console.log("Error JSON:", reader.result);
+                            };
+                            reader.readAsText(jqXHR.response);
                         },
                         complete: function () {
                             $spinner.addClass('d-none');
