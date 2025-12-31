@@ -174,12 +174,18 @@ function initTable(){
                             document.body.removeChild(link);
                             window.URL.revokeObjectURL(url);
                         },
-                        error: function (jqXHR) {
-                            var reader = new FileReader();
-                            reader.onload = function() {
-                                console.log("Error JSON:", reader.result);
-                            };
-                            reader.readAsText(jqXHR.response);
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            console.error('Download error:', textStatus, errorThrown);
+
+                            // Nếu server trả về JSON/text
+                            if (jqXHR.responseText) {
+                                try {
+                                    var json = JSON.parse(jqXHR.responseText);
+                                    console.log("Server JSON:", json);
+                                } catch (e) {
+                                    console.log("Server raw text:", jqXHR.responseText);
+                                }
+                            }
                         },
                         complete: function () {
                             $spinner.addClass('d-none');
