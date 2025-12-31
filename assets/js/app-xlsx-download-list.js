@@ -175,16 +175,20 @@ function initTable(){
                             window.URL.revokeObjectURL(url);
                         },
                         error: function (jqXHR, textStatus, errorThrown) {
-                            console.error('Download error:', textStatus, errorThrown);
-
-                            // Nếu server trả về JSON/text
-                            if (jqXHR.responseText) {
-                                try {
-                                    var json = JSON.parse(jqXHR.responseText);
-                                    console.log("Server JSON:", json);
-                                } catch (e) {
-                                    console.log("Server raw text:", jqXHR.responseText);
-                                }
+                            if (jqXHR.response instanceof Blob) {
+                                var reader = new FileReader();
+                                reader.onload = function() {
+                                    console.log("Server JSON text:", reader.result);
+                                    try {
+                                        var json = JSON.parse(reader.result);
+                                        console.log("Parsed JSON:", json);
+                                    } catch (e) {
+                                        console.log("Not valid JSON:", reader.result);
+                                    }
+                                };
+                                reader.readAsText(jqXHR.response);
+                            } else {
+                                console.log("Server raw text:", jqXHR.responseText);
                             }
                         },
                         complete: function () {
