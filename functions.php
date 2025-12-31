@@ -2382,6 +2382,7 @@ function downloadXlsx(): array
             processAmazonProductsToXlsx($data, $statusRow, $sheet, $headers);
             break;
         case 'ebay-com':
+            processEBayProductsToXlsx($data, $statusRow, $sheet, $headers);
             break;
     }
 
@@ -2553,6 +2554,28 @@ function processAmazonProductsToXlsx($data, $statusRow, $sheet, $headers): void
         // chạy thêm dữ liệu từ AI
         $startRow++;
         $colorIndex++;
+    }
+}
+
+function processEBayProductsToXlsx($data, $statusRow, $sheet, $headers): void {
+    $startRow = (int)$statusRow['row_item'] ?? 5; // bắt đầu row.
+    while ($row = $data->fetch_assoc()) {
+        // get default headers value.
+        $default_values = !empty($statusRow['file_default']) ? json_decode($statusRow['file_default'], true) : [];
+        $images = json_decode($row['images'], true);
+
+        // map AI values.
+        $default_values[] = [
+            'text'  => 'Title',
+            'value' => $row['item_name']
+        ];
+        $default_values[] = [
+            'text'  => 'Description',
+            'value' => $row['product_description']
+        ];
+
+        // Ghi dòng sản phẩm gốc
+        writeRowXlsx($sheet, $headers, $default_values, $startRow);
     }
 }
 
