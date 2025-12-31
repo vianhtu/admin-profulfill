@@ -2366,14 +2366,13 @@ function downloadXlsx(): array
     }
 
     // Lấy dữ liệu
-    $result = getDownloadXlsxData($downloadID);
-    return $result;
+    $data = getDownloadXlsxData($downloadID);
 
     // chạy toàn bộ sản phẩm.
     $startRow = (int)$statusRow['row_item'] ?? 7; // bắt đầu row.
     $counter  = 0; // đếm số sản phẩm đã xử lý
     $colorIndex = 1;
-    while ($row = $result->fetch_assoc()) {
+    while ($row = $data->fetch_assoc()) {
         $counter++; // tăng đếm mỗi sản phẩm
         // get default headers value.
         $default_values = !empty($statusRow['file_default']) ? json_decode($statusRow['file_default'], true) : [];
