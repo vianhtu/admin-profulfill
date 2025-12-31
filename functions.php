@@ -2303,6 +2303,7 @@ function downloadXlsx(): array
 
     // Kiểm tra trạng thái trước
     $checkSql = "SELECT accounts.sku,
+                        site.slug,
                         exports.file_default,
                         exports.file_name AS t_file,
                         exports.file_dir,
@@ -2312,6 +2313,7 @@ function downloadXlsx(): array
                         download.file_name AS d_file
                  FROM download
                  INNER JOIN exports ON exports.ID = download.exports_id
+                 INNER JOIN site ON site.ID = exports.site_id
                  INNER JOIN accounts ON accounts.ID = exports.accounts_id
                  WHERE download.id = ?
                  AND download.status IN ('ready', 'schedule')"; // ready
@@ -2375,6 +2377,68 @@ function downloadXlsx(): array
     // Lấy dữ liệu
     $data = getDownloadXlsxData($downloadID);
 
+    switch ($statusRow['slug']) {
+        case 'amazon-com':
+            processAmazonProductsToXlsx($data, $statusRow, $sheet, $headers);
+            break;
+        case 'ebay-com':
+            break;
+    }
+
+    // Thư mục lưu file export
+    $exportDir = ROOT_DIR . "/export/";
+    if (!is_dir($exportDir)) {
+        mkdir($exportDir, 0777, true);
+    }
+
+    // Nếu có file cũ thì xóa
+    if (!empty($statusRow['d_file'])) {
+        $oldFile = $exportDir . $statusRow['d_file'];
+        if (file_exists($oldFile)) {
+            unlink($oldFile);
+        }
+    }
+
+    // Tạo tên file mới (tránh trùng)
+    $newFileName = 'export_' . $downloadID . '_' . date('Ymd_His') . '_' . $statusRow['t_file'];
+    $newFilePath = $exportDir . $newFileName;
+
+    // Lưu file mới
+    $writer = new Xlsx($spreadsheet);
+    $writer->save($newFilePath);
+
+    // Cập nhật tên file vào DB
+    $now = date('Y-m-d H:i:s'); // thời gian hiện tại
+    $updateSql = "UPDATE download SET file_name = ?, download_date = ? WHERE id = ?";
+    $updateStmt = $conn->prepare($updateSql);
+    $updateStmt->bind_param('ssi', $newFileName, $now, $downloadID);
+    $updateStmt->execute();
+    // Bảo đảm không có output trước khi gửi header
+    if (ob_get_level()) {
+        ob_end_clean();
+    }
+    if (is_readable($newFilePath)) {
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . basename($newFilePath) . '"');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: ' . filesize($newFilePath));
+        $fp = fopen($newFilePath, 'rb');
+        set_time_limit(0);
+        // Gửi nội dung
+        fpassthru($fp);
+        fclose($fp);
+        exit();
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Lỗi file chưa được tạo hoặc không thể đọc.']);
+        exit();
+    }
+}
+
+function processAmazonProductsToXlsx($data, $statusRow, $sheet, $headers): void
+{
     // chạy toàn bộ sản phẩm.
     $startRow = (int)$statusRow['row_item'] ?? 7; // bắt đầu row.
     $counter  = 0; // đếm số sản phẩm đã xử lý
@@ -2490,61 +2554,9 @@ function downloadXlsx(): array
         $startRow++;
         $colorIndex++;
     }
-
-    // Thư mục lưu file export
-    $exportDir = ROOT_DIR . "/export/";
-    if (!is_dir($exportDir)) {
-        mkdir($exportDir, 0777, true);
-    }
-
-    // Nếu có file cũ thì xóa
-    if (!empty($statusRow['d_file'])) {
-        $oldFile = $exportDir . $statusRow['d_file'];
-        if (file_exists($oldFile)) {
-            unlink($oldFile);
-        }
-    }
-
-    // Tạo tên file mới (tránh trùng)
-    $newFileName = 'export_' . $downloadID . '_' . date('Ymd_His') . '_' . $statusRow['t_file'];
-    $newFilePath = $exportDir . $newFileName;
-
-    // Lưu file mới
-    $writer = new Xlsx($spreadsheet);
-    $writer->save($newFilePath);
-
-    // Cập nhật tên file vào DB
-    $now = date('Y-m-d H:i:s'); // thời gian hiện tại
-    $updateSql = "UPDATE download SET file_name = ?, download_date = ? WHERE id = ?";
-    $updateStmt = $conn->prepare($updateSql);
-    $updateStmt->bind_param('ssi', $newFileName, $now, $downloadID);
-    $updateStmt->execute();
-    // Bảo đảm không có output trước khi gửi header
-    if (ob_get_level()) {
-        ob_end_clean();
-    }
-    if (is_readable($newFilePath)) {
-        header('Content-Description: File Transfer');
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="' . basename($newFilePath) . '"');
-        header('Expires: 0');
-        header('Cache-Control: must-revalidate');
-        header('Pragma: public');
-        header('Content-Length: ' . filesize($newFilePath));
-        $fp = fopen($newFilePath, 'rb');
-        set_time_limit(0);
-        // Gửi nội dung
-        fpassthru($fp);
-        fclose($fp);
-        exit();
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Lỗi file chưa được tạo hoặc không thể đọc.']);
-        exit();
-    }
 }
 
-function writeRowXlsx($sheet, $headers, $values, $rowNum): void
-{
+function writeRowXlsx($sheet, $headers, $values, $rowNum): void {
     foreach ($values as $item) {
         $text = $item['text'];
         $value = $item['value'] ?? '';
