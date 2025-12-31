@@ -2245,6 +2245,57 @@ function deleteXlsx(): array {
 	}
 }
 
+function getDownloadXlsxData(int $downloadID): false|mysqli_result
+{
+    $conn = db();
+
+    // Truy vấn AI listings
+    $sql1 = "SELECT DISTINCT al.item_name, al.product_description, al.meta_data, p.sku, p.images
+             FROM amazon_listings AS al
+             INNER JOIN posts p ON al.post_id = p.ID
+             WHERE al.download_id = ?
+             AND (TRIM(al.copyright_warning) = ''
+             OR TRIM(al.copyrighted_content) = ''
+             OR LOWER(al.copyright_warning) IN ('none','no','n/a','false','not applicable')
+             OR LOWER(al.copyrighted_content) IN ('none','no','n/a','false','not applicable')
+             OR al.copyright_warning IS NULL
+             OR al.copyrighted_content IS NULL)";
+
+    $stmt = $conn->prepare($sql1);
+    if (!$stmt) {
+        return false; // lỗi prepare
+    }
+    $stmt->bind_param('i', $downloadID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // Nếu không có kết quả thì lấy sản phẩm gốc
+    if ($result->num_rows === 0) {
+        $stmt->close();
+
+        $sql2 = "SELECT DISTINCT p.title AS item_name,
+                                p.description AS product_description,
+                                p.metadata AS meta_data,
+                                p.sku,
+                                p.images
+                 FROM posts p
+                 INNER JOIN download_relationships dr ON dr.post_id = p.ID
+                 WHERE dr.download_id = ?
+                 AND p.status = 'schedule'";
+
+        $stmt = $conn->prepare($sql2);
+        if (!$stmt) {
+            return false;
+        }
+        $stmt->bind_param('i', $downloadID);
+        $stmt->execute();
+        $result = $stmt->get_result();
+    }
+
+    $stmt->close();
+    return $result;
+}
+
 function downloadXlsx(): array
 {
     $conn = db();
@@ -2256,7 +2307,7 @@ function downloadXlsx(): array
                  INNER JOIN exports ON exports.ID = download.exports_id
                  INNER JOIN accounts ON accounts.ID = exports.accounts_id
                  WHERE download.id = ?
-                 AND download.status = 'ready'"; // ready
+                 AND download.status IN ('ready', 'schedule')"; // ready
     $checkStmt = $conn->prepare($checkSql);
     $checkStmt->bind_param('i', $downloadID);
     $checkStmt->execute();
@@ -2315,20 +2366,7 @@ function downloadXlsx(): array
     }
 
     // Lấy dữ liệu
-    $sql = "SELECT DISTINCT al.item_name, al.product_description, al.meta_data, p.sku, p.images
-            FROM amazon_listings AS al
-            INNER JOIN posts p ON al.post_id = p.ID
-            WHERE al.download_id = ?
-            AND (TRIM(al.copyright_warning) = ''
-            OR TRIM(al.copyrighted_content) = ''
-            OR LOWER(al.copyright_warning) IN ('none','no','n/a','false','not applicable')
-            OR LOWER(al.copyrighted_content) IN ('none','no','n/a','false','not applicable')
-            OR al.copyright_warning IS NULL
-            OR al.copyrighted_content IS NULL)";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param('i', $downloadID);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    $result = getDownloadXlsxData($downloadID);
 
     // chạy toàn bộ sản phẩm.
     $startRow = (int)$statusRow['row_item'] ?? 7; // bắt đầu row.

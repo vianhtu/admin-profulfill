@@ -33,5 +33,6 @@
     <orderEntry type="module" module-name="amz" />
     <orderEntry type="module" module-name="profulfill-sys-orders" />
     <orderEntry type="module" module-name="profulfill-etsy" />
+    <orderEntry type="module" module-name="gelato-clone-design" />
   </component>
 </module>
