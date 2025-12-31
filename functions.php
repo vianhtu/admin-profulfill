@@ -2302,7 +2302,14 @@ function downloadXlsx(): array
     $downloadID = isset($_POST['id']) ? (int)$_POST['id'] : 0;
 
     // Kiểm tra trạng thái trước
-    $checkSql = "SELECT accounts.sku, exports.file_default, exports.file_name AS t_file, exports.file_dir, exports.row_header, exports.row_item, download.file_name AS d_file
+    $checkSql = "SELECT accounts.sku,
+                        exports.file_default,
+                        exports.file_name AS t_file,
+                        exports.file_dir,
+                        exports.row_header,
+                        exports.row_item,
+                        exports.sheet_name,
+                        download.file_name AS d_file
                  FROM download
                  INNER JOIN exports ON exports.ID = download.exports_id
                  INNER JOIN accounts ON accounts.ID = exports.accounts_id
@@ -2330,7 +2337,7 @@ function downloadXlsx(): array
     try {
         // Load file Excel
         $spreadsheet = IOFactory::load($filePath);
-        $sheetName = 'Template';
+        $sheetName = $statusRow['sheet_name'] ?? 'Template';
         // Lấy sheet theo tên
         $sheet = $spreadsheet->getSheetByName($sheetName);
         if (!$sheet) {
