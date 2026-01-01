@@ -2580,8 +2580,11 @@ function processEBayProductsToXlsx($data, $statusRow, $sheet, $headers): void {
 
         // parent.
         $relationship_details = getValueByText($default_values, 'Relationship details');
-        if($relationship_details){
+        $price = getValueByText($default_values, 'Start price');
+        if($relationship_details && $price){
+            $quantity = getValueByText($default_values, 'Quantity');
             $variations = parseAttributeCombinations($relationship_details);
+            $map_price = mapPriceToVariations($price, $variations);
             foreach ($variations as $variation) {
                 $default_values = [
                     [
@@ -2591,6 +2594,14 @@ function processEBayProductsToXlsx($data, $statusRow, $sheet, $headers): void {
                     [
                         'text' => 'Relationship details',
                         'value' => $variation
+                    ],
+                    [
+                        'text' => 'Start price',
+                        'value' => $map_price[$variation] ?? ''
+                    ],
+                    [
+                        'text' => 'Quantity',
+                        'value' => $quantity
                     ]
                 ];
                 writeRowXlsx($sheet, $headers, $default_values, $startRow);
@@ -2636,6 +2647,33 @@ function setValueByText(array &$array, string $text, $value): bool
     return false;
 }
 
+
+function mapPriceToVariations(string $price, array $variations): array {
+    $result = [];
+
+    // Nếu chuỗi rỗng → tất cả bằng rỗng
+    if (trim($price) === '') {
+        foreach ($variations as $variation) {
+            $result[$variation] = '';
+        }
+        return $result;
+    }
+
+    // Tách các dòng và giá trị bằng ;
+    $lines = preg_split('/\r\n|\r|\n/', trim($price));
+    $values = [];
+    foreach ($lines as $line) {
+        $parts = array_map('trim', explode(';', $line));
+        $values = array_merge($values, $parts);
+    }
+
+    // Map theo thứ tự variations
+    foreach ($variations as $i => $variation) {
+        $result[$variation] = $values[$i] ?? ($values[0] ?? '');
+    }
+
+    return $result;
+}
 
 /**
  * Phân tích chuỗi thuộc tính thành tất cả tổ hợp có thể
