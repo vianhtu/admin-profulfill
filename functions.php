@@ -2576,7 +2576,131 @@ function processEBayProductsToXlsx($data, $statusRow, $sheet, $headers): void {
 
         // Ghi dòng sản phẩm gốc
         writeRowXlsx($sheet, $headers, $default_values, $startRow);
+        $startRow++;
+
+        // parent.
+        $relationship_details = getValueByText($default_values, 'Relationship details');
+        if($relationship_details){
+            $variations = parseAttributeCombinations($relationship_details);
+            foreach ($variations as $variation) {
+                $default_values = [
+                    [
+                        'text' => 'Relationship',
+                        'value' => 'Variation'
+                    ],
+                    [
+                        'text' => 'Relationship details',
+                        'value' => $variation
+                    ]
+                ];
+                writeRowXlsx($sheet, $headers, $default_values, $startRow);
+                $startRow++;
+            }
+        }
     }
+}
+
+/**
+ * Lấy value theo text từ mảng $default_values
+ *
+ * @param array  $array Mảng dữ liệu
+ * @param string $text  Giá trị 'text' cần tìm
+ * @return mixed|null   Trả về value nếu tìm thấy, null nếu không
+ */
+function getValueByText(array $array, string $text): mixed
+{
+    foreach ($array as $item) {
+        if (isset($item['text']) && $item['text'] === $text) {
+            return $item['value'];
+        }
+    }
+    return null;
+}
+
+/**
+ * Gán value cho phần tử có 'text' = $text
+ *
+ * @param array  &$array Mảng dữ liệu (tham chiếu)
+ * @param string $text   Giá trị 'text' cần tìm
+ * @param mixed  $value  Giá trị mới để gán
+ * @return bool          true nếu gán thành công, false nếu không tìm thấy
+ */
+function setValueByText(array &$array, string $text, $value): bool
+{
+    foreach ($array as &$item) {
+        if (isset($item['text']) && $item['text'] === $text) {
+            $item['value'] = $value;
+            return true;
+        }
+    }
+    return false;
+}
+
+
+/**
+ * Phân tích chuỗi thuộc tính thành tất cả tổ hợp có thể
+ *
+ * @param string $input Chuỗi thuộc tính, ví dụ: "Color=Red;Blue|Size=Small;Medium"
+ * @return array Mảng các tổ hợp, ví dụ: ["Color=Red|Size=Small", ...]
+ */
+function parseAttributeCombinations(string $input): array {
+    // Nếu chuỗi rỗng → trả về mảng rỗng
+    if (trim($input) === '') {
+        return [];
+    }
+
+    $attributes = explode('|', $input);
+    $parsed = [];
+
+    foreach ($attributes as $attribute) {
+        // Kiểm tra có dấu '=' không
+        if (strpos($attribute, '=') === false) {
+            // Nếu sai định dạng → bỏ qua hoặc báo lỗi
+            continue;
+        }
+
+        list($key, $values) = explode('=', $attribute, 2);
+
+        // Nếu key hoặc values rỗng → bỏ qua
+        if (empty($key) || empty($values)) {
+            continue;
+        }
+
+        $parsed[$key] = explode(';', $values);
+    }
+
+    // Nếu không có thuộc tính hợp lệ → trả về mảng rỗng
+    if (empty($parsed)) {
+        return [];
+    }
+
+    // Nếu chỉ có 1 thuộc tính
+    if (count($parsed) === 1) {
+        $key = array_key_first($parsed);
+        return array_map(fn($v) => "$key=$v", $parsed[$key]);
+    }
+
+    // Nếu có nhiều thuộc tính → tạo tổ hợp
+    $keys = array_keys($parsed);
+    $result = [[]];
+
+    foreach ($keys as $key) {
+        $temp = [];
+        foreach ($result as $combination) {
+            foreach ($parsed[$key] as $value) {
+                $temp[] = array_merge($combination, [$key => $value]);
+            }
+        }
+        $result = $temp;
+    }
+
+    return array_map(function($combo) {
+        return implode('|', array_map(
+            fn($k, $v) => "$k=$v",
+            array_keys($combo),
+            $combo
+        ));
+    }, $result);
 }
 
 function writeRowXlsx($sheet, $headers, $values, $rowNum): void {
