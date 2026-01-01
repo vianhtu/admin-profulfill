@@ -2574,15 +2574,19 @@ function processEBayProductsToXlsx($data, $statusRow, $sheet, $headers): void {
             'value' => $row['product_description']
         ];
 
+        $relationship_details = getValueByText($default_values, 'Relationship details');
+        $price = getValueByText($default_values, 'Start price');
+        $quantity = getValueByText($default_values, 'Quantity');
+
+        setValueByText($default_values, 'Start price', '');
+        setValueByText($default_values, 'Quantity', '');
+
         // Ghi dòng sản phẩm gốc
         writeRowXlsx($sheet, $headers, $default_values, $startRow);
         $startRow++;
 
         // parent.
-        $relationship_details = getValueByText($default_values, 'Relationship details');
-        $price = getValueByText($default_values, 'Start price');
         if($relationship_details && $price){
-            $quantity = getValueByText($default_values, 'Quantity');
             $variations = parseAttributeCombinations($relationship_details);
             $map_price = mapPriceToVariations($price, $variations);
             foreach ($variations as $variation) {
