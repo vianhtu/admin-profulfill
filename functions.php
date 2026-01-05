@@ -2250,7 +2250,7 @@ function getDownloadXlsxData(int $downloadID): false|mysqli_result
     $conn = db();
 
     // Truy vấn AI listings
-    $sql1 = "SELECT DISTINCT al.item_name, al.product_description, al.meta_data, p.sku, p.images
+    $sql1 = "SELECT DISTINCT al.ID ,al.item_name, al.product_description, al.meta_data, p.sku, p.images
              FROM amazon_listings AS al
              INNER JOIN posts p ON al.post_id = p.ID
              WHERE al.download_id = ?
@@ -2273,7 +2273,7 @@ function getDownloadXlsxData(int $downloadID): false|mysqli_result
     if ($result->num_rows === 0) {
         $stmt->close();
 
-        $sql2 = "SELECT DISTINCT p.title AS item_name,
+        $sql2 = "SELECT DISTINCT p.ID, p.title AS item_name,
                                 p.description AS product_description,
                                 p.metadata AS meta_data,
                                 p.sku,
@@ -2574,6 +2574,11 @@ function processEBayProductsToXlsx($data, $statusRow, $sheet, $headers): void {
         $default_values[] = [
             'text'  => 'Title',
             'value' => formatStringSafe($row['item_name'])
+        ];
+        $SKU = $statusRow['sku'] . '-'. $row['ID'];
+        $default_values[] = [
+            'text'  => 'Custom label (SKU)',
+            'value' => $SKU
         ];
         if($description && $row['product_description']){
             $description = $row['product_description'] . "\n" . $description;
