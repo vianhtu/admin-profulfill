@@ -2581,7 +2581,7 @@ function processEBayProductsToXlsx($data, $statusRow, $sheet, $headers): void {
         } else {
             $default_values[] = [
                 'text' => 'Description',
-                'value' => $description
+                'value' => $row['product_description']
             ];
         }
         if($item_photo_url && $images){
