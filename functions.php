@@ -2592,6 +2592,18 @@ function processEBayProductsToXlsx($data, $statusRow, $sheet, $headers): void {
                 'value' => $images
             ];
         }
+        if($row['meta_data']){
+            $meta_data = json_decode($row['meta_data'], true);
+            foreach ($meta_data as $key => $meta){
+                if(is_array($meta)){
+                    $meta = implode(',' , $meta);
+                }
+                $default_values[] = [
+                    'text'  => 'C:'.$key,
+                    'value' => $meta
+                ];
+            }
+        }
 
         setValueByText($default_values, 'Start price', '');
         setValueByText($default_values, 'Quantity', '');
