@@ -151,6 +151,7 @@ function initTable(){
                             $tr.addClass('tr-loading');
                         },
                         success: function (response, textStatus, jqXHR) {
+                            //console.log(response); return;
                             // Lấy filename từ header nếu server gửi Content-Disposition
                             var disposition = jqXHR.getResponseHeader('Content-Disposition');
                             var filename = '';
@@ -175,8 +176,21 @@ function initTable(){
                             window.URL.revokeObjectURL(url);
                         },
                         error: function (jqXHR, textStatus, errorThrown) {
-                            // Thường ở đây server trả lỗi JSON/text, không phải blob
-                            console.error('Download error:', textStatus, errorThrown);
+                            if (jqXHR.response instanceof Blob) {
+                                var reader = new FileReader();
+                                reader.onload = function() {
+                                    console.log("Server JSON text:", reader.result);
+                                    try {
+                                        var json = JSON.parse(reader.result);
+                                        console.log("Parsed JSON:", json);
+                                    } catch (e) {
+                                        console.log("Not valid JSON:", reader.result);
+                                    }
+                                };
+                                reader.readAsText(jqXHR.response);
+                            } else {
+                                console.log("Server raw text:", jqXHR.responseText);
+                            }
                         },
                         complete: function () {
                             $spinner.addClass('d-none');

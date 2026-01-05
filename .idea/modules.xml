@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/admin-profulfill.iml" filepath="$PROJECT_DIR$/.idea/admin-profulfill.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../../Desktop/amz/.idea/amz.iml" filepath="$PROJECT_DIR$/../../../Desktop/amz/.idea/amz.iml" />
+      <module fileurl="file://$USER_HOME$/PhpstormProjects/gelato-clone-design/.idea/gelato-clone-design.iml" filepath="$USER_HOME$/PhpstormProjects/gelato-clone-design/.idea/gelato-clone-design.iml" />
       <module fileurl="file://E:/Chrome/profulfill-etsy/.idea/profulfill-etsy.iml" filepath="E:/Chrome/profulfill-etsy/.idea/profulfill-etsy.iml" />
       <module fileurl="file://$PROJECT_DIR$/../profulfill-products-data/.idea/profulfill-products-data.iml" filepath="$PROJECT_DIR$/../profulfill-products-data/.idea/profulfill-products-data.iml" />
       <module fileurl="file://$PROJECT_DIR$/../profulfill-sys-orders/.idea/profulfill-sys-orders.iml" filepath="$PROJECT_DIR$/../profulfill-sys-orders/.idea/profulfill-sys-orders.iml" />

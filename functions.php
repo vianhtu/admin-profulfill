@@ -2245,18 +2245,78 @@ function deleteXlsx(): array {
 	}
 }
 
+function getDownloadXlsxData(int $downloadID): false|mysqli_result
+{
+    $conn = db();
+
+    // Truy vấn AI listings
+    $sql1 = "SELECT DISTINCT al.item_name, al.product_description, al.meta_data, p.sku, p.images
+             FROM amazon_listings AS al
+             INNER JOIN posts p ON al.post_id = p.ID
+             WHERE al.download_id = ?
+             AND (TRIM(al.copyright_warning) = ''
+             OR TRIM(al.copyrighted_content) = ''
+             OR LOWER(al.copyright_warning) IN ('none','no','n/a','false','not applicable')
+             OR LOWER(al.copyrighted_content) IN ('none','no','n/a','false','not applicable')
+             OR al.copyright_warning IS NULL
+             OR al.copyrighted_content IS NULL)";
+
+    $stmt = $conn->prepare($sql1);
+    if (!$stmt) {
+        return false; // lỗi prepare
+    }
+    $stmt->bind_param('i', $downloadID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // Nếu không có kết quả thì lấy sản phẩm gốc
+    if ($result->num_rows === 0) {
+        $stmt->close();
+
+        $sql2 = "SELECT DISTINCT p.title AS item_name,
+                                p.description AS product_description,
+                                p.metadata AS meta_data,
+                                p.sku,
+                                p.images
+                 FROM posts p
+                 INNER JOIN download_relationships dr ON dr.post_id = p.ID
+                 WHERE dr.download_id = ?
+                 AND p.status = 'schedule'";
+
+        $stmt = $conn->prepare($sql2);
+        if (!$stmt) {
+            return false;
+        }
+        $stmt->bind_param('i', $downloadID);
+        $stmt->execute();
+        $result = $stmt->get_result();
+    }
+
+    $stmt->close();
+    return $result;
+}
+
 function downloadXlsx(): array
 {
     $conn = db();
     $downloadID = isset($_POST['id']) ? (int)$_POST['id'] : 0;
 
     // Kiểm tra trạng thái trước
-    $checkSql = "SELECT accounts.sku, exports.file_default, exports.file_name AS t_file, exports.file_dir, exports.row_header, exports.row_item, download.file_name AS d_file
+    $checkSql = "SELECT accounts.sku,
+                        site.slug,
+                        exports.file_default,
+                        exports.file_name AS t_file,
+                        exports.file_dir,
+                        exports.row_header,
+                        exports.row_item,
+                        exports.sheet_name,
+                        download.file_name AS d_file
                  FROM download
                  INNER JOIN exports ON exports.ID = download.exports_id
+                 INNER JOIN site ON site.ID = exports.site_id
                  INNER JOIN accounts ON accounts.ID = exports.accounts_id
                  WHERE download.id = ?
-                 AND download.status = 'ready'"; // ready
+                 AND download.status IN ('ready', 'schedule')"; // ready
     $checkStmt = $conn->prepare($checkSql);
     $checkStmt->bind_param('i', $downloadID);
     $checkStmt->execute();
@@ -2279,7 +2339,7 @@ function downloadXlsx(): array
     try {
         // Load file Excel
         $spreadsheet = IOFactory::load($filePath);
-        $sheetName = 'Template';
+        $sheetName = $statusRow['sheet_name'] ?? 'Template';
         // Lấy sheet theo tên
         $sheet = $spreadsheet->getSheetByName($sheetName);
         if (!$sheet) {
@@ -2315,26 +2375,76 @@ function downloadXlsx(): array
     }
 
     // Lấy dữ liệu
-    $sql = "SELECT DISTINCT al.item_name, al.product_description, al.meta_data, p.sku, p.images
-            FROM amazon_listings AS al
-            INNER JOIN posts p ON al.post_id = p.ID
-            WHERE al.download_id = ?
-            AND (TRIM(al.copyright_warning) = ''
-            OR TRIM(al.copyrighted_content) = ''
-            OR LOWER(al.copyright_warning) IN ('none','no','n/a','false','not applicable')
-            OR LOWER(al.copyrighted_content) IN ('none','no','n/a','false','not applicable')
-            OR al.copyright_warning IS NULL
-            OR al.copyrighted_content IS NULL)";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param('i', $downloadID);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    $data = getDownloadXlsxData($downloadID);
 
+    switch ($statusRow['slug']) {
+        case 'amazon-com':
+            processAmazonProductsToXlsx($data, $statusRow, $sheet, $headers);
+            break;
+        case 'ebay-com':
+            processEBayProductsToXlsx($data, $statusRow, $sheet, $headers);
+            break;
+    }
+
+    // Thư mục lưu file export
+    $exportDir = ROOT_DIR . "/export/";
+    if (!is_dir($exportDir)) {
+        mkdir($exportDir, 0777, true);
+    }
+
+    // Nếu có file cũ thì xóa
+    if (!empty($statusRow['d_file'])) {
+        $oldFile = $exportDir . $statusRow['d_file'];
+        if (file_exists($oldFile)) {
+            unlink($oldFile);
+        }
+    }
+
+    // Tạo tên file mới (tránh trùng)
+    $newFileName = 'export_' . $downloadID . '_' . date('Ymd_His') . '_' . $statusRow['t_file'];
+    $newFilePath = $exportDir . $newFileName;
+
+    // Lưu file mới
+    $writer = new Xlsx($spreadsheet);
+    $writer->save($newFilePath);
+
+    // Cập nhật tên file vào DB
+    $now = date('Y-m-d H:i:s'); // thời gian hiện tại
+    $updateSql = "UPDATE download SET file_name = ?, download_date = ? WHERE id = ?";
+    $updateStmt = $conn->prepare($updateSql);
+    $updateStmt->bind_param('ssi', $newFileName, $now, $downloadID);
+    $updateStmt->execute();
+    // Bảo đảm không có output trước khi gửi header
+    if (ob_get_level()) {
+        ob_end_clean();
+    }
+    if (is_readable($newFilePath)) {
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . basename($newFilePath) . '"');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: ' . filesize($newFilePath));
+        $fp = fopen($newFilePath, 'rb');
+        set_time_limit(0);
+        // Gửi nội dung
+        fpassthru($fp);
+        fclose($fp);
+        exit();
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Lỗi file chưa được tạo hoặc không thể đọc.']);
+        exit();
+    }
+}
+
+function processAmazonProductsToXlsx($data, $statusRow, $sheet, $headers): void
+{
     // chạy toàn bộ sản phẩm.
     $startRow = (int)$statusRow['row_item'] ?? 7; // bắt đầu row.
     $counter  = 0; // đếm số sản phẩm đã xử lý
     $colorIndex = 1;
-    while ($row = $result->fetch_assoc()) {
+    while ($row = $data->fetch_assoc()) {
         $counter++; // tăng đếm mỗi sản phẩm
         // get default headers value.
         $default_values = !empty($statusRow['file_default']) ? json_decode($statusRow['file_default'], true) : [];
@@ -2445,61 +2555,197 @@ function downloadXlsx(): array
         $startRow++;
         $colorIndex++;
     }
+}
 
-    // Thư mục lưu file export
-    $exportDir = ROOT_DIR . "/export/";
-    if (!is_dir($exportDir)) {
-        mkdir($exportDir, 0777, true);
-    }
+function processEBayProductsToXlsx($data, $statusRow, $sheet, $headers): void {
+    $startRow = (int)$statusRow['row_item'] ?? 5; // bắt đầu row.
+    while ($row = $data->fetch_assoc()) {
+        // get default headers value.
+        $default_values = !empty($statusRow['file_default']) ? json_decode($statusRow['file_default'], true) : [];
+        $images = json_decode($row['images'], true);
 
-    // Nếu có file cũ thì xóa
-    if (!empty($statusRow['d_file'])) {
-        $oldFile = $exportDir . $statusRow['d_file'];
-        if (file_exists($oldFile)) {
-            unlink($oldFile);
+        // map AI values.
+        $default_values[] = [
+            'text'  => 'Title',
+            'value' => $row['item_name']
+        ];
+        $default_values[] = [
+            'text'  => 'Description',
+            'value' => $row['product_description']
+        ];
+
+        $relationship_details = getValueByText($default_values, 'Relationship details');
+        $price = getValueByText($default_values, 'Start price');
+        $quantity = getValueByText($default_values, 'Quantity');
+
+        setValueByText($default_values, 'Start price', '');
+        setValueByText($default_values, 'Quantity', '');
+
+        // Ghi dòng sản phẩm gốc
+        writeRowXlsx($sheet, $headers, $default_values, $startRow);
+        $startRow++;
+
+        // parent.
+        if($relationship_details && $price){
+            $variations = parseAttributeCombinations($relationship_details);
+            $map_price = mapPriceToVariations($price, $variations);
+            foreach ($variations as $variation) {
+                $default_values = [
+                    [
+                        'text' => 'Relationship',
+                        'value' => 'Variation'
+                    ],
+                    [
+                        'text' => 'Relationship details',
+                        'value' => $variation
+                    ],
+                    [
+                        'text' => 'Start price',
+                        'value' => $map_price[$variation] ?? ''
+                    ],
+                    [
+                        'text' => 'Quantity',
+                        'value' => $quantity
+                    ]
+                ];
+                writeRowXlsx($sheet, $headers, $default_values, $startRow);
+                $startRow++;
+            }
         }
-    }
-
-    // Tạo tên file mới (tránh trùng)
-    $newFileName = 'export_' . $downloadID . '_' . date('Ymd_His') . '_' . $statusRow['t_file'];
-    $newFilePath = $exportDir . $newFileName;
-
-    // Lưu file mới
-    $writer = new Xlsx($spreadsheet);
-    $writer->save($newFilePath);
-
-    // Cập nhật tên file vào DB
-    $now = date('Y-m-d H:i:s'); // thời gian hiện tại
-    $updateSql = "UPDATE download SET file_name = ?, download_date = ? WHERE id = ?";
-    $updateStmt = $conn->prepare($updateSql);
-    $updateStmt->bind_param('ssi', $newFileName, $now, $downloadID);
-    $updateStmt->execute();
-    // Bảo đảm không có output trước khi gửi header
-    if (ob_get_level()) {
-        ob_end_clean();
-    }
-    if (is_readable($newFilePath)) {
-        header('Content-Description: File Transfer');
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="' . basename($newFilePath) . '"');
-        header('Expires: 0');
-        header('Cache-Control: must-revalidate');
-        header('Pragma: public');
-        header('Content-Length: ' . filesize($newFilePath));
-        $fp = fopen($newFilePath, 'rb');
-        set_time_limit(0);
-        // Gửi nội dung
-        fpassthru($fp);
-        fclose($fp);
-        exit();
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Lỗi file chưa được tạo hoặc không thể đọc.']);
-        exit();
     }
 }
 
-function writeRowXlsx($sheet, $headers, $values, $rowNum): void
+/**
+ * Lấy value theo text từ mảng $default_values
+ *
+ * @param array  $array Mảng dữ liệu
+ * @param string $text  Giá trị 'text' cần tìm
+ * @return mixed|null   Trả về value nếu tìm thấy, null nếu không
+ */
+function getValueByText(array $array, string $text): mixed
 {
+    foreach ($array as $item) {
+        if (isset($item['text']) && $item['text'] === $text) {
+            return $item['value'];
+        }
+    }
+    return null;
+}
+
+/**
+ * Gán value cho phần tử có 'text' = $text
+ *
+ * @param array  &$array Mảng dữ liệu (tham chiếu)
+ * @param string $text   Giá trị 'text' cần tìm
+ * @param mixed  $value  Giá trị mới để gán
+ * @return bool          true nếu gán thành công, false nếu không tìm thấy
+ */
+function setValueByText(array &$array, string $text, $value): bool
+{
+    foreach ($array as &$item) {
+        if (isset($item['text']) && $item['text'] === $text) {
+            $item['value'] = $value;
+            return true;
+        }
+    }
+    return false;
+}
+
+
+function mapPriceToVariations(string $price, array $variations): array {
+    $result = [];
+
+    // Nếu chuỗi rỗng → tất cả bằng rỗng
+    if (trim($price) === '') {
+        foreach ($variations as $variation) {
+            $result[$variation] = '';
+        }
+        return $result;
+    }
+
+    // Tách các dòng và giá trị bằng ;
+    $lines = preg_split('/\r\n|\r|\n/', trim($price));
+    $values = [];
+    foreach ($lines as $line) {
+        $parts = array_map('trim', explode(';', $line));
+        $values = array_merge($values, $parts);
+    }
+
+    // Map theo thứ tự variations
+    foreach ($variations as $i => $variation) {
+        $result[$variation] = $values[$i] ?? ($values[0] ?? '');
+    }
+
+    return $result;
+}
+
+/**
+ * Phân tích chuỗi thuộc tính thành tất cả tổ hợp có thể
+ *
+ * @param string $input Chuỗi thuộc tính, ví dụ: "Color=Red;Blue|Size=Small;Medium"
+ * @return array Mảng các tổ hợp, ví dụ: ["Color=Red|Size=Small", ...]
+ */
+function parseAttributeCombinations(string $input): array {
+    // Nếu chuỗi rỗng → trả về mảng rỗng
+    if (trim($input) === '') {
+        return [];
+    }
+
+    $attributes = explode('|', $input);
+    $parsed = [];
+
+    foreach ($attributes as $attribute) {
+        // Kiểm tra có dấu '=' không
+        if (strpos($attribute, '=') === false) {
+            // Nếu sai định dạng → bỏ qua hoặc báo lỗi
+            continue;
+        }
+
+        list($key, $values) = explode('=', $attribute, 2);
+
+        // Nếu key hoặc values rỗng → bỏ qua
+        if (empty($key) || empty($values)) {
+            continue;
+        }
+
+        $parsed[$key] = explode(';', $values);
+    }
+
+    // Nếu không có thuộc tính hợp lệ → trả về mảng rỗng
+    if (empty($parsed)) {
+        return [];
+    }
+
+    // Nếu chỉ có 1 thuộc tính
+    if (count($parsed) === 1) {
+        $key = array_key_first($parsed);
+        return array_map(fn($v) => "$key=$v", $parsed[$key]);
+    }
+
+    // Nếu có nhiều thuộc tính → tạo tổ hợp
+    $keys = array_keys($parsed);
+    $result = [[]];
+
+    foreach ($keys as $key) {
+        $temp = [];
+        foreach ($result as $combination) {
+            foreach ($parsed[$key] as $value) {
+                $temp[] = array_merge($combination, [$key => $value]);
+            }
+        }
+        $result = $temp;
+    }
+
+    return array_map(function($combo) {
+        return implode('|', array_map(
+            fn($k, $v) => "$k=$v",
+            array_keys($combo),
+            $combo
+        ));
+    }, $result);
+}
+
+function writeRowXlsx($sheet, $headers, $values, $rowNum): void {
     foreach ($values as $item) {
         $text = $item['text'];
         $value = $item['value'] ?? '';

@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="LaravelIdeaPersonalSettings">
+<<<<<<< HEAD
     <option name="lastContentRoot" value="$PROJECT_DIR$/../profulfill-products-data" />
+=======
+    <option name="lastContentRoot" value="$PROJECT_DIR$" />
+>>>>>>> e09a621dcc89ef9f40f687fc302f70ee80e48967
   </component>
 </project>

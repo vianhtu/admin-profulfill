@@ -3,5 +3,11 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../profulfill-products-data" vcs="Git" />
+<<<<<<< HEAD
+=======
+    <mapping directory="$PROJECT_DIR$/../profulfill-sys-orders" vcs="Git" />
+    <mapping directory="$USER_HOME$/PhpstormProjects/gelato-clone-design" vcs="Git" />
+    <mapping directory="E:/Chrome/profulfill-etsy" vcs="Git" />
+>>>>>>> e09a621dcc89ef9f40f687fc302f70ee80e48967
   </component>
 </project>

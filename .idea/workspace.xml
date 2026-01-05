@@ -4,9 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
+<<<<<<< HEAD
     <list default="true" id="dd67acd4-b783-43b8-b6ae-ced4c44e1a52" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+=======
+    <list default="true" id="dd67acd4-b783-43b8-b6ae-ced4c44e1a52" name="Changes" comment="ok">
+      <change beforePath="$PROJECT_DIR$/assets/js/app-xlsx-add.js" beforeDir="false" afterPath="$PROJECT_DIR$/assets/js/app-xlsx-add.js" afterDir="false" />
+>>>>>>> e09a621dcc89ef9f40f687fc302f70ee80e48967
       <change beforePath="$PROJECT_DIR$/../profulfill-products-data/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../profulfill-products-data/.idea/php.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../profulfill-products-data/.idea/profulfill-products-data.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../profulfill-products-data/.idea/profulfill-products-data.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../profulfill-products-data/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../profulfill-products-data/.idea/vcs.xml" afterDir="false" />
@@ -27,17 +32,26 @@
       <executable path="composer" />
     </execution>
   </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="1828" />
+    <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
+  </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="CSS File" />
-        <option value="JavaScript File" />
         <option value="PHP File" />
+        <option value="HTML File" />
+        <option value="JavaScript File" />
       </list>
     </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
   </component>
   <component name="PhpDebugGeneral" listening_started="true" />
   <component name="PhpWorkspaceProjectConfiguration" interpreter_name="/opt/homebrew/Cellar/php/8.4.7/bin/php">
@@ -84,6 +98,7 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
+<<<<<<< HEAD
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "ModuleVcsDetector.initialDetectionPerformed": "true",
@@ -105,13 +120,52 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+=======
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;SHELLCHECK.PATH&quot;: &quot;C:\\Users\\thien\\AppData\\Roaming\\JetBrains\\PhpStorm2025.2\\plugins\\Shell Script\\shellcheck.exe&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;disable.download.node.interpreter.editor.notification&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/thien/PhpstormProjects/gelato-clone-design&quot;,
+    &quot;list.type.of.created.stylesheet&quot;: &quot;CSS&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;yarn&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RecapSpentCounter">
+    <option name="endsOfQuotaMs" value="1769076008137" />
+    <option name="spentUsd" value="0.03243205" />
+  </component>
+  <component name="RecapUselessUpdatesCounter">
+    <option name="suspendCountdown" value="4" />
+  </component>
+>>>>>>> e09a621dcc89ef9f40f687fc302f70ee80e48967
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\thien\PhpstormProjects\gelato-clone-design" />
       <recent name="C:\Users\thien\OneDrive\Documents\GitHub\admin-profulfill\html\vertical-menu-template-no-customizer" />
       <recent name="C:\Users\thien\OneDrive\Documents\GitHub\admin-profulfill\assets\js" />
       <recent name="C:\Users\thien\OneDrive\Documents\GitHub\profulfill-sys-orders" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\thien\PhpstormProjects\gelato-clone-design\icons" />
+      <recent name="C:\Users\thien\PhpstormProjects\gelato-clone-design" />
       <recent name="C:\Users\thien\OneDrive\Documents\GitHub\admin-profulfill\functions" />
       <recent name="C:\Users\thien\OneDrive\Documents\GitHub\admin-profulfill\tables" />
       <recent name="C:\Users\thien\OneDrive\Documents\GitHub\admin-profulfill\aimodel" />
@@ -120,8 +174,13 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
+<<<<<<< HEAD
         <option value="bundled-js-predefined-d6986cc7102b-c7e53b3be11b-JavaScript-PS-253.28294.345" />
         <option value="bundled-php-predefined-a98d8de5180a-09080813851e-com.jetbrains.php.sharedIndexes-PS-253.28294.345" />
+=======
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-PS-253.29346.151" />
+        <option value="bundled-php-predefined-a98d8de5180a-0e0d91225499-com.jetbrains.php.sharedIndexes-PS-253.29346.151" />
+>>>>>>> e09a621dcc89ef9f40f687fc302f70ee80e48967
       </set>
     </attachedChunks>
   </component>
@@ -186,10 +245,37 @@
       <workItem from="1760492588048" duration="11720000" />
       <workItem from="1760581760796" duration="5864000" />
       <workItem from="1760662406975" duration="9114000" />
+<<<<<<< HEAD
       <workItem from="1761015414570" duration="2801000" />
       <workItem from="1766113671960" duration="74000" />
       <workItem from="1766113820306" duration="26000" />
+=======
+      <workItem from="1761015414570" duration="4016000" />
+      <workItem from="1761031056609" duration="1983000" />
+      <workItem from="1765942041861" duration="118000" />
+      <workItem from="1765942253047" duration="22226000" />
+      <workItem from="1766019779966" duration="85000" />
+      <workItem from="1766019964275" duration="338000" />
+      <workItem from="1766020317538" duration="20523000" />
+      <workItem from="1766117976515" duration="7198000" />
+      <workItem from="1766391559065" duration="1089000" />
+      <workItem from="1766567287401" duration="734000" />
+      <workItem from="1766568688098" duration="1356000" />
+      <workItem from="1766586105617" duration="408000" />
+      <workItem from="1766975010276" duration="803000" />
+      <workItem from="1767153594779" duration="9268000" />
+      <workItem from="1767227569006" duration="2380000" />
+>>>>>>> e09a621dcc89ef9f40f687fc302f70ee80e48967
     </task>
+    <task id="LOCAL-00001" summary="ok">
+      <option name="closed" value="true" />
+      <created>1765942776378</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1765942776378</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -205,6 +291,10 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="ok" />
+    <option name="LAST_COMMIT_MESSAGE" value="ok" />
   </component>
   <component name="WordPressConfiguration" enabled="true">
     <wordpressPath>$PROJECT_DIR$/../../..</wordpressPath>
