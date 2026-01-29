@@ -2250,7 +2250,7 @@ function getDownloadXlsxData(int $downloadID): false|mysqli_result
     $conn = db();
 
     // Truy vấn AI listings
-    $sql1 = "SELECT DISTINCT al.item_name, al.product_description, al.meta_data, p.sku, p.images
+    $sql1 = "SELECT DISTINCT al.ID ,al.item_name, al.product_description, al.meta_data, p.sku, p.images
              FROM amazon_listings AS al
              INNER JOIN posts p ON al.post_id = p.ID
              WHERE al.download_id = ?
@@ -2273,7 +2273,7 @@ function getDownloadXlsxData(int $downloadID): false|mysqli_result
     if ($result->num_rows === 0) {
         $stmt->close();
 
-        $sql2 = "SELECT DISTINCT p.title AS item_name,
+        $sql2 = "SELECT DISTINCT p.ID, p.title AS item_name,
                                 p.description AS product_description,
                                 p.metadata AS meta_data,
                                 p.sku,
@@ -2563,21 +2563,53 @@ function processEBayProductsToXlsx($data, $statusRow, $sheet, $headers): void {
     while ($row = $data->fetch_assoc()) {
         // get default headers value.
         $default_values = !empty($statusRow['file_default']) ? json_decode($statusRow['file_default'], true) : [];
-        $images = json_decode($row['images'], true);
-
-        // map AI values.
-        $default_values[] = [
-            'text'  => 'Title',
-            'value' => $row['item_name']
-        ];
-        $default_values[] = [
-            'text'  => 'Description',
-            'value' => $row['product_description']
-        ];
+        $images = convertImageJson($row['images'], true);
 
         $relationship_details = getValueByText($default_values, 'Relationship details');
         $price = getValueByText($default_values, 'Start price');
         $quantity = getValueByText($default_values, 'Quantity');
+        $item_photo_url = getValueByText($default_values, 'Item photo URL');
+        $description = getValueByText($default_values, 'Description');
+
+        // map AI values.
+        $default_values[] = [
+            'text'  => 'Title',
+            'value' => formatStringSafe($row['item_name'])
+        ];
+        $SKU = $statusRow['sku'] . '-'. $row['ID'];
+        $default_values[] = [
+            'text'  => 'Custom label (SKU)',
+            'value' => $SKU
+        ];
+        if($description && $row['product_description']){
+            $description = $row['product_description'] . "\n" . $description;
+            setValueByText($default_values, 'Description', $description);
+        } else {
+            $default_values[] = [
+                'text' => 'Description',
+                'value' => $row['product_description']
+            ];
+        }
+        if($item_photo_url && $images){
+            setValueByText($default_values, 'Item photo URL', $images .'|'. $item_photo_url);
+        } else {
+            $default_values[] = [
+                'text' => 'Item photo URL',
+                'value' => $images
+            ];
+        }
+        if($row['meta_data']){
+            $meta_data = json_decode($row['meta_data'], true);
+            foreach ($meta_data as $key => $meta){
+                if(is_array($meta)){
+                    $meta = implode(',' , $meta);
+                }
+                $default_values[] = [
+                    'text'  => 'C:'.$key,
+                    'value' => $meta
+                ];
+            }
+        }
 
         setValueByText($default_values, 'Start price', '');
         setValueByText($default_values, 'Quantity', '');
@@ -2614,6 +2646,50 @@ function processEBayProductsToXlsx($data, $statusRow, $sheet, $headers): void {
             }
         }
     }
+}
+
+function formatStringSafe($input): string
+{
+    // Viết hoa ký tự đầu tiên của mỗi từ
+    $formatted = ucwords(strtolower($input));
+
+    // Nếu chuỗi dài hơn 80 ký tự thì cắt tại khoảng trắng gần nhất
+    if (strlen($formatted) > 80) {
+        // Lấy chuỗi 80 ký tự đầu tiên
+        $temp = substr($formatted, 0, 80);
+        // Tìm vị trí khoảng trắng cuối cùng trong đoạn này
+        $cutPos = strrpos($temp, ' ');
+        if ($cutPos !== false) {
+            $formatted = substr($temp, 0, $cutPos);
+        } else {
+            // Nếu không có khoảng trắng thì cắt thẳng
+            $formatted = $temp;
+        }
+    }
+
+    return $formatted;
+}
+
+function convertImageJson($jsonString) {
+    // Giải mã JSON thành mảng
+    $data = json_decode($jsonString, true);
+
+    // Nếu không có trường main thì trả về rỗng
+    if (!isset($data['main'])) {
+        return '';
+    }
+
+    // Bắt đầu với url main
+    $result = $data['main'];
+
+    // Nếu có mảng images và là mảng hợp lệ
+    if (isset($data['images']) && is_array($data['images'])) {
+        foreach ($data['images'] as $img) {
+            $result .= '|' . $img;
+        }
+    }
+
+    return $result;
 }
 
 /**
