@@ -118,11 +118,11 @@
   }
 }</component>
   <component name="RecapSpentCounter">
-    <option name="endsOfQuotaMs" value="1769076008137" />
-    <option name="spentUsd" value="0.03243205" />
+    <option name="endsOfQuotaMs" value="1771668017585" />
+    <option name="spentUsd" value="0.0077106003" />
   </component>
   <component name="RecapUselessUpdatesCounter">
-    <option name="suspendCountdown" value="4" />
+    <option name="suspendCountdown" value="1" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -142,8 +142,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-PS-253.29346.151" />
-        <option value="bundled-php-predefined-a98d8de5180a-0e0d91225499-com.jetbrains.php.sharedIndexes-PS-253.29346.151" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-PS-253.30387.85" />
+        <option value="bundled-php-predefined-a98d8de5180a-0e0d91225499-com.jetbrains.php.sharedIndexes-PS-253.30387.85" />
       </set>
     </attachedChunks>
   </component>
@@ -222,7 +222,10 @@
       <workItem from="1766586105617" duration="408000" />
       <workItem from="1766975010276" duration="803000" />
       <workItem from="1767153594779" duration="9268000" />
-      <workItem from="1767227569006" duration="2380000" />
+      <workItem from="1767227569006" duration="2587000" />
+      <workItem from="1769573005801" duration="1962000" />
+      <workItem from="1769654284394" duration="122000" />
+      <workItem from="1769654462760" duration="761000" />
     </task>
     <task id="LOCAL-00001" summary="ok">
       <option name="closed" value="true" />

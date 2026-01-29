@@ -2381,6 +2381,7 @@ function downloadXlsx(): array
         case 'amazon-com':
             processAmazonProductsToXlsx($data, $statusRow, $sheet, $headers);
             break;
+        case 'ebay-com-au':
         case 'ebay-com':
             processEBayProductsToXlsx($data, $statusRow, $sheet, $headers);
             break;
