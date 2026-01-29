@@ -2576,7 +2576,7 @@ function processEBayProductsToXlsx($data, $statusRow, $sheet, $headers): void {
             'text'  => 'Title',
             'value' => formatStringSafe($row['item_name'])
         ];
-        $SKU = $statusRow['sku'] . '-'. $row['ID'];
+        $SKU = $statusRow['sku'] ? $statusRow['sku'] . '-'. $row['ID'] : $row['ID'];
         $default_values[] = [
             'text'  => 'Custom label (SKU)',
             'value' => $SKU
@@ -2584,11 +2584,6 @@ function processEBayProductsToXlsx($data, $statusRow, $sheet, $headers): void {
         if($description && $row['product_description']){
             $description = $row['product_description'] . "\n" . $description;
             setValueByText($default_values, 'Description', $description);
-        } else {
-            $default_values[] = [
-                'text' => 'Description',
-                'value' => $row['product_description']
-            ];
         }
         if($item_photo_url && $images){
             setValueByText($default_values, 'Item photo URL', $images .'|'. $item_photo_url);
