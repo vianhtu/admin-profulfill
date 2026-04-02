@@ -25,7 +25,7 @@
     <execution />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="1828" />
+    <option name="cachedIndexableFilesCount" value="1829" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="FileTemplateManagerImpl">
@@ -40,6 +40,7 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="ROOT_SYNC" value="SYNC" />
   </component>
   <component name="McpProjectServerCommands">
     <commands />
@@ -119,10 +120,10 @@
 }</component>
   <component name="RecapSpentCounter">
     <option name="endsOfQuotaMs" value="1771668017585" />
-    <option name="spentUsd" value="0.0077106003" />
+    <option name="spentUsd" value="0.0136826" />
   </component>
   <component name="RecapUselessUpdatesCounter">
-    <option name="suspendCountdown" value="1" />
+    <option name="suspendCountdown" value="0" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -142,8 +143,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-PS-253.30387.85" />
-        <option value="bundled-php-predefined-a98d8de5180a-0e0d91225499-com.jetbrains.php.sharedIndexes-PS-253.30387.85" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-PS-253.31033.138" />
+        <option value="bundled-php-predefined-a98d8de5180a-0e0d91225499-com.jetbrains.php.sharedIndexes-PS-253.31033.138" />
       </set>
     </attachedChunks>
   </component>
@@ -226,6 +227,11 @@
       <workItem from="1769573005801" duration="1962000" />
       <workItem from="1769654284394" duration="122000" />
       <workItem from="1769654462760" duration="761000" />
+      <workItem from="1772764209071" duration="278000" />
+      <workItem from="1772764531475" duration="271000" />
+      <workItem from="1772764824835" duration="18000" />
+      <workItem from="1772764903152" duration="166000" />
+      <workItem from="1772765077730" duration="48000" />
     </task>
     <task id="LOCAL-00001" summary="ok">
       <option name="closed" value="true" />
