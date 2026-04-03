@@ -766,7 +766,7 @@ function getAllAuthors(): array {
 function getAuthorsByTeam(): array
 {
     if(isAdmin()){
-        if (empty($_POST['filter_team'])) {
+        if (!empty($_POST['filter_team'])) {
             $team_id = intval($_POST['filter_team']);
         } else {
             return getAllData('authors', 'username');
