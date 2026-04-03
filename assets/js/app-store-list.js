@@ -288,7 +288,7 @@ function initTable(){
                 const api = this.api();
                 getSelect2filterTable(api,'filter-site', '.filter-sites', 4, 'Site', sitesObj);
                 getSelect2filterTable(api,'filter_team', '.filter-teams', 3, 'Team', teamsObj);
-                getSelect2filterTable(api,'filter-author', '.filter-authors', 5, 'Author');
+                getSelect2filterTable(api,'filter-author', '.filter-authors', 5, 'Author', authorsObj);
                 $('#filter_team').on('change', function () {
                     let e_id = $(this).val();
                     $.ajax({

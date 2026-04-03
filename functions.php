@@ -766,7 +766,7 @@ function getAllAuthors(): array {
 function getAuthorsByTeam(): array
 {
     if (!isset($_REQUEST['filter_team'])) {
-        return [];
+        return getAllData('authors', 'username');
     }
 
     $team_id = intval($_REQUEST['filter_team']);
