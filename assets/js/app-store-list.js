@@ -305,6 +305,7 @@ function initTable(){
                             author.prop('disabled', true);
                             return;
                         }
+                        author.append('<option value="">All</option>');
                         $.each(data, function (index, item) {
                             author.append(
                                 $('<option>', {
@@ -316,7 +317,6 @@ function initTable(){
                         author.prop('disabled', false);
                         // Khởi tạo hoặc refresh Select2
                         author.select2({
-                            placeholder: 'ALL',
                             allowClear: true
                         });
                     });
