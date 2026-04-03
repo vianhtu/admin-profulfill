@@ -286,8 +286,8 @@ function initTable(){
             },
             initComplete: function () {
                 const api = this.api();
-                getSelect2filterTable(api,'filter-team', '.filter-teams', 3, 'Team', teamsObj);
                 getSelect2filterTable(api,'filter-site', '.filter-sites', 4, 'Site', sitesObj);
+                getSelect2filterTable(api,'filter-team', '.filter-teams', 3, 'Team', teamsObj);
                 getSelect2filterTable(api,'filter-author', '.filter-authors', 5, 'Author', authorsObj);
             }
         });
