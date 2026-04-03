@@ -765,11 +765,16 @@ function getAllAuthors(): array {
 
 function getAuthorsByTeam(): array
 {
-    if (!isset($_REQUEST['filter_team'])) {
-        return getAllData('authors', 'username');
+    if(isAdmin()){
+        if (isset($_POST['filter_team'])) {
+            $team_id = intval($_POST['filter_team']);
+        } else {
+            return getAllData('authors', 'username');
+        }
+    } else {
+        $team_id = intval($_SESSION['auth']['team']);
     }
 
-    $team_id = intval($_REQUEST['filter_team']);
     $conn = db();
 
     // 1. Sử dụng dấu ? làm placeholder thay vì truyền thẳng giá trị
