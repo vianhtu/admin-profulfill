@@ -12,7 +12,6 @@ async function init() {
     try {
         let options = await fetchTableFilter('get-stores-table-filter');
         teamsObj = options['teams'];
-        authorsObj = options['authors'];
         sitesObj = options['sites'];
         initTable();
     } catch (err) {
@@ -288,7 +287,7 @@ function initTable(){
                 const api = this.api();
                 getSelect2filterTable(api,'filter-site', '.filter-sites', 4, 'Site', sitesObj);
                 getSelect2filterTable(api,'filter-team', '.filter-teams', 3, 'Team', teamsObj);
-                getSelect2filterTable(api,'filter-author', '.filter-authors', 5, 'Author', authorsObj);
+                getSelect2filterTable(api,'filter-author', '.filter-authors', 5, 'Author');
                 $('#filter-team').on('change', function () {
                     let e_id = $(this).val();
                     $.ajax({
@@ -299,6 +298,7 @@ function initTable(){
                         },
                     }).done(function(data) {
                         let author = $('#filter-author');
+                        authorsObj = data;
                         // Xóa option cũ
                         author.empty();
                         if (!data || Object.keys(data).length === 0) {

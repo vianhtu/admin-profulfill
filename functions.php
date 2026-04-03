@@ -1398,7 +1398,6 @@ function getDownloadTable(): array {
 
 function getStoresTableFilters(): array {
     $options = [];
-    $options['authors'] = getAllAuthors();
     $options['sites'] = getAllSites();
     $options['teams'] = getAllTeams();
     return $options;
