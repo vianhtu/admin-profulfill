@@ -40,6 +40,15 @@ function menuArgs():array
                 ],
             ]
         ],
+        'Stores' => [
+            'icon' => 'tabler-building-store',
+            'sub' => [
+                'stores' => [
+                    'label' => 'Stores',
+                    'roles' => ['view','add','edit','delete']
+                ]
+            ]
+        ],
         'Export' => [
             'icon' => 'tabler-file-type-xls',
             'sub' => [
