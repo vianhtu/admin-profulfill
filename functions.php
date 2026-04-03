@@ -1076,6 +1076,7 @@ function getProductsTableFilters(): array {
     $options['types'] = getAllTypes();
     $options['authors'] = getAllAuthors();
     $options['sites'] = getAllSites();
+    $options['teams'] = getAllTeams();
     return $options;
 }
 
@@ -1352,6 +1353,94 @@ function getDownloadTable(): array {
             "total_token"       => $row['total_token'],
             "temp_file_name"    => $row['file_name'],
             "ai_name"           => $row['ai_name'],
+        ];
+    }
+
+    return [
+        "draw"            => $params['draw'],
+        "recordsTotal"    => $totalRecords,
+        "recordsFiltered" => $totalFiltered,
+        "data"            => $data
+    ];
+}
+
+function getStoresTableFilters(): array {
+    $options = [];
+    $options['authors'] = getAllAuthors();
+    $options['sites'] = getAllSites();
+    $options['teams'] = getAllTeams();
+    return $options;
+}
+
+function getStoresTable(): array
+{
+    $allowedCols = ['ID', 'team_id', 'status', 'available_funds', 'on_hold', 'subscription_fee', 'created_date'];
+
+    // Lấy tham số từ DataTables
+    $params = getDataTableParams($allowedCols);
+    if(!checkRoles('view', 'stores')){
+        return [
+            "draw"            => $params['draw'],
+            "recordsTotal"    => 0,
+            "recordsFiltered" => 0,
+            "data"            => []
+        ];
+    }
+
+    $conn = db();
+
+    // Tổng số bản ghi
+    $totalRecords = $conn->query("SELECT COUNT(*) AS cnt FROM accounts")->fetch_assoc()['cnt'];
+
+    $whereClauses = [];
+
+    // Lọc theo search
+    if ($params['searchValue'] !== '') {
+        $searchEsc = $conn->real_escape_string($params['searchValue']);
+        $whereClauses[] = "accounts.email LIKE '%$searchEsc%' OR accounts.name LIKE '%$searchEsc%' OR accounts.user_id LIKE '%$searchEsc%' OR accounts.sku LIKE '%$searchEsc%'";
+    }
+
+    // Lọc theo type (int)
+    addTableFilter($whereClauses, 'exports.site_id', 3, 'int', $conn);
+
+    // Lọc theo role (int)
+    addTableFilter($whereClauses, 'accounts.team_id', 4, 'int', $conn);
+
+    // Lọc theo team name (int)
+    addTableFilter($whereClauses, 'accounts.author_id', 5, 'int', $conn);
+
+    $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
+
+    // Tổng số bản ghi sau khi lọc
+    $totalFiltered = $conn->query(
+        "SELECT COUNT(ID) AS cnt FROM accounts $where"
+    )->fetch_assoc()['cnt'];
+
+    // Lấy dữ liệu
+    $sql = "SELECT *
+            FROM accounts
+            $where
+            ORDER BY {$params['orderColumn']} {$params['orderDir']}
+            LIMIT {$params['start']}, {$params['length']}";
+    $rs = $conn->query($sql);
+
+    // Chuẩn bị dữ liệu trả về
+    $data = [];
+    while ($row = $rs->fetch_assoc()) {
+        $data[] = [
+            "id"              => $row['ID'],
+            "site_id"         => $row['site_id'],
+            "team_id"         => $row['team_id'],
+            "author_id"       => $row['author_id'],
+            "name"            => $row['name'],
+            "email"           => $row['email'],
+            "user_id"         => $row['user_id'],
+            "status"          => $row['status'],
+            "available_funds" => $row['available_funds'],
+            "on_hold"         => $row['on_hold'],
+            "subscription_fee"=> $row['subscription_fee'],
+            "created_date"    => $row['created_date'],
+            "sys_date"        => $row['sys_date'],
         ];
     }
 

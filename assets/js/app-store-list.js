@@ -11,8 +11,8 @@ let sitesObj = {};
 async function init() {
     try {
         // 1️⃣ Gọi API trước
-        let options = await fetchTableFilter();
-        categoryObj = options['types'];
+        let options = await fetchTableFilter('get-stores-table-filter');
+        categoryObj = options['teams'];
         authorsObj = options['authors'];
         sitesObj = options['sites'];
 
