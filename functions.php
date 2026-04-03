@@ -765,11 +765,11 @@ function getAllAuthors(): array {
 
 function getAuthorsByTeam(): array
 {
-    if (!isset($_POST['team'])) {
+    if (!isset($_REQUEST['filter_team'])) {
         return [];
     }
 
-    $team_id = intval($_POST['team']);
+    $team_id = intval($_REQUEST['filter_team']);
     $conn = db();
 
     // 1. Sử dụng dấu ? làm placeholder thay vì truyền thẳng giá trị
@@ -1398,6 +1398,7 @@ function getDownloadTable(): array {
 
 function getStoresTableFilters(): array {
     $options = [];
+    $options['authors'] = getAuthorsByTeam();
     $options['sites'] = getAllSites();
     $options['teams'] = getAllTeams();
     return $options;

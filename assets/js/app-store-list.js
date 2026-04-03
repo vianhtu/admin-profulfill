@@ -13,6 +13,7 @@ async function init() {
         let options = await fetchTableFilter('get-stores-table-filter');
         teamsObj = options['teams'];
         sitesObj = options['sites'];
+        authorsObj = options['authors'];
         initTable();
     } catch (err) {
         alert('Không thể tải danh mục');
@@ -286,15 +287,15 @@ function initTable(){
             initComplete: function () {
                 const api = this.api();
                 getSelect2filterTable(api,'filter-site', '.filter-sites', 4, 'Site', sitesObj);
-                getSelect2filterTable(api,'filter-team', '.filter-teams', 3, 'Team', teamsObj);
+                getSelect2filterTable(api,'filter_team', '.filter-teams', 3, 'Team', teamsObj);
                 getSelect2filterTable(api,'filter-author', '.filter-authors', 5, 'Author');
-                $('#filter-team').on('change', function () {
+                $('#filter_team').on('change', function () {
                     let e_id = $(this).val();
                     $.ajax({
                         url: '../../ajax.php?action=get-authors-by-team',
                         type: 'POST',
                         data: {
-                            team: e_id
+                            filter_team: e_id
                         },
                     }).done(function(data) {
                         let author = $('#filter-author');
