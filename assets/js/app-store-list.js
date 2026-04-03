@@ -309,7 +309,7 @@ function initTable(){
                             author.append(
                                 $('<option>', {
                                     value: index,
-                                    text: item
+                                    text: item.title
                                 })
                             );
                         });
