@@ -10,7 +10,17 @@ let sitesObj = {};
 
 async function init() {
     try {
-        let options = await fetchTableFilter('get-stores-table-filter');
+        // 1. Tạo đối tượng URLSearchParams từ URL hiện tại của trình duyệt
+        const urlParams = new URLSearchParams(window.location.search);
+
+        // 2. Lấy giá trị của 'filter_team', nếu không có sẽ trả về null
+        const filterTeamFromUrl = urlParams.get('filter_team');
+
+        const data = {'filter_team': ''};
+
+        // 3. Gán giá trị: Nếu trên URL có thì lấy từ URL, không thì giữ nguyên chuỗi rỗng
+        data['filter_team'] = filterTeamFromUrl !== null ? filterTeamFromUrl : '';
+        let options = await fetchTableFilter('get-stores-table-filter', data);
         teamsObj = options['teams'];
         sitesObj = options['sites'];
         authorsObj = options['authors'];
