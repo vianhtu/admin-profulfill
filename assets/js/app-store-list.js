@@ -4,19 +4,16 @@
 
 'use strict';
 
-let categoryObj = {};
+let teamsObj = {};
 let authorsObj = {};
 let sitesObj = {};
 
 async function init() {
     try {
-        // 1️⃣ Gọi API trước
         let options = await fetchTableFilter('get-stores-table-filter');
-        categoryObj = options['teams'];
+        teamsObj = options['teams'];
         authorsObj = options['authors'];
         sitesObj = options['sites'];
-
-        // 2️⃣ Sau khi có dữ liệu → tạo bảng
         initTable();
     } catch (err) {
         alert('Không thể tải danh mục');
@@ -140,7 +137,7 @@ function initTable(){
                     targets: 3,
                     render: function (data, type, full, meta) {
                         var id = full['type_id'];
-                        return '<span>' + categoryObj[id].title + '</span>';
+                        return '<span>' + teamsObj[id].title + '</span>';
                     }
                 },
                 {
@@ -289,16 +286,9 @@ function initTable(){
             },
             initComplete: function () {
                 const api = this.api();
-                getSelect2filterTable(api,'xlsxTypes', '.xlsx_types', 3, 'Type', categoryObj);
-                getSelect2filterTable(api,'xlsxSites', '.xlsx_sites', 4, 'Site', sitesObj);
-                getSelect2filterTable(api,'xlsxAuthors', '.xlsx_authors', 5, 'Author', authorsObj);
-
-                // Accounts filter
-                getAjaxSelect2HTML('xlsx_accounts', 'xlsxAccounts', 'Accounts', 'filter-accounts', true);
-                // Add event listener for filtering
-                $('#xlsxAccounts').on('change', function (){
-                    dt_user.draw();
-                });
+                getSelect2filterTable(api,'filter-team', '.filter-teams', 3, 'Team', teamsObj);
+                getSelect2filterTable(api,'filter-site', '.filter-sites', 4, 'Site', sitesObj);
+                getSelect2filterTable(api,'filter-author', '.filter-authors', 5, 'Author', authorsObj);
             }
         });
 
