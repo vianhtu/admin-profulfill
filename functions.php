@@ -40,7 +40,7 @@ function menuArgs():array
                 ],
             ]
         ],
-        'Stores' => [
+        'Manager Stores' => [
             'icon' => 'tabler-building-store',
             'link' => 'stores',
             'roles' => ['view','add','edit','delete']
