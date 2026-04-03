@@ -20,6 +20,9 @@ async function init() {
 
         // 3. Gán giá trị: Nếu trên URL có thì lấy từ URL, không thì giữ nguyên chuỗi rỗng
         data['filter_team'] = filterTeamFromUrl !== null ? filterTeamFromUrl : '';
+
+        console.log(data);
+
         let options = await fetchTableFilter('get-stores-table-filter', data);
         teamsObj = options['teams'];
         sitesObj = options['sites'];
