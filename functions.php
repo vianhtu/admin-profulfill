@@ -763,6 +763,38 @@ function getAllAuthors(): array {
     return getAllData('authors', 'username');
 }
 
+function getAuthorsByTeam(): array
+{
+    if (!isset($_POST['team'])) {
+        return [];
+    }
+
+    $team_id = intval($_POST['team']);
+    $conn = db();
+
+    // 1. Sử dụng dấu ? làm placeholder thay vì truyền thẳng giá trị
+    $stmt = $conn->prepare("SELECT ID, username FROM authors WHERE team_id = ?");
+
+    // 2. Gán giá trị biến $team_id vào dấu ? (chữ 'i' đại diện cho kiểu integer)
+    $stmt->bind_param("i", $team_id);
+
+    // 3. Thực thi câu lệnh
+    $stmt->execute();
+
+    // 4. Lấy kết quả trả về
+    $result = $stmt->get_result();
+
+    $data = [];
+    while ($row = $result->fetch_assoc()) {
+        $data[$row['ID']] = [
+            'title' => $row['username']
+        ];
+    }
+
+    $stmt->close();
+    return $data;
+}
+
 function getAllSites(): array {
     return getAllData('site', 'name');
 }
