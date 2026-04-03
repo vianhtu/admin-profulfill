@@ -153,7 +153,7 @@ function initTable(){
                     targets: 5,
                     render: function (data, type, full, meta) {
                         let id = full['authors_id'];
-                        return '<span class="text-heading">' + authorsObj[id].title + '</span>';
+                        return '';
                     }
                 },
                 {
