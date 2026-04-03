@@ -15,7 +15,7 @@ function menuArgs():array
             'link' => '' // để trống => mặc định dùng $currentMenu
         ],
         'eCommerce' => [
-            'icon' => 'tabler-building-store',
+            'icon' => 'tabler-shopping-cart',
             'sub' => [
                 'products' => [
                     'label' => 'Products',
