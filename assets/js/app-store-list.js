@@ -289,6 +289,38 @@ function initTable(){
                 getSelect2filterTable(api,'filter-site', '.filter-sites', 4, 'Site', sitesObj);
                 getSelect2filterTable(api,'filter-team', '.filter-teams', 3, 'Team', teamsObj);
                 getSelect2filterTable(api,'filter-author', '.filter-authors', 5, 'Author', authorsObj);
+                $('#filter-team').on('change', function () {
+                    let e_id = $(this).val();
+                    $.ajax({
+                        url: '../../ajax.php?action=get-authors-by-team',
+                        type: 'POST',
+                        data: {
+                            team: e_id
+                        },
+                    }).done(function(data) {
+                        let author = $('#filter-author');
+                        // Xóa option cũ
+                        author.empty();
+                        if (!data || Object.keys(data).length === 0) {
+                            author.prop('disabled', true);
+                            return;
+                        }
+                        $.each(data, function (index, item) {
+                            author.append(
+                                $('<option>', {
+                                    value: index,
+                                    text: item
+                                })
+                            );
+                        });
+                        author.prop('disabled', false);
+                        // Khởi tạo hoặc refresh Select2
+                        author.select2({
+                            placeholder: 'ALL',
+                            allowClear: true
+                        });
+                    });
+                });
             }
         });
 
