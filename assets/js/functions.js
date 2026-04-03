@@ -185,7 +185,6 @@ function getSelect2filterTable(api, id, html_class, col, label, options = {}, se
 async function fetchTableFilter(action = 'get-products-table-filter', data = {}){
     const res = await fetch('../../ajax.php?action='+ action, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         data: data
     });
     if (!res.ok) throw new Error('Lỗi lấy danh mục');
