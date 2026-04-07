@@ -116,7 +116,7 @@ function initTable(){
                         var store_name = full['name'];
                         var store_email = full['email'];
                         var store_id = full['user_id'];
-                        var store_site = full['site_id']; console.log(sitesObj);
+                        var store_site = full['site_id'];
                         var image = './../../assets/img/icons/brands/' + sitesObj[store_site].logo;
                         var output;
 
