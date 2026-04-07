@@ -69,39 +69,38 @@ if(!empty($export_data)){
             <!-- /Product Information -->
             <div class="card mb-6">
                 <div class="card-header">
-                    <h5 class="card-tile mb-0">Product information</h5>
+                    <h5 class="card-tile mb-0">Information</h5>
                 </div>
                 <div class="card-body">
                     <div class="mb-6">
-                        <label class="form-label" for="ecommerce-product-name">Name</label>
+                        <label class="form-label" for="store-name">Name</label>
                         <input
                                 type="text"
                                 class="form-control"
-                                id="ecommerce-product-name"
-                                placeholder="Product title"
-                                name="productTitle"
-                                aria-label="Product title" />
+                                id="store-name"
+                                placeholder="Store title"
+                                name="storeName"
+                                aria-label="Store title" />
                     </div>
                     <div class="row mb-6">
                         <div class="col">
-                            <label class="form-label" for="ecommerce-product-sku">SKU</label>
+                            <label class="form-label" for="store-sku">SKU</label>
                             <input
                                     type="number"
                                     class="form-control"
-                                    id="ecommerce-product-sku"
+                                    id="store-sku"
                                     placeholder="SKU"
-                                    name="productSku"
-                                    aria-label="Product SKU" />
+                                    name="storeSku"
+                                    aria-label="Store SKU" />
                         </div>
                         <div class="col">
-                            <label class="form-label" for="ecommerce-product-barcode">Barcode</label>
+                            <label class="form-label" for="store-id">ID</label>
                             <input
                                     type="text"
                                     class="form-control"
-                                    id="ecommerce-product-barcode"
-                                    placeholder="0123-4567"
-                                    name="productBarcode"
-                                    aria-label="Product barcode" />
+                                    id="store-id"
+                                    name="storeID"
+                                    aria-label="Store ID" />
                         </div>
                     </div>
                     <!-- Description -->
