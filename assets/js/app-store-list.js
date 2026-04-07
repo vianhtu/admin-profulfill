@@ -117,7 +117,7 @@ function initTable(){
                         var store_email = full['email'];
                         var store_id = full['user_id'];
                         var store_site = full['site_id'];
-                        var image = './../../assets/ing/icons/brands/' + store_site.logo;
+                        var image = './../../assets/ing/icons/brands/' + sitesObj[store_site].logo;
                         var output;
 
                         let name = '___';
@@ -129,7 +129,7 @@ function initTable(){
                             name = store_name;
                         }
 
-                        output = '<img src="' + image + '" alt="file.xlsx" class="rounded">';
+                        output = '<img src="' + image + '" alt="" class="rounded">';
 
                         // Creates full output for row
                         var row_output =
