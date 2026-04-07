@@ -362,6 +362,7 @@ function initTable(){
                         author.select2({
                             allowClear: true
                         });
+                        author.off('change');
                     });
                 });
             }
