@@ -803,7 +803,11 @@ function getAuthorsByTeam(): array
 function getAllSites(): array {
     $raw_data = getAllData('site', ['name', 'logo']);
     return array_map(function($value) {
-        return ['title' => $value, 'logo' => $value];
+        // Giả sử trong DB cột tên là 'name' và 'logo'
+        return [
+            'title' => $value['name'] ?? '',
+            'logo'  => $value['logo'] ?? ''
+        ];
     }, $raw_data);
 }
 
