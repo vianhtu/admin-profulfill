@@ -140,7 +140,7 @@ function initTable(){
                             '</div>' +
                             '</div>' +
                             '<div class="d-flex flex-column">' +
-                            '<a href="index.php?menu=stores&form=add&id='+full['id']+'" class="text-heading text-truncate"><span class="fw-medium">' +
+                            '<a href="index.php?menu=stores&form=edit&id='+full['id']+'" class="text-heading text-truncate"><span class="fw-medium">' +
                             store_email +
                             '</span></a>' +
                             '<small>' +
@@ -262,7 +262,7 @@ function initTable(){
                                     text: '<span class="d-flex align-items-center gap-2"><i class="icon-base ti tabler-plus icon-xs"></i> <span class="d-none d-sm-inline-block">Add New Record</span></span>',
                                     className: 'add-new btn btn-primary',
                                     action: function () {
-                                        window.location.href = 'index.php?menu=exports_xlsx&form=add';
+                                        window.location.href = 'index.php?menu=stores&form=add';
                                     }
                                 }
                             ]
