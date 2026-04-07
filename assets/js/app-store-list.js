@@ -155,17 +155,17 @@ function initTable(){
                     // Teams
                     targets: 3,
                     render: function (data, type, full, meta) {
-                        var id = full['team_id'];
-                        return '<span>' + teamsObj[id].title + '</span>';
+                        return '<div class="d-flex flex-column">' +
+                            '<span class="fw-medium">'+ teamsObj[full['team_id']].title +'</span>' +
+                            '<small>'+ authorsObj[full['author_id']].title +'</small>' +
+                            '</div>';
                     }
                 },
                 {
                     // Authors
                     targets: 4,
                     render: function (data, type, full, meta) {
-                        if (authorsObj[full['author_id']]) {
-                            return '<span class="text-heading">' + authorsObj[full['author_id']].title + '</span>';
-                        }
+                        
                     }
                 },
                 {
