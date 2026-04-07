@@ -119,7 +119,14 @@ function initTable(){
                         var image = './../../assets/svg/icons/xlsx_icon.svg';
                         var output;
 
-                        let name = store_id ? store_name + ' (' + store_id + ')' : store_name;
+                        let name = '';
+                        if (store_id && store_name) {
+                            name = store_name + ' (' + store_id + ')';
+                        } else if (store_id) {
+                            name = store_id;
+                        } else if (store_name) {
+                            name = store_name;
+                        }
 
                         output = '<img src="' + image + '" alt="file.xlsx" class="rounded">';
 
