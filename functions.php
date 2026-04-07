@@ -756,11 +756,11 @@ function getDataTableParams(array $allowedCols, string $defaultCol = 'ID'): arra
 }
 
 function getAllTypes(): array {
-    return getAllData('type', 'name');
+    return getAllDataMap('type', 'name');
 }
 
 function getAllAuthors(): array {
-    return getAllData('authors', 'username');
+    return getAllDataMap('authors', 'username');
 }
 
 function getAuthorsByTeam(): array
@@ -769,7 +769,7 @@ function getAuthorsByTeam(): array
         if (!empty($_POST['filter_team'])) {
             $team_id = intval($_POST['filter_team']);
         } else {
-            return getAllData('authors', 'username');
+            return getAllDataMap('authors', 'username');
         }
     } else {
         $team_id = intval($_SESSION['auth']['team']);
@@ -801,27 +801,91 @@ function getAuthorsByTeam(): array
 }
 
 function getAllSites(): array {
-    return getAllData('site', 'name');
+    return getAllDataMap('site', 'name');
 }
 
 function getAllRoles(): array {
     $roles = [0 => ['title' => 'Admin']];
-    return $roles + getAllData('roles_permissions', 'name');
+    return $roles + getAllDataMap('roles_permissions', 'name');
 }
 
 function getAllTeams(): array {
-    return getAllData('team', 'name');
+    if(isAdmin()) {
+        return getAllDataMap('team', 'name');
+    } else {
+        
+    }
 }
 
-function getAllData(string $table, string $field): array {
+function getAllDataMap(string $table, string $field): array
+{
+    $raw_data = getAllData($table, $field);
+    return array_map(function($value) {
+        return ['title' => $value];
+    }, $raw_data);
+}
+
+function getAllData(string $table, string $field): array
+{
     $conn = db();
-    $stmt = $conn->query("SELECT ID, {$field} FROM {$table}");
-    $data = [];
-    while ($row = $stmt->fetch_assoc()) {
-        $data[$row['ID']] = [
-            'title' => $row[$field]
-        ];
+
+    // 1. Chỉ cho phép chữ cái, chữ số và dấu gạch dưới để chống SQL Injection
+    $safe_table = preg_replace('/[^a-zA-Z0-9_]/', '', $table);
+    $safe_field = preg_replace('/[^a-zA-Z0-9_]/', '', $field);
+
+    // 2. Thực thi câu lệnh SQL với tên bảng/cột đã được làm sạch
+    // Bọc trong dấu backtick (`) để tránh lỗi nếu tên cột trùng từ khóa của MySQL
+    $stmt = $conn->query("SELECT ID, `{$safe_field}` FROM `{$safe_table}`");
+
+    if (!$stmt) {
+        // Trả về mảng rỗng nếu câu lệnh lỗi (ví dụ: sai tên bảng hoặc cột)
+        return [];
     }
+
+    $data = [];
+
+    // 3. Lặp và lấy dữ liệu
+    while ($row = $stmt->fetch_assoc()) {
+        $data[$row['ID']] = $row[$safe_field];
+    }
+
+    // Hàm query() trực tiếp không trả về đối tượng statement có method close()
+    // nên ta không cần gọi $stmt->close() ở đây.
+
+    return $data;
+}
+
+function getFieldByID(string $table, string $field, int $id): array
+{
+    $conn = db();
+
+    // 1. Bảo vệ tên bảng và tên cột để tránh SQL Injection (whitelist hoặc escape)
+    // Vì tên bảng/cột không thể dùng dấu '?' để bind, ta dùng preg_replace để chỉ cho phép chữ, số và dấu gạch dưới.
+    $safe_table = preg_replace('/[^a-zA-Z0-9_]/', '', $table);
+    $safe_field = preg_replace('/[^a-zA-Z0-9_]/', '', $field);
+
+    // 2. Chuẩn bị câu lệnh với dấu ? cho ID
+    $stmt = $conn->prepare("SELECT ID, `{$safe_field}` FROM `{$safe_table}` WHERE ID = ?");
+
+    if (!$stmt) {
+        // Trả về mảng rỗng nếu câu lệnh SQL bị lỗi (sai tên bảng hoặc cột)
+        return [];
+    }
+
+    // 3. Bind tham số $id (kiểu integer 'i') vào dấu ?
+    $stmt->bind_param("i", $id);
+
+    // 4. Thực thi
+    $stmt->execute();
+
+    // 5. Lấy kết quả
+    $result = $stmt->get_result();
+    $data = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $data[$row['ID']] = $row[$safe_field];
+    }
+
     $stmt->close();
     return $data;
 }
