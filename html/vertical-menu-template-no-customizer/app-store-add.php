@@ -57,7 +57,7 @@ if(!empty($export_data)){
         </div>
         <div class="d-flex align-content-center flex-wrap gap-4">
             <div class="d-flex gap-4">
-                <a href="index.php?menu=exports_xlsx" class="btn btn-label-secondary">Discard</a>
+                <a href="index.php?menu=stores" class="btn btn-label-secondary">Discard</a>
             </div>
             <button type="submit" id="export_submit" class="btn btn-primary waves-effect waves-light"><span class="spinner-border spinner-border-sm me-2 d-none" role="status" id="loading_spinner"></span><?= $text_button ?></button>
         </div>
