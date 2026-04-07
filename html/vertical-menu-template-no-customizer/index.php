@@ -250,7 +250,11 @@ if (empty($_SESSION['csrf_token'])) {
                       include 'app-ecommerce-order-list.php';
                       break;
                   case 'stores':
-                      include 'app-store-list.php';
+                      if( isset( $_GET['form'] ) && ($_GET['form'] == 'add' || $_GET['form'] == 'edit')) {
+                          include 'app-store-add.php';
+                      } else {
+                          include 'app-store-list.php';
+                      }
                       break;
                   case 'exports_download':
                       include 'app-xlsx-download-list.php';
@@ -373,8 +377,11 @@ if (empty($_SESSION['csrf_token'])) {
         case 'orders': ?>
             <script src="../../assets/js/app-ecommerce-order-list.js"></script>
             <?php break;
-        case 'stores': ?>
-            <script src="../../assets/js/app-store-list.js"></script>
+        case 'stores': if( isset( $_GET['form'] ) && ($_GET['form'] == 'add' || $_GET['form'] == 'edit')){ ?>
+                <script src="../../assets/js/app-store-add.js"></script>
+            <?php } else { ?>
+                <script src="../../assets/js/app-store-list.js"></script>
+            <?php } ?>
             <?php break;
         case 'exports_download': ?>
             <script src="../../assets/js/app-xlsx-download-list.js"></script>
