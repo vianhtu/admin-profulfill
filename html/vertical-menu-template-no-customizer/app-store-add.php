@@ -192,6 +192,8 @@ if(!empty($export_data)){
                                     name="storeEmail"
                                     aria-label="Store Email" />
                         </div>
+                    </div>
+                    <div class="row mb-6">
                         <div class="col">
                             <label class="form-label" for="email-password">Password</label>
                             <input
@@ -201,8 +203,6 @@ if(!empty($export_data)){
                                     name="emailPassword"
                                     aria-label="Email Password" />
                         </div>
-                    </div>
-                    <div class="row mb-6">
                         <div class="col">
                             <label class="form-label" for="email-recovery">Recovery Email</label>
                             <input
@@ -213,6 +213,8 @@ if(!empty($export_data)){
                                     name="emailRecovery"
                                     aria-label="Email Recovery" />
                         </div>
+                    </div>
+                    <div class="row mb-6">
                         <div class="col">
                             <label class="form-label" for="email-2fa">2FA Code</label>
                             <input
