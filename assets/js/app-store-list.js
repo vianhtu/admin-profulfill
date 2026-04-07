@@ -178,8 +178,7 @@ function initTable(){
                     // Date
                     targets: 6,
                     render: function (data, type, full, meta) {
-                        const date = full['sys_date'];
-                        return '<span class="text-heading">' + date + '</span>';
+                        return '<span class="text-heading">' + full['sys_date'] + '</span>';
                     }
                 },
                 {
@@ -196,7 +195,7 @@ function initTable(){
                     // Fee
                     targets: 8,
                     render: function (data, type, full, meta) {
-                        return '<span class="text-heading">-$' + full['subscription_fee'] + '</span>';
+                        return '<span class="text-heading">$' + full['subscription_fee'] + '</span>';
                     }
                 },
                 {
@@ -206,18 +205,18 @@ function initTable(){
                     orderable: false,
                     render: (data, type, full, meta) => {
                         return `
-              <div class="d-flex align-items-center">
-                <a href="index.php?menu=exports_xlsx&form=add&id=${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon">
-                  <i class="icon-base ti tabler-edit icon-22px"></i>
-                </a>
-                <a href="javascript:;" data-id="${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon duplicate-record">
-                  <i class="icon-base ti tabler-copy-check icon-22px"></i>
-                </a>
-                <a href="javascript:;" data-id="${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon delete-record">
-                  <i class="icon-base ti tabler-trash icon-22px"></i>
-                </a>
-              </div>
-            `;
+                          <div class="d-flex align-items-center">
+                            <a href="index.php?menu=exports_xlsx&form=add&id=${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon">
+                              <i class="icon-base ti tabler-edit icon-22px"></i>
+                            </a>
+                            <a href="javascript:;" data-id="${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon duplicate-record">
+                              <i class="icon-base ti tabler-copy-check icon-22px"></i>
+                            </a>
+                            <a href="javascript:;" data-id="${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon delete-record">
+                              <i class="icon-base ti tabler-trash icon-22px"></i>
+                            </a>
+                          </div>
+                        `;
                     }
                 }
             ],
