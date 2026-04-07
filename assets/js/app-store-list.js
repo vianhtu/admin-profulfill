@@ -116,10 +116,11 @@ function initTable(){
                         var store_name = full['name'];
                         var store_email = full['email'];
                         var store_id = full['user_id'];
-                        var image = './../../assets/svg/icons/xlsx_icon.svg';
+                        var store_site = full['site_id'];
+                        var image = './../../assets/ing/icons/brands/';
                         var output;
 
-                        let name = '';
+                        let name = '___';
                         if (store_id && store_name) {
                             name = store_name + ' (' + store_id + ')';
                         } else if (store_id) {

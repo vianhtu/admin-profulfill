@@ -827,32 +827,41 @@ function getAllDataMap(string $table, string $field): array
     }, $raw_data);
 }
 
-function getAllData(string $table, string $field): array
+function getAllData(string $table, $field): array
 {
     $conn = db();
 
-    // 1. Chỉ cho phép chữ cái, chữ số và dấu gạch dưới để chống SQL Injection
+    // Làm sạch tên bảng
     $safe_table = preg_replace('/[^a-zA-Z0-9_]/', '', $table);
-    $safe_field = preg_replace('/[^a-zA-Z0-9_]/', '', $field);
 
-    // 2. Thực thi câu lệnh SQL với tên bảng/cột đã được làm sạch
-    // Bọc trong dấu backtick (`) để tránh lỗi nếu tên cột trùng từ khóa của MySQL
-    $stmt = $conn->query("SELECT ID, `{$safe_field}` FROM `{$safe_table}`");
+    // Xử lý fields: Nếu là chuỗi thì biến thành mảng để xử lý chung một logic
+    $fields = is_array($field) ? $field : [$field];
 
-    if (!$stmt) {
-        // Trả về mảng rỗng nếu câu lệnh lỗi (ví dụ: sai tên bảng hoặc cột)
-        return [];
-    }
+    // Làm sạch từng tên cột và bọc trong dấu backtick
+    $safe_fields_array = array_map(function($f) {
+        return "`" . preg_replace('/[^a-zA-Z0-9_]/', '', $f) . "`";
+    }, $fields);
+
+    $fields_sql = implode(', ', $safe_fields_array);
+
+    // Thực thi SQL (Lấy ID và các fields yêu cầu)
+    $stmt = $conn->query("SELECT `ID`, {$fields_sql} FROM `{$safe_table}`");
+
+    if (!$stmt) return [];
 
     $data = [];
-
-    // 3. Lặp và lấy dữ liệu
     while ($row = $stmt->fetch_assoc()) {
-        $data[$row['ID']] = $row[$safe_field];
-    }
+        $id = $row['ID'];
+        unset($row['ID']); // Xóa ID khỏi mảng row để chỉ còn lại các fields dữ liệu
 
-    // Hàm query() trực tiếp không trả về đối tượng statement có method close()
-    // nên ta không cần gọi $stmt->close() ở đây.
+        // Nếu chỉ yêu cầu 1 field duy nhất, trả về giá trị đơn (giữ logic cũ)
+        // Nếu yêu cầu nhiều fields, trả về cả mảng row dữ liệu đó
+        if (count($fields) === 1) {
+            $data[$id] = reset($row);
+        } else {
+            $data[$id] = $row;
+        }
+    }
 
     return $data;
 }
