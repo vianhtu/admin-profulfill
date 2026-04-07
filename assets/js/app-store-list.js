@@ -178,7 +178,8 @@ function initTable(){
                     // Date
                     targets: 6,
                     render: function (data, type, full, meta) {
-
+                        const date = full['sys_date'];
+                        return '<span class="text-heading">' + date + '</span>';
                     }
                 },
                 {
