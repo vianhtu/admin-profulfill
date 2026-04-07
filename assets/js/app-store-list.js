@@ -249,7 +249,7 @@ function initTable(){
                     features: [
                         {
                             search: {
-                                placeholder: 'Search File',
+                                placeholder: 'Search',
                                 text: '_INPUT_'
                             }
                         },
