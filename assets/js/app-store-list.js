@@ -178,7 +178,10 @@ function initTable(){
                     // Date
                     targets: 6,
                     render: function (data, type, full, meta) {
-                        return '<span class="text-heading">' + full['sys_date'] + '</span>';
+                        return '<div class="d-flex flex-column">' +
+                            '<span class="fw-medium">$'+ full['created_date'] +'</span>' +
+                            '<small>sys: '+ full['sys_date'] +'</small>' +
+                            '</div>';
                     }
                 },
                 {
