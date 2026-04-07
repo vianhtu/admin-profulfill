@@ -113,26 +113,6 @@ if(!empty($export_data)){
                                     aria-label="Owner SSN" />
                         </div>
                     </div>
-                    <!-- Description -->
-                    <div>
-                        <label class="mb-1">Description (Optional)</label>
-                        <div class="form-control p-0">
-                            <div class="comment-toolbar border-0 border-bottom">
-                                <div class="d-flex justify-content-start">
-                                <span class="ql-formats me-0">
-                                  <button class="ql-bold"></button>
-                                  <button class="ql-italic"></button>
-                                  <button class="ql-underline"></button>
-                                  <button class="ql-list" value="ordered"></button>
-                                  <button class="ql-list" value="bullet"></button>
-                                  <button class="ql-link"></button>
-                                  <button class="ql-image"></button>
-                                </span>
-                                </div>
-                            </div>
-                            <div class="comment-editor border-0 pb-6" id="ecommerce-category-description"></div>
-                        </div>
-                    </div>
                 </div>
             </div>
             <div class="card mb-6">
