@@ -117,7 +117,7 @@ function initTable(){
                         var store_email = full['email'];
                         var store_id = full['user_id'];
                         var store_site = full['site_id'];
-                        var image = './../../assets/ing/icons/brands/';
+                        var image = './../../assets/ing/icons/brands/' + store_site.logo;
                         var output;
 
                         let name = '___';
