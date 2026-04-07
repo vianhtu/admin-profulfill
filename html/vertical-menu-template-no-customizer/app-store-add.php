@@ -124,6 +124,20 @@ if(!empty($export_data)){
                                     aria-label="Owner Phone" />
                         </div>
                     </div>
+                    <div class="row mb-6">
+                        <div class="dropzone needsclick p-0" id="dropzone-basic">
+                            <div class="dz-message needsclick form-control-validation">
+                                <p class="h4 needsclick pt-3 mb-2">Drag and drop your .xlsx file here</p>
+                                <p class="h6 text-body-secondary d-block fw-normal mb-2">or</p>
+                                <span class="needsclick btn btn-sm btn-label-primary" id="btnBrowse">Browse file</span>
+                                <!-- field ẩn để validation -->
+                                <input type="hidden" name="xlsxFilePresent" id="xlsxFilePresent" value="<?= $file_name ?>">
+                            </div>
+                            <div class="fallback">
+                                <input name="file" type="file" required/>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="card mb-6">
@@ -178,23 +192,7 @@ if(!empty($export_data)){
             </div>
             <!-- Media -->
             <div class="card mb-6">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 card-title" id="fileTitle"><?= $file_name ?></h5>
-                </div>
-                <div class="card-body">
-                    <div class="dropzone needsclick p-0" id="dropzone-basic">
-                        <div class="dz-message needsclick form-control-validation">
-                            <p class="h4 needsclick pt-3 mb-2">Drag and drop your .xlsx file here</p>
-                            <p class="h6 text-body-secondary d-block fw-normal mb-2">or</p>
-                            <span class="needsclick btn btn-sm btn-label-primary" id="btnBrowse">Browse file</span>
-                            <!-- field ẩn để validation -->
-                            <input type="hidden" name="xlsxFilePresent" id="xlsxFilePresent" value="<?= $file_name ?>">
-                        </div>
-                        <div class="fallback">
-                            <input name="file" type="file" required/>
-                        </div>
-                    </div>
-                </div>
+
             </div>
             <!-- /Media -->
             <!-- Variants -->
