@@ -121,6 +121,7 @@ if(!empty($export_data)){
                                     class="form-control"
                                     id="store-2fa"
                                     name="store2fa"
+                                    placeholder="***************************"
                                     aria-label="Store 2FA" />
                         </div>
                     </div>
