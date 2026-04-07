@@ -183,17 +183,20 @@ function initTable(){
                     }
                 },
                 {
-                    // Date
+                    // Funds
                     targets: 7,
                     render: function (data, type, full, meta) {
 
                     }
                 },
                 {
-                    // Date
+                    // Fee
                     targets: 8,
                     render: function (data, type, full, meta) {
-
+                        return '<div class="d-flex flex-column">' +
+                            '<span class="fw-medium">'+ full['available_funds'] +'</span>' +
+                            '<small>'+ full['on_hold'] +'</small>' +
+                            '</div>';
                     }
                 },
                 {
