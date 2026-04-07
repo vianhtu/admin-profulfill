@@ -176,6 +176,66 @@ if(!empty($export_data)){
                     </div>
                 </div>
             </div>
+            <div class="card mb-6">
+                <div class="card-header">
+                    <h5 class="card-tile mb-0">Email</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-6">
+                        <div class="col">
+                            <label class="form-label" for="store-email">Email</label>
+                            <input
+                                    type="email"
+                                    class="form-control"
+                                    id="store-email"
+                                    placeholder="@"
+                                    name="storeEmail"
+                                    aria-label="Store Email" />
+                        </div>
+                        <div class="col">
+                            <label class="form-label" for="email-password">Password</label>
+                            <input
+                                    type="password"
+                                    class="form-control"
+                                    id="email-password"
+                                    name="emailPassword"
+                                    aria-label="Email Password" />
+                        </div>
+                    </div>
+                    <div class="row mb-6">
+                        <div class="col">
+                            <label class="form-label" for="email-recovery">Recovery Email</label>
+                            <input
+                                    type="email"
+                                    class="form-control"
+                                    id="email-recovery"
+                                    placeholder="@"
+                                    name="emailRecovery"
+                                    aria-label="Email Recovery" />
+                        </div>
+                        <div class="col">
+                            <label class="form-label" for="email-2fa">2FA Code</label>
+                            <input
+                                    type="password"
+                                    class="form-control"
+                                    id="email-2fa"
+                                    name="email2fa"
+                                    placeholder="***************************"
+                                    aria-label="Email 2FA" />
+                        </div>
+                        <div class="col">
+                            <label class="form-label" for="email-phone">Phone</label>
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    id="email-phone"
+                                    name="emailPhone"
+                                    placeholder="(000)-000-0000"
+                                    aria-label="Email Phone" />
+                        </div>
+                    </div>
+                </div>
+            </div>
             <!-- Media -->
             <div class="card mb-6">
                 <div class="card-header d-flex justify-content-between align-items-center">
