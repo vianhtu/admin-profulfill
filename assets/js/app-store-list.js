@@ -150,7 +150,7 @@ function initTable(){
                     // Authors
                     targets: 4,
                     render: function (data, type, full, meta) {
-                        if (full['author_id'] !== null) {
+                        if (full['author_id'] !== undefined) {
                             return '<span class="text-heading">' + authorsObj[full['author_id']].title + '</span>';
                         }
                     }
