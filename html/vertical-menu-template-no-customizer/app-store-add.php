@@ -84,7 +84,7 @@ if(!empty($export_data)){
                     </div>
                     <div class="row mb-6">
                         <div class="col">
-                            <label class="form-label" for="store-sku">SKU</label>
+                            <label class="form-label" for="store-sku">SKU (Optional)</label>
                             <input
                                     type="number"
                                     class="form-control"
@@ -94,7 +94,7 @@ if(!empty($export_data)){
                                     aria-label="Store SKU" />
                         </div>
                         <div class="col">
-                            <label class="form-label" for="store-id">ID</label>
+                            <label class="form-label" for="store-id">ID (Optional)</label>
                             <input
                                     type="text"
                                     class="form-control"
