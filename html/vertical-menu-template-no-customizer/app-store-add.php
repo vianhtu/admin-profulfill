@@ -107,7 +107,7 @@ if(!empty($export_data)){
                         <div class="col">
                             <label class="form-label" for="store-password">Password</label>
                             <input
-                                    type="text"
+                                    type="password"
                                     class="form-control"
                                     id="store-password"
                                     placeholder="*********"
@@ -117,7 +117,7 @@ if(!empty($export_data)){
                         <div class="col">
                             <label class="form-label" for="store-2fa">2FA Code (Optional)</label>
                             <input
-                                    type="text"
+                                    type="password"
                                     class="form-control"
                                     id="store-2fa"
                                     name="store2fa"
