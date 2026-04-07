@@ -96,10 +96,11 @@ if(!empty($export_data)){
                         <div class="col">
                             <label class="form-label" for="owner-dob">DOB</label>
                             <input
-                                    type="date"
+                                    type="text"
                                     class="form-control"
                                     id="owner-dob"
                                     name="ownerDOB"
+                                    placeholder="yyyy-mm-dd"
                                     aria-label="Owner DOB" />
                         </div>
                         <div class="col">
