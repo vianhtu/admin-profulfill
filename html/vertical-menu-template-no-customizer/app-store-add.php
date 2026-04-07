@@ -69,18 +69,50 @@ if(!empty($export_data)){
             <!-- /Product Information -->
             <div class="card mb-6">
                 <div class="card-header">
-                    <h5 class="card-tile mb-0">Information</h5>
+                    <h5 class="card-tile mb-0">Shop Owner Information</h5>
                 </div>
                 <div class="card-body">
                     <div class="mb-6">
-                        <label class="form-label" for="store-name">Name</label>
+                        <label class="form-label" for="owner-name">Name</label>
                         <input
                                 type="text"
                                 class="form-control"
-                                id="store-name"
-                                placeholder="Store title"
-                                name="storeName"
-                                aria-label="Store title" />
+                                id="owner-name"
+                                placeholder="Owner title"
+                                name="ownerName"
+                                aria-label="Owner title" />
+                    </div>
+                    <div class="mb-6">
+                        <label class="form-label" for="owner-address">Address</label>
+                        <input
+                                type="text"
+                                class="form-control"
+                                id="owner-address"
+                                placeholder="Owner title"
+                                name="ownerAddress"
+                                aria-label="Owner title" />
+                    </div>
+                    <div class="row mb-6">
+                        <div class="col">
+                            <label class="form-label" for="store-dob">DOB</label>
+                            <input
+                                    type="date"
+                                    class="form-control"
+                                    id="store-dob"
+                                    placeholder="yyyy-mm-dd"
+                                    name="storeDOB"
+                                    aria-label="Store DOB" />
+                        </div>
+                        <div class="col">
+                            <label class="form-label" for="store-ssn">SSN</label>
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    id="store-ssn"
+                                    name="storeSSN"
+                                    placeholder="000-00-0000"
+                                    aria-label="Store SSN" />
+                        </div>
                     </div>
                     <div class="row mb-6">
                         <div class="col">
@@ -123,28 +155,6 @@ if(!empty($export_data)){
                                     name="store2fa"
                                     placeholder="***************************"
                                     aria-label="Store 2FA" />
-                        </div>
-                    </div>
-                    <div class="row mb-6">
-                        <div class="col">
-                            <label class="form-label" for="store-dob">DOB</label>
-                            <input
-                                    type="date"
-                                    class="form-control"
-                                    id="store-dob"
-                                    placeholder="yyyy-mm-dd"
-                                    name="storeDOB"
-                                    aria-label="Store DOB" />
-                        </div>
-                        <div class="col">
-                            <label class="form-label" for="store-ssn">SSN</label>
-                            <input
-                                    type="text"
-                                    class="form-control"
-                                    id="store-ssn"
-                                    name="storeSSN"
-                                    placeholder="000-00-0000"
-                                    aria-label="Store SSN" />
                         </div>
                     </div>
                     <!-- Description -->
