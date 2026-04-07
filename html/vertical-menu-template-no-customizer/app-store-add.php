@@ -125,6 +125,28 @@ if(!empty($export_data)){
                                     aria-label="Store 2FA" />
                         </div>
                     </div>
+                    <div class="row mb-6">
+                        <div class="col">
+                            <label class="form-label" for="store-dob">DOB</label>
+                            <input
+                                    type="date"
+                                    class="form-control"
+                                    id="store-dob"
+                                    placeholder="yyyy-mm-dd"
+                                    name="storeDOB"
+                                    aria-label="Store DOB" />
+                        </div>
+                        <div class="col">
+                            <label class="form-label" for="store-ssn">SSN</label>
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    id="store-ssn"
+                                    name="storeSSN"
+                                    placeholder="000-00-0000"
+                                    aria-label="Store SSN" />
+                        </div>
+                    </div>
                     <!-- Description -->
                     <div>
                         <label class="mb-1">Description (Optional)</label>
