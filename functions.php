@@ -1520,13 +1520,13 @@ function getStoresTable(): array
     }
 
     // Lọc theo type (int)
-    addTableFilter($whereClauses, 'accounts.site_id', 3, 'int', $conn);
+    addTableFilter($whereClauses, 'accounts.site_id', 2, 'int', $conn);
 
     // Lọc theo role (int)
-    addTableFilter($whereClauses, 'accounts.team_id', 4, 'int', $conn);
+    addTableFilter($whereClauses, 'accounts.team_id', 3, 'int', $conn);
 
     // Lọc theo team name (int)
-    addTableFilter($whereClauses, 'accounts.author_id', 5, 'int', $conn);
+    addTableFilter($whereClauses, 'accounts.author_id', 4, 'int', $conn);
 
     $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
 
