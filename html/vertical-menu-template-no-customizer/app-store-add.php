@@ -103,6 +103,27 @@ if(!empty($export_data)){
                                     aria-label="Store ID" />
                         </div>
                     </div>
+                    <div class="row mb-6">
+                        <div class="col">
+                            <label class="form-label" for="store-password">Password</label>
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    id="store-password"
+                                    placeholder="*********"
+                                    name="storePassword"
+                                    aria-label="Store Password" />
+                        </div>
+                        <div class="col">
+                            <label class="form-label" for="store-2fa">2FA Code (Optional)</label>
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    id="store-2fa"
+                                    name="store2fa"
+                                    aria-label="Store 2FA" />
+                        </div>
+                    </div>
                     <!-- Description -->
                     <div>
                         <label class="mb-1">Description (Optional)</label>
