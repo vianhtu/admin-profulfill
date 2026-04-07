@@ -219,9 +219,6 @@ function initTable(){
                             <a href="index.php?menu=exports_xlsx&form=add&id=${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon">
                               <i class="icon-base ti tabler-edit icon-22px"></i>
                             </a>
-                            <a href="javascript:;" data-id="${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon duplicate-record">
-                              <i class="icon-base ti tabler-copy-check icon-22px"></i>
-                            </a>
                             <a href="javascript:;" data-id="${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon delete-record">
                               <i class="icon-base ti tabler-trash icon-22px"></i>
                             </a>
@@ -394,7 +391,7 @@ function initTable(){
             }
 
             // Gửi request Ajax
-            fetch(`../../ajax.php?action=${action}-xlsx`, {
+            fetch(`../../ajax.php?action=${action}-stores`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `id=${encodeURIComponent(recordId)}&csrf_token=${encodeURIComponent(window.csrfToken)}`
