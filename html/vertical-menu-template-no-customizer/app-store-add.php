@@ -86,7 +86,7 @@ if(!empty($export_data)){
                         <div class="col">
                             <label class="form-label" for="store-sku">SKU (Optional)</label>
                             <input
-                                    type="number"
+                                    type="text"
                                     class="form-control"
                                     id="store-sku"
                                     placeholder="SKU"
