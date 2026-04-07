@@ -196,7 +196,7 @@ function initTable(){
                     // Fee
                     targets: 8,
                     render: function (data, type, full, meta) {
-
+                        return '<span class="text-heading">-$' + full['subscription_fee'] + '</span>';
                     }
                 },
                 {
