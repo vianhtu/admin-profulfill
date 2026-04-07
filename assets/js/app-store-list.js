@@ -165,7 +165,7 @@ function initTable(){
                     // Authors
                     targets: 4,
                     render: function (data, type, full, meta) {
-                        
+
                     }
                 },
                 {
@@ -188,7 +188,7 @@ function initTable(){
                     render: function (data, type, full, meta) {
                         return '<div class="d-flex flex-column">' +
                             '<span class="fw-medium">'+ full['created_date'] +'</span>' +
-                            '<small>sys: '+ full['sys_date'] +'</small>' +
+                            '<small>'+ full['sys_date'] +'</small>' +
                             '</div>';
                     }
                 },
