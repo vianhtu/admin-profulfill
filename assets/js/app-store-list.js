@@ -35,6 +35,11 @@ async function init() {
 function initTable(){
     // Variable declaration for table
     const dt_user_table = document.querySelector('.datatables-users');
+    const statusObj = {
+        1: { title: 'Active', class: 'bg-label-success' },
+        2: { title: 'Review', class: 'bg-label-warning' },
+        3: { title: 'Inactive', class: 'bg-label-secondary' }
+    };
     // Users datatable
     if (dt_user_table) {
         const dt_user = new DataTable(dt_user_table, {
@@ -156,10 +161,17 @@ function initTable(){
                     }
                 },
                 {
-                    // Site
+                    // Status
                     targets: 5,
                     render: function (data, type, full, meta) {
-
+                        const status = full['status'];
+                        return (
+                            '<span class="badge ' +
+                            statusObj[status].class +
+                            '" text-capitalized>' +
+                            statusObj[status].title +
+                            '</span>'
+                        );
                     }
                 },
                 {
