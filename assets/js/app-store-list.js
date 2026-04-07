@@ -165,7 +165,7 @@ function initTable(){
                     // Authors
                     targets: 4,
                     render: function (data, type, full, meta) {
-
+                        return '';
                     }
                 },
                 {
