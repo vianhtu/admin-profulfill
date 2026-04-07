@@ -69,7 +69,7 @@ if(!empty($export_data)){
             <!-- /Product Information -->
             <div class="card mb-6">
                 <div class="card-header">
-                    <h5 class="card-tile mb-0">Shop Owner Information</h5>
+                    <h5 class="card-tile mb-0">Owner Information</h5>
                 </div>
                 <div class="card-body">
                     <div class="mb-6">
@@ -99,7 +99,6 @@ if(!empty($export_data)){
                                     type="date"
                                     class="form-control"
                                     id="owner-dob"
-                                    placeholder="yyyy-mm-dd"
                                     name="ownerDOB"
                                     aria-label="Owner DOB" />
                         </div>
@@ -114,6 +113,33 @@ if(!empty($export_data)){
                                     aria-label="Owner SSN" />
                         </div>
                     </div>
+                    <!-- Description -->
+                    <div>
+                        <label class="mb-1">Description (Optional)</label>
+                        <div class="form-control p-0">
+                            <div class="comment-toolbar border-0 border-bottom">
+                                <div class="d-flex justify-content-start">
+                                <span class="ql-formats me-0">
+                                  <button class="ql-bold"></button>
+                                  <button class="ql-italic"></button>
+                                  <button class="ql-underline"></button>
+                                  <button class="ql-list" value="ordered"></button>
+                                  <button class="ql-list" value="bullet"></button>
+                                  <button class="ql-link"></button>
+                                  <button class="ql-image"></button>
+                                </span>
+                                </div>
+                            </div>
+                            <div class="comment-editor border-0 pb-6" id="ecommerce-category-description"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card mb-6">
+                <div class="card-header">
+                    <h5 class="card-tile mb-0">Shop Information</h5>
+                </div>
+                <div class="card-body">
                     <div class="row mb-6">
                         <div class="col">
                             <label class="form-label" for="store-sku">SKU</label>
@@ -155,26 +181,6 @@ if(!empty($export_data)){
                                     name="store2fa"
                                     placeholder="***************************"
                                     aria-label="Store 2FA" />
-                        </div>
-                    </div>
-                    <!-- Description -->
-                    <div>
-                        <label class="mb-1">Description (Optional)</label>
-                        <div class="form-control p-0">
-                            <div class="comment-toolbar border-0 border-bottom">
-                                <div class="d-flex justify-content-start">
-                                <span class="ql-formats me-0">
-                                  <button class="ql-bold"></button>
-                                  <button class="ql-italic"></button>
-                                  <button class="ql-underline"></button>
-                                  <button class="ql-list" value="ordered"></button>
-                                  <button class="ql-list" value="bullet"></button>
-                                  <button class="ql-link"></button>
-                                  <button class="ql-image"></button>
-                                </span>
-                                </div>
-                            </div>
-                            <div class="comment-editor border-0 pb-6" id="ecommerce-category-description"></div>
                         </div>
                     </div>
                 </div>
