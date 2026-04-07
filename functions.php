@@ -801,7 +801,10 @@ function getAuthorsByTeam(): array
 }
 
 function getAllSites(): array {
-    return getAllDataMap('site', 'name');
+    $raw_data = getAllData('site', ['name', 'logo']);
+    return array_map(function($value) {
+        return ['title' => $value, 'logo' => $value];
+    }, $raw_data);
 }
 
 function getAllRoles(): array {
