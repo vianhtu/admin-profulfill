@@ -67,6 +67,65 @@ if(!empty($export_data)){
         <!-- First column-->
         <div class="col-12 col-lg-8">
             <!-- /Product Information -->
+            <div class="card mb-6">
+                <div class="card-header">
+                    <h5 class="card-tile mb-0">Product information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-6">
+                        <label class="form-label" for="ecommerce-product-name">Name</label>
+                        <input
+                                type="text"
+                                class="form-control"
+                                id="ecommerce-product-name"
+                                placeholder="Product title"
+                                name="productTitle"
+                                aria-label="Product title" />
+                    </div>
+                    <div class="row mb-6">
+                        <div class="col">
+                            <label class="form-label" for="ecommerce-product-sku">SKU</label>
+                            <input
+                                    type="number"
+                                    class="form-control"
+                                    id="ecommerce-product-sku"
+                                    placeholder="SKU"
+                                    name="productSku"
+                                    aria-label="Product SKU" />
+                        </div>
+                        <div class="col">
+                            <label class="form-label" for="ecommerce-product-barcode">Barcode</label>
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    id="ecommerce-product-barcode"
+                                    placeholder="0123-4567"
+                                    name="productBarcode"
+                                    aria-label="Product barcode" />
+                        </div>
+                    </div>
+                    <!-- Description -->
+                    <div>
+                        <label class="mb-1">Description (Optional)</label>
+                        <div class="form-control p-0">
+                            <div class="comment-toolbar border-0 border-bottom">
+                                <div class="d-flex justify-content-start">
+                                <span class="ql-formats me-0">
+                                  <button class="ql-bold"></button>
+                                  <button class="ql-italic"></button>
+                                  <button class="ql-underline"></button>
+                                  <button class="ql-list" value="ordered"></button>
+                                  <button class="ql-list" value="bullet"></button>
+                                  <button class="ql-link"></button>
+                                  <button class="ql-image"></button>
+                                </span>
+                                </div>
+                            </div>
+                            <div class="comment-editor border-0 pb-6" id="ecommerce-category-description"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <!-- Media -->
             <div class="card mb-6">
                 <div class="card-header d-flex justify-content-between align-items-center">
