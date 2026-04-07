@@ -140,7 +140,7 @@ function initTable(){
                             '</div>' +
                             '</div>' +
                             '<div class="d-flex flex-column">' +
-                            '<a href="index.php?menu=exports_xlsx&form=add&id='+full['id']+'" class="text-heading text-truncate"><span class="fw-medium">' +
+                            '<a href="index.php?menu=stores&form=add&id='+full['id']+'" class="text-heading text-truncate"><span class="fw-medium">' +
                             store_email +
                             '</span></a>' +
                             '<small>' +
@@ -217,9 +217,6 @@ function initTable(){
                     render: (data, type, full, meta) => {
                         return `
                           <div class="d-flex align-items-center">
-                            <a href="index.php?menu=exports_xlsx&form=add&id=${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon">
-                              <i class="icon-base ti tabler-edit icon-22px"></i>
-                            </a>
                             <a href="javascript:;" data-id="${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon delete-record">
                               <i class="icon-base ti tabler-trash icon-22px"></i>
                             </a>
