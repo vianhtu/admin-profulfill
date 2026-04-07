@@ -19,11 +19,13 @@ if(!checkRoles('view', 'exports_xlsx')){
             <tr>
                 <th></th>
                 <th></th>
-                <th>Files</th>
-                <th>Category</th>
-                <th>Sites</th>
+                <th>Stores</th>
+                <th>Teams</th>
                 <th>Authors</th>
+                <th>Status</th>
                 <th>Date</th>
+                <th>Financial</th>
+                <th>Fees</th>
                 <th>Actions</th>
             </tr>
             </thead>

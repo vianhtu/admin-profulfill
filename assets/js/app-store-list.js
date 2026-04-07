@@ -33,12 +33,6 @@ async function init() {
 
 // Datatable (js)
 function initTable(){
-    let borderColor, bodyBg, headingColor;
-
-    borderColor = config.colors.borderColor;
-    bodyBg = config.colors.bodyBg;
-    headingColor = config.colors.headingColor;
-
     // Variable declaration for table
     const dt_user_table = document.querySelector('.datatables-users');
     // Users datatable
@@ -47,16 +41,16 @@ function initTable(){
             serverSide: true,
             processing: true,
             ajax: {
-                url: '../../ajax.php?action=get-files-table',
+                url: '../../ajax.php?action=get-stores-table',
                 type: 'POST',
                 data: function (d) {
                     const urlParams = new URLSearchParams(window.location.search);
                     const initialFilters = {
-                        xlsxTypes: urlParams.get('xlsxTypes') || '',
-                        xlsxSites: urlParams.get('xlsxSites') || '',
-                        xlsxAuthors: urlParams.get('xlsxAuthors') || ''
+                        Site: urlParams.get('filter-site') || '',
+                        Team: urlParams.get('filter_team') || '',
+                        Author: urlParams.get('filter-author') || ''
                     };
-                    const mapping = { xlsxTypes: 'type_id', xlsxSites: 'site_id', xlsxAuthors: 'authors_id' }; // data names in your columns config
+                    const mapping = { Site: 'site_id', Team: 'team_id', Author: 'author_id' };
                     d.columns.forEach(col => {
                         for (const key in mapping) {
                             if (col.data === mapping[key]) {
@@ -66,7 +60,6 @@ function initTable(){
                             }
                         }
                     });
-                    d.accounts = $('#xlsxAccounts').val();
                 },
                 dataSrc: function (json) {
                     return json.data;
@@ -76,11 +69,13 @@ function initTable(){
                 // columns according to JSON
                 { data: 'id' },
                 { data: 'id', orderable: false, render: DataTable.render.select() },
-                { data: 'file_name' },
-                { data: 'type_id' },
                 { data: 'site_id' },
-                { data: 'authors_id' },
-                { data: 'date_create' },
+                { data: 'team_id' },
+                { data: 'author_id' },
+                { data: 'status' },
+                { data: 'sys_date' },
+                { data: 'available_funds' },
+                { data: 'subscription_fee' },
                 { data: 'action' }
             ],
             columnDefs: [
@@ -113,9 +108,9 @@ function initTable(){
                     targets: 2,
                     responsivePriority: 3,
                     render: function (data, type, full, meta) {
-                        var name = full['file_name'];
-                        var account_name = full['account_name'];
-                        var account_site_id = full['account_site_id'];
+                        var store_name = full['name'];
+                        var store_email = full['email'];
+                        var store_id = full['user_id'];
                         var image = './../../assets/svg/icons/xlsx_icon.svg';
                         var output;
 
@@ -131,12 +126,12 @@ function initTable(){
                             '</div>' +
                             '<div class="d-flex flex-column">' +
                             '<a href="index.php?menu=exports_xlsx&form=add&id='+full['id']+'" class="text-heading text-truncate"><span class="fw-medium">' +
-                            name +
+                            store_email +
                             '</span></a>' +
                             '<small>' +
-                            sitesObj[account_site_id].title +
+                            store_name +
                             ' ('+
-                            account_name +
+                            store_id +
                             ')</small>' +
                             '</div>' +
                             '</div>';
@@ -144,39 +139,51 @@ function initTable(){
                     }
                 },
                 {
-                    // Type
+                    // Teams
                     targets: 3,
                     render: function (data, type, full, meta) {
-                        var id = full['type_id'];
+                        var id = full['team_id'];
                         return '<span>' + teamsObj[id].title + '</span>';
                     }
                 },
                 {
-                    // Site
+                    // Authors
                     targets: 4,
                     render: function (data, type, full, meta) {
-                        let id = full['site_id'];
-                        return '<span class="text-heading">' + sitesObj[id].title + '</span>';
+                        let id = full['author_id'];
+                        return '<span class="text-heading">' + authorsObj[id].title + '</span>';
                     }
                 },
                 {
                     // Site
                     targets: 5,
                     render: function (data, type, full, meta) {
-                        let id = full['authors_id'];
-                        return '';
+                        
                     }
                 },
                 {
                     // Date
                     targets: 6,
                     render: function (data, type, full, meta) {
-                        const status = full['date_create'];
-                        return '<span>' + status + '</span>';
+
                     }
                 },
                 {
+                    // Date
                     targets: 7,
+                    render: function (data, type, full, meta) {
+
+                    }
+                },
+                {
+                    // Date
+                    targets: 8,
+                    render: function (data, type, full, meta) {
+
+                    }
+                },
+                {
+                    targets: 9,
                     title: 'Actions',
                     searchable: false,
                     orderable: false,
