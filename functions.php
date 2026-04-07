@@ -813,7 +813,9 @@ function getAllTeams(): array {
     if(isAdmin()) {
         return getAllDataMap('team', 'name');
     } else {
-        
+        $team_id = $_SESSION['auth']['team'];
+        $team_name = getFieldByID('team', 'name', $team_id);
+        return [$team_id => ['title' => $team_name]];
     }
 }
 
