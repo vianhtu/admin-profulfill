@@ -84,7 +84,7 @@ if(!empty($export_data)){
                     </div>
                     <div class="row mb-6">
                         <div class="col">
-                            <label class="form-label" for="store-sku">SKU (Optional)</label>
+                            <label class="form-label" for="store-sku">SKU</label>
                             <input
                                     type="text"
                                     class="form-control"
@@ -94,7 +94,7 @@ if(!empty($export_data)){
                                     aria-label="Store SKU" />
                         </div>
                         <div class="col">
-                            <label class="form-label" for="store-id">ID (Optional)</label>
+                            <label class="form-label" for="store-id">ID</label>
                             <input
                                     type="text"
                                     class="form-control"
@@ -115,7 +115,7 @@ if(!empty($export_data)){
                                     aria-label="Store Password" />
                         </div>
                         <div class="col">
-                            <label class="form-label" for="store-2fa">2FA Code (Optional)</label>
+                            <label class="form-label" for="store-2fa">2FA Code</label>
                             <input
                                     type="password"
                                     class="form-control"
