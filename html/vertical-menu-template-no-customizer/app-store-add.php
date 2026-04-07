@@ -53,7 +53,7 @@ if(!empty($export_data)){
             class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-6 row-gap-4">
         <div class="d-flex flex-column justify-content-center">
             <h4 class="mb-1"><?= $text_add ?></h4>
-            <p class="mb-0">store info.</p>
+            <p class="mb-0">store information.</p>
         </div>
         <div class="d-flex align-content-center flex-wrap gap-4">
             <div class="d-flex gap-4">
@@ -69,7 +69,7 @@ if(!empty($export_data)){
             <!-- /Product Information -->
             <div class="card mb-6">
                 <div class="card-header">
-                    <h5 class="card-tile mb-0">Owner Information</h5>
+                    <h5 class="card-tile mb-0">Owner</h5>
                 </div>
                 <div class="card-body">
                     <div class="mb-6">
@@ -112,12 +112,22 @@ if(!empty($export_data)){
                                     placeholder="000-00-0000"
                                     aria-label="Owner SSN" />
                         </div>
+                        <div class="col">
+                            <label class="form-label" for="owner-phone">Phone</label>
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    id="owner-phone"
+                                    name="ownerPhone"
+                                    placeholder="(000)-000-0000"
+                                    aria-label="Owner Phone" />
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="card mb-6">
                 <div class="card-header">
-                    <h5 class="card-tile mb-0">Shop Information</h5>
+                    <h5 class="card-tile mb-0">Shop</h5>
                 </div>
                 <div class="card-body">
                     <div class="row mb-6">
