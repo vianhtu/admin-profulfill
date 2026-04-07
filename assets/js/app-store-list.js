@@ -119,6 +119,8 @@ function initTable(){
                         var image = './../../assets/svg/icons/xlsx_icon.svg';
                         var output;
 
+                        let name = store_id ? store_name + ' (' + store_id + ')' : store_name;
+
                         output = '<img src="' + image + '" alt="file.xlsx" class="rounded">';
 
                         // Creates full output for row
@@ -134,10 +136,8 @@ function initTable(){
                             store_email +
                             '</span></a>' +
                             '<small>' +
-                            store_name +
-                            ' ('+
-                            store_id +
-                            ')</small>' +
+                            name +
+                            '</small>' +
                             '</div>' +
                             '</div>';
                         return row_output;
@@ -179,7 +179,7 @@ function initTable(){
                     targets: 6,
                     render: function (data, type, full, meta) {
                         return '<div class="d-flex flex-column">' +
-                            '<span class="fw-medium">$'+ full['created_date'] +'</span>' +
+                            '<span class="fw-medium">'+ full['created_date'] +'</span>' +
                             '<small>sys: '+ full['sys_date'] +'</small>' +
                             '</div>';
                     }
