@@ -94,24 +94,24 @@ if(!empty($export_data)){
                     </div>
                     <div class="row mb-6">
                         <div class="col">
-                            <label class="form-label" for="store-dob">DOB</label>
+                            <label class="form-label" for="owner-dob">DOB</label>
                             <input
                                     type="date"
                                     class="form-control"
-                                    id="store-dob"
+                                    id="owner-dob"
                                     placeholder="yyyy-mm-dd"
-                                    name="storeDOB"
-                                    aria-label="Store DOB" />
+                                    name="ownerDOB"
+                                    aria-label="Owner DOB" />
                         </div>
                         <div class="col">
-                            <label class="form-label" for="store-ssn">SSN</label>
+                            <label class="form-label" for="owner-ssn">SSN</label>
                             <input
                                     type="text"
                                     class="form-control"
-                                    id="store-ssn"
-                                    name="storeSSN"
+                                    id="owner-ssn"
+                                    name="ownerSSN"
                                     placeholder="000-00-0000"
-                                    aria-label="Store SSN" />
+                                    aria-label="Owner SSN" />
                         </div>
                     </div>
                     <div class="row mb-6">
