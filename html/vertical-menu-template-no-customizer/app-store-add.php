@@ -204,18 +204,6 @@ if(!empty($export_data)){
                                     aria-label="Email Password" />
                         </div>
                         <div class="col">
-                            <label class="form-label" for="email-recovery">Recovery Email</label>
-                            <input
-                                    type="email"
-                                    class="form-control"
-                                    id="email-recovery"
-                                    placeholder="@"
-                                    name="emailRecovery"
-                                    aria-label="Email Recovery" />
-                        </div>
-                    </div>
-                    <div class="row mb-6">
-                        <div class="col">
                             <label class="form-label" for="email-2fa">2FA Code</label>
                             <input
                                     type="password"
@@ -224,6 +212,18 @@ if(!empty($export_data)){
                                     name="email2fa"
                                     placeholder="***************************"
                                     aria-label="Email 2FA" />
+                        </div>
+                    </div>
+                    <div class="row mb-6">
+                        <div class="col">
+                            <label class="form-label" for="email-recovery">Recovery Email</label>
+                            <input
+                                    type="email"
+                                    class="form-control"
+                                    id="email-recovery"
+                                    placeholder="@"
+                                    name="emailRecovery"
+                                    aria-label="Email Recovery" />
                         </div>
                         <div class="col">
                             <label class="form-label" for="email-phone">Phone</label>
