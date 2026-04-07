@@ -201,6 +201,7 @@ if(!empty($export_data)){
                                     class="form-control"
                                     id="email-password"
                                     name="emailPassword"
+                                    placeholder="*********"
                                     aria-label="Email Password" />
                         </div>
                         <div class="col">
