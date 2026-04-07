@@ -158,7 +158,7 @@ function initTable(){
                     // Site
                     targets: 5,
                     render: function (data, type, full, meta) {
-                        
+
                     }
                 },
                 {

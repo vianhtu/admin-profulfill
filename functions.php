@@ -1504,7 +1504,7 @@ function getStoresTable(): array
     }
 
     // Lọc theo type (int)
-    addTableFilter($whereClauses, 'exports.site_id', 3, 'int', $conn);
+    addTableFilter($whereClauses, 'accounts.site_id', 3, 'int', $conn);
 
     // Lọc theo role (int)
     addTableFilter($whereClauses, 'accounts.team_id', 4, 'int', $conn);
