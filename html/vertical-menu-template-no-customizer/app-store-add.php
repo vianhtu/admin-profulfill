@@ -307,6 +307,18 @@ if(!empty($export_data)){
                 </div>
             </div>
             <!-- /Organize Card -->
+            <!-- Organize Card -->
+            <div class="card mb-6">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Note</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Site -->
+                    <label class="form-label" for="account_note"></label>
+                    <textarea class="form-control" name="account_note" id="account_note" cols="10" rows="3" placeholder="Enter a note..."></textarea>
+                </div>
+            </div>
+            <!-- /Organize Card -->
         </div>
         <!-- /Second column -->
     </div>
