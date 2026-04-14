@@ -199,62 +199,6 @@ if(!empty($export_data)){
                 </div>
             </div>
             <!-- /Media -->
-            <!-- Variants -->
-            <div class="card mb-6">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Default</h5>
-                </div>
-                <div class="card-body">
-                    <div class="form-repeater" data-repeat-count="<?= $repeater_count ?>">
-                        <div data-repeater-list="group-a">
-                            <?php foreach ($file_default as $key => $value): ?>
-                            <div data-repeater-item>
-                                <div class="row g-sm-6 mb-6 align-items-end">
-                                    <div class="col-sm-4 form-control-validation">
-                                        <label class="form-label" for="form-repeater-<?= $key ?>-1">Options</label>
-                                        <select name="" id="form-repeater-<?= $key ?>-1" class="select2 form-select" data-placeholder="Select a option">
-                                            <option value=""></option>
-                                            <?php if(!empty($file_name)): ?>
-                                            <?php foreach ($file_header as $header): ?>
-                                                <?php $selected = $value['text'] == $header['value'] ? ' selected' : ''; ?>
-                                                <option value="<?= $header['column'] ?>"<?= $selected ?>><?= $header['value'] ?></option>
-                                            <?php endforeach; ?>
-                                            <?php else: ?>
-                                                <option value="<?= $value['location'] ?>" selected><?= $value['text'] ?></option>
-                                            <?php endif; ?>
-                                        </select>
-                                    </div>
-
-                                    <div class="col-sm-7">
-                                        <label class="form-label invisible" for="form-repeater-<?= $key ?>-2">Not visible</label>
-                                        <input
-                                                type="text"
-                                                id="form-repeater-<?= $key ?>-2"
-                                                class="form-control"
-                                                value="<?= $value['value']; ?>"
-                                                placeholder="Enter value" />
-                                    </div>
-                                    <div class="col-sm-1">
-                                        <div class="d-flex align-items-center">
-                                            <a href="javascript:;" class="btn btn-text-secondary rounded-pill waves-effect btn-icon btn-delete-row">
-                                                <i class="icon-base ti tabler-trash icon-22px"></i>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <?php endforeach; ?>
-                        </div>
-                        <div>
-                            <button type="button" class="btn btn-primary" data-repeater-create>
-                                <i class="icon-base ti tabler-plus icon-xs me-2"></i>
-                                Add another option
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- /Variants -->
         </div>
         <!-- /Second column -->
 
@@ -295,6 +239,62 @@ if(!empty($export_data)){
                 </div>
             </div>
             <!-- /Organize Card -->
+            <!-- Variants -->
+            <div class="card mb-6">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Link To Accounts</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-repeater" data-repeat-count="<?= $repeater_count ?>">
+                        <div data-repeater-list="group-a">
+                            <?php foreach ($file_default as $key => $value): ?>
+                                <div data-repeater-item>
+                                    <div class="row g-sm-6 mb-6 align-items-end">
+                                        <div class="col-sm-4 form-control-validation">
+                                            <label class="form-label" for="form-repeater-<?= $key ?>-1">Options</label>
+                                            <select name="" id="form-repeater-<?= $key ?>-1" class="select2 form-select" data-placeholder="Select a option">
+                                                <option value=""></option>
+                                                <?php if(!empty($file_name)): ?>
+                                                    <?php foreach ($file_header as $header): ?>
+                                                        <?php $selected = $value['text'] == $header['value'] ? ' selected' : ''; ?>
+                                                        <option value="<?= $header['column'] ?>"<?= $selected ?>><?= $header['value'] ?></option>
+                                                    <?php endforeach; ?>
+                                                <?php else: ?>
+                                                    <option value="<?= $value['location'] ?>" selected><?= $value['text'] ?></option>
+                                                <?php endif; ?>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-sm-7">
+                                            <label class="form-label invisible" for="form-repeater-<?= $key ?>-2">Not visible</label>
+                                            <input
+                                                    type="text"
+                                                    id="form-repeater-<?= $key ?>-2"
+                                                    class="form-control"
+                                                    value="<?= $value['value']; ?>"
+                                                    placeholder="Enter value" />
+                                        </div>
+                                        <div class="col-sm-1">
+                                            <div class="d-flex align-items-center">
+                                                <a href="javascript:;" class="btn btn-text-secondary rounded-pill waves-effect btn-icon btn-delete-row">
+                                                    <i class="icon-base ti tabler-trash icon-22px"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-primary" data-repeater-create>
+                                <i class="icon-base ti tabler-plus icon-xs me-2"></i>
+                                Add another option
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /Variants -->
             <!-- Organize Card -->
             <div class="card mb-6">
                 <div class="card-header">
