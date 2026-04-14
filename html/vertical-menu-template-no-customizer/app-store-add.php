@@ -10,7 +10,7 @@ $site_id = '';
 $type_id = '';
 $account = [];
 $account_id = '';
-$status = [[1 => 'Active', 2 => 'Review', 3 => 'Inactive']];
+$status = [[1 => ['title'=>'Active'], 2 => ['title'=>'Review'], 3 => ['title'=>'Inactive']]];
 $status_id = 1;
 $authors_id = '';
 $name = '';
