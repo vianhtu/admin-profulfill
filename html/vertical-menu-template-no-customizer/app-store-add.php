@@ -53,7 +53,7 @@ if(!empty($export_data)){
             class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-6 row-gap-4">
         <div class="d-flex flex-column justify-content-center">
             <h4 class="mb-1"><?= $text_add ?></h4>
-            <p class="mb-0">store information.</p>
+            <p class="mb-0">account information.</p>
         </div>
         <div class="d-flex align-content-center flex-wrap gap-4">
             <div class="d-flex gap-4">
@@ -247,7 +247,7 @@ if(!empty($export_data)){
                 <div class="card-body">
                     <div class="dropzone needsclick p-0" id="dropzone-basic">
                         <div class="dz-message needsclick form-control-validation">
-                            <p class="h4 needsclick pt-3 mb-2">Drag and drop your .xlsx file here</p>
+                            <p class="h4 needsclick pt-3 mb-2">Drag and drop your file here</p>
                             <p class="h6 text-body-secondary d-block fw-normal mb-2">or</p>
                             <span class="needsclick btn btn-sm btn-label-primary" id="btnBrowse">Browse file</span>
                             <!-- field ẩn để validation -->
@@ -324,7 +324,7 @@ if(!empty($export_data)){
             <!-- Pricing Card -->
             <div class="card mb-6">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Export Account</h5>
+                    <h5 class="card-title mb-0">Account Settings</h5>
                 </div>
                 <div class="card-body">
                     <!-- Base Price -->
