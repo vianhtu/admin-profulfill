@@ -314,8 +314,7 @@ if(!empty($export_data)){
                 </div>
                 <div class="card-body">
                     <!-- Site -->
-                    <label class="form-label" for="account_note"></label>
-                    <textarea class="form-control" name="account_note" id="account_note" cols="10" rows="3" placeholder="Enter a note..."></textarea>
+                    <textarea class="form-control" name="account_note" id="account_note" rows="5" placeholder="Enter a note..."></textarea>
                 </div>
             </div>
             <!-- /Organize Card -->
