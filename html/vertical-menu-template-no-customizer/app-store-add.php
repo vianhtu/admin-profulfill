@@ -10,6 +10,8 @@ $site_id = '';
 $type_id = '';
 $account = [];
 $account_id = '';
+$status = [1 => 'Active', 2 => 'Review', 3 => 'Inactive'];
+$status_id = 1;
 $authors_id = '';
 $name = '';
 $file_name = '';
@@ -53,7 +55,7 @@ if(!empty($export_data)){
             class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-6 row-gap-4">
         <div class="d-flex flex-column justify-content-center">
             <h4 class="mb-1"><?= $text_add ?></h4>
-            <p class="mb-0">account information.</p>
+            <p class="mb-0">Account information.</p>
         </div>
         <div class="d-flex align-content-center flex-wrap gap-4">
             <div class="d-flex gap-4">
@@ -327,6 +329,10 @@ if(!empty($export_data)){
                     <h5 class="card-title mb-0">Account Settings</h5>
                 </div>
                 <div class="card-body">
+                    <!-- Base Price -->
+                    <div class="mb-6 form-control-validation accounts_status">
+                        <?php renderSelect('accountsStatus', 'Status', $status, $status_id); ?>
+                    </div>
                     <!-- Base Price -->
                     <div class="mb-6 form-control-validation export_accounts">
                         <?php renderSelect('accountsExport', 'Select Account', $account, $account_id); ?>
