@@ -2,7 +2,7 @@
 if(!checkRoles(['add', 'edit'], 'exports_xlsx')){
     return;
 }
-$options = getStoresTableFilter();
+$options = getStoresTableFilters();
 $get_id = $_GET['id'] ?? '';
 $export_data = getXlsxByID($get_id);
 $export_id = '';
