@@ -106,7 +106,7 @@ if(!empty($export_data)){
                                     aria-label="Owner DOB" />
                         </div>
                         <div class="col">
-                            <label class="form-label" for="owner-ssn">SSN/ID...</label>
+                            <label class="form-label" for="owner-ssn">SSN</label>
                             <input
                                     type="text"
                                     class="form-control"
@@ -145,7 +145,7 @@ if(!empty($export_data)){
                                     aria-label="Store SKU" />
                         </div>
                         <div class="col">
-                            <label class="form-label" for="store-id">ID/EMAIL...</label>
+                            <label class="form-label" for="store-id">ID</label>
                             <input
                                     type="text"
                                     class="form-control"
