@@ -329,39 +329,12 @@ if(!empty($export_data)){
                     <h5 class="card-title mb-0">Account Settings</h5>
                 </div>
                 <div class="card-body">
-                    <!-- Base Price -->
                     <div class="mb-6 form-control-validation accounts_status">
                         <?php renderSelect('accountsStatus', 'Status', $status, $status_id); ?>
-                    </div>
-                    <!-- Base Price -->
-                    <div class="mb-6 form-control-validation export_accounts">
-                        <?php renderSelect('accountsExport', 'Select Account', $account, $account_id); ?>
                     </div>
                 </div>
             </div>
             <!-- /Pricing Card -->
-            <!-- File Card -->
-            <div class="card mb-6">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">File Settings</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-6 form-control-validation col export_header">
-                        <label class="form-label mb-1" for="export_file_header">Row Header</label>
-                        <input type="number" min="0" class="form-control" id="export_file_header" name="export_file_header" placeholder="Row containing column headers." value="<?= $row_header ?>">
-                    </div>
-                    <div class="mb-6 form-control-validation col export_start">
-                        <label class="form-label mb-1" for="export_file_start">Start Row Item</label>
-                        <input type="number" min="0" class="form-control" id="export_file_start" name="export_file_start" placeholder="Write new item starting from this line." value="<?= $row_item ?>">
-                    </div>
-                    <?php if($file_name): ?>
-                    <div class="mb-6 form-control-validation col export_sheet_name">
-                        <?php renderSelect('export_sheet_name', 'Sheet Name', $file_tabs, $sheet_name); ?>
-                    </div>
-                    <?php endif; ?>
-                </div>
-            </div>
-            <!-- /File Card -->
             <!-- Organize Card -->
             <div class="card mb-6">
                 <div class="card-header">
