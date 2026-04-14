@@ -341,13 +341,13 @@ if(!empty($export_data)){
                     <h5 class="card-title mb-0">Organize</h5>
                 </div>
                 <div class="card-body">
-                    <!-- Type -->
-                    <div class="mb-6 form-control-validation col ecommerce-select2-dropdown">
-                        <?php renderSelect('export_type', 'Type', $options['types'], $type_id); ?>
-                    </div>
                     <!-- Site -->
                     <div class="mb-6 form-control-validation col ecommerce-select2-dropdown">
                         <?php renderSelect('export_site', 'Site', $options['sites'], $site_id); ?>
+                    </div>
+                    <!-- Type -->
+                    <div class="mb-6 form-control-validation col ecommerce-select2-dropdown">
+                        <?php renderSelect('export_type', 'Type', $options['types'], $type_id); ?>
                     </div>
                     <!-- authors -->
                     <?php if(isAdmin()): ?>
