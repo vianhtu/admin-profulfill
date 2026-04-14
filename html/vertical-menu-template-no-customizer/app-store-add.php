@@ -199,6 +199,17 @@ if(!empty($export_data)){
                 </div>
             </div>
             <!-- /Media -->
+            <!-- Organize Card -->
+            <div class="card mb-6">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Note</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Site -->
+                    <textarea class="form-control" name="account_note" id="account_note" rows="5" placeholder="Enter a note..."></textarea>
+                </div>
+            </div>
+            <!-- /Organize Card -->
         </div>
         <!-- /Second column -->
 
@@ -295,17 +306,6 @@ if(!empty($export_data)){
                 </div>
             </div>
             <!-- /Variants -->
-            <!-- Organize Card -->
-            <div class="card mb-6">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Note</h5>
-                </div>
-                <div class="card-body">
-                    <!-- Site -->
-                    <textarea class="form-control" name="account_note" id="account_note" rows="5" placeholder="Enter a note..."></textarea>
-                </div>
-            </div>
-            <!-- /Organize Card -->
         </div>
         <!-- /Second column -->
     </div>
