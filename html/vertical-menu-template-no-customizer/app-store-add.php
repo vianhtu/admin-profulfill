@@ -2,11 +2,11 @@
 if(!checkRoles(['add', 'edit'], 'exports_xlsx')){
     return;
 }
-$options = getProductsTableFilters();
+$options = getStoresTableFilter();
 $get_id = $_GET['id'] ?? '';
 $export_data = getXlsxByID($get_id);
 $export_id = '';
-$site_id = '';
+$team_id = '';
 $type_id = '';
 $account = [];
 $account_id = '';
@@ -26,7 +26,7 @@ $sheet_name = '';
 $repeater_count = 0;
 if(!empty($export_data)){
     $export_id = (int)$export_data['ID'];
-    $site_id = (int)$export_data['site_id'];
+    $team_id = (int)$export_data['site_id'];
     $type_id = (int)$export_data['type_id'];
     $account_id = (int)$export_data['accounts_id'];
     $authors_id = (int)$export_data['authors_id'];
@@ -343,11 +343,11 @@ if(!empty($export_data)){
                 <div class="card-body">
                     <!-- Site -->
                     <div class="mb-6 form-control-validation col ecommerce-select2-dropdown">
-                        <?php renderSelect('export_site', 'Site', $options['sites'], $site_id); ?>
+                        <?php renderSelect('account_site', 'Site', $options['sites'], $site_id); ?>
                     </div>
-                    <!-- Type -->
+                    <!-- Team -->
                     <div class="mb-6 form-control-validation col ecommerce-select2-dropdown">
-                        <?php renderSelect('export_type', 'Type', $options['types'], $type_id); ?>
+                        <?php renderSelect('account_team', 'Team', $options['teams'], $team_id); ?>
                     </div>
                     <!-- authors -->
                     <?php if(isAdmin()): ?>
