@@ -130,21 +130,9 @@ if(!empty($export_data)){
             </div>
             <div class="card mb-6">
                 <div class="card-header">
-                    <h5 class="card-tile mb-0">Shop</h5>
+                    <h5 class="card-tile mb-0">Account</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row mb-6">
-                        <div class="col">
-                            <label class="form-label" for="store-email">Email</label>
-                            <input
-                                    type="email"
-                                    class="form-control"
-                                    id="store-email"
-                                    placeholder="@"
-                                    name="storeEmail"
-                                    aria-label="Store Email" />
-                        </div>
-                    </div>
                     <div class="row mb-6">
                         <div class="col">
                             <label class="form-label" for="store-sku">SKU</label>
