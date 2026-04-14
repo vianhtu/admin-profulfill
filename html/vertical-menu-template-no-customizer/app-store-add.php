@@ -11,7 +11,7 @@ $type_id = '';
 $account = [];
 $account_id = '';
 $status = [1 => ['title'=>'Active'], 2 => ['title'=>'Review'], 3 => ['title'=>'Inactive']];
-$status_id = 1;
+$status_id = '';
 $authors_id = '';
 $name = '';
 $file_name = '';
