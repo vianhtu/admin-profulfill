@@ -141,7 +141,7 @@ function dropzoneFileUpload(fv){
         myDropzone = new Dropzone(dropzoneBasic, {
             url: '/upload',
             previewTemplate: previewTemplate,
-            parallelUploads: 1,
+            parallelUploads: 5,
             maxFilesize: 5,
             acceptedFiles: '.xlsx, .png, .pdf, .jpg, .jpeg, .txt',
             addRemoveLinks: true,
