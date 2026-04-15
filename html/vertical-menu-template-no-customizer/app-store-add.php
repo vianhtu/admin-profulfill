@@ -75,53 +75,53 @@ if(!empty($export_data)){
                 </div>
                 <div class="card-body">
                     <div class="mb-6">
-                        <label class="form-label" for="owner-name">Name</label>
+                        <label class="form-label" for="owner_name">Name</label>
                         <input
                                 type="text"
                                 class="form-control"
-                                id="owner-name"
+                                id="owner_name"
                                 placeholder="Owner title"
-                                name="ownerName"
+                                name="owner_name"
                                 aria-label="Owner title" />
                     </div>
                     <div class="mb-6">
-                        <label class="form-label" for="owner-address">Address</label>
+                        <label class="form-label" for="owner_address">Address</label>
                         <input
                                 type="text"
                                 class="form-control"
-                                id="owner-address"
+                                id="owner_address"
                                 placeholder="Owner Address"
-                                name="ownerAddress"
+                                name="owner_address"
                                 aria-label="Owner Address" />
                     </div>
                     <div class="row mb-6">
                         <div class="col">
-                            <label class="form-label" for="owner-dob">DOB</label>
+                            <label class="form-label" for="owner_dob">DOB</label>
                             <input
                                     type="text"
                                     class="form-control"
-                                    id="owner-dob"
-                                    name="ownerDOB"
+                                    id="owner_dob"
+                                    name="owner_dob"
                                     placeholder="yyyy-mm-dd"
                                     aria-label="Owner DOB" />
                         </div>
                         <div class="col">
-                            <label class="form-label" for="owner-ssn">SSN</label>
+                            <label class="form-label" for="owner_ssn">SSN</label>
                             <input
                                     type="text"
                                     class="form-control"
-                                    id="owner-ssn"
-                                    name="ownerSSN"
+                                    id="owner_ssn"
+                                    name="owner_ssn"
                                     placeholder="000-00-0000"
                                     aria-label="Owner SSN" />
                         </div>
                         <div class="col">
-                            <label class="form-label" for="owner-phone">Phone</label>
+                            <label class="form-label" for="owner_phone">Phone</label>
                             <input
                                     type="text"
                                     class="form-control"
-                                    id="owner-phone"
-                                    name="ownerPhone"
+                                    id="owner_phone"
+                                    name="owner_phone"
                                     placeholder="(000)-000-0000"
                                     aria-label="Owner Phone" />
                         </div>
@@ -135,43 +135,43 @@ if(!empty($export_data)){
                 <div class="card-body">
                     <div class="row mb-6">
                         <div class="col">
-                            <label class="form-label" for="account-sku">SKU</label>
+                            <label class="form-label" for="account_sku">SKU</label>
                             <input
                                     type="text"
                                     class="form-control"
-                                    id="account-sku"
+                                    id="account_sku"
                                     placeholder="SKU"
-                                    name="accountSku"
+                                    name="account_sku"
                                     aria-label="Account SKU" />
                         </div>
                         <div class="col">
-                            <label class="form-label" for="account-id">ID</label>
+                            <label class="form-label" for="account_id">ID</label>
                             <input
                                     type="text"
                                     class="form-control"
-                                    id="account-id"
-                                    name="accountID"
+                                    id="account_id"
+                                    name="account_id"
                                     aria-label="Account ID" />
                         </div>
                     </div>
                     <div class="row mb-6">
                         <div class="col">
-                            <label class="form-label" for="account-password">Password</label>
+                            <label class="form-label" for="account_password">Password</label>
                             <input
                                     type="password"
                                     class="form-control"
-                                    id="account-password"
+                                    id="account_password"
                                     placeholder="*********"
-                                    name="accountPassword"
+                                    name="account_password"
                                     aria-label="Account Password" />
                         </div>
                         <div class="col">
-                            <label class="form-label" for="account-2fa">2FA Code</label>
+                            <label class="form-label" for="account_2fa">2FA Code</label>
                             <input
                                     type="password"
                                     class="form-control"
-                                    id="account-2fa"
-                                    name="account2fa"
+                                    id="account_2fa"
+                                    name="account_2fa"
                                     placeholder="***************************"
                                     aria-label="Account 2FA" />
                         </div>
