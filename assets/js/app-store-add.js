@@ -31,44 +31,13 @@ function init(){
 }
 
 function repeaterOptions(fv){
-
     var formRepeater = $('.form-repeater');
-
     if (formRepeater.length) {
         var row = 2;
         var col = 1;
-
-        // Hàm cập nhật option disable để tránh trùng
-        function updateSelectOptions($container) {
-            var selectedValues = [];
-            $container.find('.form-select').each(function () {
-                var val = $(this).val();
-                if (val) selectedValues.push(val);
-            });
-
-            $container.find('.form-select').each(function () {
-                var $select = $(this);
-                $select.find('option').each(function () {
-                    var optionVal = $(this).val();
-                    if (
-                        optionVal &&
-                        selectedValues.includes(optionVal) &&
-                        optionVal !== $select.val()
-                    ) {
-                        $(this).attr('disabled', true);
-                    } else {
-                        $(this).attr('disabled', false);
-                    }
-                });
-            });
-
-            // Refresh lại select2
-            $container.find('.form-select').select2();
-        }
-
         formRepeater.repeater({
             show: function () {
-                var fromControl = $(this).find('.form-control, .form-select');
+                var fromControl = $(this).find('.form-control');
                 var formLabel = $(this).find('.form-label');
 
                 fromControl.each(function (i) {
@@ -83,23 +52,6 @@ function repeaterOptions(fv){
                 row++;
                 $(this).slideDown();
 
-                // Khởi tạo lại select2
-                $('.select2-container').remove();
-                $('.select2.form-select').select2({
-                    placeholder: 'Placeholder text'
-                });
-                $('.select2-container').css('width', '100%');
-                $('.form-repeater:first .form-select').select2({
-                    dropdownParent: $(this).parent(),
-                    placeholder: 'Placeholder text'
-                });
-                $('.position-relative .select2').each(function () {
-                    $(this).select2({
-                        dropdownParent: $(this).closest('.position-relative')
-                    });
-                });
-
-                updateSelectOptions($(this).closest('.form-repeater'));
                 if(formRepeater.data('repeat-count') === 0){
                     return;
                 }
@@ -113,13 +65,6 @@ function repeaterOptions(fv){
                 if(formRepeater.data('repeat-count') === 0){
                     return;
                 }
-                formRepeater.find('.form-select').each(function () {
-                    fv.addField($(this).prop('name'), {
-                        validators: {
-                            notEmpty: {}
-                        }
-                    });
-                });
             }
         });
 
@@ -135,13 +80,6 @@ function repeaterOptions(fv){
                 updateSelectOptions(formRepeater);
             });
         });
-
-        // Cập nhật khi thay đổi lựa chọn
-        $(document).on('change', '.form-repeater .form-select', function () {
-            updateSelectOptions($(this).closest('.form-repeater'));
-        });
-
-        updateSelectOptions(formRepeater);
     }
 }
 
