@@ -201,7 +201,7 @@ if(!empty($export_data)){
             <!-- /Media -->
             <div class="card mb-6">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Link To Accounts</h5>
+                    <h5 class="card-title mb-0">Custom Fields</h5>
                 </div>
                 <div class="card-body">
                     <div class="form-repeater" data-repeat-count="<?= $repeater_count ?>">
@@ -209,8 +209,23 @@ if(!empty($export_data)){
                             <?php foreach ($file_default as $key => $value): ?>
                                 <div data-repeater-item>
                                     <div class="row g-sm-6 mb-6 align-items-end">
-                                        <div class="col-sm-10 form-control-validation">
-                                            <?php renderSelect("form-repeater-$key", 'Account', [], ''); ?>
+                                        <div class="col-sm-2">
+                                            <label class="form-label invisible" for="form-repeater-<?= $key ?>-1">Not visible</label>
+                                            <input
+                                                    type="text"
+                                                    id="form-repeater-<?= $key ?>-1"
+                                                    class="form-control"
+                                                    value="<?= $value['text']; ?>"
+                                                    placeholder="Enter key" />
+                                        </div>
+                                        <div class="col-sm-7">
+                                            <label class="form-label invisible" for="form-repeater-<?= $key ?>-2">Not visible</label>
+                                            <input
+                                                    type="text"
+                                                    id="form-repeater-<?= $key ?>-2"
+                                                    class="form-control"
+                                                    value="<?= $value['value']; ?>"
+                                                    placeholder="Enter value" />
                                         </div>
                                         <div class="col-sm-1">
                                             <div class="d-flex align-items-center">
