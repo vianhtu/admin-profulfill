@@ -146,7 +146,7 @@ function dropzoneFileUpload(fv){
             acceptedFiles: '.xlsx, .png, .pdf, .jpg, .jpeg, .txt',
             addRemoveLinks: true,
             uploadMultiple: true,
-            maxFiles: 1
+            maxFiles: 10
         });
     }
     return myDropzone;
