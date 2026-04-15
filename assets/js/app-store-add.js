@@ -51,20 +51,6 @@ function repeaterOptions(fv){
 
                 row++;
                 $(this).slideDown();
-
-                if(formRepeater.data('repeat-count') === 0){
-                    return;
-                }
-                fv.addField($(this).find('.form-select').prop('name'), {
-                    validators: {
-                        notEmpty: {}
-                    }
-                });
-            },
-            ready: function (setIndexes) {
-                if(formRepeater.data('repeat-count') === 0){
-                    return;
-                }
             }
         });
 
@@ -72,12 +58,9 @@ function repeaterOptions(fv){
         $(document).on('click', '.btn-delete-row', function (e) {
             e.preventDefault();
             var $row = $(this).closest('[data-repeater-item]');
-            var fieldName = $row.find('.form-select').prop('name');
             // Gỡ bỏ khỏi FormValidation
-            fv.removeField(fieldName);
             $row.slideUp(function () {
                 $row.remove();
-                updateSelectOptions(formRepeater);
             });
         });
     }
