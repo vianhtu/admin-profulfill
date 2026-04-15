@@ -47,7 +47,7 @@ function repeaterOptions() {
                     $(this).slideUp(deleteElement);
                 }
             },
-            isFirstItemUndeletable: true // Cho phép xóa cả hàng đầu tiên nếu cần
+            isFirstItemUndeletable: false // Cho phép xóa cả hàng đầu tiên nếu cần
         });
     }
 }
