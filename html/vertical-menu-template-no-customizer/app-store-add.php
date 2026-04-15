@@ -204,34 +204,34 @@ if(!empty($export_data)){
                     <h5 class="card-title mb-0">Custom Fields</h5>
                 </div>
                 <div class="card-body">
-                    <div class="form-repeater" data-repeat-count="<?= $repeater_count ?>">
+                    <div class="form-repeater">
                         <div data-repeater-list="group-a">
                             <?php foreach ($file_default as $key => $value): ?>
                                 <div data-repeater-item>
                                     <div class="row g-sm-6 mb-6 align-items-end">
                                         <div class="col-sm-4">
-                                            <label class="form-label invisible" for="form-repeater-<?= $key ?>-1">Not visible</label>
+                                            <label class="form-label">Key</label>
                                             <input
                                                     type="text"
-                                                    id="form-repeater-<?= $key ?>-1"
+                                                    name="custom_key"
                                                     class="form-control"
-                                                    value="<?= $value['text']; ?>"
+                                                    value="<?= htmlspecialchars($value['text']); ?>"
                                                     placeholder="Enter key" />
                                         </div>
                                         <div class="col-sm-7">
-                                            <label class="form-label invisible" for="form-repeater-<?= $key ?>-2">Not visible</label>
+                                            <label class="form-label">Value</label>
                                             <input
                                                     type="text"
-                                                    id="form-repeater-<?= $key ?>-2"
+                                                    name="custom_value"
                                                     class="form-control"
-                                                    value="<?= $value['value']; ?>"
+                                                    value="<?= htmlspecialchars($value['value']); ?>"
                                                     placeholder="Enter value" />
                                         </div>
                                         <div class="col-sm-1">
                                             <div class="d-flex align-items-center">
-                                                <a href="javascript:;" class="btn btn-text-secondary rounded-pill waves-effect btn-icon btn-delete-row">
+                                                <button type="button" data-repeater-delete class="btn btn-text-secondary rounded-pill btn-icon">
                                                     <i class="icon-base ti tabler-trash icon-22px"></i>
-                                                </a>
+                                                </button>
                                             </div>
                                         </div>
                                     </div>

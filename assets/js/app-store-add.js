@@ -6,7 +6,7 @@
 function init(){
     const fv = formValidate();
     const dz = dropzoneFileUpload(fv);
-    repeaterOptions(fv);
+    repeaterOptions();
     addXlsxFile(fv, dz);
 
     // Select2
@@ -30,38 +30,24 @@ function init(){
     ajaxSelect2('accountsExport', 'filter-accounts', false);
 }
 
-function repeaterOptions(fv){
-    var formRepeater = $('.form-repeater');
-    if (formRepeater.length) {
-        var row = 2;
-        var col = 1;
-        formRepeater.repeater({
+function repeaterOptions() {
+    var $formRepeater = $('.form-repeater');
+
+    if ($formRepeater.length) {
+        $formRepeater.repeater({
             show: function () {
-                var fromControl = $(this).find('.form-control');
-                var formLabel = $(this).find('.form-label');
-
-                fromControl.each(function (i) {
-                    var id = 'form-repeater-' + row + '-' + col;
-                    $(fromControl[i]).attr('id', id);
-                    $(formLabel[i]).attr('for', id);
-                    col++;
-                });
-
+                // Reset các input về trống khi add row mới
                 $(this).find('input').val('');
 
-                row++;
+                // Hiệu ứng hiển thị
                 $(this).slideDown();
-            }
-        });
-
-        // Xử lý click nút xóa
-        $(document).on('click', '.btn-delete-row', function (e) {
-            e.preventDefault();
-            var $row = $(this).closest('[data-repeater-item]');
-            // Gỡ bỏ khỏi FormValidation
-            $row.slideUp(function () {
-                $row.remove();
-            });
+            },
+            hide: function (deleteElement) {
+                if (confirm('Are you sure you want to delete this element?')) {
+                    $(this).slideUp(deleteElement);
+                }
+            },
+            isFirstItemUndeletable: true // Cho phép xóa cả hàng đầu tiên nếu cần
         });
     }
 }
