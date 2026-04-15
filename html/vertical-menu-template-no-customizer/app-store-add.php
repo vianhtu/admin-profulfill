@@ -255,6 +255,9 @@ if(!empty($export_data)){
                 <div class="card-header">
                     <h5 class="card-title mb-0">Link To Accounts</h5>
                 </div>
+                <div class="mb-6 col ecommerce-select2-dropdown">
+                    <?php renderSelect('link_accounts', 'Accounts', [], ''); ?>
+                </div>
                 <div class="card-body">
                     <div class="form-repeater" data-repeat-count="<?= $repeater_count ?>">
                         <div data-repeater-list="group-a">
