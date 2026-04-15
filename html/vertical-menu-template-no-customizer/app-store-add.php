@@ -301,7 +301,6 @@ if(!empty($export_data)){
                     <h5 class="card-title mb-0">Note</h5>
                 </div>
                 <div class="card-body">
-                    <!-- Site -->
                     <label for="account_note" class="d-none"></label>
                     <textarea class="form-control" name="account_note" id="account_note" rows="10" placeholder="Enter a note..."></textarea>
                 </div>
