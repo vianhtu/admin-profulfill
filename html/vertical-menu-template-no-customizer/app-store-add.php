@@ -262,7 +262,7 @@ if(!empty($export_data)){
                                 <div data-repeater-item>
                                     <div class="row g-sm-6 mb-6 align-items-end">
                                         <div class="col-sm-10 form-control-validation">
-                                            <?php renderSelect("form-repeater-$key-1", 'Account', [], ''); ?>
+                                            <?php renderSelect("form-repeater-$key", 'Account', [], ''); ?>
                                         </div>
                                         <div class="col-sm-1">
                                             <div class="d-flex align-items-center">
