@@ -209,7 +209,7 @@ if(!empty($export_data)){
                             <?php foreach ($file_default as $key => $value): ?>
                                 <div data-repeater-item>
                                     <div class="row g-sm-6 mb-6 align-items-end">
-                                        <div class="col-sm-2">
+                                        <div class="col-sm-4">
                                             <label class="form-label invisible" for="form-repeater-<?= $key ?>-1">Not visible</label>
                                             <input
                                                     type="text"
