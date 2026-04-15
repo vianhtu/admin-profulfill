@@ -199,17 +199,39 @@ if(!empty($export_data)){
                 </div>
             </div>
             <!-- /Media -->
-            <!-- Organize Card -->
             <div class="card mb-6">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Note</h5>
+                    <h5 class="card-title mb-0">Link To Accounts</h5>
                 </div>
                 <div class="card-body">
-                    <!-- Site -->
-                    <textarea class="form-control" name="account_note" id="account_note" rows="10" placeholder="Enter a note..."></textarea>
+                    <div class="form-repeater" data-repeat-count="<?= $repeater_count ?>">
+                        <div data-repeater-list="group-a">
+                            <?php foreach ($file_default as $key => $value): ?>
+                                <div data-repeater-item>
+                                    <div class="row g-sm-6 mb-6 align-items-end">
+                                        <div class="col-sm-10 form-control-validation">
+                                            <?php renderSelect("form-repeater-$key", 'Account', [], ''); ?>
+                                        </div>
+                                        <div class="col-sm-1">
+                                            <div class="d-flex align-items-center">
+                                                <a href="javascript:;" class="btn btn-text-secondary rounded-pill waves-effect btn-icon btn-delete-row">
+                                                    <i class="icon-base ti tabler-trash icon-22px"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-primary" data-repeater-create>
+                                <i class="icon-base ti tabler-plus icon-xs me-2"></i>
+                                Add another option
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <!-- /Organize Card -->
         </div>
         <!-- /Second column -->
 
@@ -250,40 +272,25 @@ if(!empty($export_data)){
                 </div>
             </div>
             <!-- /Organize Card -->
+            <!-- Note Card -->
+            <div class="card mb-6">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Note</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Site -->
+                    <textarea class="form-control" name="account_note" id="account_note" rows="10" placeholder="Enter a note..."></textarea>
+                </div>
+            </div>
+            <!-- /Note Card -->
             <!-- Variants -->
             <div class="card mb-6">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Link To Accounts</h5>
                 </div>
-                <div class="mb-6 col ecommerce-select2-dropdown">
-                    <?php renderSelect('link_accounts', 'Accounts', [], ''); ?>
-                </div>
                 <div class="card-body">
-                    <div class="form-repeater" data-repeat-count="<?= $repeater_count ?>">
-                        <div data-repeater-list="group-a">
-                            <?php foreach ($file_default as $key => $value): ?>
-                                <div data-repeater-item>
-                                    <div class="row g-sm-6 mb-6 align-items-end">
-                                        <div class="col-sm-10 form-control-validation">
-                                            <?php renderSelect("form-repeater-$key", 'Account', [], ''); ?>
-                                        </div>
-                                        <div class="col-sm-1">
-                                            <div class="d-flex align-items-center">
-                                                <a href="javascript:;" class="btn btn-text-secondary rounded-pill waves-effect btn-icon btn-delete-row">
-                                                    <i class="icon-base ti tabler-trash icon-22px"></i>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                        <div>
-                            <button type="button" class="btn btn-primary" data-repeater-create>
-                                <i class="icon-base ti tabler-plus icon-xs me-2"></i>
-                                Add another option
-                            </button>
-                        </div>
+                    <div class="mb-6 col ecommerce-select2-dropdown">
+                        <?php renderSelect('link_accounts', 'Accounts', [], ''); ?>
                     </div>
                 </div>
             </div>
