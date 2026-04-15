@@ -135,45 +135,45 @@ if(!empty($export_data)){
                 <div class="card-body">
                     <div class="row mb-6">
                         <div class="col">
-                            <label class="form-label" for="store-sku">SKU</label>
+                            <label class="form-label" for="account-sku">SKU</label>
                             <input
                                     type="text"
                                     class="form-control"
-                                    id="store-sku"
+                                    id="account-sku"
                                     placeholder="SKU"
-                                    name="storeSku"
-                                    aria-label="Store SKU" />
+                                    name="accountSku"
+                                    aria-label="Account SKU" />
                         </div>
                         <div class="col">
-                            <label class="form-label" for="store-id">ID</label>
+                            <label class="form-label" for="account-id">ID</label>
                             <input
                                     type="text"
                                     class="form-control"
-                                    id="store-id"
-                                    name="storeID"
-                                    aria-label="Store ID" />
+                                    id="account-id"
+                                    name="accountID"
+                                    aria-label="Account ID" />
                         </div>
                     </div>
                     <div class="row mb-6">
                         <div class="col">
-                            <label class="form-label" for="store-password">Password</label>
+                            <label class="form-label" for="account-password">Password</label>
                             <input
                                     type="password"
                                     class="form-control"
-                                    id="store-password"
+                                    id="account-password"
                                     placeholder="*********"
-                                    name="storePassword"
-                                    aria-label="Store Password" />
+                                    name="accountPassword"
+                                    aria-label="Account Password" />
                         </div>
                         <div class="col">
-                            <label class="form-label" for="store-2fa">2FA Code</label>
+                            <label class="form-label" for="account-2fa">2FA Code</label>
                             <input
                                     type="password"
                                     class="form-control"
-                                    id="store-2fa"
-                                    name="store2fa"
+                                    id="account-2fa"
+                                    name="account2fa"
                                     placeholder="***************************"
-                                    aria-label="Store 2FA" />
+                                    aria-label="Account 2FA" />
                         </div>
                     </div>
                 </div>
