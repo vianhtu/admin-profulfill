@@ -210,7 +210,6 @@ if(!empty($export_data)){
                                 <div data-repeater-item>
                                     <div class="row g-sm-6 mb-6 align-items-end">
                                         <div class="col-sm-4">
-                                            <label class="form-label">Key</label>
                                             <input
                                                     type="text"
                                                     name="custom_key"
@@ -219,7 +218,6 @@ if(!empty($export_data)){
                                                     placeholder="Enter key" />
                                         </div>
                                         <div class="col-sm-7">
-                                            <label class="form-label">Value</label>
                                             <input
                                                     type="text"
                                                     name="custom_value"
