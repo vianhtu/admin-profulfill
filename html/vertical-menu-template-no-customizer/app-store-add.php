@@ -222,7 +222,7 @@ if(!empty($export_data)){
                 </div>
                 <div class="card-body">
                     <div class="mb-6 form-control-validation accounts_status">
-                        <?php renderSelect('accountsStatus', 'Status', $status, $status_id); ?>
+                        <?php renderSelect('accounts_status', 'Status', $status, $status_id); ?>
                     </div>
                 </div>
             </div>
@@ -261,29 +261,8 @@ if(!empty($export_data)){
                             <?php foreach ($file_default as $key => $value): ?>
                                 <div data-repeater-item>
                                     <div class="row g-sm-6 mb-6 align-items-end">
-                                        <div class="col-sm-4 form-control-validation">
-                                            <label class="form-label" for="form-repeater-<?= $key ?>-1">Options</label>
-                                            <select name="" id="form-repeater-<?= $key ?>-1" class="select2 form-select" data-placeholder="Select a option">
-                                                <option value=""></option>
-                                                <?php if(!empty($file_name)): ?>
-                                                    <?php foreach ($file_header as $header): ?>
-                                                        <?php $selected = $value['text'] == $header['value'] ? ' selected' : ''; ?>
-                                                        <option value="<?= $header['column'] ?>"<?= $selected ?>><?= $header['value'] ?></option>
-                                                    <?php endforeach; ?>
-                                                <?php else: ?>
-                                                    <option value="<?= $value['location'] ?>" selected><?= $value['text'] ?></option>
-                                                <?php endif; ?>
-                                            </select>
-                                        </div>
-
-                                        <div class="col-sm-7">
-                                            <label class="form-label invisible" for="form-repeater-<?= $key ?>-2">Not visible</label>
-                                            <input
-                                                    type="text"
-                                                    id="form-repeater-<?= $key ?>-2"
-                                                    class="form-control"
-                                                    value="<?= $value['value']; ?>"
-                                                    placeholder="Enter value" />
+                                        <div class="col-sm-11 form-control-validation">
+                                            <?php renderSelect("form-repeater-$key-1", 'Account', [], ''); ?>
                                         </div>
                                         <div class="col-sm-1">
                                             <div class="d-flex align-items-center">
