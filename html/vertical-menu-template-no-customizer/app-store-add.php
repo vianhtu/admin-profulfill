@@ -261,7 +261,7 @@ if(!empty($export_data)){
                             <?php foreach ($file_default as $key => $value): ?>
                                 <div data-repeater-item>
                                     <div class="row g-sm-6 mb-6 align-items-end">
-                                        <div class="col-sm-11 form-control-validation">
+                                        <div class="col-sm-10 form-control-validation">
                                             <?php renderSelect("form-repeater-$key-1", 'Account', [], ''); ?>
                                         </div>
                                         <div class="col-sm-1">
