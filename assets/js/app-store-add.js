@@ -5,12 +5,12 @@
 //Jquery to handle the e-commerce product add page
 function init(){
     const fv = formValidate();
-    const dz = dropzoneFileUpload(fv);
+    const dz = dropzoneFileUpload();
     repeaterOptions();
     addXlsxFile(fv, dz);
 
     // Select2
-    var select2 = $('#accounts_status,#export_type,#export_site,#export_author,#export_sheet_name');
+    var select2 = $('#export_type,#export_site,#export_author,#export_sheet_name');
     if (select2.length) {
         select2.each(function () {
             var $this = $(this);
@@ -114,7 +114,7 @@ function formValidate(){
     return fv;
 }
 
-function dropzoneFileUpload(fv){
+function dropzoneFileUpload(){
     // previewTemplate: Updated Dropzone default previewTemplate
     // ! Don't change it unless you really know what you are doing
     const previewTemplate = `<div class="dz-preview dz-file-preview">
