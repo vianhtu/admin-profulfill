@@ -145,6 +145,7 @@ function dropzoneFileUpload(fv){
             maxFilesize: 5,
             acceptedFiles: '.xlsx, .png, .pdf, .jpg, .jpeg, .txt',
             addRemoveLinks: true,
+            uploadMultiple: true,
             maxFiles: 1
         });
     }
