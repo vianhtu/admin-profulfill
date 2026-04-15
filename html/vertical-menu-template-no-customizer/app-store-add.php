@@ -272,6 +272,18 @@ if(!empty($export_data)){
                 </div>
             </div>
             <!-- /Organize Card -->
+            <!-- Link to Accounts Card -->
+            <div class="card mb-6">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Link To Accounts</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-6 col ecommerce-select2-dropdown">
+                        <?php renderSelect('link_accounts', 'Accounts', [], ''); ?>
+                    </div>
+                </div>
+            </div>
+            <!-- /Link to Accounts Card -->
             <!-- Note Card -->
             <div class="card mb-6">
                 <div class="card-header">
@@ -283,18 +295,6 @@ if(!empty($export_data)){
                 </div>
             </div>
             <!-- /Note Card -->
-            <!-- Variants -->
-            <div class="card mb-6">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Link To Accounts</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-6 col ecommerce-select2-dropdown">
-                        <?php renderSelect('link_accounts', 'Accounts', [], ''); ?>
-                    </div>
-                </div>
-            </div>
-            <!-- /Variants -->
         </div>
         <!-- /Second column -->
     </div>
