@@ -115,7 +115,6 @@ function formValidate(){
 }
 
 function dropzoneFileUpload(fv){
-    const hiddenInput = document.getElementById('xlsxFilePresent');
     // previewTemplate: Updated Dropzone default previewTemplate
     // ! Don't change it unless you really know what you are doing
     const previewTemplate = `<div class="dz-preview dz-file-preview">
@@ -147,29 +146,6 @@ function dropzoneFileUpload(fv){
             acceptedFiles: '.xlsx',
             addRemoveLinks: true,
             maxFiles: 1
-        });
-    }
-    // Đồng bộ trạng thái Dropzone <-> hidden input và revalidate
-    if (myDropzone) {
-        myDropzone.on('addedfile', function(file) {
-            hiddenInput.value = file.name;
-            fv.revalidateField('xlsxFilePresent');
-            // Lấy tên file
-            document.getElementById('fileTitle').textContent = file.name;
-        });
-        myDropzone.on('removedfile', function(file) {
-            if (myDropzone.files.length === 0) {
-                hiddenInput.value = '';
-                fv.revalidateField('xlsxFilePresent');
-                document.getElementById('fileTitle').textContent = '';
-            }
-        });
-        myDropzone.on('success', function(file) {
-            if ($('#export_id').val() !== '') {
-                setTimeout(function() {
-                    $('#export_submit').trigger('click');
-                }, 1000); // 2000 milliseconds = 2 seconds
-            }
         });
     }
     return myDropzone;

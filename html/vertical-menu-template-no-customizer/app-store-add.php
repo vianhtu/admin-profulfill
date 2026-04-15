@@ -189,8 +189,6 @@ if(!empty($export_data)){
                             <p class="h4 needsclick pt-3 mb-2">Drag and drop your file here</p>
                             <p class="h6 text-body-secondary d-block fw-normal mb-2">or</p>
                             <span class="needsclick btn btn-sm btn-label-primary" id="btnBrowse">Browse file</span>
-                            <!-- field ẩn để validation -->
-                            <input type="hidden" name="xlsxFilePresent" id="xlsxFilePresent" value="<?= $file_name ?>">
                         </div>
                         <div class="fallback">
                             <input name="file" type="file" required/>
