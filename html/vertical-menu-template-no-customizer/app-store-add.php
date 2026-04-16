@@ -74,7 +74,7 @@ if(!empty($export_data)){
                     <h5 class="card-tile mb-0">Owner</h5>
                 </div>
                 <div class="card-body">
-                    <div class="mb-6">
+                    <div class="mb-6 form-control-validation">
                         <label class="form-label" for="owner_name">Name</label>
                         <input
                                 type="text"
@@ -185,7 +185,7 @@ if(!empty($export_data)){
                 </div>
                 <div class="card-body">
                     <div class="dropzone needsclick p-0" id="dropzone-basic">
-                        <div class="dz-message needsclick form-control-validation">
+                        <div class="dz-message needsclick">
                             <p class="h4 needsclick pt-3 mb-2">Drag and drop your file here</p>
                             <p class="h6 text-body-secondary d-block fw-normal mb-2">or</p>
                             <span class="needsclick btn btn-sm btn-label-primary" id="btnBrowse">Browse file</span>
@@ -271,7 +271,7 @@ if(!empty($export_data)){
                         <?php renderSelect('account_site', 'Site', $options['sites'], $site_id); ?>
                     </div>
                     <!-- Team -->
-                    <div class="mb-6 form-control-validation col ecommerce-select2-dropdown">
+                    <div class="mb-6 col ecommerce-select2-dropdown">
                         <?php renderSelect('account_team', 'Team', $options['teams'], $team_id); ?>
                     </div>
                     <!-- authors -->
@@ -299,8 +299,10 @@ if(!empty($export_data)){
                     <h5 class="card-title mb-0">Note</h5>
                 </div>
                 <div class="card-body">
-                    <label for="account_note" class="d-none"></label>
-                    <textarea class="form-control" name="account_note" id="account_note" rows="10" placeholder="Enter a note..."></textarea>
+                    <div class="col">
+                        <label for="account_note" class="d-none"></label>
+                        <textarea class="form-control" name="account_note" id="account_note" rows="10" placeholder="Enter a note..."></textarea>
+                    </div>
                 </div>
             </div>
             <!-- /Note Card -->
