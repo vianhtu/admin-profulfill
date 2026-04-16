@@ -868,39 +868,29 @@ function getAllData(string $table, $field): array
     return $data;
 }
 
-function getFieldByID(string $table, string $field, int $id): array
+function getFieldByID(string $table, string $field, int $id): ?string
 {
     $conn = db();
 
-    // 1. Bảo vệ tên bảng và tên cột để tránh SQL Injection (whitelist hoặc escape)
-    // Vì tên bảng/cột không thể dùng dấu '?' để bind, ta dùng preg_replace để chỉ cho phép chữ, số và dấu gạch dưới.
+    // 1. Làm sạch tên bảng và cột (Chỉ cho phép chữ cái, số và dấu gạch dưới)
     $safe_table = preg_replace('/[^a-zA-Z0-9_]/', '', $table);
     $safe_field = preg_replace('/[^a-zA-Z0-9_]/', '', $field);
 
-    // 2. Chuẩn bị câu lệnh với dấu ? cho ID
-    $stmt = $conn->prepare("SELECT ID, `{$safe_field}` FROM `{$safe_table}` WHERE ID = ?");
+    // 2. Sử dụng execute_query (PHP 8.2+) để code ngắn gọn và an toàn nhất
+    // Nếu bạn dùng PHP cũ hơn, hãy dùng prepare/bind_param như cũ.
+    try {
+        $sql = "SELECT `{$safe_field}` FROM `{$safe_table}` WHERE ID = ? LIMIT 1";
+        $result = $conn->execute_query($sql, [$id]);
 
-    if (!$stmt) {
-        // Trả về mảng rỗng nếu câu lệnh SQL bị lỗi (sai tên bảng hoặc cột)
-        return [];
+        $row = $result->fetch_assoc();
+
+        // Trả về giá trị của field đó, hoặc null nếu không tìm thấy dòng nào
+        return $row ? (string)$row[$safe_field] : null;
+
+    } catch (mysqli_sql_exception $e) {
+        // Log lỗi nếu cần: error_log($e->getMessage());
+        return null;
     }
-
-    // 3. Bind tham số $id (kiểu integer 'i') vào dấu ?
-    $stmt->bind_param("i", $id);
-
-    // 4. Thực thi
-    $stmt->execute();
-
-    // 5. Lấy kết quả
-    $result = $stmt->get_result();
-    $data = "";
-
-    while ($row = $result->fetch_assoc()) {
-        $data = $row[$safe_field];
-    }
-
-    $stmt->close();
-    return $data;
 }
 
 
