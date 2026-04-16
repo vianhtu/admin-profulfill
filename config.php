@@ -95,7 +95,7 @@ function logout_user(): void {
         $stmt->execute();
         $stmt->close();
     }
-    
+
     clear_remember_cookie();
 
     // 2. Xóa dữ liệu Session trong bộ nhớ (RAM)
@@ -212,7 +212,7 @@ function attempt_cookie_login(): bool {
 	if (is_logged_in()) return true;
 	if (empty($_COOKIE[REMEMBER_COOKIE])) return false;
 
-	$raw = $_COOKIE[REMEMBER_COOKIE];
+	$raw = urldecode($_COOKIE[REMEMBER_COOKIE]);
 	$parts = explode(':', $raw, 2);
 	if (count($parts) !== 2) {
 		clear_remember_cookie(); // format sai -> dọn
