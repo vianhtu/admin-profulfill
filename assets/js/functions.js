@@ -46,8 +46,6 @@ function ajaxSelectV2(select_id, type, multiple = false) {
     $('#' + select_id).select2({
         placeholder: 'Tìm và chọn...',
         multiple: multiple,
-        allowClear: true, // Cho phép xóa lựa chọn
-        width: '100%',    // Đảm bảo select2 rộng hết container
         ajax: {
             // URL nên giữ action cố định, 'type' sẽ được gửi trong POST data
             url: '../../ajax.php?action=get-common-filter',
