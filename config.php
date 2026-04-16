@@ -85,31 +85,36 @@ function require_login(): void {
 	}
 }
 function logout_user(): void {
-	if (!empty($_SESSION['auth']['user'])) {
-		// Lấy thông tin user hiện tại
-		$username = $_SESSION['auth']['user'];
+    $db = db();
 
-		// Xóa tất cả token remember-me của user này
-		$stmt = db()->prepare("
-            DELETE t FROM author_remember_tokens t
-            JOIN authors a ON a.ID = t.author_id
-            WHERE a.username = ? OR a.email = ?
-        ");
-		$stmt->bind_param('ss', $username, $username);
-		$stmt->execute();
-		$stmt->close();
-	}
+    // 1. Xóa Token Remember-me trong Database trước khi hủy Session
+    $userId = $_SESSION['auth']['user_id'] ?? null;
+    if ($userId) {
+        $stmt = $db->prepare("DELETE FROM author_remember_tokens WHERE author_id = ?");
+        $stmt->bind_param('i', $userId);
+        $stmt->execute();
+        $stmt->close();
+    }
 
-	// Xóa cookie remember-me
-	clear_remember_cookie();
+    // 2. Xóa Cookie Remember-me trên trình duyệt
+    clear_remember_cookie();
 
-	// Xóa session
-	$_SESSION = [];
-	if (ini_get('session.use_cookies')) {
-		$p = session_get_cookie_params();
-		setcookie(session_name(), '', time() - 42000, $p['path'], $p['domain'], $p['secure'], $p['httponly']);
-	}
-	session_destroy();
+    // 3. Xóa hoàn toàn Session
+    $_SESSION = []; // Ghi đè mảng session thành rỗng
+
+    // Xóa Session Cookie
+    if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000,
+            $params["path"], $params["domain"],
+            $params["secure"], $params["httponly"]
+        );
+    }
+
+    // Cuối cùng là hủy file session trên server
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_destroy();
+    }
 }
 
 function get_user_data(int|string $identifier): ?array {
