@@ -185,74 +185,46 @@ function renderSelect($id, $label, $options = [], $selected = null, $multiple = 
 
 function checkRoles(string|array $role = '', string $menu = ''): bool
 {
-    // Nếu là admin thì luôn true
+    // 1. Ưu tiên cao nhất: Admin
     if (isAdmin()) {
         return true;
     }
 
-    // Nếu không truyền $menu thì lấy từ GET
+    // 2. Xác định menu
+    $menu = $menu ?: ($_REQUEST['menu'] ?? '');
     if ($menu === '') {
-        $menu = $_GET['menu'] ?? '';
+        return false;
     }
 
-    if ($menu === '') {
-        return false; // Không xác định được menu
+    // 3. Lấy quyền của user từ session
+    $userRoles = $_SESSION['auth']['roles'][$menu] ?? [];
+    if (empty($userRoles)) {
+        return false;
     }
 
-    // Lấy danh sách quyền của user
-    $userRoles = $_SESSION['auth']['roles'] ?? [];
+    // 4. Chuẩn hóa $role thành mảng để xử lý đồng nhất
+    $rolesToCheck = (array)$role;
 
-    // Nếu không truyền role => mặc định kiểm tra view
-    if ($role === '' || $role === []) {
-        // Có view thì true
-        if (!empty($userRoles[$menu]['view'])) {
-            return true;
-        }
-        // Không có view nhưng có add/edit/delete thì cũng coi như view
-        foreach (['add', 'edit', 'delete'] as $r) {
-            if (!empty($userRoles[$menu][$r])) {
+    // Nếu không truyền role hoặc mảng rỗng, mặc định là kiểm tra quyền truy cập chung (view)
+    if (empty($rolesToCheck) || $rolesToCheck === ['']) {
+        $rolesToCheck = ['view'];
+    }
+
+    foreach ($rolesToCheck as $r) {
+        // Logic đặc biệt cho 'view': nếu có bất kỳ quyền con nào thì coi như có quyền view
+        if ($r === 'view') {
+            if (!empty($userRoles['view']) ||
+                !empty($userRoles['add']) ||
+                !empty($userRoles['edit']) ||
+                !empty($userRoles['delete'])) {
                 return true;
             }
-        }
-        return false;
-    }
-
-    // Nếu $role là mảng
-    if (is_array($role)) {
-        foreach ($role as $r) {
-            // Nếu đang check 'view' thì áp dụng logic đặc biệt
-            if ($r === 'view') {
-                if (!empty($userRoles[$menu]['view'])) {
-                    return true;
-                }
-                foreach (['add', 'edit', 'delete'] as $extra) {
-                    if (!empty($userRoles[$menu][$extra])) {
-                        return true;
-                    }
-                }
-            } else {
-                if (!empty($userRoles[$menu][$r])) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    // Nếu $role là string
-    if ($role === 'view') {
-        if (!empty($userRoles[$menu]['view'])) {
+        } elseif (!empty($userRoles[$r])) {
             return true;
         }
-        foreach (['add', 'edit', 'delete'] as $r) {
-            if (!empty($userRoles[$menu][$r])) {
-                return true;
-            }
-        }
-        return false;
     }
 
-    return !empty($userRoles[$menu][$role]);
+    return false;
 }
 
 function gemini_client(): GuzzleClient
