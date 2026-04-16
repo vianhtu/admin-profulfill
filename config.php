@@ -131,29 +131,43 @@ function find_author_by_login(string $userOrEmail): ?array {
 	$stmt->close();
 	return null;
 }
-function get_username_by_id(int $id): ?array {
-	$stmt = db()->prepare("
-        SELECT authors.ID, username, team_id, level, rl.roles
-        FROM authors
-        LEFT JOIN roles_permissions rl ON rl.ID = authors.level
-        WHERE authors.ID = ?
-        LIMIT 1");
-	$stmt->bind_param('i', $id);
-	$stmt->execute();
-	$stmt->bind_result($author_id, $username, $team_id, $level, $rolesJson);
-	if ($stmt->fetch()){
-		$stmt->close();
-        $roles = $rolesJson === null ? [] : json_decode($rolesJson, true);
-		return [
-			'id' => (int)$author_id,
-			'username' => (string)$username,
-            'team' => (int)$team_id,
-			'level' => (int)$level,
-			'roles' => $roles,
-		];
-	}
-	$stmt->close();
-	return null;
+function get_user_by_id(int $id): ?array {
+    $sql = "
+        SELECT 
+            a.ID as id, 
+            a.username, 
+            a.team_id as team, 
+            rl.roles, 
+            rl.slug as level
+        FROM authors a
+        LEFT JOIN roles_permissions rl ON rl.ID = a.level
+        WHERE a.ID = ?
+        LIMIT 1
+    ";
+
+    try {
+        // Thực thi truy vấn và lấy result object ngay lập tức
+        $result = db()->execute_query($sql, [$id]);
+
+        // Fetch dữ liệu dưới dạng mảng kết hợp (associative array)
+        $user = $result->fetch_assoc();
+
+        if ($user) {
+            // Xử lý decode JSON cho roles (sử dụng toán tử ?? của PHP)
+            $user['roles'] = json_decode($user['roles'] ?? '[]', true);
+
+            // Ép kiểu dữ liệu để đảm bảo tính nhất quán
+            $user['id'] = (int)$user['id'];
+            $user['team'] = (int)$user['team'];
+
+            return $user;
+        }
+    } catch (mysqli_sql_exception $e) {
+        // Log lỗi nếu cần: error_log($e->getMessage());
+        return null;
+    }
+
+    return null;
 }
 
 // ===== Remember-me implementation =====
@@ -245,7 +259,7 @@ function attempt_cookie_login(): bool {
 	}
 
 	// Lấy username và đăng nhập
-	$user = get_username_by_id((int)$authorId);
+	$user = get_user_by_id((int)$authorId);
 	if ($user === null) {
 		delete_remember_selector($selector);
 		clear_remember_cookie();
@@ -294,18 +308,12 @@ function clear_remember_cookie(): void {
 
 function isAdmin() : bool
 {
-    return (int)($_SESSION['auth']['level'] ?? 0) === 0;
+    return (string)($_SESSION['auth']['level'] ?? '') === 'admin';
 }
 
 function isManager() : bool
 {
-    return (int)($_SESSION['auth']['level'] ?? 0) === 1;
-}
-
-function hasRole(array $allowedLevels): bool
-{
-    $currentLevel = (int)($_SESSION['auth']['level'] ?? -1);
-    return in_array($currentLevel, $allowedLevels, true);
+    return (string)($_SESSION['auth']['level'] ?? '') === 'manager';
 }
 
 function getCurrentUserTeam(): ?int
