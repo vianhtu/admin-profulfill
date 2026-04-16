@@ -7,7 +7,7 @@ function init(){
     const fv = formValidate();
     const dz = dropzoneFileUpload();
     repeaterOptions();
-    //addXlsxFile(fv, dz);
+    addXlsxFile(fv, dz);
 
     // Select2
     var select2 = $('#account_team,#account_site,#accounts_status');
@@ -48,7 +48,7 @@ function repeaterOptions() {
 
 function formValidate(){
     // form validation
-    const formEl = document.getElementById('add_edit_account');
+    const formEl = document.getElementById('addXlsxFile');
     let valid_fields = {
         owner_name: {
             validators: {

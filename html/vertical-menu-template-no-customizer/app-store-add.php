@@ -48,7 +48,7 @@ if(!empty($export_data)){
 }
 ?>
 <div class="app-ecommerce">
-    <form id="add_edit_account" onsubmit="return false">
+    <form id="addXlsxFile" onsubmit="return false">
     <input type="hidden" id="export_id" value="<?= $export_id ?>">
     <!-- Add Product -->
     <div
