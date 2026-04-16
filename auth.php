@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'login
 		exit;
 	}
 
-	$author = find_author_by_login($userKey);
+	$author = get_user_data($userKey);
 	if (!$author || !password_verify($password, $author['hash'])) {
 		flash_set('error', 'Sai tên đăng nhập hoặc mật khẩu.');
 		header('Location: ./html/vertical-menu-template-no-customizer/auth-login-basic.php');

@@ -62,7 +62,15 @@ function user_agent_fingerprint(): string { return hash('sha256', $_SERVER['HTTP
 // ===== Auth core =====
 function login_user(array $username): void {
 	session_regenerate_id(true);
-	$_SESSION['auth'] = ['user'=>$username['username'], 'ua'=>user_agent_fingerprint(), 't'=>time(), 'user_id'=> $username['id'], 'team' => $username['team'], 'level'=>$username['level'], 'roles'=>$username['roles']];
+	$_SESSION['auth'] = [
+        'user'=>$username['username'],
+        'ua'=>user_agent_fingerprint(),
+        't'=>time(),
+        'user_id'=> $username['id'],
+        'team' => $username['team'],
+        'level'=>$username['level'],
+        'roles'=>$username['roles']
+    ];
 }
 function is_logged_in(): bool {
 	return !empty($_SESSION['auth']['user']) && hash_equals($_SESSION['auth']['ua'], user_agent_fingerprint());
@@ -104,50 +112,28 @@ function logout_user(): void {
 	session_destroy();
 }
 
-// ===== Login lookup (email OR username) =====
-function find_author_by_login(string $userOrEmail): ?array {
-	$sql = "
-        SELECT authors.ID, username, pass, team_id, level, rl.roles
-        FROM authors
-        LEFT JOIN roles_permissions rl ON rl.ID = authors.level
-        WHERE username = ? OR email = ?
-        LIMIT 1";
-	$stmt = db()->prepare($sql);
-	$stmt->bind_param('ss', $userOrEmail, $userOrEmail);
-	$stmt->execute();
-	$stmt->bind_result($id, $username, $hash, $team_id, $level, $rolesJson);
-	if ($stmt->fetch()) {
-		$stmt->close();
-		$roles = $rolesJson === null ? [] : json_decode($rolesJson, true);
-		return [
-            'id' => (int)$id,
-            'username' => (string)$username,
-            'hash' => (string)$hash,
-            'team' => (int)$team_id,
-            'level' => (int)$level,
-            'roles' => $roles
-        ];
-	}
-	$stmt->close();
-	return null;
-}
-function get_user_by_id(int $id): ?array {
+function get_user_data(int|string $identifier): ?array {
+
+    // Xác định cột cần tìm dựa trên kiểu dữ liệu của identifier
+    $column = is_int($identifier) ? "a.ID" : (filter_var($identifier, FILTER_VALIDATE_EMAIL) ? "a.email" : "a.username");
+
     $sql = "
         SELECT 
             a.ID as id, 
-            a.username, 
+            a.username,
+            a.pass as hash,
             a.team_id as team, 
             rl.roles, 
             rl.slug as level
         FROM authors a
         LEFT JOIN roles_permissions rl ON rl.ID = a.level
-        WHERE a.ID = ?
+        WHERE {$column} = ?
         LIMIT 1
     ";
 
     try {
         // Thực thi truy vấn và lấy result object ngay lập tức
-        $result = db()->execute_query($sql, [$id]);
+        $result = db()->execute_query($sql, [$identifier]);
 
         // Fetch dữ liệu dưới dạng mảng kết hợp (associative array)
         $user = $result->fetch_assoc();
@@ -258,7 +244,7 @@ function attempt_cookie_login(): bool {
 	}
 
 	// Lấy username và đăng nhập
-	$user = get_user_by_id((int)$authorId);
+	$user = get_user_data((int)$authorId);
 	if ($user === null) {
 		delete_remember_selector($selector);
 		clear_remember_cookie();
