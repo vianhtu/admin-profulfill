@@ -7,7 +7,7 @@ function init(){
     const fv = formValidate();
     const dz = dropzoneFileUpload();
     repeaterOptions();
-    addXlsxFile(fv, dz);
+    //addXlsxFile(fv, dz);
 
     // Select2
     var select2 = $('#account_team,#account_site,#accounts_status');
