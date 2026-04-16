@@ -290,7 +290,7 @@ if(!empty($export_data)){
                 </div>
                 <div class="card-body">
                     <div class="mb-6 col ecommerce-select2-dropdown">
-                        <?php renderSelect('link_accounts', 'Accounts', [], ''); ?>
+                        <?php renderSelect('link_accounts', 'Accounts', [], null, true); ?>
                     </div>
                 </div>
             </div>

@@ -144,16 +144,43 @@ function renderMenu($currentMenu): void
     }
 }
 
-function renderSelect($id, $label, $options, $selected = null): void
+function renderSelect($id, $label, $options = [], $selected = null, $multiple = false): void
 {
-	echo "<label class='form-label mb-1' for='{$id}'>{$label}</label>";
-	echo "<select id='{$id}' name='{$id}' class='select2 form-select'>";
-    echo "<option value=''>Select a {$label}</option>";
-	foreach ($options as $key => $value) {
-		$isSelected = ($selected === $key) ? "selected" : "";
-		echo "<option value='{$key}' {$isSelected}>{$value['title']}</option>";
-	}
-	echo "</select>";
+    // 1. Xử lý thuộc tính multiple và name
+    $multipleAttr = $multiple ? ' multiple' : '';
+    $nameAttr = $id . ($multiple ? '[]' : '');
+
+    // 2. Escape các biến cơ bản để bảo mật
+    $safeId = htmlspecialchars($id);
+    $safeLabel = htmlspecialchars($label);
+
+    echo "<label class='form-label mb-1' for='{$safeId}'>{$safeLabel}</label>";
+    echo "<select id='{$safeId}' name='{$nameAttr}' class='select2 form-select' data-placeholder='Select a {$safeLabel}'{$multipleAttr}>";
+
+    // 3. Xử lý option mặc định cho single select
+    if (!$multiple) {
+        echo "<option value=''>Select a {$safeLabel}</option>";
+    }
+
+    if (is_array($options)) {
+        foreach ($options as $key => $value) {
+            // 4. Kiểm tra selected cho cả đơn lẻ và mảng (multiple)
+            $isSelected = false;
+            if ($multiple && is_array($selected)) {
+                $isSelected = in_array($key, $selected);
+            } else {
+                $isSelected = ($selected == $key); // Sử dụng == để linh hoạt kiểu dữ liệu
+            }
+
+            $selectedStr = $isSelected ? ' selected' : '';
+            $safeKey = htmlspecialchars($key);
+            $safeTitle = htmlspecialchars($value['title']);
+
+            echo "<option value='{$safeKey}'{$selectedStr}>{$safeTitle}</option>";
+        }
+    }
+
+    echo "</select>";
 }
 
 function checkRoles(string|array $role = '', string $menu = ''): bool
