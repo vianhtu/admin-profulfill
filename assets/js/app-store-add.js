@@ -27,7 +27,7 @@ function init(){
         });
     }
 
-    ajaxSelect2('link_accounts', 'filter-accounts', true);
+    ajaxSelectV2('link_accounts', 'accounts', true);
 }
 
 function repeaterOptions() {

@@ -42,6 +42,47 @@ function ajaxSelect2(select_id, action, multiple = false){
     });
 }
 
+function ajaxSelectV2(select_id, type, multiple = false) {
+    $('#' + select_id).select2({
+        placeholder: 'Tìm và chọn...',
+        multiple: multiple,
+        allowClear: true, // Cho phép xóa lựa chọn
+        width: '100%',    // Đảm bảo select2 rộng hết container
+        ajax: {
+            // URL nên giữ action cố định, 'type' sẽ được gửi trong POST data
+            url: '../../ajax.php?action=get-common-filter',
+            dataType: 'json',
+            type: 'POST',
+            delay: 300,
+            data: function (params) {
+                return {
+                    q: params.term || '',
+                    page: params.page || 1,
+                    type: type // Đây là biến 'accounts', 'proxies',... để PHP nhận diện
+                };
+            },
+            processResults: function (data, params) {
+                // PHP bản mới trả về { results: [...], pagination: { more: true/false } }
+                // Nếu PHP đã format đúng 'text' và 'id', bạn không cần .map() lại
+                return {
+                    results: data.results || [],
+                    pagination: {
+                        more: data.pagination ? data.pagination.more : false
+                    }
+                };
+            },
+            cache: true
+        },
+        minimumInputLength: 0, // Nên để 0 để khi click vào là hiện danh sách ngay (nếu muốn)
+        language: {
+            inputTooShort: () => 'Gõ ít nhất 1 ký tự',
+            searching: () => 'Đang tìm...',
+            noResults: () => 'Không có kết quả',
+            errorLoading: () => 'Lỗi tải dữ liệu'
+        }
+    });
+}
+
 // ---- URL helpers (tái sử dụng cho mọi input) ----
 function getUrlParam(name) {
     return new URLSearchParams(window.location.search).get(name);

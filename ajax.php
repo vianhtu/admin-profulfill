@@ -3,6 +3,7 @@ declare(strict_types=1);
 require __DIR__ . '/config.php';
 require __DIR__ . '/functions.php';
 require __DIR__ . '/functions/functions-telnyx.php';
+require __DIR__ . '/functions/ajax-select2.php';
 require __DIR__ . '/model/functions-gemini.php';
 require __DIR__ . '/model/functions-openai.php';
 require __DIR__ . '/tables/functions-teams.php';
@@ -95,6 +96,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             break;
         case 'get-roles-permissions':
             echo json_encode(getRolesPermissions());
+            break;
+        case 'get-common-filter':
+            echo json_encode(getCommonFilterData());
             break;
 		case 'filter-stores':
 			echo json_encode(getStoresTableFilter());

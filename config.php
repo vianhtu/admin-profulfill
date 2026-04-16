@@ -294,8 +294,18 @@ function clear_remember_cookie(): void {
 
 function isAdmin() : bool
 {
-    return isset($_SESSION['auth'], $_SESSION['auth']['level'])
-        && $_SESSION['auth']['level'] === 0;
+    return (int)($_SESSION['auth']['level'] ?? 0) === 0;
+}
+
+function isManager() : bool
+{
+    return (int)($_SESSION['auth']['level'] ?? 0) === 1;
+}
+
+function hasRole(array $allowedLevels): bool
+{
+    $currentLevel = (int)($_SESSION['auth']['level'] ?? -1);
+    return in_array($currentLevel, $allowedLevels, true);
 }
 
 function getCurrentUserTeam(): ?int

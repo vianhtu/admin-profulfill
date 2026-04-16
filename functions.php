@@ -1066,7 +1066,7 @@ function getAccountsTableFilter(): array {
 	$perPage = 20;
 	$offset  = ($page - 1) * $perPage;
 
-// Chuẩn bị câu truy vấn (Prepared Statement để chống SQL injection)
+    // Chuẩn bị câu truy vấn (Prepared Statement để chống SQL injection)
 	$sql = "SELECT a.id, CONCAT(s.name, ' (', a.name, ')') AS name
         FROM accounts AS a
         JOIN site s ON a.site_id = s.id
