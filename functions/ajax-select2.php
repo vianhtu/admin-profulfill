@@ -18,8 +18,12 @@ function getCommonFilterData(): array {
         'accounts' => [
             'base_sql' => "SELECT a.id, CONCAT(s.name, ' (', a.name, ')') AS text FROM accounts a JOIN site s ON a.site_id = s.id",
             'search_where' => "(a.name LIKE ? OR a.email LIKE ? OR a.user_id LIKE ?)",
-            'order' => "a.site_id ASC",
-            'alias' => 'a'
+            'order' => "a.site_id ASC"
+        ],
+        'authors' => [
+            'base_sql' => "SELECT a.id, CONCAT(t.name, ' (', a.username, ')') AS text FROM authors a JOIN team t ON a.team_id = t.id",
+            'search_where' => "(a.email LIKE ? OR a.username LIKE ?)",
+            'order' => "a.team_id ASC"
         ]
     ];
 
@@ -46,6 +50,18 @@ function getCommonFilterData(): array {
             $params[] = (int)($auth['team'] ?? 0);
             $params[] = (int)($auth['user_id'] ?? 0);
             $types .= "ii";
+        }
+    } elseif ($type === 'authors'){
+        $params = [$like, $like];
+        $types = "ss";
+        if ($level == "manager") {
+            $whereClauses[] = "a.team_id = ?";
+            $params[] = (int)($auth['team'] ?? 0);
+            $types .= "i";
+        } elseif ($level == "user") {
+            $whereClauses[] = "a.ID = ?";
+            $params[] = (int)($auth['user_id'] ?? 0);
+            $types .= "i";
         }
     }
 

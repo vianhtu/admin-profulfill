@@ -10,7 +10,7 @@ function init(){
     addXlsxFile(fv, dz);
 
     // Select2
-    var select2 = $('#account_author,#account_team,#account_site, #accounts_status');
+    var select2 = $('#account_team,#account_site, #accounts_status');
     if (select2.length) {
         select2.each(function () {
             var $this = $(this);
@@ -27,6 +27,7 @@ function init(){
         });
     }
 
+    ajaxSelectV2('account_author', 'authors', false);
     ajaxSelectV2('link_accounts', 'accounts', true);
 }
 
