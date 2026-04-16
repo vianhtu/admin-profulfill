@@ -85,28 +85,20 @@ function require_login(): void {
 	}
 }
 function logout_user(): void {
-    $db = db();
-
-    // 1. Xóa Token Remember-me trong Database trước khi hủy Session
-    $userId = $_SESSION['auth']['user_id'] ?? null;
-    if ($userId) {
-        $stmt = $db->prepare("DELETE FROM author_remember_tokens WHERE author_id = ?");
-        $stmt->bind_param('i', $userId);
-        $stmt->execute();
-        $stmt->close();
-    }
-
-    // 2. Xóa Cookie Remember-me trên trình duyệt
+    // 1. Chỉ xóa token của thiết bị hiện tại trong DB và xóa cookie trình duyệt
+    // từ cookie để xóa đúng 1 dòng tương ứng trong author_remember_tokens.
     clear_remember_cookie();
 
-    // 3. Xóa hoàn toàn Session
-    $_SESSION = []; // Ghi đè mảng session thành rỗng
+    // 2. Xóa dữ liệu Session trong bộ nhớ (RAM)
+    $_SESSION = [];
 
-    // Xóa Session Cookie
+    // 3. Xóa Session Cookie để trình duyệt hủy định danh phiên làm việc
     if (ini_get("session.use_cookies")) {
         $params = session_get_cookie_params();
         setcookie(
-            session_name(), '', time() - 42000,
+            session_name(),
+            '',
+            time() - 42000,
             $params["path"],
             $params["domain"],
             $params["secure"],
@@ -114,7 +106,7 @@ function logout_user(): void {
         );
     }
 
-    // Cuối cùng là hủy file session trên server
+    // 4. Hủy file session vật lý trên Server
     if (session_status() === PHP_SESSION_ACTIVE) {
         session_destroy();
     }
@@ -193,10 +185,12 @@ function set_remember_cookie(int $authorId): void {
 
 	// Lưu cookie: selector:validator
 	$value = $selector . ':' . $validator_b64;
+    // Tự động nhận diện HTTPS để tránh lỗi trên localhost
+    $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
 	setcookie(REMEMBER_COOKIE, $value, [
 		'expires'  => $expires,
 		'path'     => '/',
-		'secure'   => true,
+		'secure'   => $secure,
 		'httponly' => true,
 		'samesite' => 'Lax'
 	]);
@@ -288,11 +282,12 @@ function clear_remember_cookie(): void {
 			delete_remember_selector($parts[0]);
 		}
 	}
-
+    // Tự động nhận diện HTTPS để tránh lỗi trên localhost
+    $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
 	setcookie(REMEMBER_COOKIE, '', [
 		'expires'  => time() - 3600,
 		'path'     => '/',
-		'secure'   => true,
+		'secure'   => $secure,
 		'httponly' => true,
 		'samesite' => 'Lax',
 	]);
