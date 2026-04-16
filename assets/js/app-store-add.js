@@ -10,7 +10,7 @@ function init(){
     addXlsxFile(fv, dz);
 
     // Select2
-    var select2 = $('#export_type,#export_site,#export_author,#export_sheet_name, #accounts_status');
+    var select2 = $('#account_author,#account_team,#account_site, #accounts_status');
     if (select2.length) {
         select2.each(function () {
             var $this = $(this);
