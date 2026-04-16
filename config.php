@@ -85,8 +85,17 @@ function require_login(): void {
 	}
 }
 function logout_user(): void {
-    // 1. Chỉ xóa token của thiết bị hiện tại trong DB và xóa cookie trình duyệt
-    // từ cookie để xóa đúng 1 dòng tương ứng trong author_remember_tokens.
+    $db = db();
+
+    // 1. Xóa Token Remember-me trong Database trước khi hủy Session
+    $userId = $_SESSION['auth']['user_id'] ?? null;
+    if ($userId) {
+        $stmt = $db->prepare("DELETE FROM author_remember_tokens WHERE author_id = ?");
+        $stmt->bind_param('i', $userId);
+        $stmt->execute();
+        $stmt->close();
+    }
+    
     clear_remember_cookie();
 
     // 2. Xóa dữ liệu Session trong bộ nhớ (RAM)
