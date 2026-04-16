@@ -94,13 +94,11 @@ function renderMenu($currentMenu): void
                 $activeClass = ($currentMenu === $key) ? 'active' : '';
                 if ($activeClass) $isOpen = true;
 
-                // Nếu có roles trong menuArgs => kiểm tra quyền
-                if (!isAdmin() && isset($value['roles'])) {
-                    if (!checkRoles('', $key)) {
-                        continue; // Không có quyền => bỏ qua
-                    }
-                }
                 // Nếu không có roles => ai cũng xem được
+                // Nếu có roles trong menuArgs => kiểm tra quyền
+                if (!isAdmin() && isset($value['roles']) && !checkRoles('', $key)) {
+                    continue;
+                }
 
                 $subMenuHtml .= "<li class='menu-item {$activeClass}'>
                     <a href='index.php?menu={$key}' class='menu-link' {$target}>
@@ -127,10 +125,8 @@ function renderMenu($currentMenu): void
             $href = $link === '' ? 'index.php' : "index.php?menu={$link}";
 
             // Nếu có roles => kiểm tra quyền
-            if (!isAdmin() && isset($mainData['roles'])) {
-                if (!checkRoles('', $link)) {
-                    continue;
-                }
+            if (!isAdmin() && isset($mainData['roles']) && !checkRoles('', $link)) {
+                continue;
             }
             // Nếu không có roles => ai cũng xem được
 
