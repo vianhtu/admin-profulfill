@@ -94,7 +94,7 @@ function renderMenu($currentMenu): void
                 $activeClass = ($currentMenu === $key) ? 'active' : '';
                 if ($activeClass) $isOpen = true;
 
-                var_dump(isAdmin());
+                var_dump($_SESSION);
 
                 // Nếu không có roles => ai cũng xem được
                 // Nếu có roles trong menuArgs => kiểm tra quyền
