@@ -308,7 +308,15 @@ function check_level(string $target): bool {
 
 function is_admin(): bool { return check_level('admin'); }
 function is_manager(): bool { return check_level('manager'); }
+function is_user(): bool { return check_level('user'); }
+function is_customer(): bool { return check_level('customer'); }
 
+// Kiểm tra nhân sự cấp cao (Admin + Manager)
 function is_staff(): bool {
     return is_admin() || is_manager();
+}
+
+// Kiểm tra toàn bộ nhân viên nội bộ (Admin + Manager + User)
+function is_internal(): bool {
+    return is_admin() || is_manager() || is_user();
 }

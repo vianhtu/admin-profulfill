@@ -3,12 +3,12 @@ function getCommonFilterData(): array {
     $conn = db();
     $results = ['results' => [], 'pagination' => ['more' => false]];
     $type = $_POST['type'] ?? '';
-    if (!hasRole([0, 1, 2]) || empty($type)) {
+    if (!is_internal() || empty($type)) {
         return $results;
     }
 
     $auth = $_SESSION['auth'];
-    $level = (int)($auth['level'] ?? 99);
+    $level = $auth['level'] ?? '';
     $q    = isset($_POST['q']) ? trim($_POST['q']) : '';
     $page = isset($_POST['page']) ? max(1, intval($_POST['page'])) : 1;
     $perPage = 20;
@@ -36,13 +36,13 @@ function getCommonFilterData(): array {
     if ($type === 'accounts') {
         $params = [$like, $like, $like];
         $types = "sss";
-        if ($level === 1) {
-            $whereClauses[] = "{$cfg['alias']}.team_id = ?";
+        if ($level == "manager") {
+            $whereClauses[] = "a.team_id = ?";
             $params[] = (int)($auth['team'] ?? 0);
             $types .= "i";
-        } elseif ($level === 2) {
-            $whereClauses[] = "{$cfg['alias']}.team_id = ?";
-            $whereClauses[] = "{$cfg['alias']}.author_id = ?";
+        } elseif ($level == "user") {
+            $whereClauses[] = "a.team_id = ?";
+            $whereClauses[] = "a.author_id = ?";
             $params[] = (int)($auth['team'] ?? 0);
             $params[] = (int)($auth['user_id'] ?? 0);
             $types .= "ii";
