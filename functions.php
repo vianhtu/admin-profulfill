@@ -96,7 +96,7 @@ function renderMenu($currentMenu): void
 
                 // Nếu không có roles => ai cũng xem được
                 // Nếu có roles trong menuArgs => kiểm tra quyền
-                if (!isAdmin() && isset($value['roles']) && !checkRoles('', $key)) {
+                if (!is_admin() && isset($value['roles']) && !checkRoles('', $key)) {
                     continue;
                 }
 
@@ -125,7 +125,7 @@ function renderMenu($currentMenu): void
             $href = $link === '' ? 'index.php' : "index.php?menu={$link}";
 
             // Nếu có roles => kiểm tra quyền
-            if (!isAdmin() && isset($mainData['roles']) && !checkRoles('', $link)) {
+            if (!is_admin() && isset($mainData['roles']) && !checkRoles('', $link)) {
                 continue;
             }
             // Nếu không có roles => ai cũng xem được
@@ -182,7 +182,7 @@ function renderSelect($id, $label, $options = [], $selected = null, $multiple = 
 function checkRoles(string|array $role = '', string $menu = ''): bool
 {
     // 1. Ưu tiên cao nhất: Admin
-    if (isAdmin()) {
+    if (is_admin()) {
         return true;
     }
 
@@ -760,7 +760,7 @@ function getAllAuthors(): array {
 
 function getAuthorsByTeam(): array
 {
-    if(isAdmin()){
+    if(is_admin()){
         if (!empty($_POST['filter_team'])) {
             $team_id = intval($_POST['filter_team']);
         } else {
@@ -812,7 +812,7 @@ function getAllRoles(): array {
 }
 
 function getAllTeams(): array {
-    if(isAdmin()) {
+    if(is_admin()) {
         return getAllDataMap('team', 'name');
     } else {
         $team_id = $_SESSION['auth']['team'];
@@ -2239,7 +2239,7 @@ function addXlsx(): array {
     $type_id      = (int) ($_POST['type'] ?? 0);
     $accounts_id  = (int) ($_POST['account'] ?? 0);
     $authors_id = (int)(
-    isAdmin() && !empty($_POST['author'])
+    is_admin() && !empty($_POST['author'])
         ? $_POST['author']
         : ($_SESSION['auth']['user_id'] ?? 0)
     );

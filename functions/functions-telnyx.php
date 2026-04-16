@@ -113,7 +113,7 @@ function getSMS(): array
         $whereClauses[] = "sms.phone_id = ?";
     }
 
-    if(!isAdmin()){
+    if(!is_admin()){
         $teamId = $_SESSION['auth']['team'] ?? null;
         if($teamId){
             $whereClauses[] = "p.team_id = $teamId";
@@ -160,7 +160,7 @@ function getPhonesTable(): array
     }
     // team
     $totalTeam = '';
-    if(!isAdmin()){
+    if(!is_admin()){
         $teamId = $_SESSION['auth']['team'] ?? null;
         if($teamId){
             $whereClauses[] = "phones.team_id = $teamId";

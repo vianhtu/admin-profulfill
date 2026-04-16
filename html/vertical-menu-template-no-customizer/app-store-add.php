@@ -275,7 +275,7 @@ if(!empty($export_data)){
                         <?php renderSelect('account_team', 'Team', $options['teams'], $team_id); ?>
                     </div>
                     <!-- authors -->
-                    <?php if(isAdmin()): ?>
+                    <?php if(is_admin()): ?>
                     <div class="mb-6 col ecommerce-select2-dropdown">
                         <?php renderSelect('account_author', 'Author', $options['authors'], $authors_id); ?>
                     </div>

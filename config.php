@@ -297,9 +297,9 @@ function check_level(string $target): bool {
     return strtolower((string)($_SESSION['auth']['level'] ?? '')) === strtolower($target);
 }
 
-function isAdmin(): bool { return check_level('admin'); }
+function is_admin(): bool { return check_level('admin'); }
 function is_manager(): bool { return check_level('manager'); }
 
 function is_staff(): bool {
-    return isAdmin() || is_manager();
+    return is_admin() || is_manager();
 }

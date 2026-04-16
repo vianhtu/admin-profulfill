@@ -199,7 +199,7 @@ if(!empty($export_data)){
                         <?php renderSelect('export_site', 'Site', $options['sites'], $site_id); ?>
                     </div>
                     <!-- authors -->
-                    <?php if(isAdmin()): ?>
+                    <?php if(is_admin()): ?>
                     <div class="mb-6 col ecommerce-select2-dropdown">
                         <?php renderSelect('export_author', 'Author', $options['authors'], $authors_id); ?>
                     </div>
