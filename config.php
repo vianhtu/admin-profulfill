@@ -159,7 +159,6 @@ function get_user_by_id(int $id): ?array {
             // Ép kiểu dữ liệu để đảm bảo tính nhất quán
             $user['id'] = (int)$user['id'];
             $user['team'] = (int)$user['team'];
-            var_dump($user); exit();
             return $user;
         }
     } catch (mysqli_sql_exception $e) {
