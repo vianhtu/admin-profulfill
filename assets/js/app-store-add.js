@@ -57,6 +57,13 @@ function formValidate(){
                 }
             }
         },
+        account_email: {
+            validators: {
+                notEmpty: {
+                    message: 'Please enter account email.'
+                }
+            }
+        },
         accounts_status: {
             validators: {
                 notEmpty: {

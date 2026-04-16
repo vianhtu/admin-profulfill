@@ -133,6 +133,18 @@ if(!empty($export_data)){
                     <h5 class="card-tile mb-0">Account</h5>
                 </div>
                 <div class="card-body">
+                    <div class="row mb-6 form-control-validation">
+                        <div class="col">
+                            <label class="form-label" for="account_email">Email</label>
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    id="account_email"
+                                    placeholder="@"
+                                    name="account_email"
+                                    aria-label="Account email" />
+                        </div>
+                    </div>
                     <div class="row mb-6">
                         <div class="col">
                             <label class="form-label" for="account_sku">SKU</label>
