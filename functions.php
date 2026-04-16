@@ -893,10 +893,10 @@ function getFieldByID(string $table, string $field, int $id): array
 
     // 5. Lấy kết quả
     $result = $stmt->get_result();
-    $data = [];
+    $data = "";
 
     while ($row = $result->fetch_assoc()) {
-        $data[$row['ID']] = $row[$safe_field];
+        $data = $row[$safe_field];
     }
 
     $stmt->close();
