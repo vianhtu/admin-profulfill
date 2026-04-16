@@ -105,9 +105,12 @@ function logout_user(): void {
     // Xóa Session Cookie
     if (ini_get("session.use_cookies")) {
         $params = session_get_cookie_params();
-        setcookie(session_name(), '', time() - 42000,
-            $params["path"], $params["domain"],
-            $params["secure"], $params["httponly"]
+        setcookie(
+            session_name(), '', time() - 42000,
+            $params["path"],
+            $params["domain"],
+            $params["secure"],
+            $params["httponly"]
         );
     }
 
@@ -195,8 +198,7 @@ function set_remember_cookie(int $authorId): void {
 		'path'     => '/',
 		'secure'   => true,
 		'httponly' => true,
-		'samesite' => 'Lax',
-		'domain'   => '.profulfill.io',
+		'samesite' => 'Lax'
 	]);
 }
 
@@ -286,41 +288,23 @@ function clear_remember_cookie(): void {
 			delete_remember_selector($parts[0]);
 		}
 	}
-	$secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+
 	setcookie(REMEMBER_COOKIE, '', [
 		'expires'  => time() - 3600,
 		'path'     => '/',
-		'secure'   => $secure,
+		'secure'   => true,
 		'httponly' => true,
 		'samesite' => 'Lax',
 	]);
 }
 
-function isAdmin() : bool
-{
-    $level = $_SESSION['auth']['level'] ?? '';
-    return strtolower((string)$level) === 'admin';
+function check_level(string $target): bool {
+    return strtolower((string)($_SESSION['auth']['level'] ?? '')) === strtolower($target);
 }
 
-function isManager() : bool
-{
-    $level = $_SESSION['auth']['level'] ?? '';
-    return strtolower((string)$level) === 'manager';
-}
+function isAdmin(): bool { return check_level('admin'); }
+function is_manager(): bool { return check_level('manager'); }
 
-function getCurrentUserTeam(): ?int
-{
-    // get current user team.
-    $stmt = db()->prepare("SELECT team_id FROM authors WHERE ID = ?");
-    $stmt->bind_param("i", $_SESSION['auth']['user_id']);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    if($row = $result->fetch_assoc()){
-        $teamId = $row['team_id'];
-    }
-    else{
-        $teamId = null;
-    }
-    $stmt->close();
-    return $teamId;
+function is_staff(): bool {
+    return isAdmin() || is_manager();
 }
