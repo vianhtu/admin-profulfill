@@ -10,20 +10,13 @@ function init(){
     addXlsxFile(fv, dz);
 
     // Select2
-    var select2 = $('#account_team,#account_site, #accounts_status');
+    var select2 = $('#account_team,#account_site,#accounts_status');
     if (select2.length) {
         select2.each(function () {
             var $this = $(this);
             $this.wrap('<div class="position-relative"></div>').select2({
                 dropdownParent: $this.parent(),
             });
-        });
-    }
-
-    // update form.
-    if($('#export_id').val() !== '') {
-        $('#export_file_header, #export_sheet_name').on('change', function () {
-            $('#export_submit').trigger('click');
         });
     }
 
@@ -55,47 +48,26 @@ function repeaterOptions() {
 
 function formValidate(){
     // form validation
-    const formEl = document.getElementById('addXlsxFile');
+    const formEl = document.getElementById('add_edit_account');
     let valid_fields = {
-        export_file_header: {
+        owner_name: {
             validators: {
                 notEmpty: {
-                    message: 'Please enter header row number.'
+                    message: 'Please enter owner name.'
                 }
             }
         },
-        export_file_start: {
+        accounts_status: {
             validators: {
                 notEmpty: {
-                    message: 'Please enter start item row number.'
+                    message: 'Please select account status.'
                 }
             }
         },
-        accountsExport: {
+        account_site: {
             validators: {
                 notEmpty: {
-                    message: 'Please select a export account.'
-                }
-            }
-        },
-        export_type: {
-            validators: {
-                notEmpty: {
-                    message: 'Please select a export type.'
-                }
-            }
-        },
-        export_site: {
-            validators: {
-                notEmpty: {
-                    message: 'Please select a site export.'
-                }
-            }
-        },
-        xlsxFilePresent: {
-            validators: {
-                notEmpty: {
-                    message: 'Please select a file .xlxs'
+                    message: 'Please select account site.'
                 }
             }
         }
