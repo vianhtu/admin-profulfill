@@ -95,7 +95,7 @@ function renderMenu($currentMenu): void
                 if ($activeClass) $isOpen = true;
 
                 // Nếu có roles trong menuArgs => kiểm tra quyền
-                if (isset($value['roles'])) {
+                if (!isAdmin() && isset($value['roles'])) {
                     if (!checkRoles('', $key)) {
                         continue; // Không có quyền => bỏ qua
                     }
@@ -127,7 +127,7 @@ function renderMenu($currentMenu): void
             $href = $link === '' ? 'index.php' : "index.php?menu={$link}";
 
             // Nếu có roles => kiểm tra quyền
-            if (isset($mainData['roles'])) {
+            if (!isAdmin() && isset($mainData['roles'])) {
                 if (!checkRoles('', $link)) {
                     continue;
                 }
