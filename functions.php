@@ -96,8 +96,10 @@ function renderMenu($currentMenu): void
 
                 // Nếu không có roles => ai cũng xem được
                 // Nếu có roles trong menuArgs => kiểm tra quyền
-                if (!isAdmin() && isset($value['roles']) && !checkRoles('', $key)) {
-                    continue;
+                if (!isAdmin()) {
+                    if(isset($value['roles']) && !checkRoles('', $key)){
+                        continue;
+                    }
                 }
 
                 $subMenuHtml .= "<li class='menu-item {$activeClass}'>
