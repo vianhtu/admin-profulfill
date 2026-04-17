@@ -174,8 +174,10 @@ function addAccount(fv, dz) {
         formData.append('id', $('#account_id').val());
         formData.append('password', $('#account_password').val());
         formData.append('2fa', $('#account_2fa').val());
-
-        formData.append('file', dz.files[0]);
+        
+        dz.files.forEach(function(file) {
+            formData.append('files[]', file);
+        });
 
         formData.append('options', JSON.stringify(getRepeaterData()));
 
