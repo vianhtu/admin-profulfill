@@ -192,15 +192,14 @@ function addAccount(fv, dz) {
 
         formData.append('csrf_token', window.csrfToken);
 
-        console.log(formData); return;
-
         $.ajax({
-            url: '../../ajax.php?action=add-xlsx',
+            url: '../../ajax.php?action=add-account',
             method: 'POST',
             data: formData,
             processData: false,
             contentType: false,
             success: function (response) {
+                console.log(response); return;
                 if (response.status === 'inserted' || response.status === 'updated') {
                     const newId = response.id;
 
