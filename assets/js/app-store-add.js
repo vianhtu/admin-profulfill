@@ -20,6 +20,14 @@ function init(){
         });
     }
 
+    $('#accounts_status').on('change', function() {
+        fv.revalidateField('accounts_status');
+    });
+
+    $('#account_site').on('change', function() {
+        fv.revalidateField('account_site');
+    });
+
     ajaxSelectV2('account_author', 'authors', false);
     ajaxSelectV2('link_accounts', 'accounts', true);
 }
