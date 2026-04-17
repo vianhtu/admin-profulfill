@@ -80,9 +80,9 @@ if(!empty($export_data)){
                                 type="text"
                                 class="form-control"
                                 id="owner_name"
-                                placeholder="Owner title"
+                                placeholder="Owner name"
                                 name="owner_name"
-                                aria-label="Owner title" />
+                                aria-label="Owner name" />
                     </div>
                     <div class="mb-6">
                         <label class="form-label" for="owner_address">Address</label>
