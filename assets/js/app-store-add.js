@@ -7,7 +7,7 @@ function init(){
     const fv = formValidate();
     const dz = dropzoneFileUpload();
     repeaterOptions();
-    addXlsxFile(fv, dz);
+    addAccount(fv, dz);
 
     // Select2
     var select2 = $('#account_team,#account_site,#accounts_status');
@@ -151,10 +151,10 @@ function getRepeaterData() {
     return data;
 }
 
-function addXlsxFile(fv, dz) {
+function addAccount(fv, dz) {
     // Khi FormValidation validate thành công
     fv.on('core.form.valid', function() {
-        const $btn = $('#export_submit');
+        const $btn = $('#form_submit');
         const $spinner = $('#loading_spinner');
 
         // Hiển thị spinner và disable nút
@@ -163,17 +163,36 @@ function addXlsxFile(fv, dz) {
 
         let id = $('#export_id').val();
         const formData = new FormData();
-        formData.append('author', $('#export_author').val());
-        formData.append('site', $('#export_site').val());
-        formData.append('type', $('#export_type').val());
-        formData.append('account', $('#accountsExport').val());
-        formData.append('id', id);
-        formData.append('options', JSON.stringify(getRepeaterData()));
-        formData.append('header', $('#export_file_header').val());
-        formData.append('startRow', $('#export_file_start').val());
-        formData.append('sheet_name', $('#export_sheet_name').length ? $('#export_sheet_name').val() : '');
+        formData.append('name', $('#owner_name').val());
+        formData.append('address', $('#owner_address').val());
+        formData.append('dob', $('#owner_dob').val());
+        formData.append('ssn', $('#owner_ssn').val());
+        formData.append('phone', $('#owner_phone').val());
+
+        formData.append('email', $('#account_email').val());
+        formData.append('sku', $('#account_sku').val());
+        formData.append('id', $('#account_id').val());
+        formData.append('password', $('#account_password').val());
+        formData.append('2fa', $('#account_2fa').val());
+
         formData.append('file', dz.files[0]);
+
+        formData.append('options', JSON.stringify(getRepeaterData()));
+
+        formData.append('status', $('#accounts_status').val());
+        formData.append('site', $('#account_site').val());
+        formData.append('team', $('#account_team').val());
+        formData.append('author', $('#account_author').val());
+
+        formData.append('accounts', $('#link_accounts').val());
+
+        formData.append('_id', id);
+
+        formData.append('note', $('#account_note').val());
+
         formData.append('csrf_token', window.csrfToken);
+
+        console.log(formData); return;
 
         $.ajax({
             url: '../../ajax.php?action=add-xlsx',
