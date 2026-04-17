@@ -158,7 +158,9 @@ function getRepeaterData() {
 }
 
 function addAccount(fv, dz) {
-    // Khi FormValidation validate thành công
+    // Xóa event cũ trước khi gán mới để tránh bị lặp (nếu hàm này bị gọi lại)
+    fv.off('core.form.valid');
+
     fv.on('core.form.valid', function() {
         const $btn = $('#form_submit');
         const $spinner = $('#loading_spinner');
@@ -167,37 +169,44 @@ function addAccount(fv, dz) {
         $spinner.removeClass('d-none');
         $btn.prop('disabled', true);
 
-        let id = $('#export_id').val();
         const formData = new FormData();
-        formData.append('name', $('#owner_name').val());
-        formData.append('address', $('#owner_address').val());
-        formData.append('dob', $('#owner_dob').val());
-        formData.append('ssn', $('#owner_ssn').val());
-        formData.append('phone', $('#owner_phone').val());
 
-        formData.append('email', $('#account_email').val());
-        formData.append('sku', $('#account_sku').val());
-        formData.append('id', $('#account_id').val());
-        formData.append('password', $('#account_password').val());
-        formData.append('2fa', $('#account_2fa').val());
+        // Nhóm các selector lại để code gọn hơn
+        const fields = {
+            'name': '#owner_name',
+            'address': '#owner_address',
+            'dob': '#owner_dob',
+            'ssn': '#owner_ssn',
+            'phone': '#owner_phone',
+            'email': '#account_email',
+            'sku': '#account_sku',
+            'id': '#account_id',
+            'password': '#account_password',
+            '2fa': '#account_2fa',
+            'status': '#accounts_status',
+            'site': '#account_site',
+            'team': '#account_team',
+            'author': '#account_author',
+            'accounts': '#link_accounts',
+            'note': '#account_note',
+            '_id': '#export_id'
+        };
 
-        dz.files.forEach(function(file) {
+        // Duyệt qua object để append vào FormData
+        for (let key in fields) {
+            formData.append(key, $(fields[key]).val() || '');
+        }
+
+        // Lấy toàn bộ file (Chỉ lấy file hợp lệ)
+        const acceptedFiles = dz.getAcceptedFiles();
+        acceptedFiles.forEach(function(file) {
             formData.append('files[]', file);
         });
 
+        // Thêm dữ liệu từ repeater
         formData.append('options', JSON.stringify(getRepeaterData()));
 
-        formData.append('status', $('#accounts_status').val());
-        formData.append('site', $('#account_site').val());
-        formData.append('team', $('#account_team').val());
-        formData.append('author', $('#account_author').val());
-
-        formData.append('accounts', $('#link_accounts').val());
-
-        formData.append('_id', id);
-
-        formData.append('note', $('#account_note').val());
-
+        // CSRF Token
         formData.append('csrf_token', window.csrfToken);
 
         $.ajax({
@@ -206,27 +215,22 @@ function addAccount(fv, dz) {
             data: formData,
             processData: false,
             contentType: false,
+            dataType: 'json', // Ép kiểu dữ liệu trả về là JSON
             success: function (response) {
-                console.log(response); return;
                 if (response.status === 'inserted' || response.status === 'updated') {
-                    const newId = response.id;
-
-                    // Lấy URL hiện tại và thêm id
+                    const newId = response.id || $('#export_id').val();
                     const url = new URL(window.location.href);
                     url.searchParams.set('id', newId);
-
-                    // Reload lại với URL mới
                     window.location.href = url.toString();
                 } else {
-                    alert('Upload thất bại: ' + response.message);
+                    alert('Lỗi: ' + (response.message || 'Không xác định'));
                 }
             },
             error: function (xhr) {
-                console.error('Lỗi:', xhr.responseText);
-                alert('Upload thất bại!');
+                console.error('Lỗi hệ thống:', xhr.responseText);
+                alert('Có lỗi xảy ra trong quá trình gửi dữ liệu!');
             },
             complete: function () {
-                // Ẩn spinner và bật lại nút
                 $spinner.addClass('d-none');
                 $btn.prop('disabled', false);
             }
