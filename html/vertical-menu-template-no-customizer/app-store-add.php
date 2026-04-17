@@ -223,7 +223,7 @@ if(!empty($export_data)){
                                             <input
                                                     type="text"
                                                     name="custom_key"
-                                                    class="form-control"
+                                                    class="form-control custom_key"
                                                     value="<?= htmlspecialchars($value['text']); ?>"
                                                     placeholder="Enter key" />
                                         </div>
@@ -231,7 +231,7 @@ if(!empty($export_data)){
                                             <input
                                                     type="text"
                                                     name="custom_value"
-                                                    class="form-control"
+                                                    class="form-control custom_value"
                                                     value="<?= htmlspecialchars($value['value']); ?>"
                                                     placeholder="Enter value" />
                                         </div>

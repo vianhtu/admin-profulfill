@@ -134,16 +134,22 @@ function dropzoneFileUpload(){
 
 function getRepeaterData() {
     var data = [];
-    // Mỗi row trong repeater có data-repeater-item
-    $('.form-repeater').find('[data-repeater-item]').each(function () {
-        var selectVal = $(this).find('.form-select').val();
-        var inputVal  = $(this).find('input[type="text"]').val();
-        var selectedText = $(this).find('.form-select option:selected').text();
-        if (selectVal !== null && selectVal !== '' && selectVal !== undefined) {
+
+    // Cache lại selector để tăng hiệu suất
+    var $repeaterItems = $('.form-repeater').find('[data-repeater-item]');
+
+    $repeaterItems.each(function () {
+        var $this = $(this); // Cache đối tượng hiện tại
+
+        // .trim() để loại bỏ khoảng trắng dư thừa
+        var key = ($this.find('.custom_key').val() || '').trim();
+        var val = ($this.find('.custom_value').val() || '').trim();
+
+        // Kiểm tra nếu cả hai đều có giá trị thực
+        if (key && val) {
             data.push({
-                location: selectVal,
-                text :selectedText,
-                value: inputVal
+                key: key,
+                value: val
             });
         }
     });
@@ -174,7 +180,7 @@ function addAccount(fv, dz) {
         formData.append('id', $('#account_id').val());
         formData.append('password', $('#account_password').val());
         formData.append('2fa', $('#account_2fa').val());
-        
+
         dz.files.forEach(function(file) {
             formData.append('files[]', file);
         });
