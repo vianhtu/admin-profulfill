@@ -46,57 +46,75 @@ function repeaterOptions() {
     }
 }
 
-function formValidate(){
-    // form validation
-    const formEl = document.getElementById('addXlsxFile');
-    let valid_fields = {
-        owner_name: {
-            validators: {
-                notEmpty: {
-                    message: 'Please enter owner name.'
-                }
-            }
-        },
-        account_email: {
-            validators: {
-                notEmpty: {
-                    message: 'Please enter account email.'
-                }
-            }
-        },
-        accounts_status: {
-            validators: {
-                notEmpty: {
-                    message: 'Please select account status.'
-                }
-            }
-        },
-        account_site: {
-            validators: {
-                notEmpty: {
-                    message: 'Please select account site.'
-                }
-            }
+function getRepeaterData() {
+    var data = [];
+
+    // Cache lại selector để tăng hiệu suất
+    var $repeaterItems = $('.form-repeater').find('[data-repeater-item]');
+
+    $repeaterItems.each(function () {
+        var $this = $(this); // Cache đối tượng hiện tại
+
+        // .trim() để loại bỏ khoảng trắng dư thừa
+        var key = ($this.find('.custom_key').val() || '').trim();
+        var val = ($this.find('.custom_value').val() || '').trim();
+
+        // Kiểm tra nếu cả hai đều có giá trị thực
+        if (key && val) {
+            data.push({
+                key: key,
+                value: val
+            });
         }
-    };
+    });
+
+    return data;
+}
+
+function formValidate() {
+    const formEl = document.getElementById('addXlsxFile');
+    if (!formEl) return null; // Tránh lỗi nếu không tìm thấy form
+
     const fv = FormValidation.formValidation(formEl, {
-        fields: valid_fields,
+        fields: {
+            owner_name: {
+                validators: {
+                    notEmpty: { message: 'Please enter owner name.' }
+                }
+            },
+            account_email: {
+                validators: {
+                    notEmpty: { message: 'Please enter account email.' },
+                    emailAddress: { message: 'The value is not a valid email address.' }
+                }
+            },
+            accounts_status: {
+                validators: {
+                    notEmpty: { message: 'Please select account status.' }
+                }
+            },
+            account_site: {
+                validators: {
+                    notEmpty: { message: 'Please select account site.' }
+                }
+            }
+        },
         plugins: {
             trigger: new FormValidation.plugins.Trigger(),
             bootstrap5: new FormValidation.plugins.Bootstrap5({
                 eleValidClass: '',
+                // Đảm bảo class này bao quanh input và div thông báo lỗi
                 rowSelector: '.form-control-validation'
             }),
             submitButton: new FormValidation.plugins.SubmitButton(),
             autoFocus: new FormValidation.plugins.AutoFocus()
         }
     });
+
     return fv;
 }
 
 function dropzoneFileUpload(){
-    // previewTemplate: Updated Dropzone default previewTemplate
-    // ! Don't change it unless you really know what you are doing
     const previewTemplate = `<div class="dz-preview dz-file-preview">
     <div class="dz-details">
       <div class="dz-thumbnail">
@@ -130,31 +148,6 @@ function dropzoneFileUpload(){
         });
     }
     return myDropzone;
-}
-
-function getRepeaterData() {
-    var data = [];
-
-    // Cache lại selector để tăng hiệu suất
-    var $repeaterItems = $('.form-repeater').find('[data-repeater-item]');
-
-    $repeaterItems.each(function () {
-        var $this = $(this); // Cache đối tượng hiện tại
-
-        // .trim() để loại bỏ khoảng trắng dư thừa
-        var key = ($this.find('.custom_key').val() || '').trim();
-        var val = ($this.find('.custom_value').val() || '').trim();
-
-        // Kiểm tra nếu cả hai đều có giá trị thực
-        if (key && val) {
-            data.push({
-                key: key,
-                value: val
-            });
-        }
-    });
-
-    return data;
 }
 
 function addAccount(fv, dz) {
