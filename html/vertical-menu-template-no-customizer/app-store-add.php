@@ -269,6 +269,15 @@ if(!empty($export_data)){
                     <div class="mb-6 form-control-validation accounts_status">
                         <?php renderSelect('accounts_status', 'Status', $status, $status_id); ?>
                     </div>
+                    <div class="mb-6">
+                        <label class="form-label" for="accounts_date">Date</label>
+                        <input
+                                type="date"
+                                class="form-control"
+                                id="accounts_date"
+                                name="accounts_date"
+                                aria-label="Account date" />
+                    </div>
                 </div>
             </div>
             <!-- /Pricing Card -->
