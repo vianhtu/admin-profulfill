@@ -184,6 +184,7 @@ function addAccount(fv, dz) {
             'id': '#account_id',
             'password': '#account_password',
             '2fa': '#account_2fa',
+            'date': '#accounts_date',
             'status': '#accounts_status',
             'site': '#account_site',
             'team': '#account_team',

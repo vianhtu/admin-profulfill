@@ -29,6 +29,7 @@ function addAccount(): array {
     $sku       = $_POST['sku'] ?? '';
     $note      = $_POST['note'] ?? '';
     $status_val = (int)$_POST['status'];
+    $account_date = !empty($_POST['date']) ? $_POST['date'] : null;
     $sys_date  = date('Y-m-d');
 
     try {
@@ -38,12 +39,12 @@ function addAccount(): array {
             // --- LOGIC UPDATE ---
             $sql = "UPDATE accounts SET 
                     site_id=?, team_id=?, author_id=?, name=?, email=?, password=?, 2fa=?, 
-                    address=?, dob=?, ssn=?, phone=?, user_id=?, sku=?, note=?, status=? 
+                    address=?, dob=?, ssn=?, phone=?, user_id=?, sku=?, note=?, status=?, seller_date=? 
                     WHERE ID=?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("iiisssssssssssii",
+            $stmt->bind_param("iiisssssssssssisi",
                 $site_id, $team_id, $author_id, $name, $email, $password, $two_fa,
-                $address, $dob, $ssn, $phone, $user_id, $sku, $note, $status_val, $id
+                $address, $dob, $ssn, $phone, $user_id, $sku, $note, $status_val, $account_date, $id
             );
             $stmt->execute();
             $accountId = $id;
@@ -51,12 +52,12 @@ function addAccount(): array {
         } else {
             // --- LOGIC INSERT ---
             $sql = "INSERT INTO accounts 
-                    (site_id, team_id, author_id, name, email, password, 2fa, address, dob, ssn, phone, user_id, sku, note, status, created_date) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    (site_id, team_id, author_id, name, email, password, 2fa, address, dob, ssn, phone, user_id, sku, note, status, created_date, seller_date) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("iiisssssssssssis",
+            $stmt->bind_param("iiisssssssssssiss",
                 $site_id, $team_id, $author_id, $name, $email, $password, $two_fa,
-                $address, $dob, $ssn, $phone, $user_id, $sku, $note, $status_val, $sys_date
+                $address, $dob, $ssn, $phone, $user_id, $sku, $note, $status_val, $sys_date, $account_date
             );
             $stmt->execute();
             $accountId = $conn->insert_id;
