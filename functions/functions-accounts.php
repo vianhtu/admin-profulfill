@@ -1,117 +1,91 @@
 <?php
 function addAccount(): array {
-    return $_POST;
-    if(!checkRoles(['add','edit'], 'exports_xlsx')){
-        return [
-            'status'  => 'error',
-            'message' => 'Bạn Không có quyền thêm và sửa file excel'
-        ];
-    }
     $conn = db();
+
+    // 1. Kiểm tra quyền và CSRF
+    if (!is_admin() && !checkRoles(['add', 'edit'], 'stores')) {
+        return ['status' => 'error', 'message' => 'Bạn không có quyền thực hiện thao tác này'];
+    }
+
     $csrfToken = $_POST['csrf_token'] ?? '';
     if (!isset($_SESSION['csrf_token']) || $csrfToken !== $_SESSION['csrf_token']) {
         return ['status' => 'error', 'message' => 'CSRF token không hợp lệ'];
     }
 
-    // Kiểm tra xem có file mới được upload không
-    $fileUploaded = isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK;
-    $originalName = '';
-    $uniqueName   = '';
+    // 2. Thu thập dữ liệu
+    $id        = !empty($_POST['_id']) ? (int)$_POST['_id'] : null;
+    $site_id   = (int)$_POST['site'];
+    $team_id   = (int)$_POST['team'];
+    $author_id = (int)$_POST['author'];
+    $name      = $_POST['name'] ?? '';
+    $email     = $_POST['email'] ?? '';
+    $password  = $_POST['password'] ?? '';
+    $two_fa    = $_POST['2fa'] ?? '';
+    $address   = $_POST['address'] ?? '';
+    $dob       = !empty($_POST['dob']) ? $_POST['dob'] : null;
+    $ssn       = $_POST['ssn'] ?? '';
+    $phone     = $_POST['phone'] ?? '';
+    $user_id   = $_POST['id'] ?? ''; // Map từ #account_id
+    $sku       = $_POST['sku'] ?? '';
+    $note      = $_POST['note'] ?? '';
+    $status_val = (int)$_POST['status'];
+    $sys_date  = date('Y-m-d');
 
-    // Nếu có file mới, xử lý kiểm tra và lưu
-    if ($fileUploaded) {
-        $file         = $_FILES['file'];
-        $originalName = $file['name'];
-        $extension    = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
-        $allowedMime  = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    try {
+        $conn->begin_transaction();
 
-        if ($file['type'] !== $allowedMime || $extension !== 'xlsx') {
-            return ['status' => 'error', 'message' => 'Chỉ chấp nhận file .xlsx'];
+        if ($id) {
+            // --- LOGIC UPDATE ---
+            $sql = "UPDATE accounts SET 
+                    site_id=?, team_id=?, author_id=?, name=?, email=?, password=?, 2fa=?, 
+                    address=?, dob=?, ssn=?, phone=?, user_id=?, sku=?, note=?, status=? 
+                    WHERE ID=?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("iiisssssssssssii",
+                $site_id, $team_id, $author_id, $name, $email, $password, $two_fa,
+                $address, $dob, $ssn, $phone, $user_id, $sku, $note, $status_val, $id
+            );
+            $stmt->execute();
+            $accountId = $id;
+            $resStatus = 'updated';
+        } else {
+            // --- LOGIC INSERT ---
+            $sql = "INSERT INTO accounts 
+                    (site_id, team_id, author_id, name, email, password, 2fa, address, dob, ssn, phone, user_id, sku, note, status, created_date) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("iiisssssssssssis",
+                $site_id, $team_id, $author_id, $name, $email, $password, $two_fa,
+                $address, $dob, $ssn, $phone, $user_id, $sku, $note, $status_val, $sys_date
+            );
+            $stmt->execute();
+            $accountId = $conn->insert_id;
+            $resStatus = 'inserted';
         }
 
-        $uniqueName = uniqid('export_', true) . '.xlsx';
-        $uploadDir  = __DIR__ . '/xlsx/';
-        $targetPath = $uploadDir . $uniqueName;
+        // 3. Xử lý bảng accounts_link (Liên kết nhiều tài khoản)
+        // Luôn xóa các liên kết cũ của account này trước khi chèn mới (cho cả Insert/Update)
+        $conn->query("DELETE FROM accounts_link WHERE account_id = $accountId");
 
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
+        if (!empty($_POST['accounts'])) {
+            // Giả sử accounts gửi lên dạng mảng hoặc chuỗi cách nhau bởi dấu phẩy
+            $linkIds = is_array($_POST['accounts']) ? $_POST['accounts'] : explode(',', $_POST['accounts']);
 
-        if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
-            return ['status' => 'error', 'message' => 'Không thể lưu file'];
-        }
-    }
-
-    // Dữ liệu từ form
-    $id           = $_POST['id'] ?? null;
-    $site_id      = (int) ($_POST['site'] ?? 0);
-    $type_id      = (int) ($_POST['type'] ?? 0);
-    $accounts_id  = (int) ($_POST['account'] ?? 0);
-    $authors_id = (int)(
-    is_admin() && !empty($_POST['author'])
-        ? $_POST['author']
-        : ($_SESSION['auth']['user_id'] ?? 0)
-    );
-    $date_create  = date('Y-m-d H:i:s');
-    $xlsx_options = $_POST['options'] ?? '';
-    $row_header = (int) ($_POST['header'] ?? 0);
-    $row_item = (int) ($_POST['startRow'] ?? 0);
-    $sheet_name = $_POST['sheet_name'] ?? '';
-
-    // Nếu có ID, kiểm tra bản ghi để cập nhật
-    if ($id) {
-        $check = $conn->prepare("SELECT file_name, file_dir FROM exports WHERE id = ?");
-        $check->bind_param("i", $id);
-        $check->execute();
-        $result = $check->get_result();
-
-        if ($result->num_rows > 0) {
-            $row         = $result->fetch_assoc();
-            $oldFileName = $row['file_name'];
-            $oldFileDir  = $row['file_dir'];
-
-            // Nếu có file mới và tên khác, xóa file cũ
-            if ($fileUploaded && $originalName !== $oldFileName && file_exists(__DIR__ . '/xlsx/' . $oldFileDir)) {
-                unlink(__DIR__ . '/xlsx/' . $oldFileDir);
-            }
-
-            // Nếu không có file mới, giữ nguyên tên và đường dẫn file cũ
-            if (!$fileUploaded) {
-                $originalName = $oldFileName;
-                $uniqueName   = $oldFileDir;
-            }
-
-            // Cập nhật bản ghi
-            $update = $conn->prepare("
-                UPDATE exports SET
-                    accounts_id = ?, type_id = ?, site_id = ?, authors_id = ?,
-                    date_create = ?, file_name = ?, file_dir = ?, file_default = ?, row_header = ?, row_item = ?, sheet_name = ?
-                WHERE id = ?
-            ");
-            $update->bind_param("iiiissssiisi", $accounts_id, $type_id, $site_id, $authors_id, $date_create, $originalName, $uniqueName, $xlsx_options, $row_header, $row_item, $sheet_name, $id);
-
-            if ($update->execute()) {
-                return ['status' => 'updated', 'id' => $id, 'file' => $uniqueName];
-            } else {
-                return ['status' => 'error', 'message' => 'Lỗi khi cập nhật dữ liệu'];
+            $stmtLink = $conn->prepare("INSERT INTO accounts_link (account_id, link_id) VALUES (?, ?)");
+            foreach ($linkIds as $lId) {
+                $lId = (int)trim($lId);
+                if ($lId > 0) {
+                    $stmtLink->bind_param("ii", $accountId, $lId);
+                    $stmtLink->execute();
+                }
             }
         }
-    }
 
-    // Nếu không có ID hoặc không tìm thấy bản ghi, thêm mới
-    if (!$fileUploaded) {
-        return ['status' => 'error', 'message' => 'Vui lòng chọn file .xlsx để thêm mới'];
-    }
+        $conn->commit();
+        return ['status' => $resStatus, 'id' => $accountId];
 
-    $insert = $conn->prepare("
-        INSERT INTO exports (accounts_id, type_id, site_id, authors_id, date_create, file_name, file_dir, file_default, row_header, row_item)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ");
-    $insert->bind_param("iiiissssii", $accounts_id, $type_id, $site_id, $authors_id, $date_create, $originalName, $uniqueName, $xlsx_options, $row_header, $row_item);
-
-    if ($insert->execute()) {
-        return ['status' => 'inserted', 'id' => $insert->insert_id, 'file' => $uniqueName];
-    } else {
-        return ['status' => 'error', 'message' => 'Lỗi khi thêm dữ liệu'];
+    } catch (Exception $e) {
+        $conn->rollback();
+        return ['status' => 'error', 'message' => 'Lỗi hệ thống: ' . $e->getMessage()];
     }
 }
