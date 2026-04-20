@@ -98,7 +98,7 @@ if(!empty($export_data)){
                         <div class="col">
                             <label class="form-label" for="owner_dob">DOB</label>
                             <input
-                                    type="text"
+                                    type="date"
                                     class="form-control"
                                     id="owner_dob"
                                     name="owner_dob"
