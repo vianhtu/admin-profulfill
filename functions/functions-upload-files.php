@@ -1,10 +1,11 @@
 <?php
-function handleFileUploads(int $userId, array $files, string $type = ''): array
+function handleFileUploads(int $userId, array $files, string $type = '', string $id = ''): array
 {
     $conn = db();
     $subDir = date('Y/m/d');
-    $type = $type ? $type . '/' : '';
-    $uploadDir = dirname(__DIR__) . '/uploads/' . $type . $subDir . '/';
+    $typeDir = $type ? $type . '/' : '';
+    $idDir = $id ?? $subDir;
+    $uploadDir = dirname(__DIR__) . '/uploads/' . $typeDir . $idDir . '/';
     $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'docx']; // Giới hạn loại file
 
     if (!is_dir($uploadDir)) {
@@ -45,7 +46,7 @@ function handleFileUploads(int $userId, array $files, string $type = ''): array
         // Tạo UUID v4 chuẩn hơn
         $fileUuid = bin2hex(random_bytes(16)); // Hoặc dùng hàm sprintf của bạn
         $saveName = $fileUuid . '.' . $extension;
-        $storagePath = 'uploads/' . $type . $subDir . '/' . $saveName;
+        $storagePath = 'uploads/' . $typeDir . $idDir . $saveName;
         $checksum = hash_file('sha256', $file['tmp_name']);
 
         if (move_uploaded_file($file['tmp_name'], $uploadDir . $saveName)) {
