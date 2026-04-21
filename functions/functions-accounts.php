@@ -83,7 +83,11 @@ function addAccount(): array {
         // 2. Xử lý Upload File nếu có
         if (!empty($_FILES['files']['name'][0])) {
             $userId = (int)($auth['user_id'] ?? 0); // Lấy ID người dùng đang login
-            $insertedIds = handleFileUploads($userId, $_FILES['files'], 'accounts');
+            $insertedFileIds = handleFileUploads($userId, $_FILES['files'], 'accounts');
+            if (!empty($insertedFileIds)) {
+                // 2. Liên kết các ID file đó với account_id trong bảng 'accounts_files'
+                linkFilesToAccount($accountId, $insertedFileIds);
+            }
         }
 
         $conn->commit();
@@ -212,4 +216,28 @@ function getAccount(int $id): ?array {
     $stmt->close();
 
     return $account;
+}
+
+/**
+ * Liên kết danh sách file với một account cụ thể
+ */
+function linkFilesToAccount(int $accountId, array $fileIds): bool
+{
+    if (empty($fileIds)) {
+        return false;
+    }
+
+    $conn = db();
+
+    // Sử dụng prepared statement để tránh SQL Injection và tối ưu hiệu suất
+    $sql = "INSERT IGNORE INTO accounts_files (account_id, file_id) VALUES (?, ?)";
+    $stmt = $conn->prepare($sql);
+
+    foreach ($fileIds as $fileId) {
+        $stmt->bind_param("ii", $accountId, $fileId);
+        $stmt->execute();
+    }
+
+    $stmt->close();
+    return true;
 }
