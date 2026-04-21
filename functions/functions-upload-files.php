@@ -75,3 +75,36 @@ function handleFileUploads(int $userId, array $files, string $type = '', string 
 
     return $insertedIds;
 }
+
+function deletePhysicalFile(int $fileId): bool
+{
+    $conn = db();
+
+    // 2. Lấy đường dẫn file trước khi xóa trong DB
+    $sqlFile = "SELECT storage_path FROM files WHERE ID = ? LIMIT 1";
+    $stmtFile = $conn->prepare($sqlFile);
+    $stmtFile->bind_param("i", $fileId);
+    $stmtFile->execute();
+    $fileData = $stmtFile->get_result()->fetch_assoc();
+    $stmtFile->close();
+
+    if ($fileData) {
+        // Xóa bản ghi trong bảng files
+        $sqlDel = "DELETE FROM files WHERE ID = ?";
+        $stmtDel = $conn->prepare($sqlDel);
+        $stmtDel->bind_param("i", $fileId);
+
+        if ($stmtDel->execute()) {
+            // Xóa file vật lý trên ổ cứng
+            $physicalPath = dirname(__DIR__) . '/' . $fileData['storage_path'];
+            if (file_exists($physicalPath)) {
+                unlink($physicalPath);
+            }
+            $stmtDel->close();
+            return true;
+        }
+        $stmtDel->close();
+    }
+
+    return false;
+}

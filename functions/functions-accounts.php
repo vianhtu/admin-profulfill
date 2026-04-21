@@ -285,3 +285,33 @@ function getAccountUploadFiles(): array
     $stmt->close();
     return $files;
 }
+
+function deleteAccountUploadFile(): array
+{
+    $fileId = (int)($_POST['file_id'] ?? 0);
+    $accountId = (int)($_POST['account_id'] ?? 0);
+
+    if ($fileId <= 0 || $accountId <= 0) {
+        return ['success' => false, 'message' => 'Dữ liệu không hợp lệ.'];
+    }
+
+    $conn = db();
+
+    // 1. Xóa liên kết trong bảng accounts_files
+    $sql = "DELETE FROM accounts_files WHERE account_id = ? AND file_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $accountId, $fileId);
+
+    if ($stmt->execute()) {
+        $stmt->close();
+
+        // 2. Sau khi gỡ liên kết, kiểm tra xem file này có còn thuộc về ai khác không
+        // Nếu không còn ai dùng, ta có thể xóa hẳn để sạch server
+        deletePhysicalFile($fileId);
+
+        return ['success' => true];
+    }
+
+    $stmt->close();
+    return ['success' => false, 'message' => 'Không thể gỡ bỏ liên kết file.'];
+}

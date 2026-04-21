@@ -198,8 +198,26 @@ function dropzoneFileUpload(){
                 this.on("removedfile", function(file) {
                     // Nếu là file cũ (có serverId), gửi request xóa liên kết trong DB
                     if (file.serverId) {
-                        // fetch(`/delete_file_link.php?file_id=${file.serverId}&account_id=${accountId}`);
-                        console.log("Xóa file ID:", file.serverId);
+                        $.ajax({
+                            url: '../../ajax.php?action=delete-account-upload-file',
+                            type: 'POST',
+                            data: {
+                                file_id: file.serverId,
+                                account_id: accountId // Biến accountId bạn đã lấy từ $('#edit_id').val()
+                            },
+                            dataType: 'json',
+                            success: function(response) {
+                                if (response.success) {
+                                    console.log("Đã xóa liên kết file thành công.");
+                                } else {
+                                    console.error("Lỗi từ server:", response.message);
+                                    // Tùy chọn: Thông báo cho người dùng nếu xóa thất bại
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                console.error("Lỗi kết nối khi xóa file:", error);
+                            }
+                        });
                     }
                 });
             }
