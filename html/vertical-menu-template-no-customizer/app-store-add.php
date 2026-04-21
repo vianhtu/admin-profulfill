@@ -293,6 +293,7 @@ if (empty($custom_fields)) {
                                 class="form-control"
                                 id="accounts_date"
                                 name="accounts_date"
+                                value="<?= htmlspecialchars($d['date']); ?>"
                                 aria-label="Account date" />
                     </div>
                 </div>
