@@ -267,7 +267,7 @@ function getAccountUploadFiles(): array
             'id'   => $row['ID'],
             'name' => $row['file_name'],
             'size' => (int)$row['file_size'],
-            'url'  => '/' . $row['storage_path'], // Đường dẫn để xem file
+            'url'  => BASE_URL . $row['storage_path'], // Đường dẫn để xem file
             'uuid' => $row['file_uuid']
         ];
     }
