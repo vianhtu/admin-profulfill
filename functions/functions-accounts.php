@@ -98,8 +98,6 @@ function addAccount(): array {
  */
 function getAccount(int $id): ?array {
     $conn = db();
-    $id = (int)$id;
-
     if ($id <= 0) return null;
 
     // 1. Lấy thông tin cơ bản từ bảng accounts
