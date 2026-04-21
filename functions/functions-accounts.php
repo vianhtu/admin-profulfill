@@ -106,69 +106,65 @@ function getAccount(int $id): ?array {
     $conn = db();
     if ($id <= 0) return null;
 
-    // 1. Lấy thông tin cơ bản từ bảng accounts
-    $sql = "SELECT *
-            FROM accounts
-            WHERE ID = ?
-            LIMIT 1";
+    // 1. Lấy thông tin cơ bản
+    $sql = "SELECT * FROM accounts WHERE ID = ? LIMIT 1";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $id);
     $stmt->execute();
-    $result = $stmt->get_result();
-    $account = $result->fetch_assoc();
+    $account = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
 
-    if (!$account) {
-        return null;
-    }
+    if (!$account) return null;
 
-    // 2. Lấy danh sách Quản lý (Authors) liên kết với account này
+    // 2. Lấy danh sách Quản lý (Authors)
+    // Tối ưu: Chỉ select những cột thực sự cần thiết
     $sqlAuthor = "SELECT au.ID, au.username, t.name as team_name 
                   FROM accounts_authors aa
                   JOIN authors au ON aa.author_id = au.ID
                   LEFT JOIN team t ON au.team_id = t.ID
                   WHERE aa.account_id = ?";
-    $stmtAuth = $conn->prepare($sqlAuthor);
-    $stmtAuth->bind_param("i", $id);
-    $stmtAuth->execute();
-    $resAuth = $stmtAuth->get_result();
 
-    $authorsArgs = [];
+    $stmt = $conn->prepare($sqlAuthor);
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $resAuth = $stmt->get_result();
+
+    $account['authors_args'] = [];
     while ($row = $resAuth->fetch_assoc()) {
-        $authorsArgs[$row['ID']] = [
-            'title' => $row['team_name'] . " (" . $row['username'] . ")",
+        $account['authors_args'][$row['ID']] = [
+            'title' => ($row['team_name'] ?? 'No Team') . " ({$row['username']})",
             'selected' => true
         ];
     }
-    $account['authors_args'] = $authorsArgs;
+    $stmt->close();
 
-    // 3. Lấy danh sách ID liên kết theo cả 2 chiều
+    // 3. Lấy danh sách liên kết 2 chiều
+    // Sử dụng UNION giúp lấy ID từ cả 2 phía của mối quan hệ
     $sqlLink = "SELECT a.ID, a.name, s.name as site_name 
-        FROM accounts_links al
-        JOIN accounts a ON al.link_id = a.ID
-        LEFT JOIN site s ON a.site_id = s.ID
-        WHERE al.account_id = ?
-        UNION
-        SELECT a.ID, a.name, s.name as site_name  
-        FROM accounts_links al
-        JOIN accounts a ON al.account_id = a.ID
-        LEFT JOIN site s ON a.site_id = s.ID
-        WHERE al.link_id = ?";
-    $stmtLink = $conn->prepare($sqlLink);
-    $stmtLink->bind_param("ii", $id, $id); // Truyền ID vào cả 2 vị trí
-    $stmtLink->execute();
-    $resultLink = $stmtLink->get_result();
+                FROM accounts_links al
+                JOIN accounts a ON al.link_id = a.ID
+                LEFT JOIN site s ON a.site_id = s.ID
+                WHERE al.account_id = ?
+                UNION
+                SELECT a.ID, a.name, s.name as site_name  
+                FROM accounts_links al
+                JOIN accounts a ON al.account_id = a.ID
+                LEFT JOIN site s ON a.site_id = s.ID
+                WHERE al.link_id = ?";
 
-    $linkedAccounts = [];
+    $stmt = $conn->prepare($sqlLink);
+    $stmt->bind_param("ii", $id, $id);
+    $stmt->execute();
+    $resultLink = $stmt->get_result();
+
+    $account['linked_args'] = [];
     while ($row = $resultLink->fetch_assoc()) {
-        // Vì dùng UNION nên kết quả trả về sẽ nằm chung ở cột đầu tiên (mặc định lấy tên cột của query 1)
-        $linkedAccounts[$row['ID']] = [
-            'title' => $row['site_name'] . " (" . $row['name'] . ")",
+        $account['linked_args'][$row['ID']] = [
+            'title' => ($row['site_name'] ?? 'No Site') . " ({$row['name']})",
             'selected' => true
         ];
     }
-
-    // Gán mảng liên kết vào dữ liệu account trả về
-    $account['linked_args'] = $linkedAccounts;
+    $stmt->close();
 
     return $account;
 }
