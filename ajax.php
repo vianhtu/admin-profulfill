@@ -4,7 +4,6 @@ require __DIR__ . '/config.php';
 require __DIR__ . '/functions.php';
 require __DIR__ . '/functions/functions-telnyx.php';
 require __DIR__ . '/functions/ajax-select2.php';
-require __DIR__ . '/functions/functions-accounts.php';
 require __DIR__ . '/model/functions-gemini.php';
 require __DIR__ . '/model/functions-openai.php';
 require __DIR__ . '/tables/functions-teams.php';

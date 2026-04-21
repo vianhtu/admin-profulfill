@@ -7,6 +7,8 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use GuzzleHttp\Client as GuzzleClient;
 
+require __DIR__ . '/functions/functions-accounts.php';
+
 function menuArgs():array
 {
     return [
