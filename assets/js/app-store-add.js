@@ -159,26 +159,39 @@ function dropzoneFileUpload(){
                 let accountId = $('#edit_id').val();
                 // Nếu có accountId, tiến hành load file cũ
                 if (accountId) {
-                    fetch(`../../ajax.php?action=get-account-upload-files&account_id=${accountId}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            data.forEach(file => {
-                                // 1. Tạo mock file
-                                let mockFile = {
-                                    name: file.name,
-                                    size: file.size,
-                                    serverId: file.id, // Lưu ID để xóa sau này
-                                    accepted: true
-                                };
+                    $.ajax({
+                        url: '../../ajax.php',
+                        type: 'GET',
+                        data: {
+                            action: 'get-account-upload-files',
+                            account_id: accountId
+                        },
+                        dataType: 'json',
+                        success: function(data) {
+                            // Dropzone instance (dzInstance) đã được định nghĩa ở init
+                            if (Array.isArray(data)) {
+                                data.forEach(file => {
+                                    // 1. Tạo mock file
+                                    let mockFile = {
+                                        name: file.name,
+                                        size: file.size,
+                                        serverId: file.id, // Lưu ID để dùng cho sự kiện removedfile
+                                        accepted: true
+                                    };
 
-                                // 2. Hiển thị lên Dropzone
-                                dzInstance.displayExistingFile(mockFile, file.url);
+                                    // 2. Gọi hàm hiển thị file có sẵn của Dropzone
+                                    // Tham số thứ 2 là đường dẫn URL để Dropzone lấy ảnh thumbnail
+                                    dzInstance.displayExistingFile(mockFile, file.url);
 
-                                // 3. Thêm vào mảng files của Dropzone để nó quản lý đúng số lượng (maxFiles)
-                                dzInstance.files.push(mockFile);
-                            });
-                        })
-                        .catch(err => console.error("Lỗi khi load file cũ:", err));
+                                    // 3. Quan trọng: Push vào mảng files để tính toán maxFiles chính xác
+                                    dzInstance.files.push(mockFile);
+                                });
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error("Lỗi khi load file cũ:", error);
+                        }
+                    });
                 }
 
                 // Xử lý sự kiện xóa file
