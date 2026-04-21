@@ -102,7 +102,11 @@ function getAccount(int $id): ?array {
     if ($id <= 0) return null;
 
     // 1. Lấy thông tin cơ bản từ bảng accounts
-    $sql = "SELECT * FROM accounts WHERE ID = ? LIMIT 1";
+    $sql = "SELECT a.*, u.username as author_name
+            FROM accounts a
+            LEFT JOIN authors u ON a.author_id = u.id
+            WHERE ID = ?
+            LIMIT 1";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $id);
     $stmt->execute();
