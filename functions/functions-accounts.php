@@ -83,7 +83,7 @@ function addAccount(): array {
         // 2. Xử lý Upload File nếu có
         if (!empty($_FILES['files']['name'][0])) {
             $userId = (int)($auth['user_id'] ?? 0); // Lấy ID người dùng đang login
-            $insertedFileIds = handleFileUploads($userId, $_FILES['files'], 'accounts');
+            $insertedFileIds = handleFileUploads($userId, $_FILES['files'], 'accounts', $accountId);
             if (!empty($insertedFileIds)) {
                 // 2. Liên kết các ID file đó với account_id trong bảng 'accounts_files'
                 linkFilesToAccount($accountId, $insertedFileIds);
