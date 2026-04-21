@@ -270,7 +270,7 @@ function getAccountUploadFiles(): array
         $imageExtensions = ['jpg', 'jpeg', 'png'];
         if (!in_array($extension, $imageExtensions)) {
             // Bạn có thể tạo các icon sẵn như pdf.png, excel.png trong assets
-            $imageUrl = '/assets/img/file-icons/' . $extension . '.png';
+            $imageUrl = BASE_URL . '/assets/img/file-icons/' . $extension . '.png';
         }
 
         // Chỉ lấy thông tin cần thiết cho Dropzone hiển thị
