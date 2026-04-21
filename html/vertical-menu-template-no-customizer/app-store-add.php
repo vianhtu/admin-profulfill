@@ -26,6 +26,7 @@ $defaultData = [
         'sku'          => '',
         '2fa'          => '',
         'note'         => '',
+        'custom_fields'=> '[]',
         'status'       => 1,
         'linked_ids'   => [],
         'file_default' => [['location' => '', 'text' => '', 'value' => '']],
@@ -46,6 +47,7 @@ $options = getStoresTableFilters();
 // 4. Merge dữ liệu mặc định với dữ liệu thật
 // Việc này giúp bạn luôn có biến để dùng ở View mà không sợ lỗi "Undefined index"
 $d = array_merge($defaultData, $edit_data);
+$custom_fields = json_decode($d['custom_fields']);
 ?>
 <div class="app-ecommerce">
     <form id="addXlsxFile" onsubmit="return false">
@@ -226,7 +228,7 @@ $d = array_merge($defaultData, $edit_data);
                 <div class="card-body">
                     <div class="form-repeater">
                         <div data-repeater-list="group-a">
-                            <?php foreach ($d['file_default'] as $key => $value): ?>
+                            <?php foreach ($custom_fields as $key => $value): ?>
                                 <div data-repeater-item>
                                     <div class="row g-sm-6 mb-6 align-items-end">
                                         <div class="col-sm-4">
