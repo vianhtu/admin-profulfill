@@ -288,6 +288,11 @@ function getAccountUploadFiles(): array
 
 function deleteAccountUploadFile(): array
 {
+    // 1. Kiểm tra quyền
+    if (!is_admin() && !checkRoles(['delete'], 'stores')) {
+        return ['success' => false, 'message' => 'Bạn không có quyền thực hiện thao tác này'];
+    }
+
     $fileId = (int)($_POST['file_id'] ?? 0);
     $accountId = (int)($_POST['account_id'] ?? 0);
 
@@ -296,6 +301,30 @@ function deleteAccountUploadFile(): array
     }
 
     $conn = db();
+
+    // --- BẮT ĐẦU CHẶN TRƯỜNG HỢP ---
+    if (!is_admin()) {
+        $currentUserTeamId = (int)($_SESSION['auth']['team'] ?? 0);
+        $currentUserId = (int)($_SESSION['auth']['user_id'] ?? 0);
+
+        // 1. Kiểm tra quyền Team (Bắt buộc cho cả Leader và User)
+        if (!hasAccountTeamAccess($accountId, $currentUserTeamId)) {
+            return [
+                'success' => false,
+                'message' => 'Cảnh báo: Bạn không có quyền tác động lên File của Team khác.'
+            ];
+        }
+
+        // 2. Kiểm tra quyền sở hữu cá nhân (Nếu là level User)
+        if (is_user()) {
+            if (!isAccountOwner($accountId, $currentUserId)) {
+                return [
+                    'success' => false,
+                    'message' => 'Cảnh báo: Bạn không có quyền tác động lên File khi chưa được phân quyền.'
+                ];
+            }
+        }
+    }
 
     // 1. Xóa liên kết trong bảng accounts_files
     $sql = "DELETE FROM accounts_files WHERE account_id = ? AND file_id = ?";
@@ -314,4 +343,41 @@ function deleteAccountUploadFile(): array
 
     $stmt->close();
     return ['success' => false, 'message' => 'Không thể gỡ bỏ liên kết file.'];
+}
+
+/**
+ * Kiểm tra xem Account có thuộc về Team cụ thể hay không
+ */
+function hasAccountTeamAccess($accountId, $teamId) {
+    $conn = db();
+    $sql = "SELECT COUNT(*) as total 
+            FROM accounts_authors aa
+            JOIN authors au ON aa.author_id = au.ID
+            WHERE aa.account_id = ? AND au.team_id = ?";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $accountId, $teamId);
+    $stmt->execute();
+    $result = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    return (int)$result['total'] > 0;
+}
+
+/**
+ * Kiểm tra xem User có phải là chủ sở hữu (Author) của Account không
+ */
+function isAccountOwner($accountId, $userId) {
+    $conn = db();
+    $sql = "SELECT COUNT(*) as total 
+            FROM accounts_authors
+            WHERE account_id = ? AND author_id = ?";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $accountId, $userId);
+    $stmt->execute();
+    $result = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    return (int)$result['total'] > 0;
 }
