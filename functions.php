@@ -162,12 +162,12 @@ function renderSelect($id, $label, $options = [], $selected = null, $multiple = 
 
     if (is_array($options)) {
         foreach ($options as $key => $value) {
-            // 4. Kiểm tra selected cho cả đơn lẻ và mảng (multiple)
-            $isSelected = false;
-            if ($multiple && is_array($selected)) {
+            if(isset($value['selected'])){
+                $isSelected = (bool)$value['selected'];
+            } else if ($multiple && is_array($selected)) {
                 $isSelected = in_array($key, $selected);
             } else {
-                $isSelected = ($selected == $key); // Sử dụng == để linh hoạt kiểu dữ liệu
+                $isSelected = ($selected == $key);
             }
 
             $selectedStr = $isSelected ? ' selected' : '';

@@ -118,9 +118,17 @@ function getAccount(int $id): ?array {
     }
 
     // Lấy danh sách ID liên kết theo cả 2 chiều
-    $sqlLink = "SELECT link_id FROM accounts_link WHERE account_id = ? 
-            UNION 
-            SELECT account_id FROM accounts_link WHERE link_id = ?";
+    $sqlLink = "SELECT a.ID, a.name, s.name as site_name 
+        FROM accounts_link al
+        JOIN accounts a ON al.link_id = a.ID
+        LEFT JOIN site s ON a.site_id = s.ID
+        WHERE al.account_id = ?
+        UNION
+        SELECT a.ID, a.name, s.name as site_name  
+        FROM accounts_link al
+        JOIN accounts a ON al.account_id = a.ID
+        LEFT JOIN site s ON a.site_id = s.ID
+        WHERE al.link_id = ?";
     $stmtLink = $conn->prepare($sqlLink);
     $stmtLink->bind_param("ii", $id, $id); // Truyền ID vào cả 2 vị trí
     $stmtLink->execute();
@@ -129,11 +137,14 @@ function getAccount(int $id): ?array {
     $linkedAccounts = [];
     while ($row = $resultLink->fetch_assoc()) {
         // Vì dùng UNION nên kết quả trả về sẽ nằm chung ở cột đầu tiên (mặc định lấy tên cột của query 1)
-        $linkedAccounts[] = $row['link_id'];
+        $linkedAccounts[$row['ID']] = [
+            'title' => $row['site_name'] . " (" . $row['name'] . ")",
+            'selected' => true
+        ];
     }
 
     // Gán mảng liên kết vào dữ liệu account trả về
-    $account['linked_ids'] = $linkedAccounts;
+    $account['linked_args'] = $linkedAccounts;
 
     return $account;
 }

@@ -29,7 +29,7 @@ $defaultData = [
         'custom_fields'=> '',
         'status'       => 1,
         'seller_date'  => '',
-        'linked_ids'   => [],
+        'linked_args'  => [],
         'file_default' => [['location' => '', 'text' => '', 'value' => '']],
         'ui'           => ['title' => 'Add a new', 'button' => 'Add']
 ];
@@ -328,7 +328,7 @@ if (empty($custom_fields)) {
                 </div>
                 <div class="card-body">
                     <div class="mb-6 col ecommerce-select2-dropdown">
-                        <?php renderSelect('link_accounts', 'Accounts', [], null, true); ?>
+                        <?php renderSelect('link_accounts', 'Accounts', $d['linked_args'], null, true); ?>
                     </div>
                 </div>
             </div>
