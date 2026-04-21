@@ -63,8 +63,9 @@ function addAccount(): array {
             $accountId = $conn->insert_id;
             $resStatus = 'inserted';
         }
+        $stmt->close();
 
-        syncLinks($conn, $accountId, 'accounts_links', 'link_id', $_POST['accounts'] ?? []);
+        syncLinks($conn, $accountId, 'accounts_links', 'link_id', $_POST['accounts'] ?? [], true);
         syncLinks($conn, $accountId, 'accounts_authors', 'author_id', $_POST['authors'] ?? []);
 
         $conn->commit();
@@ -76,23 +77,49 @@ function addAccount(): array {
     }
 }
 
-function syncLinks($conn, int $accountId, string $tableName, string $columnName, $data): void
+function syncLinks($conn, int $accountId, string $tableName, string $columnName, $data, bool $isBidirectional = false): void
 {
-    // 1. Xóa liên kết cũ (Dùng chuẩn bind_param cho an toàn)
-    $stmtDel = $conn->prepare("DELETE FROM $tableName WHERE account_id = ? OR $columnName = ?");
-    $stmtDel->bind_param("ii", $accountId, $accountId);
+    // 1. Xóa liên kết cũ
+    if ($isBidirectional) {
+        // Đối với accounts_links (quan hệ 2 chiều, xóa cả 2 đầu để làm sạch)
+        $stmtDel = $conn->prepare("DELETE FROM $tableName WHERE account_id = ? OR $columnName = ?");
+        $stmtDel->bind_param("ii", $accountId, $accountId);
+    } else {
+        // Đối với accounts_authors (quan hệ 1 chiều, chỉ xóa liên kết thuộc về account này)
+        $stmtDel = $conn->prepare("DELETE FROM $tableName WHERE account_id = ?");
+        $stmtDel->bind_param("i", $accountId);
+    }
+
     $stmtDel->execute();
+    $stmtDel->close();
 
     // 2. Chèn liên kết mới
-    if (!empty($data)) {
-        $ids = is_array($data) ? $data : explode(',', $data);
-        $stmtIns = $conn->prepare("INSERT INTO $tableName (account_id, $columnName) VALUES (?, ?)");
-        foreach ($ids as $id) {
-            $id = (int)trim($id);
-            if ($id > 0 && $id !== $accountId) {
-                $stmtIns->bind_param("ii", $accountId, $id);
-                $stmtIns->execute();
+    if (empty($data)) return;
+
+    $ids = is_array($data) ? $data : explode(',', $data);
+    $ids = array_unique(array_filter(array_map('intval', $ids)));
+
+    if (!empty($ids)) {
+        // Sử dụng Bulk Insert để tối ưu hiệu năng
+        $placeholders = [];
+        $params = [];
+        $types = "";
+
+        foreach ($ids as $targetId) {
+            if ($targetId > 0 && $targetId !== $accountId) {
+                $placeholders[] = "(?, ?)";
+                $params[] = $accountId;
+                $params[] = $targetId;
+                $types .= "ii";
             }
+        }
+
+        if (!empty($placeholders)) {
+            $sql = "INSERT INTO $tableName (account_id, $columnName) VALUES " . implode(', ', $placeholders);
+            $stmtIns = $conn->prepare($sql);
+            $stmtIns->bind_param($types, ...$params);
+            $stmtIns->execute();
+            $stmtIns->close();
         }
     }
 }
