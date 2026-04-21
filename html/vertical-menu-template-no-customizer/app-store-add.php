@@ -15,7 +15,6 @@ $defaultData = [
         'site_id'      => '',
         'team_id'      => '',
         'user_id'      => '',
-        'author_id'    => '',
         'name'         => '',
         'address'      => '',
         'dob'          => '',
@@ -29,6 +28,7 @@ $defaultData = [
         'custom_fields'=> '',
         'status'       => 1,
         'seller_date'  => '',
+        'authors_args' => [],
         'linked_args'  => [],
         'file_default' => [['location' => '', 'text' => '', 'value' => '']],
         'ui'           => ['title' => 'Add a new', 'button' => 'Add']
@@ -316,7 +316,7 @@ if (empty($custom_fields)) {
                     </div>
                     <!-- authors -->
                     <div class="mb-6 col ecommerce-select2-dropdown">
-                        <?php renderSelect('account_author', 'Authors', [$d['author_id']=>['title'=> $d['author_name']]], null, true); ?>
+                        <?php renderSelect('account_author', 'Authors', $d['authors_args'], null, true); ?>
                     </div>
                 </div>
             </div>

@@ -16,7 +16,6 @@ function addAccount(): array {
     $id        = !empty($_POST['_id']) ? (int)$_POST['_id'] : null;
     $site_id   = (int)$_POST['site'];
     $team_id   = (int)$_POST['team'];
-    $author_id = (int)$_POST['author'];
     $name      = $_POST['name'] ?? '';
     $email     = $_POST['email'] ?? '';
     $password  = $_POST['password'] ?? '';
@@ -39,12 +38,12 @@ function addAccount(): array {
         if ($id) {
             // --- LOGIC UPDATE ---
             $sql = "UPDATE accounts SET 
-                    site_id=?, team_id=?, author_id=?, name=?, email=?, password=?, 2fa=?, 
+                    site_id=?, team_id=?, name=?, email=?, password=?, 2fa=?, 
                     address=?, dob=?, ssn=?, phone=?, user_id=?, sku=?, note=?, custom_fields=?, status=?, seller_date=? 
                     WHERE ID=?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("iiissssssssssssisi",
-                $site_id, $team_id, $author_id, $name, $email, $password, $two_fa,
+            $stmt->bind_param("iissssssssssssisi",
+                $site_id, $team_id, $name, $email, $password, $two_fa,
                 $address, $dob, $ssn, $phone, $user_id, $sku, $note, $optionsRaw, $status_val, $account_date, $id
             );
             $stmt->execute();
@@ -53,11 +52,11 @@ function addAccount(): array {
         } else {
             // --- LOGIC INSERT ---
             $sql = "INSERT INTO accounts 
-                    (site_id, team_id, author_id, name, email, password, 2fa, address, dob, ssn, phone, user_id, sku, note, custom_fields, status, created_date, seller_date) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    (site_id, team_id, name, email, password, 2fa, address, dob, ssn, phone, user_id, sku, note, custom_fields, status, created_date, seller_date) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("iiisssssssssssiss",
-                $site_id, $team_id, $author_id, $name, $email, $password, $two_fa,
+            $stmt->bind_param("iisssssssssssiss",
+                $site_id, $team_id, $name, $email, $password, $two_fa,
                 $address, $dob, $ssn, $phone, $user_id, $sku, $note, $optionsRaw, $status_val, $sys_date, $account_date
             );
             $stmt->execute();
@@ -65,23 +64,8 @@ function addAccount(): array {
             $resStatus = 'inserted';
         }
 
-        // 3. Xử lý bảng accounts_links (Liên kết nhiều tài khoản)
-        // Luôn xóa các liên kết cũ của account này trước khi chèn mới (cho cả Insert/Update)
-        $conn->query("DELETE FROM accounts_links WHERE account_id = $accountId OR link_id = $accountId");
-
-        if (!empty($_POST['accounts'])) {
-            // Giả sử accounts gửi lên dạng mảng hoặc chuỗi cách nhau bởi dấu phẩy
-            $linkIds = is_array($_POST['accounts']) ? $_POST['accounts'] : explode(',', $_POST['accounts']);
-
-            $stmtLink = $conn->prepare("INSERT INTO accounts_links (account_id, link_id) VALUES (?, ?)");
-            foreach ($linkIds as $lId) {
-                $lId = (int)trim($lId);
-                if ($lId > 0) {
-                    $stmtLink->bind_param("ii", $accountId, $lId);
-                    $stmtLink->execute();
-                }
-            }
-        }
+        syncLinks($conn, $accountId, 'accounts_links', 'link_id', $_POST['accounts'] ?? []);
+        syncLinks($conn, $accountId, 'accounts_authors', 'author_id', $_POST['authors'] ?? []);
 
         $conn->commit();
         return ['status' => $resStatus, 'id' => $accountId];
@@ -89,6 +73,27 @@ function addAccount(): array {
     } catch (Exception $e) {
         $conn->rollback();
         return ['status' => 'error', 'message' => 'Lỗi hệ thống: ' . $e->getMessage()];
+    }
+}
+
+function syncLinks($conn, int $accountId, string $tableName, string $columnName, $data): void
+{
+    // 1. Xóa liên kết cũ (Dùng chuẩn bind_param cho an toàn)
+    $stmtDel = $conn->prepare("DELETE FROM $tableName WHERE account_id = ? OR $columnName = ?");
+    $stmtDel->bind_param("ii", $accountId, $accountId);
+    $stmtDel->execute();
+
+    // 2. Chèn liên kết mới
+    if (!empty($data)) {
+        $ids = is_array($data) ? $data : explode(',', $data);
+        $stmtIns = $conn->prepare("INSERT INTO $tableName (account_id, $columnName) VALUES (?, ?)");
+        foreach ($ids as $id) {
+            $id = (int)trim($id);
+            if ($id > 0 && $id !== $accountId) {
+                $stmtIns->bind_param("ii", $accountId, $id);
+                $stmtIns->execute();
+            }
+        }
     }
 }
 
@@ -102,11 +107,9 @@ function getAccount(int $id): ?array {
     if ($id <= 0) return null;
 
     // 1. Lấy thông tin cơ bản từ bảng accounts
-    $sql = "SELECT a.*, CONCAT(t.name, ' (', u.username, ')') AS author_name
-            FROM accounts a
-            LEFT JOIN authors u ON a.author_id = u.ID
-            LEFT JOIN team t ON u.team_id = t.ID
-            WHERE a.ID = ?
+    $sql = "SELECT *
+            FROM accounts
+            WHERE ID = ?
             LIMIT 1";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $id);
@@ -118,7 +121,27 @@ function getAccount(int $id): ?array {
         return null;
     }
 
-    // Lấy danh sách ID liên kết theo cả 2 chiều
+    // 2. Lấy danh sách Quản lý (Authors) liên kết với account này
+    $sqlAuthor = "SELECT au.ID, au.username, t.name as team_name 
+                  FROM accounts_authors aa
+                  JOIN authors au ON aa.author_id = au.ID
+                  LEFT JOIN team t ON au.team_id = t.ID
+                  WHERE aa.account_id = ?";
+    $stmtAuth = $conn->prepare($sqlAuthor);
+    $stmtAuth->bind_param("i", $id);
+    $stmtAuth->execute();
+    $resAuth = $stmtAuth->get_result();
+
+    $authorsArgs = [];
+    while ($row = $resAuth->fetch_assoc()) {
+        $authorsArgs[$row['ID']] = [
+            'title' => $row['team_name'] . " (" . $row['username'] . ")",
+            'selected' => true
+        ];
+    }
+    $account['authors_args'] = $authorsArgs;
+
+    // 3. Lấy danh sách ID liên kết theo cả 2 chiều
     $sqlLink = "SELECT a.ID, a.name, s.name as site_name 
         FROM accounts_links al
         JOIN accounts a ON al.link_id = a.ID

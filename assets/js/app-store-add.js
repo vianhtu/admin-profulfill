@@ -188,7 +188,7 @@ function addAccount(fv, dz) {
             'status': '#accounts_status',
             'site': '#account_site',
             'team': '#account_team',
-            'author': '#account_author',
+            'authors': '#account_author',
             'accounts': '#link_accounts',
             'note': '#account_note',
             '_id': '#export_id'
