@@ -96,7 +96,7 @@ function addAccount(): array {
  * @param int $id
  * @return array|null Trả về mảng dữ liệu hoặc null nếu không tìm thấy
  */
-function getAccount($id): ?array {
+function getAccount(int $id): ?array {
     $conn = db();
     $id = (int)$id;
 
