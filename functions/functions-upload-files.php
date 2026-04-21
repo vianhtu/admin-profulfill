@@ -1,63 +1,64 @@
 <?php
-function handleFileUploads(int $userId, array $files): array
+function handleFileUploads(int $userId, array $files, string $type = ''): array
 {
     $conn = db();
-    $uploadDir = dirname(__DIR__) . '/uploads/'; // Đường dẫn thư mục lưu trữ
+    $subDir = date('Y/m/d');
+    $type = $type ? $type . '/' : '';
+    $uploadDir = dirname(__DIR__) . '/uploads/' . $type . $subDir . '/';
+    $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'docx']; // Giới hạn loại file
 
-    // Đảm bảo thư mục tồn tại
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0755, true);
     }
 
     $insertedIds = [];
 
-    // Chuẩn hóa mảng $_FILES nếu chỉ có 1 file được upload
-    // (PHP đôi khi cấu trúc mảng khác nhau tùy vào cách gửi từ Dropzone)
-    $fileNames = (array)$files['name'];
-
-    foreach ($fileNames as $key => $name) {
-        // Kiểm tra lỗi upload
-        if ($files['error'][$key] !== UPLOAD_ERR_OK) {
-            continue;
+    // PHP $_FILES structure fix: chuyển về dạng mảng phẳng dễ xử lý
+    $fileList = [];
+    if (is_array($files['name'])) {
+        foreach ($files['name'] as $key => $name) {
+            $fileList[] = [
+                'name'     => $files['name'][$key],
+                'type'     => $files['type'][$key],
+                'tmp_name' => $files['tmp_name'][$key],
+                'error'    => $files['error'][$key],
+                'size'     => $files['size'][$key],
+            ];
         }
+    } else {
+        $fileList[] = $files;
+    }
 
-        $tmpName     = $files['tmp_name'][$key];
-        $fileSize    = $files['size'][$key];
-        $mimeType    = $files['type'][$key];
-        $extension   = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+    foreach ($fileList as $file) {
+        if ($file['error'] !== UPLOAD_ERR_OK) continue;
 
-        // 1. Tạo định danh duy nhất (UUID/Unique ID)
-        // file_uuid trong DB của bạn là char(36)
-        $fileUuid    = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-            mt_rand(0, 0xffff), mt_rand(0, 0xffff),
-            mt_rand(0, 0xffff),
-            mt_rand(0, 0x0fff) | 0x4000,
-            mt_rand(0, 0x3fff) | 0x8000,
-            mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
-        );
+        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
 
-        $saveName    = $fileUuid . '.' . $extension;
-        $storagePath = 'uploads/' . $saveName;
-        $checksum    = hash_file('sha256', $tmpName);
+        // Kiểm tra whitelist extension
+        if (!in_array($extension, $allowedExtensions)) continue;
 
-        // 2. Di chuyển file vào thư mục lưu trữ
-        if (move_uploaded_file($tmpName, $uploadDir . $saveName)) {
+        // Kiểm tra MIME thực tế (an toàn hơn $_FILES['type'])
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $realMimeType = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+
+        // Tạo UUID v4 chuẩn hơn
+        $fileUuid = bin2hex(random_bytes(16)); // Hoặc dùng hàm sprintf của bạn
+        $saveName = $fileUuid . '.' . $extension;
+        $storagePath = 'uploads/' . $type . $subDir . '/' . $saveName;
+        $checksum = hash_file('sha256', $file['tmp_name']);
+
+        if (move_uploaded_file($file['tmp_name'], $uploadDir . $saveName)) {
             try {
                 $sql = "INSERT INTO files 
-                        (file_uuid, user_id, file_name, storage_path, file_size, mime_type, extension, checksum, status, created_at) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())";
+                        (file_uuid, user_id, file_name, storage_path, file_size, mime_type, extension, checksum, status, type, created_at) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, NOW())";
 
                 $stmt = $conn->prepare($sql);
-                // Cột: uuid(s), user_id(i), name(s), path(s), size(i), mime(s), ext(s), check(s)
-                $stmt->bind_param("sissssss",
-                    $fileUuid,
-                    $userId,
-                    $name,
-                    $storagePath,
-                    $fileSize,
-                    $mimeType,
-                    $extension,
-                    $checksum
+                // Sử dụng $realMimeType thay vì $file['type']
+                $stmt->bind_param("sisssssss",
+                    $fileUuid, $userId, $file['name'], $storagePath,
+                    $file['size'], $realMimeType, $extension, $checksum, $type
                 );
 
                 if ($stmt->execute()) {
@@ -65,14 +66,11 @@ function handleFileUploads(int $userId, array $files): array
                 }
                 $stmt->close();
             } catch (Exception $e) {
-                // Nếu lỗi DB thì xóa file vật lý để tránh rác server
-                if (file_exists($uploadDir . $saveName)) {
-                    unlink($uploadDir . $saveName);
-                }
+                if (file_exists($uploadDir . $saveName)) unlink($uploadDir . $saveName);
                 error_log("Upload DB Error: " . $e->getMessage());
             }
         }
     }
 
-    return $insertedIds; // Trả về mảng các ID trong bảng 'files'
+    return $insertedIds;
 }
