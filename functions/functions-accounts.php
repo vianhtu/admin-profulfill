@@ -104,8 +104,8 @@ function getAccount(int $id): ?array {
     // 1. Lấy thông tin cơ bản từ bảng accounts
     $sql = "SELECT a.*, u.username as author_name
             FROM accounts a
-            LEFT JOIN authors u ON a.author_id = u.id
-            WHERE ID = ?
+            LEFT JOIN authors u ON a.author_id = u.ID
+            WHERE a.ID = ?
             LIMIT 1";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $id);
