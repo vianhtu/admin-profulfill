@@ -42,7 +42,7 @@ function ajaxSelect2(select_id, action, multiple = false){
     });
 }
 
-function ajaxSelectV2(select_id, type, multiple = false) {
+function ajaxSelectV2(select_id, folow_id, type, multiple = false) {
     $('#' + select_id).select2({
         placeholder: 'Tìm và chọn...',
         multiple: multiple,
@@ -56,7 +56,8 @@ function ajaxSelectV2(select_id, type, multiple = false) {
                 return {
                     q: params.term || '',
                     page: params.page || 1,
-                    type: type // Đây là biến 'accounts', 'proxies',... để PHP nhận diện
+                    type: type,
+                    folow_val: folow_id ? $('#' + folow_id).val() : null
                 };
             },
             processResults: function (data, params) {

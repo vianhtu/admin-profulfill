@@ -28,8 +28,8 @@ function init(){
         fv.revalidateField('account_site');
     });
 
-    ajaxSelectV2('account_author', 'authors', true);
-    ajaxSelectV2('link_accounts', 'accounts', true);
+    ajaxSelectV2('account_author', 'account_team', 'authors', true);
+    ajaxSelectV2('link_accounts', 'account_team', 'accounts', true);
 }
 
 function repeaterOptions() {

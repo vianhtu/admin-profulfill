@@ -40,7 +40,15 @@ function getCommonFilterData(): array {
     if ($type === 'accounts') {
         $params = [$like, $like, $like];
         $types = "sss";
-        if ($level == "manager") {
+        $folow_val = isset($_POST['folow_val']) ? (int)$_POST['folow_val'] : 0;
+        if($level == "admin" && !empty($_POST['folow_val'])){
+            if ($folow_val > 0) {
+                $whereClauses[] = "a.team_id = ?";
+                $params[] = $folow_val;
+                $types .= "i";
+            }
+            // Admin không truyền folow_val thì không thêm WHERE => Thấy tất cả.
+        } elseif ($level == "manager") {
             $whereClauses[] = "a.team_id = ?";
             $params[] = (int)($auth['team'] ?? 0);
             $types .= "i";
