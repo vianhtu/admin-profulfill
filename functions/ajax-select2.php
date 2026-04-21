@@ -41,7 +41,7 @@ function getCommonFilterData(): array {
         $params = [$like, $like, $like];
         $types = "sss";
         $folow_val = isset($_POST['folow_val']) ? (int)$_POST['folow_val'] : 0;
-        if($level == "admin" && !empty($_POST['folow_val'])){
+        if($level == "admin"){
             if ($folow_val > 0) {
                 $whereClauses[] = "a.team_id = ?";
                 $params[] = $folow_val;
