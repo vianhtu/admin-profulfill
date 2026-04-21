@@ -47,7 +47,7 @@ $options = getStoresTableFilters();
 // 4. Merge dữ liệu mặc định với dữ liệu thật
 // Việc này giúp bạn luôn có biến để dùng ở View mà không sợ lỗi "Undefined index"
 $d = array_merge($defaultData, $edit_data);
-$custom_fields = json_decode($d['custom_fields'] ?? '[]', true);
+$custom_fields = json_decode($d['custom_fields'] ?? '{}', true);
 ?>
 <div class="app-ecommerce">
     <form id="addXlsxFile" onsubmit="return false">
