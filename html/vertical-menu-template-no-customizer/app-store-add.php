@@ -25,6 +25,7 @@ $defaultData = [
         'password'     => '',
         'sku'          => '',
         '2fa'          => '',
+        'note'         => '',
         'status'       => 1,
         'linked_ids'   => [],
         'file_default' => [['location' => '', 'text' => '', 'value' => '']],
@@ -53,14 +54,14 @@ $d = array_merge($defaultData, $edit_data);
     <div
             class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-6 row-gap-4">
         <div class="d-flex flex-column justify-content-center">
-            <h4 class="mb-1"><?= $d['ui']['title'] ?></h4>
+            <h4 class="mb-1"><?= htmlspecialchars($d['ui']['title']) ?></h4>
             <p class="mb-0">Account information.</p>
         </div>
         <div class="d-flex align-content-center flex-wrap gap-4">
             <div class="d-flex gap-4">
                 <a href="index.php?menu=stores" class="btn btn-label-secondary">Discard</a>
             </div>
-            <button type="submit" id="form_submit" class="btn btn-primary waves-effect waves-light"><span class="spinner-border spinner-border-sm me-2 d-none" role="status" id="loading_spinner"></span><?= $d['ui']['button'] ?></button>
+            <button type="submit" id="form_submit" class="btn btn-primary waves-effect waves-light"><span class="spinner-border spinner-border-sm me-2 d-none" role="status" id="loading_spinner"></span><?= htmlspecialchars($d['ui']['button']) ?></button>
         </div>
     </div>
 
@@ -81,7 +82,7 @@ $d = array_merge($defaultData, $edit_data);
                                 id="owner_name"
                                 placeholder="Owner name"
                                 name="owner_name"
-                                value="<?= $d['name'] ?>"
+                                value="<?= htmlspecialchars($d['name']) ?>"
                                 aria-label="Owner name" />
                     </div>
                     <div class="mb-6">
@@ -92,7 +93,7 @@ $d = array_merge($defaultData, $edit_data);
                                 id="owner_address"
                                 placeholder="Owner Address"
                                 name="owner_address"
-                                value="<?= $d['address'] ?>"
+                                value="<?= htmlspecialchars($d['address']) ?>"
                                 aria-label="Owner Address" />
                     </div>
                     <div class="row mb-6">
@@ -104,7 +105,7 @@ $d = array_merge($defaultData, $edit_data);
                                     id="owner_dob"
                                     name="owner_dob"
                                     placeholder="yyyy-mm-dd"
-                                    value="<?= $d['dob'] ?>"
+                                    value="<?= htmlspecialchars($d['dob']) ?>"
                                     aria-label="Owner DOB" />
                         </div>
                         <div class="col">
@@ -115,7 +116,7 @@ $d = array_merge($defaultData, $edit_data);
                                     id="owner_ssn"
                                     name="owner_ssn"
                                     placeholder="000-00-0000"
-                                    value="<?= $d['ssn'] ?>"
+                                    value="<?= htmlspecialchars($d['ssn']) ?>"
                                     aria-label="Owner SSN" />
                         </div>
                         <div class="col">
@@ -126,7 +127,7 @@ $d = array_merge($defaultData, $edit_data);
                                     id="owner_phone"
                                     name="owner_phone"
                                     placeholder="(000)-000-0000"
-                                    value="<?= $d['phone'] ?>"
+                                    value="<?= htmlspecialchars($d['phone']) ?>"
                                     aria-label="Owner Phone" />
                         </div>
                     </div>
@@ -146,7 +147,7 @@ $d = array_merge($defaultData, $edit_data);
                                     id="account_email"
                                     placeholder="@"
                                     name="account_email"
-                                    value="<?= $d['email'] ?>"
+                                    value="<?= htmlspecialchars($d['email']) ?>"
                                     aria-label="Account email" />
                         </div>
                     </div>
@@ -159,7 +160,7 @@ $d = array_merge($defaultData, $edit_data);
                                     id="account_sku"
                                     placeholder="SKU"
                                     name="account_sku"
-                                    value="<?= $d['sku'] ?>"
+                                    value="<?= htmlspecialchars($d['sku']) ?>"
                                     aria-label="Account SKU" />
                         </div>
                         <div class="col">
@@ -169,7 +170,7 @@ $d = array_merge($defaultData, $edit_data);
                                     class="form-control"
                                     id="account_id"
                                     name="account_id"
-                                    value="<?= $d['user_id'] ?>"
+                                    value="<?= htmlspecialchars($d['user_id']) ?>"
                                     aria-label="Account ID" />
                         </div>
                     </div>
@@ -182,7 +183,7 @@ $d = array_merge($defaultData, $edit_data);
                                     id="account_password"
                                     placeholder="*********"
                                     name="account_password"
-                                    value="<?= $d['password'] ?>"
+                                    value="<?= htmlspecialchars($d['password']) ?>"
                                     aria-label="Account Password" />
                         </div>
                         <div class="col">
@@ -192,7 +193,7 @@ $d = array_merge($defaultData, $edit_data);
                                     class="form-control"
                                     id="account_2fa"
                                     name="account_2fa"
-                                    value="<?= $d['2fa'] ?>"
+                                    value="<?= htmlspecialchars($d['2fa']) ?>"
                                     placeholder="***************************"
                                     aria-label="Account 2FA" />
                         </div>
@@ -331,7 +332,7 @@ $d = array_merge($defaultData, $edit_data);
                 <div class="card-body">
                     <div class="col">
                         <label for="account_note" class="d-none"></label>
-                        <textarea class="form-control" name="account_note" id="account_note" rows="10" placeholder="Enter a note..."></textarea>
+                        <textarea class="form-control" name="account_note" id="account_note" rows="10" placeholder="Enter a note..."><?= htmlspecialchars($d['note']); ?></textarea>
                     </div>
                 </div>
             </div>
