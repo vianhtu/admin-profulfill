@@ -46,7 +46,7 @@ function handleFileUploads(int $userId, array $files, string $type = '', string 
         // Tạo UUID v4 chuẩn hơn
         $fileUuid = bin2hex(random_bytes(16)); // Hoặc dùng hàm sprintf của bạn
         $saveName = $fileUuid . '.' . $extension;
-        $storagePath = 'uploads/' . $typeDir . $idDir . $saveName;
+        $storagePath = 'uploads/' . $typeDir . $idDir . '/' . $saveName;
         $checksum = hash_file('sha256', $file['tmp_name']);
 
         if (move_uploaded_file($file['tmp_name'], $uploadDir . $saveName)) {
