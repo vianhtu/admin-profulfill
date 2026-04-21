@@ -160,10 +160,9 @@ function dropzoneFileUpload(){
                 // Nếu có accountId, tiến hành load file cũ
                 if (accountId) {
                     $.ajax({
-                        url: '../../ajax.php',
-                        type: 'GET',
+                        url: '../../ajax.php?action=get-account-upload-files',
+                        type: 'POST',
                         data: {
-                            action: 'get-account-upload-files',
                             account_id: accountId
                         },
                         dataType: 'json',

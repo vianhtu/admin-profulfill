@@ -244,7 +244,7 @@ function linkFilesToAccount(int $accountId, array $fileIds): bool
 
 function getAccountUploadFiles(): array
 {
-    $accountId = (int)($_GET['account_id'] ?? 0);
+    $accountId = (int)($_POST['account_id'] ?? 0);
     if ($accountId <= 0) {
         return [];
     }
