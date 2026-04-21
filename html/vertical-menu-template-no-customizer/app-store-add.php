@@ -28,6 +28,7 @@ $defaultData = [
         'note'         => '',
         'custom_fields'=> '',
         'status'       => 1,
+        'seller_date'  => '',
         'linked_ids'   => [],
         'file_default' => [['location' => '', 'text' => '', 'value' => '']],
         'ui'           => ['title' => 'Add a new', 'button' => 'Add']
@@ -293,7 +294,7 @@ if (empty($custom_fields)) {
                                 class="form-control"
                                 id="accounts_date"
                                 name="accounts_date"
-                                value="<?= htmlspecialchars($d['date']); ?>"
+                                value="<?= htmlspecialchars($d['seller_date']); ?>"
                                 aria-label="Account date" />
                     </div>
                 </div>
