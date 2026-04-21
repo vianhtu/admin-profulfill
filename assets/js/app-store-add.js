@@ -167,22 +167,23 @@ function dropzoneFileUpload(){
                         },
                         dataType: 'json',
                         success: function(data) {
-                            // Dropzone instance (dzInstance) đã được định nghĩa ở init
                             if (Array.isArray(data)) {
                                 data.forEach(file => {
-                                    // 1. Tạo mock file
                                     let mockFile = {
                                         name: file.name,
                                         size: file.size,
-                                        serverId: file.id, // Lưu ID để dùng cho sự kiện removedfile
+                                        serverId: file.id,
                                         accepted: true
                                     };
 
-                                    // 2. Gọi hàm hiển thị file có sẵn của Dropzone
-                                    // Tham số thứ 2 là đường dẫn URL để Dropzone lấy ảnh thumbnail
+                                    // 1. Hiển thị file
                                     dzInstance.displayExistingFile(mockFile, file.url);
 
-                                    // 3. Quan trọng: Push vào mảng files để tính toán maxFiles chính xác
+                                    // 2. Ép Dropzone hiểu là file này đã upload thành công 100%
+                                    // Điều này giúp ẩn thanh loading/progress bar đi
+                                    dzInstance.emit("complete", mockFile);
+
+                                    // 3. Đưa vào danh sách quản lý
                                     dzInstance.files.push(mockFile);
                                 });
                             }
