@@ -6,7 +6,7 @@ function handleFileUploads(int $userId, array $files, string $type = '', string 
     $typeDir = $type ? $type . '/' : '';
     $idDir = $id ?? $subDir;
     $uploadDir = dirname(__DIR__) . '/uploads/' . $typeDir . $idDir . '/';
-    $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'docx']; // Giới hạn loại file
+    $allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf', 'xlsx', 'txt']; // Giới hạn loại file
 
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0755, true);

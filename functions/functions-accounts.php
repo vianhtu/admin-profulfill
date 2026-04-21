@@ -262,12 +262,23 @@ function getAccountUploadFiles(): array
 
     $files = [];
     while ($row = $result->fetch_assoc()) {
+
+        $extension = strtolower(pathinfo($row['file_name'], PATHINFO_EXTENSION));
+        $imageUrl = BASE_URL . $row['storage_path'];
+
+        // Nếu không phải là ảnh, có thể trả về một icon mặc định để Dropzone hiển thị đẹp hơn
+        $imageExtensions = ['jpg', 'jpeg', 'png'];
+        if (!in_array($extension, $imageExtensions)) {
+            // Bạn có thể tạo các icon sẵn như pdf.png, excel.png trong assets
+            $imageUrl = '/assets/img/file-icons/' . $extension . '.png';
+        }
+
         // Chỉ lấy thông tin cần thiết cho Dropzone hiển thị
         $files[] = [
             'id'   => $row['ID'],
             'name' => $row['file_name'],
             'size' => (int)$row['file_size'],
-            'url'  => BASE_URL . $row['storage_path'], // Đường dẫn để xem file
+            'url'  => $imageUrl, // Đường dẫn để xem file
             'uuid' => $row['file_uuid']
         ];
     }
