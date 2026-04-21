@@ -102,9 +102,10 @@ function getAccount(int $id): ?array {
     if ($id <= 0) return null;
 
     // 1. Lấy thông tin cơ bản từ bảng accounts
-    $sql = "SELECT a.*, u.username as author_name
+    $sql = "SELECT a.*, CONCAT(t.name, ' (', u.username, ')') AS author_name
             FROM accounts a
             LEFT JOIN authors u ON a.author_id = u.ID
+            LEFT JOIN team t ON u.team_id = t.ID
             WHERE a.ID = ?
             LIMIT 1";
     $stmt = $conn->prepare($sql);
