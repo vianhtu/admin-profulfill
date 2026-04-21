@@ -217,7 +217,7 @@ if (empty($custom_fields)) {
                     <div class="dropzone needsclick p-0" id="dropzone-basic">
                         <div class="dz-message needsclick">
                             <p class="h4 needsclick pt-3 mb-2">Drag and drop your file here</p>
-                            <p class="h6 text-body-secondary d-block fw-normal mb-2">xlsx, png, pdf, jpg, jpeg, txt</p>
+                            <p class="h6 text-body-secondary d-block fw-normal mb-2">support (xlsx, png, pdf, jpg, jpeg, txt) max 5Mb</p>
                             <span class="needsclick btn btn-sm btn-label-primary" id="btnBrowse">Browse file</span>
                         </div>
                         <div class="fallback">
