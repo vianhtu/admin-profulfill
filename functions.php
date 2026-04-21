@@ -8,6 +8,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use GuzzleHttp\Client as GuzzleClient;
 
 require __DIR__ . '/functions/functions-accounts.php';
+require __DIR__ . '/functions/functions-upload-files.php';
 
 function menuArgs():array
 {

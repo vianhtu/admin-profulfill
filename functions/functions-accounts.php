@@ -80,6 +80,12 @@ function addAccount(): array {
         syncLinks($conn, $accountId, 'accounts_links', 'link_id', $accounts, true);
         syncLinks($conn, $accountId, 'accounts_authors', 'author_id', $authors);
 
+        // 2. Xử lý Upload File nếu có
+        if (!empty($_FILES['files']['name'][0])) {
+            $userId = (int)($auth['user_id'] ?? 0); // Lấy ID người dùng đang login
+            handleFileUploads($userId, $_FILES['files']);
+        }
+
         $conn->commit();
         return ['status' => $resStatus, 'id' => $accountId];
 
