@@ -35,12 +35,12 @@ function getCommonFilterData(): array {
     $like = "%{$q}%";
     $params = [];
     $types = "";
+    $folow_val = isset($_POST['folow_val']) ? (int)$_POST['folow_val'] : 0;
 
     // Phân quyền dữ liệu
     if ($type === 'accounts') {
         $params = [$like, $like, $like];
         $types = "sss";
-        $folow_val = isset($_POST['folow_val']) ? (int)$_POST['folow_val'] : 0;
         if($level == "admin"){
             if ($folow_val > 0) {
                 $whereClauses[] = "a.team_id = ?";
@@ -62,7 +62,14 @@ function getCommonFilterData(): array {
     } elseif ($type === 'authors'){
         $params = [$like, $like];
         $types = "ss";
-        if ($level == "manager") {
+        if($level == "admin"){
+            if ($folow_val > 0) {
+                $whereClauses[] = "a.team_id = ?";
+                $params[] = $folow_val;
+                $types .= "i";
+            }
+            // Admin không truyền folow_val thì không thêm WHERE => Thấy tất cả.
+        } elseif ($level == "manager") {
             $whereClauses[] = "a.team_id = ?";
             $params[] = (int)($auth['team'] ?? 0);
             $types .= "i";
