@@ -28,7 +28,7 @@ function init(){
         fv.revalidateField('account_site');
     });
 
-    ajaxSelectV2('account_author', 'authors', false);
+    ajaxSelectV2('account_author', 'authors', true);
     ajaxSelectV2('link_accounts', 'accounts', true);
 }
 
