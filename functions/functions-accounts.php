@@ -66,7 +66,7 @@ function addAccount(): array {
 
         // 3. Xử lý bảng accounts_link (Liên kết nhiều tài khoản)
         // Luôn xóa các liên kết cũ của account này trước khi chèn mới (cho cả Insert/Update)
-        $conn->query("DELETE FROM accounts_link WHERE account_id = $accountId");
+        $conn->query("DELETE FROM accounts_link WHERE account_id = $accountId OR link_id = $accountId");
 
         if (!empty($_POST['accounts'])) {
             // Giả sử accounts gửi lên dạng mảng hoặc chuỗi cách nhau bởi dấu phẩy
@@ -89,4 +89,48 @@ function addAccount(): array {
         $conn->rollback();
         return ['status' => 'error', 'message' => 'Lỗi hệ thống: ' . $e->getMessage()];
     }
+}
+
+/**
+ * Lấy thông tin chi tiết một account theo ID
+ * @param int $id
+ * @return array|null Trả về mảng dữ liệu hoặc null nếu không tìm thấy
+ */
+function getAccount($id): ?array {
+    $conn = db();
+    $id = (int)$id;
+
+    if ($id <= 0) return null;
+
+    // 1. Lấy thông tin cơ bản từ bảng accounts
+    $sql = "SELECT * FROM accounts WHERE ID = ? LIMIT 1";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $account = $result->fetch_assoc();
+
+    if (!$account) {
+        return null;
+    }
+
+    // Lấy danh sách ID liên kết theo cả 2 chiều
+    $sqlLink = "SELECT link_id FROM accounts_link WHERE account_id = ? 
+            UNION 
+            SELECT account_id FROM accounts_link WHERE link_id = ?";
+    $stmtLink = $conn->prepare($sqlLink);
+    $stmtLink->bind_param("ii", $id, $id); // Truyền ID vào cả 2 vị trí
+    $stmtLink->execute();
+    $resultLink = $stmtLink->get_result();
+
+    $linkedAccounts = [];
+    while ($row = $resultLink->fetch_assoc()) {
+        // Vì dùng UNION nên kết quả trả về sẽ nằm chung ở cột đầu tiên (mặc định lấy tên cột của query 1)
+        $linkedAccounts[] = $row['link_id'];
+    }
+
+    // Gán mảng liên kết vào dữ liệu account trả về
+    $account['linked_ids'] = $linkedAccounts;
+
+    return $account;
 }

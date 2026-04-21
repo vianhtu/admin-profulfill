@@ -1,67 +1,66 @@
 <?php
-if(!checkRoles(['add', 'edit'], 'exports_xlsx')){
+if(!is_admin() && !checkRoles(['add', 'edit'], 'stores')){
     return;
 }
-$options = getStoresTableFilters();
-$get_id = $_GET['id'] ?? '';
-$export_data = getXlsxByID($get_id);
-$export_id = '';
-$site_id = '';
-$team_id = '';
-$account = [];
-$account_id = '';
-$status = [1 => ['title'=>'Active'], 2 => ['title'=>'Review'], 3 => ['title'=>'Inactive']];
-$status_id = '';
-$authors_id = '';
-$name = '';
-$file_name = '';
-$text_add = 'Add a new';
-$text_button = 'Add';
-$file_header = [];
-$file_tabs = [];
-$file_default = [['location'=>'', 'text'=>'', 'value'=>'']];
-$row_header = '';
-$row_item = '';
-$sheet_name = '';
-$repeater_count = 0;
-if(!empty($export_data)){
-    $export_id = (int)$export_data['ID'];
-    $site_id = (int)$export_data['site_id'];
-    $team_id = (int)$export_data['type_id'];
-    $account_id = (int)$export_data['accounts_id'];
-    $authors_id = (int)$export_data['authors_id'];
-    $file_name = $export_data['file_name'];
-    $row_header = (int)$export_data['row_header'];
-    $row_item = (int)$export_data['row_item'];
-    $sheet_name = $export_data['sheet_name'] ?? '';
-    $text_add = 'Edit';
-    $text_button = 'Update';
-    $account = getAccountsByID($account_id);
-    $xlsxDir = ROOT_DIR . '/xlsx/'.$export_data['file_dir'];
-    $file = getXlsxFileHeader(realpath($xlsxDir), $sheet_name, $row_header);
-    $file_header = $file['xlxs']['columns'] ?? [];
-    $file_tabs = $file['xlxs']['tabs'] ?? [];
-    if(!empty($export_data['file_default']) && $export_data['file_default'] != '[]'){
-        $file_default = json_decode($export_data['file_default'], true);
-        $repeater_count = count($file_default);
-    }
+// 1. Cấu hình mặc định
+$status = [
+        1 => ['title' => 'Active'],
+        2 => ['title' => 'Review'],
+        3 => ['title' => 'Inactive']
+];
+
+// Khởi tạo object dữ liệu mặc định
+$defaultData = [
+        'ID'           => '',
+        'site_id'      => '',
+        'team_id'      => '',
+        'user_id'      => '',
+        'author_id'    => '',
+        'name'         => '',
+        'address'      => '',
+        'dob'          => '',
+        'ssn'          => '',
+        'phone'        => '',
+        'email'        => '',
+        'password'     => '',
+        'sku'          => '',
+        '2fa'          => '',
+        'status'       => 1,
+        'linked_ids'   => [],
+        'file_default' => [['location' => '', 'text' => '', 'value' => '']],
+        'ui'           => ['title' => 'Add a new', 'button' => 'Add']
+];
+
+// 2. Lấy dữ liệu
+$get_id = (int)($_GET['id'] ?? 0);
+$edit_data = $get_id ? getAccount($get_id) : [];
+
+// 3. Xử lý logic đổ dữ liệu
+if (!empty($edit_data)) {
+    $edit_data['ui'] = ['title' => 'Edit', 'button' => 'Update'];
 }
+// select options.
+$options = getStoresTableFilters();
+
+// 4. Merge dữ liệu mặc định với dữ liệu thật
+// Việc này giúp bạn luôn có biến để dùng ở View mà không sợ lỗi "Undefined index"
+$d = array_merge($defaultData, $edit_data);
 ?>
 <div class="app-ecommerce">
     <form id="addXlsxFile" onsubmit="return false">
-    <input type="hidden" id="export_id" value="<?= $export_id ?>">
+    <input type="hidden" id="export_id" value="<?= $d['ID'] ?>">
     <!-- Add Product -->
     <div
             class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-6 row-gap-4">
         <div class="d-flex flex-column justify-content-center">
-            <h4 class="mb-1"><?= $text_add ?></h4>
+            <h4 class="mb-1"><?= $d['ui']['title'] ?></h4>
             <p class="mb-0">Account information.</p>
         </div>
         <div class="d-flex align-content-center flex-wrap gap-4">
             <div class="d-flex gap-4">
                 <a href="index.php?menu=stores" class="btn btn-label-secondary">Discard</a>
             </div>
-            <button type="submit" id="form_submit" class="btn btn-primary waves-effect waves-light"><span class="spinner-border spinner-border-sm me-2 d-none" role="status" id="loading_spinner"></span><?= $text_button ?></button>
+            <button type="submit" id="form_submit" class="btn btn-primary waves-effect waves-light"><span class="spinner-border spinner-border-sm me-2 d-none" role="status" id="loading_spinner"></span><?= $d['ui']['button'] ?></button>
         </div>
     </div>
 
@@ -82,6 +81,7 @@ if(!empty($export_data)){
                                 id="owner_name"
                                 placeholder="Owner name"
                                 name="owner_name"
+                                value="<?= $d['name'] ?>"
                                 aria-label="Owner name" />
                     </div>
                     <div class="mb-6">
@@ -92,6 +92,7 @@ if(!empty($export_data)){
                                 id="owner_address"
                                 placeholder="Owner Address"
                                 name="owner_address"
+                                value="<?= $d['address'] ?>"
                                 aria-label="Owner Address" />
                     </div>
                     <div class="row mb-6">
@@ -103,6 +104,7 @@ if(!empty($export_data)){
                                     id="owner_dob"
                                     name="owner_dob"
                                     placeholder="yyyy-mm-dd"
+                                    value="<?= $d['dob'] ?>"
                                     aria-label="Owner DOB" />
                         </div>
                         <div class="col">
@@ -113,6 +115,7 @@ if(!empty($export_data)){
                                     id="owner_ssn"
                                     name="owner_ssn"
                                     placeholder="000-00-0000"
+                                    value="<?= $d['ssn'] ?>"
                                     aria-label="Owner SSN" />
                         </div>
                         <div class="col">
@@ -123,6 +126,7 @@ if(!empty($export_data)){
                                     id="owner_phone"
                                     name="owner_phone"
                                     placeholder="(000)-000-0000"
+                                    value="<?= $d['phone'] ?>"
                                     aria-label="Owner Phone" />
                         </div>
                     </div>
@@ -142,6 +146,7 @@ if(!empty($export_data)){
                                     id="account_email"
                                     placeholder="@"
                                     name="account_email"
+                                    value="<?= $d['email'] ?>"
                                     aria-label="Account email" />
                         </div>
                     </div>
@@ -154,6 +159,7 @@ if(!empty($export_data)){
                                     id="account_sku"
                                     placeholder="SKU"
                                     name="account_sku"
+                                    value="<?= $d['sku'] ?>"
                                     aria-label="Account SKU" />
                         </div>
                         <div class="col">
@@ -163,6 +169,7 @@ if(!empty($export_data)){
                                     class="form-control"
                                     id="account_id"
                                     name="account_id"
+                                    value="<?= $d['user_id'] ?>"
                                     aria-label="Account ID" />
                         </div>
                     </div>
@@ -175,6 +182,7 @@ if(!empty($export_data)){
                                     id="account_password"
                                     placeholder="*********"
                                     name="account_password"
+                                    value="<?= $d['password'] ?>"
                                     aria-label="Account Password" />
                         </div>
                         <div class="col">
@@ -184,6 +192,7 @@ if(!empty($export_data)){
                                     class="form-control"
                                     id="account_2fa"
                                     name="account_2fa"
+                                    value="<?= $d['2fa'] ?>"
                                     placeholder="***************************"
                                     aria-label="Account 2FA" />
                         </div>
@@ -216,7 +225,7 @@ if(!empty($export_data)){
                 <div class="card-body">
                     <div class="form-repeater">
                         <div data-repeater-list="group-a">
-                            <?php foreach ($file_default as $key => $value): ?>
+                            <?php foreach ($d['file_default'] as $key => $value): ?>
                                 <div data-repeater-item>
                                     <div class="row g-sm-6 mb-6 align-items-end">
                                         <div class="col-sm-4">
@@ -267,7 +276,7 @@ if(!empty($export_data)){
                 </div>
                 <div class="card-body">
                     <div class="mb-6 form-control-validation accounts_status">
-                        <?php renderSelect('accounts_status', 'Status', $status, $status_id); ?>
+                        <?php renderSelect('accounts_status', 'Status', $status, $d['status']); ?>
                     </div>
                     <div class="mb-6">
                         <label class="form-label" for="accounts_date">Date</label>
@@ -289,15 +298,15 @@ if(!empty($export_data)){
                 <div class="card-body">
                     <!-- Site -->
                     <div class="mb-6 form-control-validation col ecommerce-select2-dropdown">
-                        <?php renderSelect('account_site', 'Site', $options['sites'], $site_id); ?>
+                        <?php renderSelect('account_site', 'Site', $options['sites'], $d['site_id']); ?>
                     </div>
                     <!-- Team -->
                     <div class="mb-6 col ecommerce-select2-dropdown">
-                        <?php renderSelect('account_team', 'Team', $options['teams'], $team_id); ?>
+                        <?php renderSelect('account_team', 'Team', $options['teams'], $d['team_id']); ?>
                     </div>
                     <!-- authors -->
                     <div class="mb-6 col ecommerce-select2-dropdown">
-                        <?php renderSelect('account_author', 'Author', $options['authors'], $authors_id); ?>
+                        <?php renderSelect('account_author', 'Author', $options['authors'], $d['author_id']); ?>
                     </div>
                 </div>
             </div>
