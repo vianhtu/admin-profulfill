@@ -30,7 +30,19 @@ function addAccount(): array {
     $optionsRaw = $_POST['options'] ?? '[]';
     $status_val = (int)$_POST['status'];
     $account_date = !empty($_POST['date']) ? $_POST['date'] : null;
-    $sys_date  = date('Y-m-d');
+    $sys_date = date('Y-m-d');
+    $accounts = $_POST['accounts'] ?? [];
+    $authors = $_POST['authors'] ?? [];
+
+    $auth = $_SESSION['auth'];
+    $level = $auth['level'] ?? '';
+
+    if ($level == 'manager') {
+        $team_id = $auth['team'];
+    } elseif ($level == 'user') {
+        $team_id = $auth['team'];
+        $authors = [$auth['user_id']];
+    }
 
     try {
         $conn->begin_transaction();
@@ -65,8 +77,8 @@ function addAccount(): array {
         }
         $stmt->close();
 
-        syncLinks($conn, $accountId, 'accounts_links', 'link_id', $_POST['accounts'] ?? [], true);
-        syncLinks($conn, $accountId, 'accounts_authors', 'author_id', $_POST['authors'] ?? []);
+        syncLinks($conn, $accountId, 'accounts_links', 'link_id', $accounts, true);
+        syncLinks($conn, $accountId, 'accounts_authors', 'author_id', $authors);
 
         $conn->commit();
         return ['status' => $resStatus, 'id' => $accountId];
