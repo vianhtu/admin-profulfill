@@ -233,16 +233,16 @@ if (empty($custom_fields)) {
                 <div class="card-body">
                     <div class="form-repeater">
                         <div data-repeater-list="group-a">
-                            <?php foreach ($custom_fields as $key => $value): ?>
+                            <?php foreach ($custom_fields as $index => $value): ?>
                                 <div data-repeater-item>
                                     <div class="row g-sm-6 mb-6 align-items-end">
                                         <div class="col-sm-4">
                                             <input
                                                     type="text"
-                                                    name="custom_key"
-                                                    class="form-control custom_key"
+                                                    name="custom_text"
+                                                    class="form-control custom_text"
                                                     value="<?= htmlspecialchars($value['text']); ?>"
-                                                    placeholder="Enter key" />
+                                                    placeholder="Enter text" />
                                         </div>
                                         <div class="col-sm-7">
                                             <input

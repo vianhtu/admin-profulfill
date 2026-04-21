@@ -64,13 +64,13 @@ function getRepeaterData() {
         var $this = $(this); // Cache đối tượng hiện tại
 
         // .trim() để loại bỏ khoảng trắng dư thừa
-        var key = ($this.find('.custom_key').val() || '').trim();
+        var key = ($this.find('.custom_text').val() || '').trim();
         var val = ($this.find('.custom_value').val() || '').trim();
 
         // Kiểm tra nếu cả hai đều có giá trị thực
         if (key && val) {
             data.push({
-                key: key,
+                text: key,
                 value: val
             });
         }
