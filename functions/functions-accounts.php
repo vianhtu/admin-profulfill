@@ -300,8 +300,6 @@ function deleteAccountUploadFile(): array
         return ['success' => false, 'message' => 'Dữ liệu không hợp lệ.'];
     }
 
-    $conn = db();
-
     // --- BẮT ĐẦU CHẶN TRƯỜNG HỢP ---
     if (!is_admin()) {
         $currentUserTeamId = (int)($_SESSION['auth']['team'] ?? 0);
@@ -316,16 +314,14 @@ function deleteAccountUploadFile(): array
         }
 
         // 2. Kiểm tra quyền sở hữu cá nhân (Nếu là level User)
-        if (is_user()) {
-            if (!isAccountOwner($accountId, $currentUserId)) {
-                return [
-                    'success' => false,
-                    'message' => 'Cảnh báo: Bạn không có quyền tác động lên File khi chưa được phân quyền.'
-                ];
-            }
+        if (is_user() && !isAccountOwner($accountId, $currentUserId)) {
+            return [
+                'success' => false,
+                'message' => 'Cảnh báo: Bạn không có quyền tác động lên File khi chưa được phân quyền.'
+            ];
         }
     }
-
+    $conn = db();
     // 1. Xóa liên kết trong bảng accounts_files
     $sql = "DELETE FROM accounts_files WHERE account_id = ? AND file_id = ?";
     $stmt = $conn->prepare($sql);
@@ -333,11 +329,7 @@ function deleteAccountUploadFile(): array
 
     if ($stmt->execute()) {
         $stmt->close();
-
-        // 2. Sau khi gỡ liên kết, kiểm tra xem file này có còn thuộc về ai khác không
-        // Nếu không còn ai dùng, ta có thể xóa hẳn để sạch server
         deletePhysicalFile($fileId);
-
         return ['success' => true];
     }
 
@@ -348,7 +340,8 @@ function deleteAccountUploadFile(): array
 /**
  * Kiểm tra xem Account có thuộc về Team cụ thể hay không
  */
-function hasAccountTeamAccess($accountId, $teamId) {
+function hasAccountTeamAccess($accountId, $teamId): bool
+{
     $conn = db();
     $sql = "SELECT COUNT(*) as total 
             FROM accounts_authors aa
@@ -367,7 +360,8 @@ function hasAccountTeamAccess($accountId, $teamId) {
 /**
  * Kiểm tra xem User có phải là chủ sở hữu (Author) của Account không
  */
-function isAccountOwner($accountId, $userId) {
+function isAccountOwner($accountId, $userId): bool
+{
     $conn = db();
     $sql = "SELECT COUNT(*) as total 
             FROM accounts_authors
