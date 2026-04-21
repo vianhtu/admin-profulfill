@@ -316,7 +316,7 @@ if (empty($custom_fields)) {
                     </div>
                     <!-- authors -->
                     <div class="mb-6 col ecommerce-select2-dropdown">
-                        <?php renderSelect('account_author', 'Author', $options['authors'], $d['author_id']); ?>
+                        <?php renderSelect('account_author', 'Author', [$d['author_id']=>['title'=> $d['author_name']]], $d['author_id']); ?>
                     </div>
                 </div>
             </div>
