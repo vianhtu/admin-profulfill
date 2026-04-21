@@ -65,15 +65,15 @@ function addAccount(): array {
             $resStatus = 'inserted';
         }
 
-        // 3. Xử lý bảng accounts_link (Liên kết nhiều tài khoản)
+        // 3. Xử lý bảng accounts_links (Liên kết nhiều tài khoản)
         // Luôn xóa các liên kết cũ của account này trước khi chèn mới (cho cả Insert/Update)
-        $conn->query("DELETE FROM accounts_link WHERE account_id = $accountId OR link_id = $accountId");
+        $conn->query("DELETE FROM accounts_links WHERE account_id = $accountId OR link_id = $accountId");
 
         if (!empty($_POST['accounts'])) {
             // Giả sử accounts gửi lên dạng mảng hoặc chuỗi cách nhau bởi dấu phẩy
             $linkIds = is_array($_POST['accounts']) ? $_POST['accounts'] : explode(',', $_POST['accounts']);
 
-            $stmtLink = $conn->prepare("INSERT INTO accounts_link (account_id, link_id) VALUES (?, ?)");
+            $stmtLink = $conn->prepare("INSERT INTO accounts_links (account_id, link_id) VALUES (?, ?)");
             foreach ($linkIds as $lId) {
                 $lId = (int)trim($lId);
                 if ($lId > 0) {
@@ -120,13 +120,13 @@ function getAccount(int $id): ?array {
 
     // Lấy danh sách ID liên kết theo cả 2 chiều
     $sqlLink = "SELECT a.ID, a.name, s.name as site_name 
-        FROM accounts_link al
+        FROM accounts_links al
         JOIN accounts a ON al.link_id = a.ID
         LEFT JOIN site s ON a.site_id = s.ID
         WHERE al.account_id = ?
         UNION
         SELECT a.ID, a.name, s.name as site_name  
-        FROM accounts_link al
+        FROM accounts_links al
         JOIN accounts a ON al.account_id = a.ID
         LEFT JOIN site s ON a.site_id = s.ID
         WHERE al.link_id = ?";
