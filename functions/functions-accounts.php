@@ -77,8 +77,8 @@ function addAccount(): array {
         }
         $stmt->close();
 
-        syncLinks($conn, $accountId, 'accounts_links', 'link_id', $accounts, true);
-        syncLinks($conn, $accountId, 'accounts_authors', 'author_id', $authors);
+        syncAccountLinks($conn, $accountId, 'accounts_links', 'link_id', $accounts, true);
+        syncAccountLinks($conn, $accountId, 'accounts_authors', 'author_id', $authors);
 
         // 2. Xử lý Upload File nếu có
         if (!empty($_FILES['files']['name'][0])) {
@@ -99,7 +99,7 @@ function addAccount(): array {
     }
 }
 
-function syncLinks($conn, int $accountId, string $tableName, string $columnName, $data, bool $isBidirectional = false): void
+function syncAccountLinks($conn, int $accountId, string $tableName, string $columnName, $data, bool $isBidirectional = false): void
 {
     // 1. Xóa liên kết cũ
     if ($isBidirectional) {
@@ -240,4 +240,37 @@ function linkFilesToAccount(int $accountId, array $fileIds): bool
 
     $stmt->close();
     return true;
+}
+
+function getAccountUploadFiles(): array
+{
+    $accountId = (int)($_GET['account_id'] ?? 0);
+    if ($accountId <= 0) {
+        return [];
+    }
+
+    $conn = db();
+    $sql = "SELECT f.ID, f.file_name, f.file_size, f.storage_path, f.file_uuid 
+        FROM accounts_files af
+        JOIN files f ON af.file_id = f.ID
+        WHERE af.account_id = ?";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $accountId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $files = [];
+    while ($row = $result->fetch_assoc()) {
+        // Chỉ lấy thông tin cần thiết cho Dropzone hiển thị
+        $files[] = [
+            'id'   => $row['ID'],
+            'name' => $row['file_name'],
+            'size' => (int)$row['file_size'],
+            'url'  => '/' . $row['storage_path'], // Đường dẫn để xem file
+            'uuid' => $row['file_uuid']
+        ];
+    }
+    $stmt->close();
+    return $files;
 }

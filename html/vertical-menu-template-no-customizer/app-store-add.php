@@ -57,7 +57,7 @@ if (empty($custom_fields)) {
 ?>
 <div class="app-ecommerce">
     <form id="addXlsxFile" onsubmit="return false">
-    <input type="hidden" id="export_id" value="<?= $d['ID'] ?>">
+    <input type="hidden" id="edit_id" value="<?= $d['ID'] ?>">
     <!-- Add Product -->
     <div
             class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-6 row-gap-4">

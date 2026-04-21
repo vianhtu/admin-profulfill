@@ -152,7 +152,44 @@ function dropzoneFileUpload(){
             acceptedFiles: '.xlsx, .png, .pdf, .jpg, .jpeg, .txt',
             addRemoveLinks: true,
             uploadMultiple: true,
-            maxFiles: 10
+            maxFiles: 10,
+            // Hàm khởi tạo
+            init: function() {
+                const dzInstance = this;
+                let accountId = $('#edit_id').val();
+                // Nếu có accountId, tiến hành load file cũ
+                if (accountId) {
+                    fetch(`../../ajax.php?action=get-account-upload-files&account_id=${accountId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            data.forEach(file => {
+                                // 1. Tạo mock file
+                                let mockFile = {
+                                    name: file.name,
+                                    size: file.size,
+                                    serverId: file.id, // Lưu ID để xóa sau này
+                                    accepted: true
+                                };
+
+                                // 2. Hiển thị lên Dropzone
+                                dzInstance.displayExistingFile(mockFile, file.url);
+
+                                // 3. Thêm vào mảng files của Dropzone để nó quản lý đúng số lượng (maxFiles)
+                                dzInstance.files.push(mockFile);
+                            });
+                        })
+                        .catch(err => console.error("Lỗi khi load file cũ:", err));
+                }
+
+                // Xử lý sự kiện xóa file
+                this.on("removedfile", function(file) {
+                    // Nếu là file cũ (có serverId), gửi request xóa liên kết trong DB
+                    if (file.serverId) {
+                        // fetch(`/delete_file_link.php?file_id=${file.serverId}&account_id=${accountId}`);
+                        console.log("Xóa file ID:", file.serverId);
+                    }
+                });
+            }
         });
     }
     return myDropzone;
@@ -191,7 +228,7 @@ function addAccount(fv, dz) {
             'authors': '#account_author',
             'accounts': '#link_accounts',
             'note': '#account_note',
-            '_id': '#export_id'
+            '_id': '#edit_id'
         };
 
         // Duyệt qua object để append vào FormData

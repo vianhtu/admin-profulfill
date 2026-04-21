@@ -100,6 +100,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         case 'get-common-filter':
             echo json_encode(getCommonFilterData());
             break;
+        case 'get-account-upload-files':
+            echo json_encode(getAccountUploadFiles());
+            break;
 		case 'filter-stores':
 			echo json_encode(getStoresTableFilter());
 			break;
