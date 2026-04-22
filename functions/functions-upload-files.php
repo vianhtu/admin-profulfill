@@ -1,7 +1,6 @@
 <?php
-function handleFileUploads(int $userId, array $files, string $type = '', string $id = ''): array
+function handleFileUploads($conn, int $userId, array $files, string $type = '', string $id = ''): array
 {
-    $conn = db();
     $subDir = date('Y/m/d');
     $typeDir = $type ? $type . '/' : '';
     $idDir = $id ?? $subDir;

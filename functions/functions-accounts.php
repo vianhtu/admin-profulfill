@@ -27,33 +27,35 @@ function addAccount(): array {
     $dob       = !empty($_POST['dob']) ? $_POST['dob'] : null;
     $ssn       = $_POST['ssn'] ?? '';
     $phone     = $_POST['phone'] ?? '';
-    $user_id   = $_POST['id'] ?? ''; // Map từ #account_id
+    $user_id   = $_POST['id'] ?? '';
     $sku       = $_POST['sku'] ?? '';
     $note      = $_POST['note'] ?? '';
     $optionsRaw = $_POST['options'] ?? '[]';
     $status_val = (int)$_POST['status'];
     $account_date = !empty($_POST['date']) ? $_POST['date'] : null;
-    $sys_date = date('Y-m-d');
-    $accounts = $_POST['accounts'] ?? [];
-    $authors = $_POST['authors'] ?? [];
-
-    $auth = $_SESSION['auth'];
-    $level = $auth['level'] ?? '';
-
-    if ($level == 'manager') {
-        $team_id = $auth['team'];
-    } elseif ($level == 'user') {
-        $team_id = $auth['team'];
-        $authors = [$auth['user_id']];
-    }
+    $sys_date   = date('Y-m-d');
+    $accounts   = $_POST['accounts'] ?? [];
+    $authors    = $_POST['authors'] ?? [];
+    $auth       = $_SESSION['auth'];
+    $currentUserID = $auth['user_id'];
+    $currentUserTeamID = $auth['team'];
 
     try {
         $conn->begin_transaction();
 
         if ($id) {
             // --- LOGIC UPDATE ---
+            if (!is_admin()) {
+                // Không cho user sửa team
+                $team_id = null;
+                if(is_manager()){
+                    // cho manager sửa authors trong team.
+                    $authors = filterAuthorsByTeam($conn, $authors, $currentUserTeamID);
+                }
+            }
+
             $sql = "UPDATE accounts SET 
-                    site_id=?, team_id=?, name=?, email=?, password=?, 2fa=?, 
+                    site_id=?, team_id=COALESCE(?, team_id), name=?, email=?, password=?, 2fa=?, 
                     address=?, dob=?, ssn=?, phone=?, user_id=?, sku=?, note=?, custom_fields=?, status=?, seller_date=? 
                     WHERE ID=?";
             $stmt = $conn->prepare($sql);
@@ -63,9 +65,31 @@ function addAccount(): array {
             );
             $stmt->execute();
             $accountId = $id;
+
+            // Chỉ cho admin và manager update authors.
+            if(is_staff()){
+                syncAccountLinks($conn, $accountId, 'accounts_authors', 'author_id', $authors);
+            }
+
             $resStatus = 'updated';
         } else {
             // --- LOGIC INSERT ---
+            if(is_user()){
+                // Chỉ cho gán team của user.
+                $team_id = $currentUserTeamID;
+                // Gán cứng author là chính user.
+                $authors = [$currentUserID];
+                // Chỉ cho liên kết tài khoản thuộc team.
+                $accounts = filterAccountsByTeam($conn, $accounts, $currentUserTeamID);
+            } elseif (is_manager()){
+                // Chỉ cho gán team của user
+                $team_id = $currentUserTeamID;
+                // Chỉ cho gán authors trong team.
+                $authors = filterAuthorsByTeam($conn, $authors, $currentUserTeamID);
+                // Chỉ cho liên kết tài khoản thuộc team.
+                $accounts = filterAccountsByTeam($conn, $accounts, $currentUserTeamID);
+            }
+
             $sql = "INSERT INTO accounts 
                     (site_id, team_id, name, email, password, 2fa, address, dob, ssn, phone, user_id, sku, note, custom_fields, status, created_date, seller_date) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -76,20 +100,21 @@ function addAccount(): array {
             );
             $stmt->execute();
             $accountId = $conn->insert_id;
+            // --- END LOGIC INSERT ---
+
+            syncAccountLinks($conn, $accountId, 'accounts_authors', 'author_id', $authors);
+            syncAccountLinks($conn, $accountId, 'accounts_links', 'link_id', $accounts, true);
+
             $resStatus = 'inserted';
         }
         $stmt->close();
 
-        syncAccountLinks($conn, $accountId, 'accounts_links', 'link_id', $accounts, true);
-        syncAccountLinks($conn, $accountId, 'accounts_authors', 'author_id', $authors);
-
         // 2. Xử lý Upload File nếu có
         if (!empty($_FILES['files']['name'][0])) {
-            $userId = (int)($auth['user_id'] ?? 0); // Lấy ID người dùng đang login
-            $insertedFileIds = handleFileUploads($userId, $_FILES['files'], 'accounts', $accountId);
+            $insertedFileIds = handleFileUploads($conn, $currentUserID, $_FILES['files'], 'accounts', $accountId);
             if (!empty($insertedFileIds)) {
                 // 2. Liên kết các ID file đó với account_id trong bảng 'accounts_files'
-                linkFilesToAccount($accountId, $insertedFileIds);
+                linkFilesToAccount($conn, $accountId, $insertedFileIds);
             }
         }
 
@@ -224,13 +249,11 @@ function getAccount(int $id): ?array {
 /**
  * Liên kết danh sách file với một account cụ thể
  */
-function linkFilesToAccount(int $accountId, array $fileIds): bool
+function linkFilesToAccount($conn, int $accountId, array $fileIds): bool
 {
     if (empty($fileIds)) {
         return false;
     }
-
-    $conn = db();
 
     // Sử dụng prepared statement để tránh SQL Injection và tối ưu hiệu suất
     $sql = "INSERT IGNORE INTO accounts_files (account_id, file_id) VALUES (?, ?)";
@@ -457,4 +480,36 @@ function isAccountOwner($accountId, $userId): bool
     $stmt->close();
 
     return (int)$result['total'] > 0;
+}
+
+function filterAccountsByTeam($conn, array $accountIds, int $teamId): array
+{
+    if (empty($accountIds)) {
+        return [];
+    }
+
+    // Ép kiểu số nguyên để bảo mật
+    $accountIds = array_map('intval', $accountIds);
+
+    // Tạo placeholders (?,?,?) cho câu lệnh IN
+    $placeholders = implode(',', array_fill(0, count($accountIds), '?'));
+
+    $sql = "SELECT ID FROM accounts WHERE ID IN ($placeholders) AND team_id = ?";
+    $stmt = $conn->prepare($sql);
+
+    // Chuẩn bị tham số: danh sách ID + tham số team_id cuối cùng
+    $types = str_repeat('i', count($accountIds)) . 'i';
+    $params = [...$accountIds, $teamId];
+
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $filteredIds = [];
+    while ($row = $result->fetch_assoc()) {
+        $filteredIds[] = (int)$row['ID'];
+    }
+    $stmt->close();
+
+    return $filteredIds;
 }
