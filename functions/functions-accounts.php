@@ -254,27 +254,23 @@ function linkFilesToAccount($conn, int $accountId, array $fileIds): bool
 
 function getAccountUploadFiles(): array
 {
-    $accountId = (int)($_POST['account_id'] ?? 0);
-    if ($accountId <= 0) {
-        return [];
-    }
-
-    // Kiểm tra roles
-    if (!is_admin() && !checkRoles(['view'], 'stores')) {
-        return [];
-    }
-
     $conn = db();
-    // Kiểm tra quyền truy cập
+    $accountId = (int)($_POST['account_id'] ?? 0);
+    $auth = $_SESSION['auth'] ?? [];
+
+    // 1. Kiểm tra ID và Role cơ bản
+    if ($accountId <= 0 || (!is_admin() && !checkRoles(['view'], 'stores'))) {
+        return [];
+    }
+
+    // 2. Kiểm tra quyền truy cập chi tiết (Chỉ dành cho Manager/User)
     if (!is_admin()) {
-        $teamId = (int)($_SESSION['auth']['team'] ?? 0);
-        $userId = (int)($_SESSION['auth']['user_id'] ?? 0);
+        $teamId = (int)($auth['team'] ?? 0);
+        $userId = (int)($auth['user_id'] ?? 0);
 
-        if (!hasAccountTeamAccess($conn, $accountId, $teamId)) {
-            return [];
-        }
-
-        if (is_user() && !isAccountOwner($conn, $accountId, $userId)) {
+        // Gộp kiểm tra Team và Owner (Thoát nếu không thỏa mãn)
+        if (!hasAccountTeamAccess($conn, $accountId, $teamId) ||
+            (is_user() && !isAccountOwner($conn, $accountId, $userId))) {
             return [];
         }
     }
