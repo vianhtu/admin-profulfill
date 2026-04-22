@@ -415,9 +415,8 @@ function hasAccountTeamAccess($accountId, $teamId): bool
 {
     $conn = db();
     $sql = "SELECT COUNT(*) as total 
-            FROM accounts_authors aa
-            JOIN authors au ON aa.author_id = au.ID
-            WHERE aa.account_id = ? AND au.team_id = ?";
+            FROM accounts
+            WHERE ID = ? AND team_id = ?";
 
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("ii", $accountId, $teamId);
