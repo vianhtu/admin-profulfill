@@ -301,12 +301,11 @@ function getAccountUploadFileData(): void
 
     $conn = db();
 
-    // 1. Lấy thông tin cơ bản của file và account_id liên quan để check quyền
-    // Giả sử bảng accounts_files liên kết file với account
-    $sqlFile = "SELECT f.file_content, f.file_type, f.file_name, af.account_id 
+    // 1. Lấy storage_path, mime_type và thông tin quyền từ DB
+    $sqlFile = "SELECT f.storage_path, f.mime_type, f.file_name, af.account_id 
                 FROM files f
-                JOIN accounts_files af ON f.id = af.file_id
-                WHERE f.id = ? LIMIT 1";
+                JOIN accounts_files af ON f.ID = af.file_id
+                WHERE f.ID = ? LIMIT 1";
 
     $stmt = $conn->prepare($sqlFile);
     $stmt->bind_param("i", $fileId);
@@ -316,43 +315,45 @@ function getAccountUploadFileData(): void
 
     if (!$file) {
         header("HTTP/1.1 404 Not Found");
-        exit('File không tồn tại');
+        exit('File không tồn tại trong database');
+    }
+
+    $fullPath = dirname(__DIR__) . '/' . $file['storage_path'];
+
+    if (!file_exists($fullPath)) {
+        header("HTTP/1.1 404 Not Found");
+        exit('Tệp tin không tồn tại trên máy chủ.');
     }
 
     $accountId = $file['account_id'];
 
-    // 2. Kiểm tra quyền truy cập (Dùng lại 2 hàm bạn đã viết)
+    // 2. Kiểm tra quyền truy cập (Giữ nguyên logic bảo mật)
     if (!is_admin()) {
         $teamId = (int)($_SESSION['auth']['team'] ?? 0);
         $userId = (int)($_SESSION['auth']['user_id'] ?? 0);
 
-        // Kiểm tra quyền Team
-        if (!hasAccountTeamAccess($accountId, $teamId)) {
+        if (!hasAccountTeamAccess($conn, $accountId, $teamId)) {
             header("HTTP/1.1 403 Forbidden");
-            exit('Bạn không có quyền xem file của Team khác');
+            exit('Bạn không có quyền truy cập file của Team khác');
         }
 
-        // Kiểm tra quyền cá nhân (nếu là user thường)
-        if (is_user() && !isAccountOwner($accountId, $userId)) {
+        if (is_user() && !isAccountOwner($conn, $accountId, $userId)) {
             header("HTTP/1.1 403 Forbidden");
-            exit('Bạn không có quyền xem file này');
+            exit('Bạn không có quyền truy cập file này');
         }
     }
 
-    // 3. Xuất file
-    // Xóa mọi nội dung trong buffer trước đó để tránh file bị lỗi (corrupted)
+    // 3. Xuất file bằng readfile() - Tối ưu cho file lớn (5MB)
     if (ob_get_length()) ob_end_clean();
 
-    header("Content-Type: " . $file['file_type']);
-    header("Content-Length: " . strlen($file['file_content']));
-
-    // Nếu muốn trình duyệt tải về thay vì hiển thị, bỏ comment dòng dưới:
-    // header('Content-Disposition: attachment; filename="' . $file['file_name'] . '"');
-
-    // Cache để giảm tải cho server với file 5MB
+    // Thiết lập Header
+    header("Content-Type: " . ($file['mime_type'] ?? 'application/octet-stream'));
+    header("Content-Length: " . filesize($fullPath));
+    header("Content-Disposition: inline; filename=\"" . basename($file['file_name']) . "\"");
     header("Cache-Control: private, max-age=86400");
 
-    echo $file['file_content'];
+    // Đọc và trả dữ liệu về trình duyệt
+    readfile($fullPath);
     exit;
 }
 
