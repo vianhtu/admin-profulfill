@@ -137,6 +137,7 @@ function dropzoneFileUpload(){
       </div>
       <div class="dz-filename" data-dz-name></div>
       <div class="dz-size" data-dz-size></div>
+      <a class="dz-download" href="javascript:undefined;" data-dz-download><i class="ti ti-download"></i> Download</a>
     </div>
     </div>`;
 
