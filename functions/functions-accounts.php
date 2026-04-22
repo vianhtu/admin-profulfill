@@ -48,6 +48,8 @@ function addAccount(): array {
             if (!is_admin()) {
                 // Không cho user sửa team
                 $team_id = null;
+                // Chỉ cho liên kết tài khoản thuộc team.
+                $accounts = filterAccountsByTeam($conn, $accounts, $currentUserTeamID);
                 if(is_manager()){
                     // cho manager sửa authors trong team.
                     $authors = filterAuthorsByTeam($conn, $authors, $currentUserTeamID);
@@ -70,6 +72,8 @@ function addAccount(): array {
             if(is_staff()){
                 syncAccountLinks($conn, $accountId, 'accounts_authors', 'author_id', $authors);
             }
+
+            syncAccountLinks($conn, $accountId, 'accounts_links', 'link_id', $accounts, true);
 
             $resStatus = 'updated';
         } else {
