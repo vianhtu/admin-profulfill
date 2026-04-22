@@ -48,12 +48,6 @@ function addAccount(): array {
             if (!is_admin()) {
                 // Không cho user sửa team
                 $team_id = null;
-                // Chỉ cho liên kết tài khoản thuộc team.
-                $accounts = filterAccountsByTeam($conn, $accounts, $currentUserTeamID);
-                if(is_manager()){
-                    // cho manager sửa authors trong team.
-                    $authors = filterAuthorsByTeam($conn, $authors, $currentUserTeamID);
-                }
             }
 
             $sql = "UPDATE accounts SET 
@@ -73,8 +67,6 @@ function addAccount(): array {
                 syncAccountLinks($conn, $accountId, 'accounts_authors', 'author_id', $authors);
             }
 
-            syncAccountLinks($conn, $accountId, 'accounts_links', 'link_id', $accounts, true);
-
             $resStatus = 'updated';
         } else {
             // --- LOGIC INSERT ---
@@ -83,15 +75,9 @@ function addAccount(): array {
                 $team_id = $currentUserTeamID;
                 // Gán cứng author là chính user.
                 $authors = [$currentUserID];
-                // Chỉ cho liên kết tài khoản thuộc team.
-                $accounts = filterAccountsByTeam($conn, $accounts, $currentUserTeamID);
             } elseif (is_manager()){
                 // Chỉ cho gán team của user
                 $team_id = $currentUserTeamID;
-                // Chỉ cho gán authors trong team.
-                $authors = filterAuthorsByTeam($conn, $authors, $currentUserTeamID);
-                // Chỉ cho liên kết tài khoản thuộc team.
-                $accounts = filterAccountsByTeam($conn, $accounts, $currentUserTeamID);
             }
 
             $sql = "INSERT INTO accounts 
@@ -107,11 +93,12 @@ function addAccount(): array {
             // --- END LOGIC INSERT ---
 
             syncAccountLinks($conn, $accountId, 'accounts_authors', 'author_id', $authors);
-            syncAccountLinks($conn, $accountId, 'accounts_links', 'link_id', $accounts, true);
 
             $resStatus = 'inserted';
         }
         $stmt->close();
+
+        syncAccountLinks($conn, $accountId, 'accounts_links', 'link_id', $accounts, true);
 
         // 2. Xử lý Upload File nếu có
         if (!empty($_FILES['files']['name'][0])) {
