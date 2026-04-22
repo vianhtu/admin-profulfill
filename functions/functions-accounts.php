@@ -98,7 +98,7 @@ function addAccount(): array {
         }
         $stmt->close();
 
-        syncAccountLinks($conn, $accountId, 'accounts_links', 'link_id', filterAccountsByTeam($conn, $accounts, $currentUserTeamID), true);
+        syncAccountLinks($conn, $accountId, 'accounts_links', 'link_id', $accounts, true);
 
         // 2. Xử lý Upload File nếu có
         if (!empty($_FILES['files']['name'][0])) {
