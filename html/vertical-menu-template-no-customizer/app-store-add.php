@@ -1,8 +1,20 @@
 <?php
-if(!is_admin() && !checkRoles(['add', 'edit'], 'stores')){
-    return;
+$get_id = (int)($_GET['id'] ?? 0);
+if(!is_admin()){
+    if(!checkRoles(['add', 'edit'], 'stores')) {
+        return;
+    }
+    $conn = db();
+    $auth = $_SESSION['auth'] ?? [];
+    $teamId = (int)($auth['team'] ?? 0);
+    $userId = (int)($auth['user_id'] ?? 0);
+    // Gộp kiểm tra Team và Owner (Thoát nếu không thỏa mãn)
+    if (!hasAccountTeamAccess($conn, $get_id, $teamId) ||
+            (is_user() && !isAccountOwner($conn, $get_id, $userId))) {
+        return;
+    }
 }
-// 1. Cấu hình mặc định
+// Cấu hình mặc định
 $status = [
         1 => ['title' => 'Active'],
         2 => ['title' => 'Review'],
@@ -34,19 +46,17 @@ $defaultData = [
         'ui'           => ['title' => 'Add a new', 'button' => 'Add']
 ];
 
-// 2. Lấy dữ liệu
-$get_id = (int)($_GET['id'] ?? 0);
+// Lấy dữ liệu
 $edit_data = $get_id ? getAccount($get_id) : [];
 
-// 3. Xử lý logic đổ dữ liệu
+// Xử lý logic đổ dữ liệu
 if (!empty($edit_data)) {
     $edit_data['ui'] = ['title' => 'Edit', 'button' => 'Update'];
 }
-// select options.
+// Select options.
 $options = getStoresTableFilters();
 
-// 4. Merge dữ liệu mặc định với dữ liệu thật
-// Việc này giúp bạn luôn có biến để dùng ở View mà không sợ lỗi "Undefined index"
+// Merge dữ liệu mặc định với dữ liệu thật
 $d = array_merge($defaultData, $edit_data);
 $custom_fields = json_decode($d['custom_fields'] ?? '[]', true);
 if (empty($custom_fields)) {
