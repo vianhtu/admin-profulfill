@@ -179,7 +179,6 @@ function getAccount(int $id): ?array {
     if (!$account) return null;
 
     // 2. Lấy danh sách Quản lý (Authors)
-    // Tối ưu: Chỉ select những cột thực sự cần thiết
     $sqlAuthor = "SELECT au.ID, au.username, t.name as team_name 
                   FROM accounts_authors aa
                   JOIN authors au ON aa.author_id = au.ID
@@ -255,6 +254,10 @@ function linkFilesToAccount($conn, int $accountId, array $fileIds): bool
 
 function getAccountUploadFiles(): array
 {
+    if (!is_admin() && !checkRoles(['view'], 'stores')) {
+        return [];
+    }
+
     $accountId = (int)($_POST['account_id'] ?? 0);
     if ($accountId <= 0) {
         return [];
@@ -300,6 +303,10 @@ function getAccountUploadFiles(): array
 #[NoReturn]
 function getAccountUploadFileData(): void
 {
+    if (!is_admin() && !checkRoles(['view'], 'stores')) {
+        exit('Bạn chưa được cấp quyền xem file.');
+    }
+
     $fileId = (int)($_GET['id'] ?? 0);
 
     if ($fileId <= 0) {
@@ -335,19 +342,19 @@ function getAccountUploadFileData(): void
 
     $accountId = $file['account_id'];
 
-    // 2. Kiểm tra quyền truy cập (Giữ nguyên logic bảo mật)
+    // 2. Kiểm tra quyền truy cập
     if (!is_admin()) {
         $teamId = (int)($_SESSION['auth']['team'] ?? 0);
         $userId = (int)($_SESSION['auth']['user_id'] ?? 0);
 
-        if (!hasAccountTeamAccess($accountId, $teamId)) {
+        if (!hasAccountTeamAccess($conn, $accountId, $teamId)) {
             header("HTTP/1.1 403 Forbidden");
             exit('Bạn không có quyền truy cập file của Team khác');
         }
 
-        if (is_user() && !isAccountOwner($accountId, $userId)) {
+        if (is_user() && !isAccountOwner($conn, $accountId, $userId)) {
             header("HTTP/1.1 403 Forbidden");
-            exit('Bạn không có quyền truy cập file này');
+            exit('Bạn không được cấp quyền truy cập file này');
         }
     }
 
@@ -372,6 +379,7 @@ function deleteAccountUploadFile(): array
         return ['success' => false, 'message' => 'Bạn không có quyền thực hiện thao tác này'];
     }
 
+    $conn = db();
     $fileId = (int)($_POST['file_id'] ?? 0);
     $accountId = (int)($_POST['account_id'] ?? 0);
 
@@ -385,7 +393,7 @@ function deleteAccountUploadFile(): array
         $currentUserId = (int)($_SESSION['auth']['user_id'] ?? 0);
 
         // 1. Kiểm tra quyền Team (Bắt buộc cho cả Leader và User)
-        if (!hasAccountTeamAccess($accountId, $currentUserTeamId)) {
+        if (!hasAccountTeamAccess($conn, $accountId, $currentUserTeamId)) {
             return [
                 'success' => false,
                 'message' => 'Cảnh báo: Bạn không có quyền tác động lên File của Team khác.'
@@ -393,14 +401,13 @@ function deleteAccountUploadFile(): array
         }
 
         // 2. Kiểm tra quyền sở hữu cá nhân (Nếu là level User)
-        if (is_user() && !isAccountOwner($accountId, $currentUserId)) {
+        if (is_user() && !isAccountOwner($conn, $accountId, $currentUserId)) {
             return [
                 'success' => false,
                 'message' => 'Cảnh báo: Bạn không có quyền tác động lên File khi chưa được phân quyền.'
             ];
         }
     }
-    $conn = db();
     // 1. Xóa liên kết trong bảng accounts_files
     $sql = "DELETE FROM accounts_files WHERE account_id = ? AND file_id = ?";
     $stmt = $conn->prepare($sql);
@@ -419,10 +426,8 @@ function deleteAccountUploadFile(): array
 /**
  * Kiểm tra xem Account có thuộc về Team cụ thể hay không
  */
-function hasAccountTeamAccess($accountId, $teamId): bool
+function hasAccountTeamAccess($conn, $accountId, $teamId): bool
 {
-    $conn = db();
-
     // 1. Check bảng accounts (Team chính sở hữu account)
     $sql1 = "SELECT COUNT(*) as total FROM accounts WHERE ID = ? AND team_id = ?";
     $stmt1 = $conn->prepare($sql1);
@@ -451,9 +456,8 @@ function hasAccountTeamAccess($accountId, $teamId): bool
 /**
  * Kiểm tra xem User có phải là chủ sở hữu (Author) của Account không
  */
-function isAccountOwner($accountId, $userId): bool
+function isAccountOwner($conn, $accountId, $userId): bool
 {
-    $conn = db();
     $sql = "SELECT COUNT(*) as total 
             FROM accounts_authors
             WHERE account_id = ? AND author_id = ?";
