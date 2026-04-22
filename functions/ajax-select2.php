@@ -16,7 +16,7 @@ function getCommonFilterData(): array {
 
     $config = [
         'accounts' => [
-            'base_sql' => "SELECT a.id, CONCAT(s.name, ' (', a.name, ')') AS text FROM accounts a JOIN site s ON a.site_id = s.id",
+            'base_sql' => "SELECT a.id, CONCAT(s.name, ' (', a.name, ')') AS text FROM accounts a JOIN site s ON a.site_id = s.id LEFT JOIN accounts_authors aa ON a.id = aa.account_id",
             'search_where' => "(a.name LIKE ? OR a.email LIKE ? OR a.user_id LIKE ?)",
             'order' => "a.site_id ASC"
         ],
@@ -54,7 +54,7 @@ function getCommonFilterData(): array {
             $types .= "i";
         } elseif ($level == "user") {
             $whereClauses[] = "a.team_id = ?";
-            $whereClauses[] = "a.author_id = ?";
+            $whereClauses[] = "aa.author_id = ?";
             $params[] = (int)($auth['team'] ?? 0);
             $params[] = (int)($auth['user_id'] ?? 0);
             $types .= "ii";
