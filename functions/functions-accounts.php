@@ -415,7 +415,7 @@ function deleteAccountUploadFile(): array
 
     if ($stmt->execute()) {
         $stmt->close();
-        deletePhysicalFile($fileId);
+        deletePhysicalFile($conn, $fileId);
         return ['success' => true];
     }
 

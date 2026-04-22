@@ -75,10 +75,8 @@ function handleFileUploads($conn, int $userId, array $files, string $type = '', 
     return $insertedIds;
 }
 
-function deletePhysicalFile(int $fileId): bool
+function deletePhysicalFile($conn, int $fileId): bool
 {
-    $conn = db();
-
     // 2. Lấy đường dẫn file trước khi xóa trong DB
     $sqlFile = "SELECT storage_path FROM files WHERE ID = ? LIMIT 1";
     $stmtFile = $conn->prepare($sqlFile);
