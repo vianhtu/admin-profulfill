@@ -418,7 +418,7 @@ function hasAccountTeamAccess($accountId, $teamId): bool
     // 1. Check bảng accounts (Team chính sở hữu account)
     $sql1 = "SELECT COUNT(*) as total FROM accounts WHERE ID = ? AND team_id = ?";
     $stmt1 = $conn->prepare($sql1);
-    $stmt1.bind_param("ii", $accountId, $teamId);
+    $stmt1->bind_param("ii", $accountId, $teamId);
     $stmt1->execute();
     $isOwnerTeam = (int)$stmt1->get_result()->fetch_assoc()['total'];
     $stmt1->close();
@@ -432,7 +432,7 @@ function hasAccountTeamAccess($accountId, $teamId): bool
              WHERE aa.account_id = ? AND a.team_id = ?";
 
     $stmt2 = $conn->prepare($sql2);
-    $stmt2.bind_param("ii", $accountId, $teamId);
+    $stmt2->bind_param("ii", $accountId, $teamId);
     $stmt2->execute();
     $isAssignedTeam = (int)$stmt2->get_result()->fetch_assoc()['total'];
     $stmt2->close();
