@@ -144,4 +144,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             break;
 	}
 	exit;
+} elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])){
+    // TẮT hiển thị lỗi ra HTML (sai sót debug)
+    ini_set('display_errors', '0');
+    ini_set('log_errors', '1');
+    ini_set('error_log', __DIR__ . '/php_errors.log');
+    error_reporting(E_ALL);
+    switch ($_GET['action']) {
+        case 'get-account-file':
+            getAccountUploadFileData();
+            break;
+    }
 }

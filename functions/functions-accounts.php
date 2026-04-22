@@ -1,4 +1,7 @@
 <?php
+
+use JetBrains\PhpStorm\NoReturn;
+
 function addAccount(): array {
     $conn = db();
 
@@ -264,7 +267,7 @@ function getAccountUploadFiles(): array
     while ($row = $result->fetch_assoc()) {
 
         $extension = strtolower(pathinfo($row['file_name'], PATHINFO_EXTENSION));
-        $imageUrl = BASE_URL . $row['storage_path'];
+        $imageUrl = BASE_URL . "ajax.php?action=get-account-file&id=" . $row['ID'];
 
         // Nếu không phải là ảnh, có thể trả về một icon mặc định để Dropzone hiển thị đẹp hơn
         $imageExtensions = ['jpg', 'jpeg', 'png'];
@@ -284,6 +287,73 @@ function getAccountUploadFiles(): array
     }
     $stmt->close();
     return $files;
+}
+
+#[NoReturn]
+function getAccountUploadFileData(): void
+{
+    $fileId = (int)($_GET['id'] ?? 0);
+
+    if ($fileId <= 0) {
+        header("HTTP/1.1 400 Bad Request");
+        exit('ID không hợp lệ');
+    }
+
+    $conn = db();
+
+    // 1. Lấy thông tin cơ bản của file và account_id liên quan để check quyền
+    // Giả sử bảng accounts_files liên kết file với account
+    $sqlFile = "SELECT f.file_content, f.file_type, f.file_name, af.account_id 
+                FROM files f
+                JOIN accounts_files af ON f.id = af.file_id
+                WHERE f.id = ? LIMIT 1";
+
+    $stmt = $conn->prepare($sqlFile);
+    $stmt->bind_param("i", $fileId);
+    $stmt->execute();
+    $file = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    if (!$file) {
+        header("HTTP/1.1 404 Not Found");
+        exit('File không tồn tại');
+    }
+
+    $accountId = $file['account_id'];
+
+    // 2. Kiểm tra quyền truy cập (Dùng lại 2 hàm bạn đã viết)
+    if (!is_admin()) {
+        $teamId = (int)($_SESSION['auth']['team'] ?? 0);
+        $userId = (int)($_SESSION['auth']['user_id'] ?? 0);
+
+        // Kiểm tra quyền Team
+        if (!hasAccountTeamAccess($accountId, $teamId)) {
+            header("HTTP/1.1 403 Forbidden");
+            exit('Bạn không có quyền xem file của Team khác');
+        }
+
+        // Kiểm tra quyền cá nhân (nếu là user thường)
+        if (is_user() && !isAccountOwner($accountId, $userId)) {
+            header("HTTP/1.1 403 Forbidden");
+            exit('Bạn không có quyền xem file này');
+        }
+    }
+
+    // 3. Xuất file
+    // Xóa mọi nội dung trong buffer trước đó để tránh file bị lỗi (corrupted)
+    if (ob_get_length()) ob_end_clean();
+
+    header("Content-Type: " . $file['file_type']);
+    header("Content-Length: " . strlen($file['file_content']));
+
+    // Nếu muốn trình duyệt tải về thay vì hiển thị, bỏ comment dòng dưới:
+    // header('Content-Disposition: attachment; filename="' . $file['file_name'] . '"');
+
+    // Cache để giảm tải cho server với file 5MB
+    header("Cache-Control: private, max-age=86400");
+
+    echo $file['file_content'];
+    exit;
 }
 
 function deleteAccountUploadFile(): array
