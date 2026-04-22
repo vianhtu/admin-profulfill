@@ -332,12 +332,12 @@ function getAccountUploadFileData(): void
         $teamId = (int)($_SESSION['auth']['team'] ?? 0);
         $userId = (int)($_SESSION['auth']['user_id'] ?? 0);
 
-        if (!hasAccountTeamAccess($conn, $accountId, $teamId)) {
+        if (!hasAccountTeamAccess($accountId, $teamId)) {
             header("HTTP/1.1 403 Forbidden");
             exit('Bạn không có quyền truy cập file của Team khác');
         }
 
-        if (is_user() && !isAccountOwner($conn, $accountId, $userId)) {
+        if (is_user() && !isAccountOwner($accountId, $userId)) {
             header("HTTP/1.1 403 Forbidden");
             exit('Bạn không có quyền truy cập file này');
         }
