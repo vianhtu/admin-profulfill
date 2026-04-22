@@ -5,7 +5,7 @@ use JetBrains\PhpStorm\NoReturn;
 function addAccount(): array {
     $conn = db();
 
-    // 1. Kiểm tra quyền và CSRF
+    // 1. Addmin full quyền, các user khác phải được cấp quyền.
     if (!is_admin() && !checkRoles(['add', 'edit'], 'stores')) {
         return ['status' => 'error', 'message' => 'Bạn không có quyền thực hiện thao tác này'];
     }
@@ -414,17 +414,30 @@ function deleteAccountUploadFile(): array
 function hasAccountTeamAccess($accountId, $teamId): bool
 {
     $conn = db();
-    $sql = "SELECT COUNT(*) as total 
-            FROM accounts
-            WHERE ID = ? AND team_id = ?";
 
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ii", $accountId, $teamId);
-    $stmt->execute();
-    $result = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
+    // 1. Check bảng accounts (Team chính sở hữu account)
+    $sql1 = "SELECT COUNT(*) as total FROM accounts WHERE ID = ? AND team_id = ?";
+    $stmt1 = $conn->prepare($sql1);
+    $stmt1.bind_param("ii", $accountId, $teamId);
+    $stmt1->execute();
+    $isOwnerTeam = (int)$stmt1->get_result()->fetch_assoc()['total'];
+    $stmt1->close();
 
-    return (int)$result['total'] > 0;
+    if ($isOwnerTeam > 0) return true;
+
+    // 2. Check bảng accounts_authors (Team của những người được gán vào account)
+    $sql2 = "SELECT COUNT(*) as total 
+             FROM accounts_authors as aa
+             JOIN authors as a ON aa.author_id = a.ID
+             WHERE aa.account_id = ? AND a.team_id = ?";
+
+    $stmt2 = $conn->prepare($sql2);
+    $stmt2.bind_param("ii", $accountId, $teamId);
+    $stmt2->execute();
+    $isAssignedTeam = (int)$stmt2->get_result()->fetch_assoc()['total'];
+    $stmt2->close();
+
+    return $isAssignedTeam > 0;
 }
 
 /**
