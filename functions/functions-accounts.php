@@ -34,8 +34,8 @@ function addAccount(): array {
     $status_val = (int)$_POST['status'];
     $account_date = !empty($_POST['date']) ? $_POST['date'] : null;
     $sys_date   = date('Y-m-d');
-    $accounts   = $_POST['accounts'] ?? [];
-    $authors    = $_POST['authors'] ?? [];
+    $accounts   = array_unique(array_filter(array_map('intval', is_array($a = $_POST['accounts'] ?? []) ? $a : explode(',', $a))));
+    $authors    = array_unique(array_filter(array_map('intval', is_array($a = $_POST['authors'] ?? []) ? $a : explode(',', $a))));
     $auth       = $_SESSION['auth'];
     $currentUserID = $auth['user_id'];
     $currentUserTeamID = $auth['team'];
@@ -118,7 +118,7 @@ function addAccount(): array {
     }
 }
 
-function syncAccountLinks($conn, int $accountId, string $tableName, string $columnName, $data, bool $isBidirectional = false): void
+function syncAccountLinks($conn, int $accountId, string $tableName, string $columnName, array $ids, bool $isBidirectional = false): void
 {
     // 1. Xóa liên kết cũ
     if ($isBidirectional) {
@@ -133,12 +133,6 @@ function syncAccountLinks($conn, int $accountId, string $tableName, string $colu
 
     $stmtDel->execute();
     $stmtDel->close();
-
-    // 2. Chèn liên kết mới
-    if (empty($data)) return;
-
-    $ids = is_array($data) ? $data : explode(',', $data);
-    $ids = array_unique(array_filter(array_map('intval', $ids)));
 
     if (!empty($ids)) {
         // Sử dụng Bulk Insert để tối ưu hiệu năng
