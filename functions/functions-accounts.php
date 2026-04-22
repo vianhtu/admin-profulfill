@@ -254,16 +254,31 @@ function linkFilesToAccount($conn, int $accountId, array $fileIds): bool
 
 function getAccountUploadFiles(): array
 {
-    if (!is_admin() && !checkRoles(['view'], 'stores')) {
-        return [];
-    }
-
     $accountId = (int)($_POST['account_id'] ?? 0);
     if ($accountId <= 0) {
         return [];
     }
 
+    // Kiểm tra roles
+    if (!is_admin() && !checkRoles(['view'], 'stores')) {
+        return [];
+    }
+
     $conn = db();
+    // Kiểm tra quyền truy cập
+    if (!is_admin()) {
+        $teamId = (int)($_SESSION['auth']['team'] ?? 0);
+        $userId = (int)($_SESSION['auth']['user_id'] ?? 0);
+
+        if (!hasAccountTeamAccess($conn, $accountId, $teamId)) {
+            return [];
+        }
+
+        if (is_user() && !isAccountOwner($conn, $accountId, $userId)) {
+            return [];
+        }
+    }
+
     $sql = "SELECT f.ID, f.file_name, f.file_size, f.storage_path, f.file_uuid 
         FROM accounts_files af
         JOIN files f ON af.file_id = f.ID
@@ -276,7 +291,6 @@ function getAccountUploadFiles(): array
 
     $files = [];
     while ($row = $result->fetch_assoc()) {
-
         $extension = strtolower(pathinfo($row['file_name'], PATHINFO_EXTENSION));
         $imageUrl = BASE_URL . "ajax.php?action=get-account-file&id=" . $row['ID'];
 
