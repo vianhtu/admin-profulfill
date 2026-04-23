@@ -515,7 +515,7 @@ function filterAccountsByTeam($conn, array $accountIds, int $teamId): array
 
 function getAccountsTable(): array
 {
-    $allowedCols = ['ID', 'team_id', 'status', 'available_funds', 'on_hold', 'subscription_fee', 'created_date'];
+    $allowedCols = ['ID', 'team_id', 'status', 'created_date'];
 
     // Lấy tham số từ DataTables
     $params = getDataTableParams($allowedCols);
@@ -577,9 +577,9 @@ function getAccountsTable(): array
             "email"           => $row['email'],
             "user_id"         => $row['user_id'],
             "status"          => $row['status'],
-            "available_funds" => $row['available_funds'],
-            "on_hold"         => $row['on_hold'],
-            "subscription_fee"=> $row['subscription_fee'],
+            "available_funds" => 0,
+            "on_hold"         => 0,
+            "subscription_fee"=> 0,
             "created_date"    => $row['created_date'],
             "sys_date"        => '',
         ];
