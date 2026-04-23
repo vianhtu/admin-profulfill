@@ -11,8 +11,7 @@ require __DIR__ . '/tables/functions-teams.php';
 header('Content-Type: application/json; charset=utf-8');
 // Nếu chưa login hoặc cookie nhớ đăng nhập không hợp lệ → chặn
 if (!is_logged_in() && !attempt_cookie_login()) {
-    if (isset($_GET['action']) && isset($_GET['key'])) {
-        // TẮT hiển thị lỗi ra HTML (sai sót debug)
+    if (isset($_GET['action']) && isset($_REQUEST['key'])) {
         ini_set('display_errors', '0');
         ini_set('log_errors', '1');
         ini_set('error_log', __DIR__ . '/php_errors.log');
@@ -29,6 +28,9 @@ if (!is_logged_in() && !attempt_cookie_login()) {
                 break;
             case 'debug':
                 echo json_encode(getDebug());
+                break;
+            case 'extension-update-account-finance':
+                echo json_encode(Extensions::update_account_finance());
                 break;
         }
     } else {
@@ -141,9 +143,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             downloadXlsx();
         case 'save-export-query':
             echo json_encode(saveExportQuery());
-            break;
-        case 'extension-update-account-finance':
-            echo json_encode(Extensions::update_account_finance());
             break;
 	}
 	exit;
