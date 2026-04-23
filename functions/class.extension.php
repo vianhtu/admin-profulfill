@@ -49,7 +49,7 @@ class Extensions
         }
     }
 
-    public static function update_account_finance()
+    public static function update_account_finance(): array
     {
         // 1. Kiểm tra tài khoản qua key và id (user_id)
         $account_res = self::get_account_by_id();
