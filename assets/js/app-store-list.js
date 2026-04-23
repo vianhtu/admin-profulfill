@@ -157,7 +157,7 @@ function initTable(){
                     render: function (data, type, full, meta) {
                         return '<div class="d-flex flex-column">' +
                             '<span class="fw-medium">'+ teamsObj[full['team_id']].title +'</span>' +
-                            '<small>'+ authorsObj[full['author_id']].title +'</small>' +
+                            //'<small>'+ authorsObj[full['author_id']].title +'</small>' +
                             '</div>';
                     }
                 },
