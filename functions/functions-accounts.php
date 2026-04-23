@@ -581,7 +581,7 @@ function getAccountsTable(): array
             "on_hold"         => $row['on_hold'],
             "subscription_fee"=> $row['subscription_fee'],
             "created_date"    => $row['created_date'],
-            "sys_date"        => timeAgo($row['sys_date']),
+            "sys_date"        => '',
         ];
     }
 
