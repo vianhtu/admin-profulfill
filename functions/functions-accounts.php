@@ -84,7 +84,7 @@ function addAccount(): array {
                     (site_id, team_id, name, email, password, 2fa, address, dob, ssn, phone, user_id, sku, note, custom_fields, status, created_date, seller_date) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("iisssssssssssiss",
+            $stmt->bind_param("iisssssssssssisss",
                 $site_id, $team_id, $name, $email, $password, $two_fa,
                 $address, $dob, $ssn, $phone, $user_id, $sku, $note, $optionsRaw, $status_val, $sys_date, $account_date
             );
