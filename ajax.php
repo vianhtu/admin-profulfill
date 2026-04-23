@@ -142,8 +142,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         case 'save-export-query':
             echo json_encode(saveExportQuery());
             break;
-        case 'extension-get-account-by-id':
-            echo json_encode(Extensions::get_account_by_id());
+        case 'extension-update-account-finance':
+            echo json_encode(Extensions::update_account_finance());
             break;
 	}
 	exit;
