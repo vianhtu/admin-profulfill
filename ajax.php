@@ -4,6 +4,7 @@ require __DIR__ . '/config.php';
 require __DIR__ . '/functions.php';
 require __DIR__ . '/functions/functions-telnyx.php';
 require __DIR__ . '/functions/ajax-select2.php';
+require __DIR__ . '/functions/class.extension.php';
 require __DIR__ . '/model/functions-gemini.php';
 require __DIR__ . '/model/functions-openai.php';
 require __DIR__ . '/tables/functions-teams.php';
@@ -138,9 +139,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 			break;
         case 'download-xlsx':
             downloadXlsx();
-            break;
         case 'save-export-query':
             echo json_encode(saveExportQuery());
+            break;
+        case 'extension-get-account-by-id':
+            echo json_encode(Extensions::get_account_by_id());
             break;
 	}
 	exit;
