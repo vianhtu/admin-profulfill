@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             echo json_encode(getStoresTableFilters());
             break;
         case 'get-stores-table':
-            echo json_encode(getStoresTable());
+            echo json_encode(getAccountsTable());
             break;
         case 'get-download-table':
             echo json_encode(getDownloadTable());

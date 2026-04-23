@@ -512,3 +512,83 @@ function filterAccountsByTeam($conn, array $accountIds, int $teamId): array
 
     return $filteredIds;
 }
+
+function getAccountsTable(): array
+{
+    $allowedCols = ['ID', 'team_id', 'status', 'available_funds', 'on_hold', 'subscription_fee', 'created_date'];
+
+    // Lấy tham số từ DataTables
+    $params = getDataTableParams($allowedCols);
+    if(!is_admin() && !checkRoles('view', 'stores')){
+        return [
+            "draw"            => $params['draw'],
+            "recordsTotal"    => 0,
+            "recordsFiltered" => 0,
+            "data"            => []
+        ];
+    }
+
+    $conn = db();
+
+    // Tổng số bản ghi
+    $totalRecords = $conn->query("SELECT COUNT(*) AS cnt FROM accounts")->fetch_assoc()['cnt'];
+
+    $whereClauses = [];
+
+    // Lọc theo search
+    if ($params['searchValue'] !== '') {
+        $searchEsc = $conn->real_escape_string($params['searchValue']);
+        $whereClauses[] = "accounts.email LIKE '%$searchEsc%' OR accounts.name LIKE '%$searchEsc%' OR accounts.user_id LIKE '%$searchEsc%' OR accounts.sku LIKE '%$searchEsc%'";
+    }
+
+    // Lọc theo type (int)
+    addTableFilter($whereClauses, 'accounts.site_id', 2, 'int', $conn);
+
+    // Lọc theo role (int)
+    addTableFilter($whereClauses, 'accounts.team_id', 3, 'int', $conn);
+
+    // Lọc theo team name (int)
+    //addTableFilter($whereClauses, 'accounts.author_id', 4, 'int', $conn);
+
+    $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
+
+    // Tổng số bản ghi sau khi lọc
+    $totalFiltered = $conn->query(
+        "SELECT COUNT(ID) AS cnt FROM accounts $where"
+    )->fetch_assoc()['cnt'];
+
+    // Lấy dữ liệu
+    $sql = "SELECT *
+            FROM accounts
+            $where
+            ORDER BY {$params['orderColumn']} {$params['orderDir']}
+            LIMIT {$params['start']}, {$params['length']}";
+    $rs = $conn->query($sql);
+
+    // Chuẩn bị dữ liệu trả về
+    $data = [];
+    while ($row = $rs->fetch_assoc()) {
+        $data[] = [
+            "id"              => $row['ID'],
+            "site_id"         => $row['site_id'],
+            "team_id"         => $row['team_id'],
+            "author_id"       => 0,
+            "name"            => $row['name'],
+            "email"           => $row['email'],
+            "user_id"         => $row['user_id'],
+            "status"          => $row['status'],
+            "available_funds" => $row['available_funds'],
+            "on_hold"         => $row['on_hold'],
+            "subscription_fee"=> $row['subscription_fee'],
+            "created_date"    => $row['created_date'],
+            "sys_date"        => timeAgo($row['sys_date']),
+        ];
+    }
+
+    return [
+        "draw"            => $params['draw'],
+        "recordsTotal"    => $totalRecords,
+        "recordsFiltered" => $totalFiltered,
+        "data"            => $data
+    ];
+}
