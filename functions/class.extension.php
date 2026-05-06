@@ -5,9 +5,10 @@ class Extensions
     {
         $conn = db();
         $id = isset($_POST['id']) ? trim((string)$_POST['id']) : null;
+        $site = isset($_POST['site']) ? trim((string)$_POST['site']) : null;
         $key = isset($_POST['key']) ? trim((string)$_POST['key']) : null;
 
-        if (empty($key) || empty($id)) {
+        if (empty($key) || empty($id) || empty($site)) {
             return ['success' => false, 'message' => 'Missing parameters'];
         }
 
@@ -19,16 +20,17 @@ class Extensions
         }
 
         // Truy vấn lấy dữ liệu account
-        $select_clause = implode(', ', $fields);
+        $select_clause = implode(', ', array_map(fn($f) => "a.$f", $fields));
         $sql = "SELECT $select_clause 
-            FROM accounts 
-            WHERE user_id = ? AND team_id = ? 
+            FROM accounts a
+            INNER JOIN site s ON a.site_id = s.ID
+            WHERE a.user_id = ? AND a.team_id = ? AND s.slug = ?
             LIMIT 1";
 
         try {
             $stmt = $conn->prepare($sql);
             // "ii" vì ID và team_id đều là kiểu bigint (integer)
-            $stmt->bind_param("si", $id, $team_id);
+            $stmt->bind_param("sis", $id, $team_id, $site);
             $stmt->execute();
             $result = $stmt->get_result();
             $account = $result->fetch_assoc();
