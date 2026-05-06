@@ -24,13 +24,13 @@ class Extensions
         $sql = "SELECT $select_clause 
             FROM accounts a
             INNER JOIN site s ON a.site_id = s.ID
-            WHERE a.user_id = ? AND a.team_id = ? AND s.slug = ?
+            WHERE (a.user_id = ? OR a.email = ?) AND a.team_id = ? AND s.slug = ?
             LIMIT 1";
 
         try {
             $stmt = $conn->prepare($sql);
             // "ii" vì ID và team_id đều là kiểu bigint (integer)
-            $stmt->bind_param("sis", $id, $team_id, $site);
+            $stmt->bind_param("ssis", $id, $id, $team_id, $site);
             $stmt->execute();
             $result = $stmt->get_result();
             $account = $result->fetch_assoc();
