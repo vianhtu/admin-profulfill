@@ -202,6 +202,68 @@ class Extensions
         }
     }
 
+    public static function update_account_seller(): array
+    {
+        // 1. Kiểm tra tài khoản qua key và id (user_id)
+        $account_res = self::get_account_by_id();
+        if (!$account_res['success']) {
+            return $account_res;
+        }
+
+        $conn = db();
+        $account_id = $account_res['data']['ID'];
+        $data_json = $_POST['data'] ?? null;
+
+        if (!$data_json) {
+            return ['success' => false, 'message' => 'No selling data provided'];
+        }
+
+        $data = json_decode($data_json, true);
+        if (!$data) {
+            return ['success' => false, 'message' => 'Invalid JSON format'];
+        }
+
+        $data_json = json_encode($data);
+
+        $first_day_of_month = date('Y-m-01');
+
+        // 1. Kiểm tra tồn tại bản ghi của tháng này chưa
+        $sql_check = "SELECT ID FROM accounts_seller WHERE account_id = ? AND `date` = ? LIMIT 1";
+        $stmt_check = $conn->prepare($sql_check);
+        $stmt_check->bind_param("is", $account_id, $first_day_of_month);
+        $stmt_check->execute();
+        $existing = $stmt_check->get_result()->fetch_assoc();
+        $stmt_check->close();
+
+        try {
+            if ($existing) {
+                // UPDATE
+                $sql = "UPDATE accounts_seller 
+                    SET data = ?, sys_date = NOW() 
+                    WHERE ID = ?";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param("si", $data_json, $existing['ID']);
+            } else {
+                // INSERT
+                $sql = "INSERT INTO accounts_seller (account_id, data, sys_date, `date`) 
+                    VALUES (?, ?, NOW(), ?)";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param("iss", $account_id, $data_json, $first_day_of_month);
+            }
+
+            if ($stmt->execute()) {
+                $res = ['success' => true, 'message' => 'Selling data updated for ' . date('M Y')];
+            } else {
+                $res = ['success' => false, 'message' => 'Update failed'];
+            }
+            $stmt->close();
+            return $res;
+
+        } catch (mysqli_sql_exception $e) {
+            return ['success' => false, 'message' => 'DB Error: ' . $e->getMessage()];
+        }
+    }
+
     private static function check_team_key($conn, string $key): int
     {
         if (empty($key)) {

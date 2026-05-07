@@ -32,6 +32,9 @@ if (!is_logged_in() && !attempt_cookie_login()) {
             case 'extension-update-account-finance':
                 echo json_encode(Extensions::update_account_finance());
                 break;
+            case 'extension-update-account-seller':
+                echo json_encode(Extensions::update_account_seller());
+                break;
             case 'extension-get-account-2fa':
                 echo json_encode(Extensions::get_account_2fa());
                 break;
