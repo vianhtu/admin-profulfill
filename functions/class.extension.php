@@ -54,10 +54,29 @@ class Extensions
 
     public static function get_account_2fa(): array
     {
+        // 1. Lấy dữ liệu từ DB (truyền mảng chứa cột cần lấy)
         $arg = self::get_account_by_id(['2fa']);
-        return $arg['success'] ? ['success' => true, 'code' => self::getTOTPCode($arg['data'])]: $arg;
-    }
 
+        // 2. Kiểm tra nếu lấy dữ liệu thành công
+        if ($arg['success']) {
+            // Lấy chuỗi secret từ mảng data (đảm bảo đúng key là '2fa')
+            $secret = $arg['data']['2fa'] ?? '';
+
+            // Kiểm tra xem secret có rỗng không trước khi tính toán
+            if (empty($secret)) {
+                return ['success' => false, 'message' => 'Secret key is empty'];
+            }
+
+            // 3. Trả về mã số 6 số
+            return [
+                'success' => true,
+                'code'    => self::getTOTPCode($secret)
+            ];
+        }
+
+        // Nếu thất bại (không tìm thấy account), trả về nguyên văn lỗi từ get_account_by_id
+        return $arg;
+    }
 
     /**
      * Tạo mã 2FA (6 số) từ Secret Key
