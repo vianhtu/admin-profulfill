@@ -1,4 +1,5 @@
 <?php
+
 class Extensions
 {
     public static function get_account_by_id(array $fields = ['ID']): array
@@ -53,7 +54,56 @@ class Extensions
 
     public static function get_account_2fa(): array
     {
-        return self::get_account_by_id(['2fa']);
+        $arg = self::get_account_by_id(['2fa']);
+        return $arg['success'] ? ['success' => true, 'code' => self::getTOTPCode($arg['data'])]: $arg;
+    }
+
+
+    /**
+     * Tạo mã 2FA (6 số) từ Secret Key
+     */
+    private static function getTOTPCode(string $secret): string
+    {
+        // 1. Loại bỏ khoảng trắng và chuyển về chữ hoa
+        $secret = str_replace(' ', '', strtoupper($secret));
+
+        // 2. Bảng mã Base32
+        $base32chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+
+        // 3. Giải mã Base32 (Giải thuật thủ công để không phụ thuộc thư viện)
+        $binarySecret = "";
+        foreach (str_split($secret) as $char) {
+            if (str_contains($base32chars, $char)) {
+                $binarySecret .= str_pad(decbin(strpos($base32chars, $char)), 5, '0', STR_PAD_LEFT);
+            }
+        }
+
+        $binarySecret = str_split($binarySecret, 8);
+        $binarySecretString = "";
+        foreach ($binarySecret as $bin) {
+            if (strlen($bin) === 8) {
+                $binarySecretString .= chr(bindec($bin));
+            }
+        }
+
+        // 4. Tính toán chu kỳ thời gian (mỗi 30 giây)
+        $timeStep = floor(time() / 30);
+        $timeBinary = pack('N*', 0) . pack('N*', $timeStep);
+
+        // 5. Tạo mã Hash HMAC-SHA1
+        $hash = hash_hmac('sha1', $timeBinary, $binarySecretString, true);
+
+        // 6. Kỹ thuật Dynamic Truncation để lấy 4 bytes
+        $offset = ord($hash[19]) & 0xf;
+        $otp = (
+            (ord($hash[$offset + 0]) & 0x7f) << 24 |
+            (ord($hash[$offset + 1]) & 0xff) << 16 |
+            (ord($hash[$offset + 2]) & 0xff) << 8 |
+            (ord($hash[$offset + 3]) & 0xff)
+        );
+
+        // 7. Lấy 6 số cuối cùng
+        return str_pad((string)($otp % 1000000), 6, '0', STR_PAD_LEFT);
     }
 
     public static function update_account_finance(): array
