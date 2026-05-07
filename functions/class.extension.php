@@ -51,6 +51,11 @@ class Extensions
         }
     }
 
+    public static function get_account_2fa(): array
+    {
+        return self::get_account_by_id(['2fa']);
+    }
+
     public static function update_account_finance(): array
     {
         // 1. Kiểm tra tài khoản qua key và id (user_id)
