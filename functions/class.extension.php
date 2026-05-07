@@ -219,7 +219,7 @@ class Extensions
         }
 
         $data = json_decode($data_json, true);
-        if (!$data || !$data->data) {
+        if (!$data) {
             return ['success' => false, 'message' => 'Invalid JSON format'];
         }
 
