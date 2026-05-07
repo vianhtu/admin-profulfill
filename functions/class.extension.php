@@ -219,12 +219,11 @@ class Extensions
         }
 
         $data = json_decode($data_json, true);
-        if (!$data) {
+        if (!$data || !$data->data) {
             return ['success' => false, 'message' => 'Invalid JSON format'];
         }
 
-        $data_json = json_encode($data);
-
+        $data_json = json_encode($data->data);
         $first_day_of_month = date('Y-m-01');
 
         // 1. Kiểm tra tồn tại bản ghi của tháng này chưa
