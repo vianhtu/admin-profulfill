@@ -223,7 +223,7 @@ class Extensions
             return ['success' => false, 'message' => 'Invalid JSON format'];
         }
 
-        $data_json = json_encode($data->data);
+        $data_json = json_encode($data);
         $first_day_of_month = date('Y-m-01');
 
         // 1. Kiểm tra tồn tại bản ghi của tháng này chưa
