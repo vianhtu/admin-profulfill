@@ -74,7 +74,7 @@ class Extensions
 
         if (!$account['success']) return $account;
 
-        $account_id = $account['data'];
+        $account_id = $account['data']['ID'];
         $conn = db();
 
         // 1. Chuẩn bị câu lệnh SQL (Chỉ lấy ID và status)
@@ -88,7 +88,7 @@ class Extensions
             return [
                 'success' => true,
                 'data' => $orders,
-                'ok' => $account
+                'ok' => $account_id
             ];
         } catch (mysqli_sql_exception $e) {
             return [
