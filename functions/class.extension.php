@@ -70,7 +70,7 @@ class Extensions
 
     public static function get_account_orders(): array
     {
-        $account = self::get_account_by_id(['ID']);
+        $account = self::get_account_by_id();
 
         if (!$account['success']) return $account;
 
@@ -87,8 +87,7 @@ class Extensions
 
             return [
                 'success' => true,
-                'data' => $orders,
-                'ok' => $account_id
+                'data' => $orders
             ];
         } catch (mysqli_sql_exception $e) {
             return [
