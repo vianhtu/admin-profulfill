@@ -87,7 +87,8 @@ class Extensions
 
             return [
                 'success' => true,
-                'data' => $orders
+                'data' => $orders,
+                'ok' => $account
             ];
         } catch (mysqli_sql_exception $e) {
             return [
