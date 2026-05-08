@@ -144,6 +144,66 @@ class Extensions
         return str_pad((string)($otp % 1000000), 6, '0', STR_PAD_LEFT);
     }
 
+    public static function add_account_orders(): array
+    {
+        $account_res = self::get_account_by_id();
+        if (!$account_res['success']) return $account_res;
+
+        $conn = db();
+        $account_id = $account_res['data']['ID'];
+        $data_json = $_POST['data'] ?? null;
+
+        if (!$data_json) {
+            return ['success' => false, 'message' => 'No selling data provided'];
+        }
+
+        $data = json_decode($data_json);
+        if (!$data || !is_array($data)) {
+            return ['success' => false, 'message' => 'Invalid data format'];
+        }
+
+        $values = [];
+        $placeholders = [];
+
+        foreach ($data as $order) {
+            // Tạo chuỗi (?) tương ứng với 13 cột
+            $placeholders[] = "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+            // Đẩy các giá trị vào mảng phẳng
+            array_push($values,
+                $account_id,
+                $order->id,
+                json_encode($order->items ?? []),
+                'Unshipped',
+                $order->timeline->buyerPaidDate ?? null,
+                $order->financials->orderEarnings ?? 0,
+                $order->buyerInfo->name ?? '',
+                $order->buyerInfo->phone ?? '',
+                $order->buyerInfo->street ?? '',
+                $order->buyerInfo->city ?? '',
+                $order->buyerInfo->state ?? '',
+                $order->buyerInfo->zip ?? '',
+                $order->buyerInfo->country ?? ''
+            );
+        }
+
+        if (!empty($values)) {
+            $sql = "INSERT IGNORE INTO orders (
+            account_id, host_id, items, status, purchase_date, 
+            total_price, full_name, phone, street_address_1, 
+            city, state, zip_code, country
+        ) VALUES " . implode(', ', $placeholders);
+
+            try {
+                $conn->execute_query($sql, $values);
+            } catch (mysqli_sql_exception $e) {
+                return ['success' => false, 'message' => 'Database error: ' . $e->getMessage()];
+            }
+        }
+
+        return ['success' => true, 'message' => 'Orders processed'];
+    }
+
     public static function update_account_finance(): array
     {
         // 1. Kiểm tra tài khoản qua key và id (user_id)
