@@ -167,7 +167,7 @@ class Extensions
 
         foreach ($data as $order) {
             // Tạo chuỗi (?) tương ứng với 13 cột
-            $placeholders[] = "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $placeholders[] = "(?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
             // Đẩy các giá trị vào mảng phẳng
             array_push($values,
@@ -179,19 +179,14 @@ class Extensions
                 $order->financials->orderEarnings ?? 0,
                 $order->buyerInfo->name ?? '',
                 $order->buyerInfo->phone ?? '',
-                $order->buyerInfo->street ?? '',
-                $order->buyerInfo->city ?? '',
-                $order->buyerInfo->state ?? '',
-                $order->buyerInfo->zip ?? '',
-                getCountryCode($order->buyerInfo->country) ?? ''
+                $order->buyerInfo->fullAddress ?? ''
             );
         }
 
         if (!empty($values)) {
             $sql = "INSERT IGNORE INTO orders (
             account_id, host_id, items, status, purchase_date, 
-            total_price, full_name, phone, street_address_1, 
-            city, state, zip_code, country
+            total_price, full_name, phone, address
         ) VALUES " . implode(', ', $placeholders);
 
             try {
