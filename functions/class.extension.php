@@ -187,7 +187,7 @@ class Extensions
 
         if (!empty($values)) {
             $sql = "INSERT IGNORE INTO orders (
-            account_id, host_id, items, status, purchase_date, ship_date, delivery_date
+            account_id, host_id, items, status, purchase_date, ship_date, delivery_date,
             total_price, full_name, phone, address
         ) VALUES " . implode(', ', $placeholders);
 
