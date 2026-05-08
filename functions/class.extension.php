@@ -5,20 +5,11 @@ class Extensions
     public static function get_account_by_id(array $fields = ['ID']): array
     {
         $conn = db();
-        $id = isset($_POST['id']) ? trim((string)$_POST['id']) : null;
-        $site = isset($_POST['site']) ? trim((string)$_POST['site']) : null;
-        $key = isset($_POST['key']) ? trim((string)$_POST['key']) : null;
+        $res = self::check_condition($conn);
 
-        if (empty($key) || empty($id) || empty($site)) {
-            return ['success' => false, 'message' => 'Missing parameters'];
-        }
+        if (!$res['success']) return $res;
 
-        // Kiểm tra team_id qua key
-        $team_id = self::check_team_key($conn, $key);
-
-        if ($team_id === 0) {
-            return ['success' => false, 'message' => 'Invalid team key'];
-        }
+        ['id' => $id, 'site' => $site] = $res;
 
         // Truy vấn lấy dữ liệu account
         $select_clause = implode(', ', array_map(fn($f) => "a.$f", $fields));
@@ -76,6 +67,11 @@ class Extensions
 
         // Nếu thất bại (không tìm thấy account), trả về nguyên văn lỗi từ get_account_by_id
         return $arg;
+    }
+
+    public static function get_account_orders()
+    {
+
     }
 
     /**
@@ -261,6 +257,25 @@ class Extensions
         } catch (mysqli_sql_exception $e) {
             return ['success' => false, 'message' => 'DB Error: ' . $e->getMessage()];
         }
+    }
+
+    private static function check_condition($conn): array
+    {
+        $id = trim($_POST['id'] ?? '');
+        $site = trim($_POST['site'] ?? '');
+        $key = trim($_POST['key'] ?? '');
+
+        if (!$id || !$site || !$key) {
+            return ['success' => false, 'message' => 'Missing parameters'];
+        }
+
+        // Kiểm tra team_id qua key
+        $team_id = self::check_team_key($conn, $key);
+        if (!$team_id) {
+            return ['success' => false, 'message' => 'Invalid team key'];
+        }
+
+        return ['success' => true, 'id' => $id, 'site' => $site];
     }
 
     private static function check_team_key($conn, string $key): int
