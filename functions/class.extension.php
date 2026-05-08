@@ -167,7 +167,7 @@ class Extensions
 
         foreach ($data as $order) {
             // Tạo chuỗi (?) tương ứng với 13 cột
-            $placeholders[] = "(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $placeholders[] = "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
             // Đẩy các giá trị vào mảng phẳng
             array_push($values,
@@ -176,6 +176,8 @@ class Extensions
                 json_encode($order->items ?? []),
                 'Unshipped',
                 $order->timeline->buyerPaidDate ?? null,
+                $order->timeline->shipByDate ?? null,
+                $order->timeline->estimatedDelivery ?? null,
                 $order->financials->orderEarnings ?? 0,
                 $order->buyerInfo->name ?? '',
                 $order->buyerInfo->phone ?? '',
@@ -185,7 +187,7 @@ class Extensions
 
         if (!empty($values)) {
             $sql = "INSERT IGNORE INTO orders (
-            account_id, host_id, items, status, purchase_date, 
+            account_id, host_id, items, status, purchase_date, ship_date, delivery_date
             total_price, full_name, phone, address
         ) VALUES " . implode(', ', $placeholders);
 
