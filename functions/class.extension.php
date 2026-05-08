@@ -69,9 +69,33 @@ class Extensions
         return $arg;
     }
 
-    public static function get_account_orders()
+    public static function get_account_orders(): array 
     {
+        $account = self::get_account_by_id(['ID']);
 
+        if (!$account['success']) return $account;
+
+        $account_id = $account['data'];
+        $conn = db();
+
+        // 1. Chuẩn bị câu lệnh SQL (Chỉ lấy ID và status)
+        $sql = "SELECT ID, host_id, status FROM orders WHERE account_id = ? AND status IN ('Unshipped', 'Shipped')";
+
+        try {
+            $result = $conn->execute_query($sql, [$account_id]);
+
+            $orders = $result->fetch_all(MYSQLI_ASSOC);
+
+            return [
+                'success' => true,
+                'data' => $orders
+            ];
+        } catch (mysqli_sql_exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Database error: ' . $e->getMessage()
+            ];
+        }
     }
 
     /**
