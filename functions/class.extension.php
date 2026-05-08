@@ -169,6 +169,11 @@ class Extensions
             // Tạo chuỗi (?) tương ứng với 13 cột
             $placeholders[] = "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
+            $price = $order->financials->orderEarnings ?? 0;
+            if (is_string($price)) {
+                $price = (float) filter_var($price, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+            }
+
             // Đẩy các giá trị vào mảng phẳng
             array_push($values,
                 $account_id,
@@ -178,7 +183,7 @@ class Extensions
                 $order->timeline->buyerPaidDate ?? null,
                 $order->timeline->shipByDate ?? null,
                 $order->timeline->estimatedDelivery ?? null,
-                $order->financials->orderEarnings ?? 0,
+                $price,
                 $order->buyerInfo->name ?? '',
                 $order->buyerInfo->phone ?? '',
                 $order->buyerInfo->fullAddress ?? ''
