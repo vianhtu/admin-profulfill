@@ -9,7 +9,7 @@ class Extensions
 
         if (!$res['success']) return $res;
 
-        ['id' => $id, 'site' => $site] = $res;
+        ['id' => $id, 'site' => $site, 'team_id' => $team_id] = $res;
 
         // Truy vấn lấy dữ liệu account
         $select_clause = implode(', ', array_map(fn($f) => "a.$f", $fields));
@@ -21,7 +21,6 @@ class Extensions
 
         try {
             $stmt = $conn->prepare($sql);
-            // "ii" vì ID và team_id đều là kiểu bigint (integer)
             $stmt->bind_param("ssis", $id, $id, $team_id, $site);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -69,7 +68,7 @@ class Extensions
         return $arg;
     }
 
-    public static function get_account_orders(): array 
+    public static function get_account_orders(): array
     {
         $account = self::get_account_by_id(['ID']);
 
@@ -299,7 +298,7 @@ class Extensions
             return ['success' => false, 'message' => 'Invalid team key'];
         }
 
-        return ['success' => true, 'id' => $id, 'site' => $site];
+        return ['success' => true, 'id' => $id, 'site' => $site, 'team_id' => $team_id];
     }
 
     private static function check_team_key($conn, string $key): int
