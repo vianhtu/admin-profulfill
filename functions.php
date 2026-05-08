@@ -3302,3 +3302,47 @@ function getDebug()
     $promptTemplate = AIGetPrompt(208);
     return AIJsonlContent(45566, $promptTemplate, $input, 'openai', 'gpt-5-nano-2025-08-07');
 }
+
+function getCountryCode(string $countryName): string {
+    $countryName = trim(mb_convert_case($countryName, MB_CASE_TITLE, "UTF-8"));
+
+    $countries = [
+        "Afghanistan" => "AF", "Albania" => "AL", "Algeria" => "DZ", "American Samoa" => "AS",
+        "Andorra" => "AD", "Angola" => "AO", "Argentina" => "AR", "Armenia" => "AM",
+        "Australia" => "AU", "Austria" => "AT", "Azerbaijan" => "AZ", "Bahamas" => "BS",
+        "Bahrain" => "BH", "Bangladesh" => "BD", "Barbados" => "BB", "Belarus" => "BY",
+        "Belgium" => "BE", "Belize" => "BZ", "Benin" => "BJ", "Bermuda" => "BM",
+        "Bhutan" => "BT", "Bolivia" => "BO", "Brazil" => "BR", "Bulgaria" => "BG",
+        "Cambodia" => "KH", "Cameroon" => "CM", "Canada" => "CA", "Chile" => "CL",
+        "China" => "CN", "Colombia" => "CO", "Congo" => "CG", "Costa Rica" => "CR",
+        "Croatia" => "HR", "Cuba" => "CU", "Cyprus" => "CY", "Czech Republic" => "CZ",
+        "Denmark" => "DK", "Dominica" => "DM", "Dominican Republic" => "DO",
+        "Ecuador" => "EC", "Egypt" => "EG", "El Salvador" => "SV", "Estonia" => "EE",
+        "Ethiopia" => "ET", "Fiji" => "FJ", "Finland" => "FI", "France" => "FR",
+        "Georgia" => "GE", "Germany" => "DE", "Ghana" => "GH", "Greece" => "GR",
+        "Guatemala" => "GT", "Haiti" => "HT", "Honduras" => "HN", "Hong Kong" => "HK",
+        "Hungary" => "HU", "Iceland" => "IS", "India" => "IN", "Indonesia" => "ID",
+        "Iran" => "IR", "Iraq" => "IQ", "Ireland" => "IE", "Israel" => "IL",
+        "Italy" => "IT", "Jamaica" => "JM", "Japan" => "JP", "Jordan" => "JO",
+        "Kazakhstan" => "KZ", "Kenya" => "KE", "Korea" => "KR", "Kuwait" => "KW",
+        "Laos" => "LA", "Latvia" => "LV", "Lebanon" => "LB", "Liberia" => "LR",
+        "Lithuania" => "LT", "Luxembourg" => "LU", "Malaysia" => "MY", "Maldives" => "MV",
+        "Mexico" => "MX", "Moldova" => "MD", "Monaco" => "MC", "Mongolia" => "MN",
+        "Morocco" => "MA", "Myanmar" => "MM", "Namibia" => "NA", "Nepal" => "NP",
+        "Netherlands" => "NL", "New Zealand" => "NZ", "Nicaragua" => "NI", "Nigeria" => "NG",
+        "Norway" => "NO", "Oman" => "OM", "Pakistan" => "PK", "Panama" => "PA",
+        "Paraguay" => "PY", "Peru" => "PE", "Philippines" => "PH", "Poland" => "PL",
+        "Portugal" => "PT", "Puerto Rico" => "PR", "Qatar" => "QA", "Romania" => "RO",
+        "Russia" => "RU", "Saudi Arabia" => "SA", "Senegal" => "SN", "Serbia" => "RS",
+        "Singapore" => "SG", "Slovakia" => "SK", "Slovenia" => "SI", "South Africa" => "ZA",
+        "Spain" => "ES", "Sri Lanka" => "LK", "Sudan" => "SD", "Sweden" => "SE",
+        "Switzerland" => "CH", "Taiwan" => "TW", "Thailand" => "TH", "Tunisia" => "TN",
+        "Turkey" => "TR", "Ukraine" => "UA", "United Arab Emirates" => "AE",
+        "United Kingdom" => "GB", "United States" => "US", "Uruguay" => "UY",
+        "Uzbekistan" => "UZ", "Vatican City" => "VA", "Venezuela" => "VE", "Viet Nam" => "VN",
+        "Vietnam" => "VN", "Yemen" => "YE", "Zambia" => "ZM", "Zimbabwe" => "ZW"
+    ];
+
+    return $countries[$countryName] ?? $countryName;
+    // Nếu không tìm thấy, trả về tên gốc (hoặc có thể trả về '??')
+}

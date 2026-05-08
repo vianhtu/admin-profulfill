@@ -183,7 +183,7 @@ class Extensions
                 $order->buyerInfo->city ?? '',
                 $order->buyerInfo->state ?? '',
                 $order->buyerInfo->zip ?? '',
-                $order->buyerInfo->country ?? ''
+                getCountryCode($order->buyerInfo->country) ?? ''
             );
         }
 
