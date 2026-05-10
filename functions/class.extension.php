@@ -171,7 +171,9 @@ class Extensions
 
             $price = $order->financials->orderEarnings ?? 0;
             if (is_string($price)) {
-                $price = (float) filter_var($price, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+                // Loại bỏ tất cả ký tự ngoại trừ số, dấu chấm (.) và dấu phẩy (,)
+                $cleanPrice = preg_replace('/[^\d.]/', '', $price);
+                $price = (float) $cleanPrice;
             }
 
             // Đẩy các giá trị vào mảng phẳng
