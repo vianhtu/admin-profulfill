@@ -366,7 +366,7 @@ class Extensions
             return ['success' => false, 'message' => 'Invalid JSON format'];
         }
 
-        $user_agent = $payload['user_agent'] ?? null;
+        $user_agent = $data['user_agent'] ?? null;
 
         // Sử dụng Prepared Statement để đảm bảo an toàn SQL Injection
         $sql = "UPDATE `accounts` SET `cookies` = ?, `user_agent` = ? WHERE `ID` = ?";
