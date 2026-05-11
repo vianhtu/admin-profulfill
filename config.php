@@ -15,7 +15,7 @@ define('REMEMBER_DURATION', 30 * 24 * 60 * 60); // 30 ngày
 
 define('ROOT_DIR', __DIR__);
 define('GEMINI_API_KEY', 'AIzaSyALP80h2H1We1RA6Jl5cvFPlbYK0Zh29RE');
-
+define('ENCRYPT_KEY', '8f42e3b2b8564e529a1b926a738c8531c3656912456789');
 define('BASE_URL', 'https://profulfill.io/admin-profulfill/');
 // ===== DB connection =====
 function db(): mysqli {
@@ -321,4 +321,34 @@ function is_staff(): bool {
 // Kiểm tra toàn bộ nhân viên nội bộ (Admin + Manager + User)
 function is_internal(): bool {
     return is_admin() || is_manager() || is_user();
+}
+
+/**
+ * Mã hóa dữ liệu
+ */
+function encrypt($data): string
+{
+    // AES-256 yêu cầu key dài 32 bytes. Ta dùng hash để đảm bảo key luôn đúng độ dài.
+    $hashed_key = hash('sha256', ENCRYPT_KEY, true);
+    $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length('aes-256-cbc'));
+
+    $encrypted = openssl_encrypt($data, 'aes-256-cbc', $hashed_key, 0, $iv);
+
+    // Trả về chuỗi bao gồm IV để sau này giải mã (Base64 để lưu vào DB an toàn)
+    return base64_encode($iv . '::' . $encrypted);
+}
+
+/**
+ * Giải mã dữ liệu
+ */
+function decrypt($data): false|string
+{
+    $hashed_key = hash('sha256', ENCRYPT_KEY, true);
+    $decoded = base64_decode($data);
+
+    if (str_contains($decoded, '::')) {
+        list($iv, $encrypted_data) = explode('::', $decoded, 2);
+        return openssl_decrypt($encrypted_data, 'aes-256-cbc', $hashed_key, 0, $iv);
+    }
+    return false;
 }
