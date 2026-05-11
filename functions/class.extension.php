@@ -366,11 +366,13 @@ class Extensions
             return ['success' => false, 'message' => 'Invalid JSON format'];
         }
 
+        $user_agent = $payload['user_agent'] ?? null;
+
         // Sử dụng Prepared Statement để đảm bảo an toàn SQL Injection
-        $sql = "UPDATE `accounts` SET `cookies` = ? WHERE `ID` = ?";
+        $sql = "UPDATE `accounts` SET `cookies` = ?, `user_agent` = ? WHERE `ID` = ?";
         $stmt = $conn->prepare($sql);
         // 's' cho string (cookies), 'i' cho integer (ID)
-        $stmt->bind_param("si", $data_json, $account_id);
+        $stmt->bind_param("ssi", $data_json,$user_agent, $account_id);
         if ($stmt->execute()) {
             $stmt->close();
             return [
