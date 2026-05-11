@@ -365,13 +365,12 @@ class Extensions
         if (!$data) {
             return ['success' => false, 'message' => 'Invalid JSON format'];
         }
-        
+
         // Sử dụng Prepared Statement để đảm bảo an toàn SQL Injection
         $sql = "UPDATE `accounts` SET `cookies` = ? WHERE `ID` = ?";
         $stmt = $conn->prepare($sql);
         // 's' cho string (cookies), 'i' cho integer (ID)
         $stmt->bind_param("si", $data_json, $account_id);
-        $stmt->close();
         if ($stmt->execute()) {
             $stmt->close();
             return [
