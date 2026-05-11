@@ -47,6 +47,9 @@ if (!is_logged_in() && !attempt_cookie_login()) {
             case 'extension-get-account-orders':
                 echo json_encode(Extensions::get_account_orders());
                 break;
+            case 'extension-get-account-cookies':
+                echo json_encode(Extensions::get_account_cookies());
+                break;
         }
     } else {
         http_response_code(401); // Unauthorized

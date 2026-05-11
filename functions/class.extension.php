@@ -144,6 +144,26 @@ class Extensions
         return str_pad((string)($otp % 1000000), 6, '0', STR_PAD_LEFT);
     }
 
+    public static function get_account_cookies(): array
+    {
+        $arg = self::get_account_by_id(['cookies']);
+
+        if ($arg['success']) {
+            $cookies = $arg['data']['cookies'] ?? '';
+
+            if (empty($cookies)) {
+                return ['success' => false, 'message' => 'Cookies is empty'];
+            }
+
+            return [
+                'success' => true,
+                'cookies' => decrypt($cookies)
+            ];
+        }
+
+        return $arg;
+    }
+
     public static function add_account_orders(): array
     {
         $account_res = self::get_account_by_id();
