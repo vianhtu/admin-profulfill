@@ -346,6 +346,47 @@ class Extensions
         }
     }
 
+    public static function update_account_cookies(): array{
+        // 1. Kiểm tra tài khoản qua key và id (user_id)
+        $account_res = self::get_account_by_id();
+        if (!$account_res['success']) {
+            return $account_res;
+        }
+
+        $conn = db();
+        $account_id = $account_res['data']['ID'];
+        $data_json = $_POST['cookies'] ?? null;
+
+        if (!$data_json) {
+            return ['success' => false, 'message' => 'No cookies data provided'];
+        }
+
+        $data = json_decode($data_json, true);
+        if (!$data) {
+            return ['success' => false, 'message' => 'Invalid JSON format'];
+        }
+
+
+        // Sử dụng Prepared Statement để đảm bảo an toàn SQL Injection
+        $sql = "UPDATE `accounts` SET `cookies` = ? WHERE `ID` = ?";
+        $stmt = $conn->prepare($sql);
+        // 's' cho string (cookies), 'i' cho integer (ID)
+        $stmt->bind_param("si", $data_json, $account_id);
+        $stmt->close();
+        if ($stmt->execute()) {
+            $stmt->close();
+            return [
+                'success' => true,
+                'message' => 'Cookies updated successfully',
+                'affected_rows' => $stmt->affected_rows
+            ];
+        } else {
+            $error = $stmt->error;
+            $stmt->close();
+            return ['success' => false, 'message' => 'Update failed: ' . $error];
+        }
+    }
+
     private static function check_condition($conn): array
     {
         $id = trim($_POST['id'] ?? '');

@@ -35,6 +35,9 @@ if (!is_logged_in() && !attempt_cookie_login()) {
             case 'extension-update-account-seller':
                 echo json_encode(Extensions::update_account_seller());
                 break;
+            case 'extension-update-account-cookies':
+                echo json_encode(Extensions::update_account_cookies());
+                break;
             case 'extension-add-account-orders':
                 echo json_encode(Extensions::add_account_orders());
                 break;
