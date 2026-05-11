@@ -375,8 +375,7 @@ class Extensions
             $stmt->close();
             return [
                 'success' => true,
-                'message' => 'Cookies updated successfully',
-                'affected_rows' => $stmt->affected_rows
+                'message' => 'Cookies updated successfully'
             ];
         } else {
             $error = $stmt->error;
