@@ -389,7 +389,7 @@ class Extensions
         }
 
         $user_agent = $data['user_agent'] ?? null;
-        $encrypted_cookies = encrypt(json_encode($data_json));
+        $encrypted_cookies = encrypt($data_json);
 
         // Sử dụng Prepared Statement để đảm bảo an toàn SQL Injection
         $sql = "UPDATE `accounts` SET `cookies` = ?, `user_agent` = ? WHERE `ID` = ?";
