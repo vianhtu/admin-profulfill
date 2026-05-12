@@ -172,7 +172,14 @@ function getAccount(int $id): ?array {
     if ($id <= 0) return null;
 
     // 1. Lấy thông tin cơ bản
-    $sql = "SELECT * FROM accounts WHERE ID = ? LIMIT 1";
+    $sql = "SELECT 
+            a.*, 
+            COALESCE(a.custom_fields, s.custom_fields) AS custom_fields
+        FROM accounts a
+        LEFT JOIN site s ON a.site_id = s.ID
+        WHERE a.ID = ? 
+        LIMIT 1";
+
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $id);
     $stmt->execute();
