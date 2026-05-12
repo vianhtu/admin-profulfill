@@ -173,8 +173,7 @@ function getAccount(int $id): ?array {
 
     // 1. Lấy thông tin cơ bản
     $sql = "SELECT 
-            a.*, 
-            COALESCE(a.custom_fields, s.custom_fields) AS custom_fields
+            a.*, s.custom_fields AS default_custom_fields
         FROM accounts a
         LEFT JOIN site s ON a.site_id = s.ID
         WHERE a.ID = ? 
@@ -188,8 +187,8 @@ function getAccount(int $id): ?array {
 
     if (!$account) return null;
 
-    if($account['password']) $account['password'] = decrypt($account['password']);
-    if($account['2fa']) $account['2fa'] = decrypt($account['2fa']);
+    $account['password'] = !empty($account['password']) ? decrypt($account['password']) : '';
+    $account['2fa']      = !empty($account['2fa'])      ? decrypt($account['2fa'])      : '';
 
     // 2. Lấy danh sách Quản lý (Authors)
     $sqlAuthor = "SELECT au.ID, au.username, t.name as team_name 
