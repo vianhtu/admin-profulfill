@@ -57,6 +57,8 @@ class Extensions
                 return ['success' => false, 'message' => 'Secret key is empty'];
             }
 
+            $secret = decrypt($secret);
+
             // 3. Trả về mã số 6 số
             return [
                 'success' => true,

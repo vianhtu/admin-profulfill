@@ -43,6 +43,9 @@ function addAccount(): array {
     try {
         $conn->begin_transaction();
 
+        if($password) $password = encrypt($password);
+        if($two_fa) $two_fa = encrypt($two_fa);
+
         if ($id) {
             // --- LOGIC UPDATE ---
             if (!is_admin()) {
@@ -177,6 +180,9 @@ function getAccount(int $id): ?array {
     $stmt->close();
 
     if (!$account) return null;
+
+    if($account['password']) $account['password'] = decrypt($account['password']);
+    if($account['2fa']) $account['2fa'] = decrypt($account['2fa']);
 
     // 2. Lấy danh sách Quản lý (Authors)
     $sqlAuthor = "SELECT au.ID, au.username, t.name as team_name 
