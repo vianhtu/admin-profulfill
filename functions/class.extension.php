@@ -182,8 +182,8 @@ class Extensions
                 'success' => true,
                 'password' => decrypt($password),
                 'email' => $email,
-                'user_id' => $arg['data']['email'] ?? '',
-                'custom_fields' => $arg['data']['email'] ?? '',
+                'user_id' => $arg['data']['user_id'] ?? '',
+                'custom_fields' => $arg['data']['custom_fields'] ?? '',
             ];
         }
 
