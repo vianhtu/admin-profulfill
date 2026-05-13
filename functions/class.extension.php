@@ -173,6 +173,7 @@ class Extensions
         if ($arg['success']) {
             $password = $arg['data']['password'] ?? '';
             $email = $arg['data']['email'] ?? '';
+            $custom_fields = $arg['data']['custom_fields'] ?? '{}';
 
             if (empty($password) || empty($email)) {
                 return ['success' => false, 'message' => 'Password is empty'];
@@ -183,7 +184,7 @@ class Extensions
                 'password' => decrypt($password),
                 'email' => $email,
                 'user_id' => $arg['data']['user_id'] ?? '',
-                'custom_fields' => $arg['data']['custom_fields'] ?? '',
+                'custom_fields' => json_decode($custom_fields, true),
             ];
         }
 
