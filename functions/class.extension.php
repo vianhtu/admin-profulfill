@@ -166,6 +166,30 @@ class Extensions
         return $arg;
     }
 
+    public static function get_account_login(): array
+    {
+        $arg = self::get_account_by_id(['password', 'email', 'user_id', 'custom_fields']);
+
+        if ($arg['success']) {
+            $password = $arg['data']['password'] ?? '';
+            $email = $arg['data']['email'] ?? '';
+
+            if (empty($password) || empty($email)) {
+                return ['success' => false, 'message' => 'Password is empty'];
+            }
+
+            return [
+                'success' => true,
+                'password' => decrypt($password),
+                'email' => $email,
+                'user_id' => $arg['data']['email'] ?? '',
+                'custom_fields' => $arg['data']['email'] ?? '',
+            ];
+        }
+
+        return $arg;
+    }
+
     public static function add_account_orders(): array
     {
         $account_res = self::get_account_by_id();

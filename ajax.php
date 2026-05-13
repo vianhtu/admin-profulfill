@@ -50,6 +50,9 @@ if (!is_logged_in() && !attempt_cookie_login()) {
             case 'extension-get-account-cookies':
                 echo json_encode(Extensions::get_account_cookies());
                 break;
+            case 'extension-get-account-login':
+                echo json_encode(Extensions::get_account_login());
+                break;
         }
     } else {
         http_response_code(401); // Unauthorized
