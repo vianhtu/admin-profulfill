@@ -92,7 +92,7 @@ function initTable(){
                     });
 
                     // Cập nhật nội dung tiêu đề cột
-                    $('#financial-header').text('Funds ($' + formattedFunds + ') Hold ($' + formattedHold + ')');
+                    $('#financial-header').text('Funds ($' + formattedFunds + '/$' + formattedHold + ')');
                     $('#fees-header').text('Fees ($' + formattedFees + ')');
                 }
             },
