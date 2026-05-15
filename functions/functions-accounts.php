@@ -602,11 +602,8 @@ function getAccountsTable(): array
             "user_id"         => $row['user_id'],
             "status"          => $row['status'],
             "available_funds" => $row['available_funds'],
-            "total_funds" => $sumResult['total_funds'] ?? 0,
             "on_hold"         => $row['on_hold'],
-            "total_hold" => $sumResult['total_hold'] ?? 0,
             "subscription_fee"=> $row['subscription_fee'],
-            "total_fee" => $sumResult['total_fee'] ?? 0,
             "created_date"    => $row['created_date'],
             "sys_date"        => $row['sys_date'],
         ];
@@ -616,6 +613,9 @@ function getAccountsTable(): array
         "draw"            => $params['draw'],
         "recordsTotal"    => $totalRecords,
         "recordsFiltered" => $totalFiltered,
+        "total_funds"     => $sumResult['total_funds'] ?? 0,
+        "total_hold"      => $sumResult['total_hold'] ?? 0,
+        "total_fee"       => $sumResult['total_fee'] ?? 0,
         "data"            => $data
     ];
 }
