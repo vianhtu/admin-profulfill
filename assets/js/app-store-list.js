@@ -70,6 +70,21 @@ function initTable(){
                     return json.data;
                 }
             },
+            "drawCallback": function(settings) {
+                var api = this.api();
+                var json = api.ajax.json();
+
+                if (json && json.total_funds) {
+                    // Định dạng số tiền (Ví dụ: 2000 -> 2,000.00)
+                    var formattedSum = parseFloat(json.total_funds).toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+
+                    // Cập nhật nội dung tiêu đề cột
+                    $('#financial-header').text('Financial ($' + formattedSum + ')');
+                }
+            },
             columns: [
                 // columns according to JSON
                 { data: 'id' },
