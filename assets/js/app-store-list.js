@@ -72,7 +72,7 @@ function initTable(){
             },
             "drawCallback": function(settings) {
                 var api = this.api();
-                var json = api.ajax.json();
+                var json = api.ajax.json(); console.log(json);
 
                 if (json && json.total_funds) {
                     // Định dạng số tiền (Ví dụ: 2000 -> 2,000.00)
