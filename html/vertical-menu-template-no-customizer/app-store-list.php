@@ -24,7 +24,7 @@ if(!checkRoles('view', 'exports_xlsx')){
                 <th>Authors</th>
                 <th>Status</th>
                 <th>Date</th>
-                <th id="financial-header">Financial</th>
+                <th id="financial-header">Funds</th>
                 <th id="fees-header">Fees</th>
                 <th>Actions</th>
             </tr>

@@ -76,13 +76,24 @@ function initTable(){
 
                 if (json && json.total_funds) {
                     // Định dạng số tiền (Ví dụ: 2000 -> 2,000.00)
-                    var formattedSum = parseFloat(json.total_funds).toLocaleString('en-US', {
+                    var formattedFunds = parseFloat(json.total_funds).toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+
+                    var formattedHold = parseFloat(json.total_hold).toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+
+                    var formattedFees = parseFloat(json.total_fee).toLocaleString('en-US', {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
                     });
 
                     // Cập nhật nội dung tiêu đề cột
-                    $('#financial-header').text('Financial ($' + formattedSum + ')');
+                    $('#financial-header').text('Funds ($' + formattedFunds + ') Hold ($' + formattedHold + ')');
+                    $('#fees-header').text('Fees ($' + formattedFees + ')');
                 }
             },
             columns: [
