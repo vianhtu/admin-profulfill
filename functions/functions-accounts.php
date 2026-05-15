@@ -570,8 +570,12 @@ function getAccountsTable(): array
     )->fetch_assoc()['cnt'];
 
     // Lấy dữ liệu
-    $sql = "SELECT *
+    $sql = "SELECT accounts.*, af.available_funds, 
+                   af.on_hold, 
+                   af.subscription_fee, 
+                   af.sys_date
             FROM accounts
+            INNER JOIN accounts_finance af ON accounts.ID = af.account_id
             $where
             ORDER BY {$params['orderColumn']} {$params['orderDir']}
             LIMIT {$params['start']}, {$params['length']}";
@@ -589,11 +593,11 @@ function getAccountsTable(): array
             "email"           => $row['email'],
             "user_id"         => $row['user_id'],
             "status"          => $row['status'],
-            "available_funds" => 0,
-            "on_hold"         => 0,
-            "subscription_fee"=> 0,
+            "available_funds" => $row['available_funds'],
+            "on_hold"         => $row['on_hold'],
+            "subscription_fee"=> $row['subscription_fee'],
             "created_date"    => $row['created_date'],
-            "sys_date"        => '',
+            "sys_date"        => $row['sys_date'],
         ];
     }
 
