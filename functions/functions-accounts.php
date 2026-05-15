@@ -564,6 +564,14 @@ function getAccountsTable(): array
 
     $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
 
+    // --- TÍNH TỔNG AVAILABLE FUNDS ---
+    // Sử dụng cùng điều kiện WHERE và JOIN để tính tổng chính xác cho tập dữ liệu đang hiển thị
+    $sumSql = "SELECT SUM(af.available_funds) AS total_funds, SUM(af.on_hold) AS total_hold,  SUM(af.subscription_fee) AS total_fee
+               FROM accounts 
+               INNER JOIN accounts_finance af ON accounts.ID = af.account_id 
+               $where";
+    $sumResult = $conn->query($sumSql)->fetch_assoc();
+
     // Tổng số bản ghi sau khi lọc
     $totalFiltered = $conn->query(
         "SELECT COUNT(ID) AS cnt FROM accounts $where"
@@ -594,8 +602,11 @@ function getAccountsTable(): array
             "user_id"         => $row['user_id'],
             "status"          => $row['status'],
             "available_funds" => $row['available_funds'],
+            "total_funds" => $sumResult['total_funds'] ?? 0,
             "on_hold"         => $row['on_hold'],
+            "total_hold" => $sumResult['total_hold'] ?? 0,
             "subscription_fee"=> $row['subscription_fee'],
+            "total_fee" => $sumResult['total_fee'] ?? 0,
             "created_date"    => $row['created_date'],
             "sys_date"        => $row['sys_date'],
         ];
