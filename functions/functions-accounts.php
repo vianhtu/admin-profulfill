@@ -583,7 +583,7 @@ function getAccountsTable(): array
                    af.subscription_fee, 
                    af.sys_date
             FROM accounts
-            INNER JOIN accounts_finance af ON accounts.ID = af.account_id
+            LEFT JOIN accounts_finance af ON accounts.ID = af.account_id
             $where
             ORDER BY {$params['orderColumn']} {$params['orderDir']}
             LIMIT {$params['start']}, {$params['length']}";
@@ -601,11 +601,11 @@ function getAccountsTable(): array
             "email"           => $row['email'],
             "user_id"         => $row['user_id'],
             "status"          => $row['status'],
-            "available_funds" => $row['available_funds'],
-            "on_hold"         => $row['on_hold'],
-            "subscription_fee"=> $row['subscription_fee'],
+            "available_funds" => $row['available_funds'] ?? 0,
+            "on_hold"         => $row['on_hold'] ?? 0,
+            "subscription_fee"=> $row['subscription_fee'] ?? 0,
             "created_date"    => $row['created_date'],
-            "sys_date"        => $row['sys_date'],
+            "sys_date"        => $row['sys_date'] ?? '',
         ];
     }
 
