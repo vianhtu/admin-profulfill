@@ -57,7 +57,6 @@ if (!empty($edit_data)) {
 $options = getStoresTableFilters();
 
 // Merge dữ liệu mặc định với dữ liệu thật
-// Merge dữ liệu mặc định với dữ liệu thật
 $d = array_merge($defaultData, $edit_data);
 
 // Ép kiểu (array) để đảm bảo kết quả luôn là mảng, không bao giờ bị null
