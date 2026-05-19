@@ -57,12 +57,14 @@ if (!empty($edit_data)) {
 $options = getStoresTableFilters();
 
 // Merge dữ liệu mặc định với dữ liệu thật
+// Merge dữ liệu mặc định với dữ liệu thật
 $d = array_merge($defaultData, $edit_data);
 
-$custom_fields = json_decode($d['custom_fields'] ?? '[]', true);
-$default_custom_fields = json_decode($d['default_custom_fields'] ?? '[]', true);
+// Ép kiểu (array) để đảm bảo kết quả luôn là mảng, không bao giờ bị null
+$custom_fields = (array) json_decode($d['custom_fields'] ?? '[]', true);
+$default_custom_fields = (array) json_decode($d['default_custom_fields'] ?? '[]', true);
 
-// Đổi key của cả 2 mảng theo trường 'text' rồi gộp lại (mảng sau sẽ không đè mảng trước nếu trùng key)
+// Đổi key của cả 2 mảng theo trường 'text' rồi gộp lại
 $custom_by_text = array_column($custom_fields, null, 'text');
 $default_by_text = array_column($default_custom_fields, null, 'text');
 
