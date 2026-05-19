@@ -58,10 +58,20 @@ $options = getStoresTableFilters();
 
 // Merge dữ liệu mặc định với dữ liệu thật
 $d = array_merge($defaultData, $edit_data);
+
 $custom_fields = json_decode($d['custom_fields'] ?? '[]', true);
 $default_custom_fields = json_decode($d['default_custom_fields'] ?? '[]', true);
+
+// Đổi key của cả 2 mảng theo trường 'text' rồi gộp lại (mảng sau sẽ không đè mảng trước nếu trùng key)
+$custom_by_text = array_column($custom_fields, null, 'text');
+$default_by_text = array_column($default_custom_fields, null, 'text');
+
+// Gộp dữ liệu: Ưu tiên dữ liệu thật, thiếu gì thì bù dữ liệu mặc định
+$custom_fields = array_values($custom_by_text + $default_by_text);
+
+// Nếu cuối cùng vẫn trống thì gán mảng rỗng mặc định
 if (empty($custom_fields)) {
-    $custom_fields = empty($default_custom_fields) ? [['text' => '', 'value' => '']] : $default_custom_fields;
+    $custom_fields = [['text' => '', 'value' => '']];
 }
 ?>
 <div class="app-ecommerce">
