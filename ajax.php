@@ -4,7 +4,9 @@ require __DIR__ . '/config.php';
 require __DIR__ . '/functions.php';
 require __DIR__ . '/functions/functions-telnyx.php';
 require __DIR__ . '/functions/ajax-select2.php';
-require __DIR__ . '/functions/class.extension.php';
+require __DIR__ . '/class/class.extension.php';
+require __DIR__ . '/class/class.orders.php';
+require __DIR__ . '/class/class.order.php';
 require __DIR__ . '/model/functions-gemini.php';
 require __DIR__ . '/model/functions-openai.php';
 require __DIR__ . '/tables/functions-teams.php';
@@ -83,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             echo json_encode(getKeywordsTable());
             break;
         case 'get-orders-table':
-            echo json_encode(getOrdersTable());
+            echo json_encode(Orders::get_orders());
             break;
         case 'get-stores-table-filter':
             echo json_encode(getStoresTableFilters());
