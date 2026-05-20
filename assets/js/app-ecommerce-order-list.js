@@ -165,7 +165,7 @@ function initTable(){
                     render: function (data, type, full, meta) {
                         return '<div class="d-flex flex-column">' +
                             '<a href="app-ecommerce-order-details.html">' +
-                                '<span class="text-nowrap">#' + full['host_id'] + '</span>' +
+                                '<h5 class="text-nowrap">#' + full['host_id'] + '</h5>' +
                             '</a>' +
                             '<small>'+sitesObj[full['site_id']].title+' ('+full['account_name']+')</small>' +
                             '</div>';
