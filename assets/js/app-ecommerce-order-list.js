@@ -229,14 +229,11 @@ function initTable(){
                     targets: 8,
                     responsivePriority: 1,
                     render: function (data, type, full, meta) {
-                        const street_address_2 = full['street_address_2'] ? '<small class="text-truncate d-none d-sm-block">'+full['street_address_2']+'</small>' : '';
                         return '<div class="d-flex flex-column">' +
                             '<h6 class="text-nowrap mb-0">'+full['full_name']+'</h6>' +
-                            '<small class="text-truncate d-none d-sm-block">'+full['street_address_1']+'</small>' +
-                            street_address_2 +
-                            '<small class="text-truncate d-none d-sm-block">'+full['city']+', '+full['state']+' '+ full['zip_code'] +'</small>' +
-                            '<small class="text-truncate d-none d-sm-block">'+full['country']+'</small>' +
-                            '</div>';
+                            '<small class="text-truncate d-none d-sm-block">'+full['address']+'</small>' +
+                            '<small class="text-truncate d-none d-sm-block">'+full['phone']+'</small>' +
+                        '</div>';
                     }
                 },
                 {
