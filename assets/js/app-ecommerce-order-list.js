@@ -471,7 +471,7 @@ function initTable(){
                 const defaultLength = settings._iDisplayLength || 10;
 
                 // Nếu bảng ở trạng thái mặc định (trang 1, không search, length mặc định), xóa sạch param trên URL
-                if (currentPage === 1 && !data.search.search && data.length === defaultLength) {
+                if (currentPage === 1 && !data.search.search) {
                     url.searchParams.delete('page');
                     url.searchParams.delete('search');
                 } else {
