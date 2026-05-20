@@ -468,39 +468,46 @@ function initTable(){
             stateSaveCallback: function(settings, data) {
                 const url = new URL(window.location.href);
                 const currentPage = (data.start / data.length) + 1;
+                const defaultLength = settings._iDisplayLength || 10;
 
-                // Nếu bảng ở trạng thái mặc định (trang 1, không search), ta xóa luôn param cho URL sạch
-                if (currentPage === 1 && !data.search.search && data.length === settings._iDisplayLength) {
+                // Nếu bảng ở trạng thái mặc định (trang 1, không search, length mặc định), xóa sạch param trên URL
+                if (currentPage === 1 && !data.search.search && data.length === defaultLength) {
                     url.searchParams.delete('page');
                     url.searchParams.delete('search');
                     url.searchParams.delete('length');
                 } else {
                     url.searchParams.set('page', currentPage);
-                    url.searchParams.set('search', data.search.search);
+                    url.searchParams.set('search', data.search.search || '');
                     url.searchParams.set('length', data.length);
                 }
 
                 window.history.replaceState(null, null, url);
             },
+
             // 2. Đọc dữ liệu từ URL để áp dụng lại cho bảng khi reload trang
             stateLoadCallback: function(settings) {
                 const urlParams = new URLSearchParams(window.location.search);
 
-                // Nếu trên URL không có bất kỳ tham số nào, trả về null để DataTables reset về trang 1
+                // SỬA TẠI ĐÂY: Dùng toán tử || (Hoặc). Nếu THIẾU CẢ 3 tham số thì trả về null ngay để reset bảng
                 if (!urlParams.has('page') && !urlParams.has('search') && !urlParams.has('length')) {
                     return null;
                 }
 
-                // Nếu có tham số, ta tự dựng lại object trạng thái cho DataTables
-                const length = parseInt(urlParams.get('length'), 10) || settings._iDisplayLength;
+                const defaultLength = settings._iDisplayLength || 10;
+                const length = parseInt(urlParams.get('length'), 10) || defaultLength;
                 const page = parseInt(urlParams.get('page'), 10) || 1;
                 const search = urlParams.get('search') || '';
 
+                // BẮT BUỘC trả về đúng cấu trúc Object chuẩn của DataTables (phải có trường 'time')
                 return {
+                    time: +new Date(),
                     start: (page - 1) * length,
                     length: length,
                     search: {
-                        search: search
+                        search: search,
+                        smart: true,
+                        regex: false,
+                        caseInsensitive: true
                     }
                 };
             },
