@@ -49,8 +49,6 @@ function getItemsRow(orderItems, colCount) {
             <div class="avatar-wrapper">
               <div class="avatar avatar me-2 me-sm-4 rounded-2 bg-label-secondary" style="width:80px; height:80px;">
                 <img src="${item.imageUrl}" 
-                     title="${item.title}" 
-                     alt="${item.title}" 
                      class="rounded img-fluid" 
                      style="cursor:pointer;" 
                      onclick="showImageModal('${item.imageUrl}')">
