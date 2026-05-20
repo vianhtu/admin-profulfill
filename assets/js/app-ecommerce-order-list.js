@@ -464,12 +464,12 @@ function initTable(){
                     }
                 }
             },
-            // 1. Cập nhật URL mỗi khi trạng thái bảng thay đổi (Tìm kiếm, chuyển trang, đổi độ dài)
+            // 1. Cập nhật URL và bộ nhớ trình duyệt mỗi khi trạng thái bảng thay đổi
             stateSaveCallback: function(settings, data) {
                 const url = new URL(window.location.href);
                 const currentPage = (data.start / data.length) + 1;
 
-                // Nếu bảng ở trạng thái mặc định
+                // Xử lý ẩn/hiện page và search trên URL
                 if (currentPage === 1 && !data.search.search) {
                     url.searchParams.delete('page');
                     url.searchParams.delete('search');
@@ -478,36 +478,71 @@ function initTable(){
                     url.searchParams.set('search', data.search.search || '');
                 }
 
+                // Luôn lưu và giữ chiều dài trang (URL + localStorage)
                 url.searchParams.set('length', data.length);
                 localStorage.setItem('dt_products_length', data.length);
+
+                // TÍCH HỢP ORDER BY: Lưu lên cả URL lẫn localStorage giống hệt length
+                if (data.order && data.order.length > 0) {
+                    const col = data.order[0][0];
+                    const dir = data.order[0][1];
+
+                    url.searchParams.set('order_col', col);
+                    url.searchParams.set('order_dir', dir);
+
+                    localStorage.setItem('dt_products_order_col', col);
+                    localStorage.setItem('dt_products_order_dir', dir);
+                } else {
+                    url.searchParams.delete('order_col');
+                    url.searchParams.delete('order_dir');
+                    // Không xóa localStorage ở đây để giữ làm bộ nhớ dự phòng khi URL trống
+                }
 
                 window.history.replaceState(null, null, url);
             },
 
-            // 2. Đọc dữ liệu từ URL để áp dụng lại cho bảng khi reload trang
+            // 2. Đọc dữ liệu: Ưu tiên từ URL, nếu URL trống thì lấy dữ liệu đã lưu từ bộ nhớ
             stateLoadCallback: function(settings) {
                 const urlParams = new URLSearchParams(window.location.search);
+
+                // Đọc các giá trị dự phòng từ localStorage (nếu chưa từng lưu thì dùng mặc định của hệ thống)
                 const savedLength = parseInt(localStorage.getItem('dt_products_length'), 10) || settings._iDisplayLength || 10;
-                // SỬA TẠI ĐÂY: Dùng toán tử || (Hoặc). Nếu THIẾU CẢ 3 tham số thì trả về null ngay để reset bảng
-                if (!urlParams.has('page') && !urlParams.has('search') && !urlParams.has('length')) {
+
+                const localOrderCol = localStorage.getItem('dt_products_order_col');
+                const localOrderDir = localStorage.getItem('dt_products_order_dir');
+                const defaultOrder = settings.aaSorting || [[0, 'asc']];
+
+                // Khởi tạo cấu hình order dự phòng từ bộ nhớ máy
+                const savedOrder = (localOrderCol !== null && localOrderDir) ? [[parseInt(localOrderCol, 10), localOrderDir]] : defaultOrder;
+
+                // Kiểm tra xem URL hiện tại có bất kỳ tham số nào không
+                const hasParams = urlParams.has('page') || urlParams.has('search') || urlParams.has('length') || urlParams.has('order_col');
+
+                // TRƯỜNG HỢP 1: Nếu URL trống hoàn toàn (Vào link gốc) -> Lấy toàn bộ từ bộ nhớ máy ra áp dụng lại
+                if (!hasParams) {
                     return {
                         time: +new Date(),
                         start: 0,
-                        length: savedLength,
+                        length: savedLength,  // Giữ số lượng hàng đã chọn
+                        order: savedOrder,    // Giữ cột đang sắp xếp đã chọn trước đó
                         search: { search: '' }
                     };
                 }
 
-                const defaultLength = settings._iDisplayLength || 10;
-                const length = parseInt(urlParams.get('length'), 10) || defaultLength;
+                // TRƯỜNG HỢP 2: Nếu URL đang có param -> Ưu tiên bốc dữ liệu trên URL trước, thiếu mới bù bằng bộ nhớ máy
+                const length = parseInt(urlParams.get('length'), 10) || savedLength;
                 const page = parseInt(urlParams.get('page'), 10) || 1;
                 const search = urlParams.get('search') || '';
 
-                // BẮT BUỘC trả về đúng cấu trúc Object chuẩn của DataTables (phải có trường 'time')
+                const order_col = urlParams.has('order_col') ? parseInt(urlParams.get('order_col'), 10) : null;
+                const order_dir = urlParams.get('order_dir') || null;
+                const currentOrder = (order_col !== null && order_dir) ? [[order_col, order_dir]] : savedOrder;
+
                 return {
                     time: +new Date(),
                     start: (page - 1) * length,
                     length: length,
+                    order: currentOrder, // Áp dụng sắp xếp chuẩn xác
                     search: {
                         search: search,
                         smart: true,
