@@ -126,9 +126,9 @@ function initTable(){
                 { data: 'id', orderable: false, render: DataTable.render.select() },
                 { data: 'host_id' },
                 { data: 'purchase_date' },
-                { data: 'total_price' },
                 { data: 'ship_date' },
                 { data: 'delivery_date' },
+                { data: 'total_price' },
                 { data: 'status' },
                 { data: 'full_name' },
                 { data: 'id' }
@@ -183,13 +183,22 @@ function initTable(){
                 {
                     targets: 4,
                     render: function (data, type, full, meta) {
-                        return '<h6 class="text-nowrap mb-0">$'+full['total_price']+'</h6>';
+                        const date = new Date(full['ship_date']);
+                        const formattedDate = date.toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false,
+                            timeZone: 'Asia/Ho_Chi_Minh'
+                        });
+                        return `<span class="text-nowrap">${formattedDate}</span>`;
                     }
                 },
                 {
                     targets: 5,
                     render: function (data, type, full, meta) {
-                        const date = new Date(full['ship_date']);
+                        const date = new Date(full['delivery_date']);
                         const formattedDate = date.toLocaleString('en-US', {
                             month: 'short',
                             day: 'numeric',
@@ -204,16 +213,7 @@ function initTable(){
                 {
                     targets: 6,
                     render: function (data, type, full, meta) {
-                        const date = new Date(full['delivery_date']);
-                        const formattedDate = date.toLocaleString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: false,
-                            timeZone: 'Asia/Ho_Chi_Minh'
-                        });
-                        return `<span class="text-nowrap">${formattedDate}</span>`;
+                        return '<h6 class="text-nowrap mb-0">$'+full['total_price']+'</h6>';
                     }
                 },
                 {
