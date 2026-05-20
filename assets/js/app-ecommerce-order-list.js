@@ -48,27 +48,23 @@ function getItemsRow(orderItems, colCount) {
           <div class="d-flex justify-content-start align-items-center product-name">
             <div class="avatar-wrapper">
               <div class="avatar avatar me-2 me-sm-4 rounded-2 bg-label-secondary" style="width:80px; height:80px;">
-                <img src="${replaceAmazonImageSize(item.Image, 150)}" 
-                     title="${item.Title}" 
-                     alt="${item.Title}" 
+                <img src="${item.imageUrl}" 
+                     title="${item.title}" 
+                     alt="${item.title}" 
                      class="rounded img-fluid" 
                      style="cursor:pointer;" 
-                     onclick="showImageModal('${getFullSizeImage(item.Image)}')">
+                     onclick="showImageModal('${item.imageUrl}')">
               </div>
             </div>
             <div class="d-flex flex-column">
-              <small>asin: <a href="https://www.amazon.com/dp/${item.ASIN}" target="_blank">${item.ASIN}</a></small>
-              <small>sku: ${item.SKU}</small>
-              <small>qlt: ${item.Quantity}</small>
-              <small>price: ${item.Cost.Amount} ${item.Cost.CurrencyCode}</small>
+              <small>id: <a href="https://www.amazon.com/dp/${item.itemId}" target="_blank">${item.itemId}</a></small>
+              <small>qlt: ${item.quantity}</small>
             </div>
           </div>`;
 
         let row_custom = '<div class="d-flex flex-column">';
-        item.Customizations.forEach(m => {
-            m.Modifications.forEach(values => {
-                row_custom += `<small>${values.Name}: ${values.Value}</small>`;
-            });
+        item.attributes.forEach(value => {
+            row_custom += `<small>${value}</small>`;
         });
         row_custom += '</div>';
 
