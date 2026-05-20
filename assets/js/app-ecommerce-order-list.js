@@ -57,9 +57,9 @@ function getItemsRow(orderItems, colCount) {
               </div>
             </div>
             <div class="d-flex flex-column">
-              <span>${item.title}</span>
-              <small>id: <a href="https://www.amazon.com/dp/${item.itemId}" target="_blank">${item.itemId}</a></small>
-              <small>qlt: ${item.quantity}</small>
+              <a href="#" class="text-heading">${item.title}</a>
+              <small>ID: ${item.itemId}</small>
+              <small>QLT: ${item.quantity}</small>
             </div>
           </div>`;
 
