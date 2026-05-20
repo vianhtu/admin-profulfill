@@ -479,6 +479,7 @@ function initTable(){
                 }
 
                 url.searchParams.set('length', data.length);
+                localStorage.setItem('dt_products_length', data.length);
 
                 window.history.replaceState(null, null, url);
             },
@@ -486,10 +487,15 @@ function initTable(){
             // 2. Đọc dữ liệu từ URL để áp dụng lại cho bảng khi reload trang
             stateLoadCallback: function(settings) {
                 const urlParams = new URLSearchParams(window.location.search);
-
+                const savedLength = parseInt(localStorage.getItem('dt_products_length'), 10) || settings._iDisplayLength || 10;
                 // SỬA TẠI ĐÂY: Dùng toán tử || (Hoặc). Nếu THIẾU CẢ 3 tham số thì trả về null ngay để reset bảng
                 if (!urlParams.has('page') && !urlParams.has('search') && !urlParams.has('length')) {
-                    return null;
+                    return {
+                        time: +new Date(),
+                        start: 0,
+                        length: savedLength,
+                        search: { search: '' }
+                    };
                 }
 
                 const defaultLength = settings._iDisplayLength || 10;
