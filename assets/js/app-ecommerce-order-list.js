@@ -163,12 +163,9 @@ function initTable(){
                     // Order ID
                     targets: 2,
                     render: function (data, type, full, meta) {
-                        const order_id = full['host_id'];
-                        const items = JSON.parse(full['items']); console.log(sitesObj); console.log(full['account_id'])
-                        // Creates full output for row
                         return '<div class="d-flex flex-column">' +
                             '<a href="app-ecommerce-order-details.html">' +
-                                '<span class="text-nowrap">#' + order_id + '</span>' +
+                                '<span class="text-nowrap">#' + full['host_id'] + '</span>' +
                             '</a>' +
                             '<small>'+sitesObj[full['site_id']].title+' ('+full['account_name']+')</small>' +
                             '</div>';
@@ -223,10 +220,7 @@ function initTable(){
                         const status = full['status'];
                         const statusInfo = statusObj[status];
                         if (statusInfo) {
-                            return `
-                <span class="badge px-2 ${statusInfo.class} text-capitalized">
-                  ${statusInfo.title}
-                </span>`;
+                            return `<span class="badge px-2 ${statusInfo.class} text-capitalized">${statusInfo.title}</span>`;
                         }
                         return data;
                     }
@@ -252,15 +246,15 @@ function initTable(){
                     orderable: false,
                     render: function (data, type, full, meta) {
                         return `
-              <div class="d-flex justify-content-sm-start align-items-sm-center">
-                <button class="btn btn-text-secondary rounded-pill waves-effect btn-icon dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                  <i class="icon-base ti tabler-dots-vertical"></i>
-                </button>
-                <div class="dropdown-menu dropdown-menu-end m-0">
-                  <a href="app-ecommerce-order-details.html" class="dropdown-item">View</a>
-                  <a href="javascript:void(0);" class="dropdown-item delete-record">Delete</a>
-                </div>
-              </div>`;
+                          <div class="d-flex justify-content-sm-start align-items-sm-center">
+                            <button class="btn btn-text-secondary rounded-pill waves-effect btn-icon dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                              <i class="icon-base ti tabler-dots-vertical"></i>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end m-0">
+                              <a href="app-ecommerce-order-details.html" class="dropdown-item">View</a>
+                              <a href="javascript:void(0);" class="dropdown-item delete-record">Delete</a>
+                            </div>
+                          </div>`;
                     }
                 }
             ],
