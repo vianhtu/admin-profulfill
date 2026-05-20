@@ -465,15 +465,22 @@ function initTable(){
                     }
                 }
             },
-            initComplete:function(settings, json) {
+            drawCallback: function(settings) {
                 const api = this.api();
                 const colCount = api.columns().count();
 
-                api.rows().every(function() {
+                api.rows({ page: 'current' }).every(function() {
                     const rowData = this.data();
-                    const items = JSON.parse(rowData.items);
+                    let items = [];
 
-                    // Chèn hàng con ngay sau hàng cha
+                    // Kiểm tra tránh lỗi nếu rowData.items đã là object/array hoặc bị null
+                    if (typeof rowData.items === 'string') {
+                        items = JSON.parse(rowData.items);
+                    } else {
+                        items = rowData.items || [];
+                    }
+
+                    // Chèn hàng con ngay sau hàng cha ở trang hiện tại
                     $(this.node()).after(getItemsRow(items, colCount));
                     $(this.node()).addClass('shown');
                 });
