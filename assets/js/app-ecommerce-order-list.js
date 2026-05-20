@@ -474,12 +474,12 @@ function initTable(){
                 if (currentPage === 1 && !data.search.search && data.length === defaultLength) {
                     url.searchParams.delete('page');
                     url.searchParams.delete('search');
-                    url.searchParams.delete('length');
                 } else {
                     url.searchParams.set('page', currentPage);
                     url.searchParams.set('search', data.search.search || '');
-                    url.searchParams.set('length', data.length);
                 }
+
+                url.searchParams.set('length', data.length);
 
                 window.history.replaceState(null, null, url);
             },
