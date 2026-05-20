@@ -70,7 +70,7 @@ function getItemsRow(orderItems, colCount) {
         row_custom += '</div>';
 
         html += `
-          <tr class="child-row">
+          <tr class="shown">
             <td style="display: none;"></td>
             <td></td>
             <td colspan="3">${row_image}</td>
