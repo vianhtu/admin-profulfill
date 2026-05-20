@@ -111,20 +111,11 @@ td .product-name h6{
     max-width: 250px;            /* Giới hạn chiều rộng */
 }
 
-tr.child-row {
-    background-color: #fafafa!important;
-    border-top: none;
-    font-size: 0.85rem;
-}
-
 .tr-loading {
     opacity: 0.4;
     transition: opacity 0.3s ease;
 }
 
-.datatables-order tr:not(.dt-hasChild){
-    border-top-style: hidden;
-}
 /* validate form repeater */
 .form-repeater .fv-plugins-message-container {
     display: none !important;
