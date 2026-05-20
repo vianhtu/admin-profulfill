@@ -70,9 +70,12 @@ class Orders
         $length = filter_var($params['length'], FILTER_VALIDATE_INT) !== false ? (int)$params['length'] : 10;
 
         // 6. Lấy dữ liệu thực tế
-        $sql = "SELECT orders.*, accounts.site_id, accounts.name AS account_name, accounts.email AS account_email
+        $sql = "SELECT orders.*,
+            accounts.site_id, accounts.name AS account_name, accounts.email AS account_email,
+            team.name AS team_name
         FROM orders
         INNER JOIN accounts ON accounts.ID = orders.account_id
+        LEFT JOIN team ON team.ID = accounts.team_id
         LEFT JOIN accounts_authors ON accounts_authors.account_id = accounts.ID
         $whereAll
         GROUP BY orders.ID
@@ -108,6 +111,7 @@ class Orders
                 "status"           => $row['status'],
                 "site_id"          => $row['site_id'],
                 "account_name"     => $row['account_name'],
+                "team_name"        => $row['team_name'],
             ];
         }
 
