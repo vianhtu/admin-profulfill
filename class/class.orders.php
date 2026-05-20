@@ -56,6 +56,7 @@ class Orders
                 $searchParam,
                 $searchParam,
                 $searchParam,
+                $searchParam,
                 $searchParam
             );
         }
