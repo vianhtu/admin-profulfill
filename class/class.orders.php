@@ -46,11 +46,18 @@ class Orders
             $whereClauses[] = "(orders.host_id LIKE ? 
             OR orders.full_name LIKE ? 
             OR orders.phone LIKE ? 
-            OR orders.items LIKE ?)";
+            OR orders.all_item_titles LIKE ?
+            OR orders.all_item_ids LIKE ?)";
 
             $searchParam = "%" . $params['searchValue'] . "%";
             // Thêm 4 tham số tìm kiếm vào mảng
-            array_push($bindParams, $searchParam, $searchParam, $searchParam, $searchParam);
+            array_push(
+                $bindParams,
+                $searchParam,
+                $searchParam,
+                $searchParam,
+                $searchParam
+            );
         }
         $whereAll = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
 
