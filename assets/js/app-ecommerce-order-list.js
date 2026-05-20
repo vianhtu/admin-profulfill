@@ -468,9 +468,8 @@ function initTable(){
             stateSaveCallback: function(settings, data) {
                 const url = new URL(window.location.href);
                 const currentPage = (data.start / data.length) + 1;
-                const defaultLength = settings._iDisplayLength || 10;
 
-                // Nếu bảng ở trạng thái mặc định (trang 1, không search, length mặc định), xóa sạch param trên URL
+                // Nếu bảng ở trạng thái mặc định
                 if (currentPage === 1 && !data.search.search) {
                     url.searchParams.delete('page');
                     url.searchParams.delete('search');
