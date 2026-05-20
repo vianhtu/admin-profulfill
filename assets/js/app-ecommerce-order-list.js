@@ -231,8 +231,8 @@ function initTable(){
                     render: function (data, type, full, meta) {
                         return '<div class="d-flex flex-column">' +
                             '<h6 class="text-nowrap mb-0">'+full['full_name']+'</h6>' +
-                            '<small class="text-truncate d-none d-sm-block">'+full['address']+'</small>' +
-                            '<small class="text-truncate d-none d-sm-block">'+full['phone']+'</small>' +
+                            '<small>'+full['address']+'</small>' +
+                            '<small>'+full['phone']+'</small>' +
                         '</div>';
                     }
                 },
