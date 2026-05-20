@@ -73,7 +73,7 @@ function getItemsRow(orderItems, colCount) {
           <tr class="child-row">
             <td style="display: none;"></td>
             <td></td>
-            <td colspan="2">${row_image}</td>
+            <td colspan="3">${row_image}</td>
             <td colspan="5">${row_custom}</td>
           </tr>`;
     });
