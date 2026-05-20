@@ -7,8 +7,7 @@ class Orders
         $conn = db();
 
         $whereClauses = [];
-        $bindTypes = "";
-        $bindParams = [];
+        $bindParams = []; // Chỉ cần một mảng phẳng chứa giá trị, không cần chuỗi "ssii" nữa!
 
         // 1. Kiểm tra phân quyền (Role)
         if (!is_admin()) {
@@ -21,18 +20,14 @@ class Orders
                 ];
             }
 
-            // Phân quyền theo Team
-            $team_id = $_SESSION['auth']['team'];
+            // Phân quyền theo Team (Tự động hiểu INT nếu bạn truyền int)
             $whereClauses[] = "accounts.team_id = ?";
-            $bindTypes .= "i";
-            $bindParams[] = $team_id;
+            $bindParams[] = (int)$_SESSION['auth']['team'];
 
             // Phân quyền theo Manager/User
             if (is_user()) {
-                $user_id = $_SESSION['auth']['user_id'];
                 $whereClauses[] = "accounts_authors.author_id = ?";
-                $bindTypes .= "i";
-                $bindParams[] = $user_id;
+                $bindParams[] = (int)$_SESSION['auth']['user_id'];
             }
         }
 
@@ -43,13 +38,8 @@ class Orders
                  LEFT JOIN accounts_authors ON accounts_authors.account_id = accounts.ID 
                  $whereAuth";
 
-        $stmt = $conn->prepare($countSql);
-        if (!empty($whereClauses)) {
-            $stmt->bind_param($bindTypes, ...$bindParams);
-        }
-        $stmt->execute();
-        $totalRecords = $stmt->get_result()->fetch_assoc()['cnt'];
-        $stmt->close();
+        // PHP 8.2+: Thực thi trực tiếp và lấy kết quả chỉ với 1 dòng
+        $totalRecords = $conn->execute_query($countSql, $bindParams)->fetch_assoc()['cnt'];
 
         // 3. Xử lý ô tìm kiếm (Search Value)
         if ($params['searchValue'] !== '') {
@@ -59,11 +49,8 @@ class Orders
             OR orders.items LIKE ?)";
 
             $searchParam = "%" . $params['searchValue'] . "%";
-            $bindTypes .= "ssss";
-            $bindParams[] = $searchParam;
-            $bindParams[] = $searchParam;
-            $bindParams[] = $searchParam;
-            $bindParams[] = $searchParam;
+            // Thêm 4 tham số tìm kiếm vào mảng
+            array_push($bindParams, $searchParam, $searchParam, $searchParam, $searchParam);
         }
         $whereAll = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
 
@@ -73,15 +60,9 @@ class Orders
                   LEFT JOIN accounts_authors ON accounts_authors.account_id = accounts.ID 
                   $whereAll";
 
-        $stmt = $conn->prepare($filterSql);
-        if (!empty($whereClauses)) {
-            $stmt->bind_param($bindTypes, ...$bindParams);
-        }
-        $stmt->execute();
-        $totalFiltered = $stmt->get_result()->fetch_assoc()['cnt'];
-        $stmt->close();
+        $totalFiltered = $conn->execute_query($filterSql, $bindParams)->fetch_assoc()['cnt'];
 
-        // 5. Kiểm tra an toàn cho cấu trúc Sắp xếp (Order By) và Phân trang (Limit)
+        // 5. Kiểm tra an toàn cho cấu trúc Sắp xếp và Phân trang (Giữ nguyên Whitelist)
         $orderColumn = in_array($params['orderColumn'], $allowedCols) ? $params['orderColumn'] : 'ID';
         $orderDir = strtoupper($params['orderDir']) === 'DESC' ? 'DESC' : 'ASC';
 
@@ -98,18 +79,16 @@ class Orders
         ORDER BY orders.{$orderColumn} {$orderDir}
         LIMIT ?, ?";
 
-        // Thêm tham số cho LIMIT
-        $bindTypes .= "ii";
-        $bindParams[] = $start;
-        $bindParams[] = $length;
+        // Tạo mảng riêng cho câu lệnh lấy data vì có thêm 2 tham số LIMIT ở cuối
+        $dataParams = $bindParams;
+        $dataParams[] = $start;
+        $dataParams[] = $length;
 
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param($bindTypes, ...$bindParams);
-        $stmt->execute();
-        $rs = $stmt->get_result();
+        $rs = $conn->execute_query($sql, $dataParams);
 
         $data = [];
-        while ($row = $rs->fetch_assoc()) {
+        // PHP 8.0+: Bạn có thể dùng foreach trực tiếp trên mysqli_result rất mượt mà
+        foreach ($rs as $row) {
             $data[] = [
                 "id"               => $row['ID'],
                 "host_id"          => $row['host_id'],
@@ -131,7 +110,6 @@ class Orders
                 "account_name"     => $row['account_name'],
             ];
         }
-        $stmt->close();
 
         return [
             "draw"            => $params['draw'],
