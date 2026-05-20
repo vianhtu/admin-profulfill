@@ -465,12 +465,11 @@ function initTable(){
                 }
             },
             // 1. Cập nhật URL mỗi khi trạng thái bảng thay đổi (Tìm kiếm, chuyển trang, đổi độ dài)
-            stateSaveParams: function (settings, data) {
+            stateSaveCallback: function(settings, data) {
                 const url = new URL(window.location.href);
-
-                // Tính toán trang hiện tại (data.start / data.length + 1)
                 const currentPage = (data.start / data.length) + 1;
 
+                // Nếu bảng ở trạng thái mặc định (trang 1, không search), ta xóa luôn param cho URL sạch
                 if (currentPage === 1 && !data.search.search && data.length === settings._iDisplayLength) {
                     url.searchParams.delete('page');
                     url.searchParams.delete('search');
@@ -481,11 +480,10 @@ function initTable(){
                     url.searchParams.set('length', data.length);
                 }
 
-                // Đẩy lên URL mà không làm load lại trang
                 window.history.replaceState(null, null, url);
             },
             // 2. Đọc dữ liệu từ URL để áp dụng lại cho bảng khi reload trang
-            stateLoadParams: function (settings, data) {
+            stateLoadCallback: function(settings) {
                 const urlParams = new URLSearchParams(window.location.search);
 
                 // Nếu trên URL không có bất kỳ tham số nào, trả về null để DataTables reset về trang 1
@@ -493,26 +491,18 @@ function initTable(){
                     return null;
                 }
 
-                const page = parseInt(urlParams.get('page'), 10);
-                const search = urlParams.get('search');
-                const length = parseInt(urlParams.get('length'), 10);
+                // Nếu có tham số, ta tự dựng lại object trạng thái cho DataTables
+                const length = parseInt(urlParams.get('length'), 10) || settings._iDisplayLength;
+                const page = parseInt(urlParams.get('page'), 10) || 1;
+                const search = urlParams.get('search') || '';
 
-                // Khôi phục độ dài trang
-                if (length) {
-                    data.length = length;
-                }
-
-                // Khôi phục vị trí trang (start index)
-                if (page && length) {
-                    data.start = (page - 1) * data.length;
-                } else if (page) {
-                    data.start = (page - 1) * settings._iDisplayLength;
-                }
-
-                // Khôi phục từ khóa tìm kiếm
-                if (search !== null) {
-                    data.search.search = search;
-                }
+                return {
+                    start: (page - 1) * length,
+                    length: length,
+                    search: {
+                        search: search
+                    }
+                };
             },
             // Thêm row items.
             drawCallback: function(settings) {
