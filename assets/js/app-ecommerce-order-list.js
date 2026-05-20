@@ -110,6 +110,7 @@ function initTable(){
         const dt_products = new DataTable(dt_order_table, {
             serverSide: true,
             processing: true,
+            stateSave: true,
             ajax: {
                 url: '../../ajax.php?action=get-orders-table',
                 type: 'POST',
@@ -463,6 +464,46 @@ function initTable(){
                     }
                 }
             },
+            // 1. Cập nhật URL mỗi khi trạng thái bảng thay đổi (Tìm kiếm, chuyển trang, đổi độ dài)
+            stateSaveParams: function (settings, data) {
+                const url = new URL(window.location.href);
+
+                // Tính toán trang hiện tại (data.start / data.length + 1)
+                const currentPage = (data.start / data.length) + 1;
+
+                url.searchParams.set('page', currentPage);
+                url.searchParams.set('search', data.search.search);
+                url.searchParams.set('length', data.length);
+
+                // Đẩy lên URL mà không làm load lại trang
+                window.history.replaceState(null, null, url);
+            },
+            // 2. Đọc dữ liệu từ URL để áp dụng lại cho bảng khi reload trang
+            stateLoadParams: function (settings, data) {
+                const urlParams = new URLSearchParams(window.location.search);
+
+                const page = parseInt(urlParams.get('page'), 10);
+                const search = urlParams.get('search');
+                const length = parseInt(urlParams.get('length'), 10);
+
+                // Khôi phục độ dài trang
+                if (length) {
+                    data.length = length;
+                }
+
+                // Khôi phục vị trí trang (start index)
+                if (page && length) {
+                    data.start = (page - 1) * data.length;
+                } else if (page) {
+                    data.start = (page - 1) * settings._iDisplayLength;
+                }
+
+                // Khôi phục từ khóa tìm kiếm
+                if (search !== null) {
+                    data.search.search = search;
+                }
+            },
+            // Thêm row items.
             drawCallback: function(settings) {
                 const api = this.api();
                 const colCount = api.columns().count();
