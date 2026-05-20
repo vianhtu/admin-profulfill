@@ -471,9 +471,15 @@ function initTable(){
                 // Tính toán trang hiện tại (data.start / data.length + 1)
                 const currentPage = (data.start / data.length) + 1;
 
-                url.searchParams.set('page', currentPage);
-                url.searchParams.set('search', data.search.search);
-                url.searchParams.set('length', data.length);
+                if (currentPage === 1 && !data.search.search && data.length === settings._iDisplayLength) {
+                    url.searchParams.delete('page');
+                    url.searchParams.delete('search');
+                    url.searchParams.delete('length');
+                } else {
+                    url.searchParams.set('page', currentPage);
+                    url.searchParams.set('search', data.search.search);
+                    url.searchParams.set('length', data.length);
+                }
 
                 // Đẩy lên URL mà không làm load lại trang
                 window.history.replaceState(null, null, url);
@@ -481,6 +487,11 @@ function initTable(){
             // 2. Đọc dữ liệu từ URL để áp dụng lại cho bảng khi reload trang
             stateLoadParams: function (settings, data) {
                 const urlParams = new URLSearchParams(window.location.search);
+
+                // Nếu trên URL không có bất kỳ tham số nào, trả về null để DataTables reset về trang 1
+                if (!urlParams.has('page') && !urlParams.has('search') && !urlParams.has('length')) {
+                    return null;
+                }
 
                 const page = parseInt(urlParams.get('page'), 10);
                 const search = urlParams.get('search');
