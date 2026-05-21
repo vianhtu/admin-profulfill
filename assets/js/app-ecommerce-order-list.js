@@ -585,7 +585,7 @@ function initTable(){
                         placeholder: 'Service...',
                         allowClear: true,
                         ajax: {
-                            url: '../../ajax.php?action=get-common-filter', // Link API của bạn
+                            url: '../../ajax.php?action=get-common-filter',
                             dataType: 'json',
                             type: 'POST',
                             delay: 250,
@@ -594,6 +594,7 @@ function initTable(){
                                     q: params.term,
                                     page: params.page || 1,
                                     type: 'accounts',
+                                    folow_val: $select.val()
                                 };
                             },
                             processResults: function (data, params) {
