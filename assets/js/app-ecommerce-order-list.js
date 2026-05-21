@@ -561,7 +561,6 @@ function initTable(){
                                 <select class="form-select shipping-service">
                                     <option value="" selected>Service...</option>
                                 </select>
-                                
                                 <!-- Ô nhập liệu (Input text) -->
                                 <input type="text" class="form-control form-control-sm" placeholder="Add track here...">
                             </td>
