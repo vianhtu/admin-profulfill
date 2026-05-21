@@ -592,7 +592,8 @@ function initTable(){
                             data: function (params) {
                                 return {
                                     q: params.term,
-                                    page: params.page || 1
+                                    page: params.page || 1,
+                                    type: 'accounts',
                                 };
                             },
                             processResults: function (data, params) {
