@@ -566,7 +566,7 @@ function initTable(){
                                     </select>
                                     
                                     <!-- Ô nhập liệu (Input text) -->
-                                    <input type="text" class="form-control form-control-sm" placeholder="Nhập dữ liệu tại đây...">
+                                    <input type="text" class="form-control form-control-sm" placeholder="Add track here...">
                                 </div>
                             </td>
                             <td></td>
