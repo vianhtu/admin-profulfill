@@ -555,7 +555,7 @@ function initTable(){
                             <td style="display: none;"></td>
                             <td></td>
                             <td colspan="3">${row_image}</td>
-                            <td colspan="3">${row_custom}</td>
+                            <td colspan="2">${row_custom}</td>
                             <td colspan="2">
                                 <div class="input-group input-group-sm">
                                     <!-- Hộp chọn (Select) -->
@@ -569,6 +569,7 @@ function initTable(){
                                     <input type="text" class="form-control form-control-sm" placeholder="Nhập dữ liệu tại đây...">
                                 </div>
                             </td>
+                            <td></td>
                           </tr>`;
                     });
 
