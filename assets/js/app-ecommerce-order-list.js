@@ -39,47 +39,6 @@ function replaceAmazonImageSize(url, newSize) {
     return url.replace(/SX\d+/, `SX${newSize}`);
 }
 
-// Hàm tạo HTML cho bảng con
-function getItemsRow(orderItems, colCount) {
-    let html = '';
-
-    orderItems.forEach(item => {
-        const row_image = `
-          <div class="d-flex justify-content-start align-items-center product-name">
-            <div class="avatar-wrapper">
-              <div class="avatar avatar me-2 me-sm-4 rounded-2 bg-label-secondary" style="width:80px; height:80px;">
-                <img src="${item.imageUrl}" 
-                     class="rounded img-fluid" 
-                     style="cursor:pointer;" 
-                     onclick="showImageModal('${item.imageUrl}')">
-              </div>
-            </div>
-            <div class="d-flex flex-column">
-              <a href="#" class="text-heading">${item.title}</a>
-              <small>ID: ${item.itemId}</small>
-              <small>QLT: ${item.quantity}</small>
-            </div>
-          </div>`;
-
-        let row_custom = '<div class="d-flex flex-column">';
-        item.attributes.forEach(value => {
-            row_custom += `<small>${value}</small>`;
-        });
-        row_custom += '</div>';
-
-        html += `
-          <tr class="shown">
-            <td style="display: none;"></td>
-            <td></td>
-            <td colspan="3">${row_image}</td>
-            <td colspan="5">${row_custom}</td>
-          </tr>`;
-    });
-
-    html += '';
-
-    return html;
-}
 // Datatable (js)
 function initTable(){
     let borderColor, bodyBg, headingColor;
@@ -226,6 +185,7 @@ function initTable(){
                 },
                 {
                     targets: 8,
+                    orderable: false,
                     responsivePriority: 1,
                     render: function (data, type, full, meta) {
                         return '<div class="d-flex flex-column">' +
@@ -554,8 +514,6 @@ function initTable(){
             // Thêm items.
             drawCallback: function(settings) {
                 const api = this.api();
-                const colCount = api.columns().count();
-
                 api.rows({ page: 'current' }).every(function() {
                     const rowData = this.data();
                     let items = [];
@@ -567,8 +525,44 @@ function initTable(){
                         items = rowData.items || [];
                     }
 
+                    let html = '';
+                    items.forEach(item => {
+                        const row_image = `
+                          <div class="d-flex justify-content-start align-items-center product-name">
+                            <div class="avatar-wrapper">
+                              <div class="avatar avatar me-2 me-sm-4 rounded-2 bg-label-secondary" style="width:80px; height:80px;">
+                                <img src="${item.imageUrl}" 
+                                     class="rounded img-fluid" 
+                                     style="cursor:pointer;" 
+                                     onclick="showImageModal('${item.imageUrl}')">
+                              </div>
+                            </div>
+                            <div class="d-flex flex-column">
+                              <a href="#" class="text-heading">${item.title}</a>
+                              <small>ID: ${item.itemId}</small>
+                              <small>QLT: ${item.quantity}</small>
+                            </div>
+                          </div>`;
+
+                            let row_custom = '<div class="d-flex flex-column">';
+                            item.attributes.forEach(value => {
+                                row_custom += `<small>${value}</small>`;
+                            });
+                            row_custom += '</div>';
+
+                            html += `
+                          <tr class="shown">
+                            <td style="display: none;"></td>
+                            <td></td>
+                            <td colspan="3">${row_image}</td>
+                            <td colspan="5">${row_custom}</td>
+                          </tr>`;
+                    });
+
+                    html += '';
+
                     // Chèn hàng con ngay sau hàng cha ở trang hiện tại
-                    $(this.node()).after(getItemsRow(items, colCount));
+                    $(this.node()).after(html);
                     $(this.node()).addClass('shown');
                 });
             }
