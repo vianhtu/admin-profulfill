@@ -555,8 +555,8 @@ function initTable(){
                             <td style="display: none;"></td>
                             <td></td>
                             <td colspan="3">${row_image}</td>
-                            <td colspan="2">${row_custom}</td>
-                            <td colspan="2">
+                            <td colspan="3">${row_custom}</td>
+                            <td>
                                 <div class="input-group input-group-sm">
                                     <!-- Hộp chọn (Select) -->
                                     <select class="form-select form-select-sm" style="max-width: 30%;">
