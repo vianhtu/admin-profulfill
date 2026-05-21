@@ -559,7 +559,7 @@ function initTable(){
                             <td>
                                 <div class="input-group input-group-sm select2-sm">
                                     <!-- Hộp chọn (Select) -->
-                                    <select class="form-select shipping-service" style="width: 30%;">
+                                    <select class="form-select shipping-service">
                                         <option value="" selected>Service...</option>
                                     </select>
                                     
@@ -582,15 +582,11 @@ function initTable(){
                 // Tìm tất cả các select chưa được khởi tạo Select2 trong trang hiện tại
                 $(api.table().container()).find('.shipping-service:not(.select2-hidden-accessible)').each(function() {
                     const $select = $(this);
-                    const itemId = $select.data('item-id'); // Lấy ID sản phẩm nếu cần truyền lên server
-
                     $select.select2({
                         theme: 'bootstrap-5',
                         tags: true,
                         placeholder: 'Service...',
                         allowClear: true,
-                        // Nếu bảng của bạn nằm trong modal, hãy un-comment dòng dưới để không bị lỗi hiển thị
-                        // dropdownParent: $select.parent(),
                         ajax: {
                             url: 'https://api.example.com/services', // Link API của bạn
                             dataType: 'json',
@@ -598,14 +594,13 @@ function initTable(){
                             data: function (params) {
                                 return {
                                     q: params.term,
-                                    itemId: itemId, // Truyền thêm itemId lên server lọc nếu cần
                                     page: params.page || 1
                                 };
                             },
                             processResults: function (data, params) {
                                 params.page = params.page || 1;
                                 return {
-                                    results: data.items, // Cấu trúc trả về bắt buộc: [{id: 1, text: 'abc'}, ...]
+                                    results: data.items,
                                     pagination: {
                                         more: (params.page * 30) < data.total_count
                                     }
