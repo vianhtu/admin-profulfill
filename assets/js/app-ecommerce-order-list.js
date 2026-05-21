@@ -599,12 +599,10 @@ function initTable(){
                                 };
                             },
                             processResults: function (data, params) {
-                                params.page = params.page || 1;
-                                console.log("2. Dữ liệu thô từ Server trả về:", data);
                                 return {
-                                    results: data.items,
+                                    results: data.results || [],
                                     pagination: {
-                                        more: (params.page * 30) < data.total_count
+                                        more: data.pagination ? data.pagination.more : false
                                     }
                                 };
                             },
