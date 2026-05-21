@@ -600,6 +600,7 @@ function initTable(){
                             },
                             processResults: function (data, params) {
                                 params.page = params.page || 1;
+                                console.log("2. Dữ liệu thô từ Server trả về:", data);
                                 return {
                                     results: data.items,
                                     pagination: {
