@@ -559,7 +559,7 @@ function initTable(){
                             <td>
                                 <!-- Hộp chọn (Select) -->
                                 <select class="form-select shipping-service">
-                                    <option value="" selected>Service...</option>
+                                    <option></option>
                                 </select>
                                 <!-- Ô nhập liệu (Input text) -->
                                 <input type="text" class="form-control form-control-sm" placeholder="Add track here...">
@@ -584,6 +584,7 @@ function initTable(){
                         tags: true,
                         placeholder: 'Service...',
                         allowClear: true,
+                        dropdownParent: $select.parent(),
                         ajax: {
                             url: '../../ajax.php?action=get-common-filter',
                             dataType: 'json',
