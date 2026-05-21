@@ -585,8 +585,9 @@ function initTable(){
                         placeholder: 'Service...',
                         allowClear: true,
                         ajax: {
-                            url: 'https://api.example.com/services', // Link API của bạn
+                            url: '../../ajax.php?action=get-common-filter', // Link API của bạn
                             dataType: 'json',
+                            type: 'POST',
                             delay: 250,
                             data: function (params) {
                                 return {
