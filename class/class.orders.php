@@ -2,7 +2,7 @@
 class Orders
 {
     public static function get_orders(): array {
-        $allowedCols = ['ID', 'status', 'purchase_date', 'delivery_date', 'ship_date'];
+        $allowedCols = ['ID', 'status', 'purchase_date', 'delivery_date', 'ship_date', 'total_price'];
         $params = getDataTableParams($allowedCols);
         $conn = db();
 

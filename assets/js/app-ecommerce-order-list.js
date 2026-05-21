@@ -551,7 +551,7 @@ function initTable(){
                     }
                 };
             },
-            // Thêm row items.
+            // Thêm items.
             drawCallback: function(settings) {
                 const api = this.api();
                 const colCount = api.columns().count();
