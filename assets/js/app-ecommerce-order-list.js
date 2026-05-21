@@ -580,25 +580,27 @@ function initTable(){
                 $(api.table().container()).find('.shipping-service:not(.select2-hidden-accessible)').each(function() {
                     const $select = $(this);
                     $select.select2({
-                        theme: 'bootstrap-5',
+                        placeholder: 'Tìm và chọn...',
+                        multiple: false,
                         tags: true,
-                        placeholder: 'Service...',
                         allowClear: true,
-                        dropdownParent: $select.parent(),
                         ajax: {
+                            // URL nên giữ action cố định, 'type' sẽ được gửi trong POST data
                             url: '../../ajax.php?action=get-common-filter',
                             dataType: 'json',
                             type: 'POST',
-                            delay: 250,
+                            delay: 300,
                             data: function (params) {
                                 return {
-                                    q: params.term,
+                                    q: params.term || '',
                                     page: params.page || 1,
                                     type: 'accounts',
                                     folow_val: $select.val()
                                 };
                             },
                             processResults: function (data, params) {
+                                // PHP bản mới trả về { results: [...], pagination: { more: true/false } }
+                                // Nếu PHP đã format đúng 'text' và 'id', bạn không cần .map() lại
                                 return {
                                     results: data.results || [],
                                     pagination: {
@@ -607,6 +609,13 @@ function initTable(){
                                 };
                             },
                             cache: true
+                        },
+                        minimumInputLength: 0, // Nên để 0 để khi click vào là hiện danh sách ngay (nếu muốn)
+                        language: {
+                            inputTooShort: () => 'Gõ ít nhất 1 ký tự',
+                            searching: () => 'Đang tìm...',
+                            noResults: () => 'Không có kết quả',
+                            errorLoading: () => 'Lỗi tải dữ liệu'
                         }
                     });
                 });
