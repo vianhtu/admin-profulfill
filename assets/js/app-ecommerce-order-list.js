@@ -557,16 +557,16 @@ function initTable(){
                             <td colspan="3">${row_image}</td>
                             <td colspan="3">${row_custom}</td>
                             <td colspan="2">
-                                <div class="input-group">
+                                <div class="input-group input-group-sm">
                                     <!-- Hộp chọn (Select) -->
-                                    <select class="form-select" style="max-width: 30%;">
+                                    <select class="form-select form-select-sm" style="max-width: 30%;">
                                         <option selected>Chọn...</option>
                                         <option value="1">Loại 1</option>
                                         <option value="2">Loại 2</option>
                                     </select>
                                     
                                     <!-- Ô nhập liệu (Input text) -->
-                                    <input type="text" class="form-control" placeholder="Nhập dữ liệu tại đây...">
+                                    <input type="text" class="form-control form-control-sm" placeholder="Nhập dữ liệu tại đây...">
                                 </div>
                             </td>
                           </tr>`;
