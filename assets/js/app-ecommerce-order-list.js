@@ -668,12 +668,11 @@ function initTable(){
 function addTrackingNumber() {
     $(document).on('select2:select select2:clear change input', '.shipping-service, .shipping-tracking', function() {
         let $row = $(this).closest('tr');
-
         let orderId = $row.data('id');
         let itemId  = $row.data('item-id');
-
-        let services = $row.find('.shipping-service').val() ? $row.find('.shipping-service').val().trim() : '';
-        let track    = $row.find('.shipping-tracking').val() ? $row.find('.shipping-tracking').val().trim() : '';
+        let selectedText   = $row.find('.shipping-service').find(':selected').text();
+        let services= selectedText ? selectedText.trim() : '';
+        let track   = $row.find('.shipping-tracking').val() ? $row.find('.shipping-tracking').val().trim() : '';
 
         // Kiểm tra điều kiện: Đủ cả 2 trường mới bắn AJAX
         if (services !== '' && track !== '') {
