@@ -540,7 +540,7 @@ function initTable(){
                               </div>
                             </div>
                             <div class="d-flex flex-column">
-                              <a href="#" class="text-heading">${item.title}</a>
+                              <a href="${item?.url || 'javascript:void(0);'}" class="text-heading">${item.title}</a>
                               <small>ID: ${item.itemId}</small>
                               <small>QLT: ${item.quantity}</small>
                             </div>
