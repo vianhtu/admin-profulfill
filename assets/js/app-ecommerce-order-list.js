@@ -672,9 +672,23 @@ function initTable(){
 }
 
 function addTrackingNumber(api) {
-    // 🚀 SỬA LỖI 1: Thay $(document) bằng $(api.table().container()) để không bị lặp sự kiện khi reload bảng
-    $(api.table().container()).on('select2:select select2:clear change input', '.shipping-service, .shipping-tracking', function() {
-        let $row = $(this).closest('tr'); // Đây là tr.child-item-row
+    // Chỉ lắng nghe các sự kiện thực tế cần thiết ngắt quãng
+    const $container = $(api.table().container());
+
+    // 1. Đối với ô Select2: Chỉ nghe sự kiện chọn và xóa của Select2, bỏ qua 'change' thuần
+    $container.on('select2:select select2:clear', '.shipping-service', function() {
+        triggerAjaxUpdate($(this));
+    });
+
+    // 2. Đối với ô Input text: Sử dụng 'change' (khi trỏ chuột ra ngoài) thay vì 'input' (gõ từng chữ)
+    // Việc dùng 'change' trên input giúp giảm tải tối đa, chỉ bắn AJAX khi user gõ xong và tab/click ra ngoài
+    $container.on('change', '.shipping-tracking', function() {
+        triggerAjaxUpdate($(this));
+    });
+
+    // Hàm xử lý logic lõi dùng chung để tránh trùng code
+    function triggerAjaxUpdate($element) {
+        let $row = $element.closest('tr');
         let orderId = $row.data('id');
         let itemId  = $row.data('item-id');
 
@@ -682,10 +696,11 @@ function addTrackingNumber(api) {
         let services     = selectedText ? selectedText.trim() : '';
         let track        = $row.find('.shipping-tracking').val() ? $row.find('.shipping-tracking').val().trim() : '';
 
-        // Kiểm tra điều kiện: Đủ cả 2 trường và không dính placeholder mới bắn AJAX
-        if (services !== '' && services !== 'Shipping service...' && track !== '') {
+        // Điều kiện: Đầy đủ thông tin và không dính trạng thái khóa (đang gửi)
+        if (services !== '' && services !== 'Shipping service...' && track !== '' && !$row.hasClass('is-sending')) {
 
-            // Khóa tạm thời các input trong hàng này lại để tránh double-ajax
+            // Đánh dấu dòng này đang gửi để chặn mọi hành vi kích hoạt trùng nếu có
+            $row.addClass('is-sending');
             $row.find('.shipping-service, .shipping-tracking').prop('disabled', true);
 
             $.ajax({
@@ -700,33 +715,23 @@ function addTrackingNumber(api) {
                 },
                 success: function(response) {
                     if (response.status === 'success') {
+                        $row.addClass('table-success');
+
                         if (response.data && response.data.order_status) {
                             const newStatus = response.data.order_status;
-
-                            console.log(newStatus);
-
-                            // Tìm hàng cha cụ thể phía trên
                             let $parentRow = $row.prevAll('tr.order').first();
-
-                            // 🚀 SỬA LỖI 2: Sử dụng trực tiếp biến `api` có sẵn, không gọi lại .DataTable()
                             let dtRow = api.row($parentRow);
 
                             if (dtRow.any()) {
                                 let rowData = dtRow.data();
-
                                 if (rowData.status !== newStatus) {
-                                    // 1. Cập nhật giá trị vào cache ngầm để khi chuyển trang/sắp xếp không bị mất dữ liệu
                                     rowData.status = newStatus;
                                     dtRow.data(rowData).invalidate();
 
-                                    // 2. 🚀 SỬA LỖI 3: Không chạy hàm .draw(false) trực tiếp tại đây vì nó sẽ làm biến mất các dòng con (items).
-                                    // Thay vào đó, ta gọi hàm cập nhật giao diện hiển thị HTML của Badge bằng jQuery:
                                     if (typeof statusObj !== 'undefined' && statusObj[newStatus]) {
                                         const statusInfo = statusObj[newStatus];
                                         const badgeHtml = `<span class="badge px-2 ${statusInfo.class} text-capitalized">${statusInfo.title}</span>`;
-
-                                        // Tìm cột chứa status ở hàng cha (targets: 7 tức là cột số 8 trong mảng index từ 0)
-                                        $parentRow.find('td').eq(7).html(badgeHtml);
+                                        $parentRow.find('.order-status-column').html(badgeHtml);
                                     }
                                 }
                             }
@@ -740,12 +745,13 @@ function addTrackingNumber(api) {
                     alert('Hệ thống gặp lỗi khi kết nối!');
                 },
                 complete: function() {
-                    // Mở khóa lại hàng sau khi chạy xong
+                    // Xóa trạng thái chờ và mở khóa input
+                    $row.removeClass('is-sending');
                     $row.find('.shipping-service, .shipping-tracking').prop('disabled', false);
                 }
             });
         }
-    });
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function (e) {
