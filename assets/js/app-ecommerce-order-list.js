@@ -560,7 +560,7 @@ function initTable(){
                                 <div class="d-flex flex-column gap-1">
                                 <div class="select2-sm-wrapper">
                                     <!-- Hộp chọn (Select) -->
-                                    <select class="form-select-sm shipping-service">
+                                    <select class="form-select-sm select2--small shipping-service">
                                         <option></option>
                                     </select>
                                 </div>
