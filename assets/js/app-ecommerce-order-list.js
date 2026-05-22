@@ -551,6 +551,11 @@ function initTable(){
                             });
                             row_custom += '</div>';
 
+                            const currentService = item.services ? item.services.trim() : '';
+                            const optionHtml = currentService
+                                ? `<option value="${currentService}" selected>${currentService}</option>`
+                                : `<option></option>`;
+
                             html += `
                           <tr class="order-item" data-id="${rowData.id}" data-item-id="${item.itemId}">
                             <td style="display: none;"></td>
@@ -560,9 +565,7 @@ function initTable(){
                             <td>
                                 <div class="d-flex flex-column gap-2">
                                     <!-- Hộp chọn (Select) -->
-                                    <select class="form-select form-select-sm shipping-service">
-                                        <option></option>
-                                    </select>
+                                    <select class="form-select form-select-sm shipping-service">${optionHtml}</select>
                                     <!-- Ô nhập liệu (Input text) -->
                                     <input type="text" value="${item?.track || ''}" class="form-control shipping-tracking" placeholder="Add track here...">
                                 </div>
