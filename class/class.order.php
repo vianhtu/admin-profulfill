@@ -57,11 +57,11 @@ class Order
 
         // 1. Nhận và lọc dữ liệu đầu vào từ AJAX POST
         $orderId  = isset($_POST['id']) ? (int)$_POST['id'] : 0;
-        $itemId   = isset($_POST['itemId']) ? trim((string)$_POST['itemId']) : '';
+        $itemIndex = isset($_POST['itemIndex']) ? (int)$_POST['itemIndex'] : -1;
         $services = isset($_POST['services']) ? trim((string)$_POST['services']) : '';
         $track    = isset($_POST['track']) ? trim((string)$_POST['track']) : '';
 
-        if ($orderId <= 0 || empty($itemId)) {
+        if ($orderId <= 0 || $itemIndex < 0) {
             return ['status' => 'error', 'message' => 'Dữ liệu không hợp lệ.'];
         }
 
@@ -78,21 +78,14 @@ class Order
             return ['status' => 'error', 'message' => 'Dữ liệu danh sách sản phẩm bị lỗi định dạng JSON.'];
         }
 
-        // 4. Cập nhật thông tin item hiện tại được gửi lên
-        $isItemFound = false;
-        foreach ($items as &$item) {
-            if (isset($item['itemId']) && (string)$item['itemId'] === $itemId) {
-                $item['services'] = $services;
-                $item['track'] = $track;
-                $isItemFound = true;
-                break;
-            }
+        // 4. KIỂM TRA TRỰC TIẾP QUA INDEX
+        if (!isset($items[$itemIndex])) {
+            return ['status' => 'error', 'message' => 'Không tìm thấy sản phẩm tại vị trí yêu cầu.'];
         }
-        unset($item); // Huỷ reference
 
-        if (!$isItemFound) {
-            return ['status' => 'error', 'message' => 'Không tìm thấy sản phẩm có Item ID này trong đơn hàng.'];
-        }
+        // Tiến hành gán thẳng dữ liệu mới vào vị trí index đó
+        $items[$itemIndex]['services'] = $services;
+        $items[$itemIndex]['track'] = $track;
 
         // 5. Kiểm tra xem TẤT CẢ các sản phẩm trong đơn đã có mã tracking chưa
         $allShipped = true;

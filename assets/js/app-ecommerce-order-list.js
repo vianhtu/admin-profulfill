@@ -528,7 +528,7 @@ function initTable(){
                     }
 
                     let html = '';
-                    items.forEach(item => {
+                    items.forEach((item, index) => {
                         const row_image = `
                           <div class="d-flex justify-content-start align-items-center product-name">
                             <div class="avatar-wrapper">
@@ -558,7 +558,7 @@ function initTable(){
                                 : `<option></option>`;
 
                             html += `
-                          <tr class="order-item" data-id="${rowData.id}" data-item-id="${item.itemId}">
+                          <tr class="order-item" data-id="${rowData.id}" data-item-index="${index}">
                             <td style="display: none;"></td>
                             <td></td>
                             <td colspan="3">${row_image}</td>
@@ -692,7 +692,7 @@ function addTrackingNumber(api) {
     function triggerAjaxUpdate($element) {
         let $row = $element.closest('tr');
         let orderId = $row.data('id');
-        let itemId  = $row.data('item-id');
+        let itemIndex  = $row.data('item-index');
 
         let selectedText = $row.find('.shipping-service').find(':selected').text();
         let services     = selectedText ? selectedText.trim() : '';
@@ -711,7 +711,7 @@ function addTrackingNumber(api) {
                 dataType: 'json',
                 data: {
                     id: orderId,
-                    itemId: itemId,
+                    itemIndex: itemIndex,
                     services: services,
                     track: track
                 },
