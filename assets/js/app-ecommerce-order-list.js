@@ -704,7 +704,7 @@ function addTrackingNumber(api) {
                             const newStatus = response.data.order_status;
 
                             // Tìm hàng cha cụ thể phía trên
-                            let $parentRow = $row.prevAll('tr.order').first();
+                            let $parentRow = $row.prevAll('tr.order').first(); console.log($parentRow);
 
                             // 🚀 SỬA LỖI 2: Sử dụng trực tiếp biến `api` có sẵn, không gọi lại .DataTable()
                             let dtRow = api.row($parentRow);
