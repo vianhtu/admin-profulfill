@@ -47,12 +47,14 @@ class Orders
             OR orders.full_name LIKE ? 
             OR orders.phone LIKE ? 
             OR orders.all_item_titles LIKE ?
-            OR orders.all_item_ids LIKE ?)";
+            OR orders.all_item_ids LIKE ?
+            OR orders.all_item_skus LIKE ?)";
 
             $searchParam = "%" . $params['searchValue'] . "%";
             // Thêm 4 tham số tìm kiếm vào mảng
             array_push(
                 $bindParams,
+                $searchParam,
                 $searchParam,
                 $searchParam,
                 $searchParam,
