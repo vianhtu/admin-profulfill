@@ -582,11 +582,10 @@ function initTable(){
                 $(api.table().container()).find('.shipping-service:not(.select2-hidden-accessible)').each(function() {
                     const $select = $(this);
                     $select.select2({
-                        placeholder: 'Tìm và chọn...',
+                        placeholder: 'Shipping service...',
                         multiple: false,
                         tags: true,
                         allowClear: true,
-                        dropdownParent: $select.parent(),
                         ajax: {
                             // URL nên giữ action cố định, 'type' sẽ được gửi trong POST data
                             url: '../../ajax.php?action=get-common-filter',
