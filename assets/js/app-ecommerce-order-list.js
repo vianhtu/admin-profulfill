@@ -716,12 +716,10 @@ function addTrackingNumber(api) {
                 },
                 success: function(response) {
                     if (response.status === 'success') {
-                        $row.addClass('table-success');
-
                         if (response.data && response.data.order_status) {
                             const newStatus = response.data.order_status;
                             let $parentRow = $row.prevAll('tr.order').first();
-                            let dtRow = api.row($parentRow);
+                            let dtRow = api.row($parentRow); console.log(dtRow);
 
                             if (dtRow.any()) {
                                 let rowData = dtRow.data();
