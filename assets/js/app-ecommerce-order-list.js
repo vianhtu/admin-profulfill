@@ -557,10 +557,12 @@ function initTable(){
                             <td colspan="3">${row_image}</td>
                             <td colspan="3">${row_custom}</td>
                             <td>
-                                <!-- Hộp chọn (Select) -->
-                                <select class="form-select shipping-service">
-                                    <option></option>
-                                </select>
+                                <div class="select2-sm-wrapper">
+                                    <!-- Hộp chọn (Select) -->
+                                    <select class="form-select shipping-service">
+                                        <option></option>
+                                    </select>
+                                </div>
                                 <!-- Ô nhập liệu (Input text) -->
                                 <input type="text" class="form-control form-control-sm" placeholder="Add track here...">
                             </td>
@@ -584,6 +586,7 @@ function initTable(){
                         multiple: false,
                         tags: true,
                         allowClear: true,
+                        dropdownParent: $select.parent(),
                         ajax: {
                             // URL nên giữ action cố định, 'type' sẽ được gửi trong POST data
                             url: '../../ajax.php?action=get-common-filter',
@@ -598,8 +601,6 @@ function initTable(){
                                 };
                             },
                             processResults: function (data, params) {
-                                // PHP bản mới trả về { results: [...], pagination: { more: true/false } }
-                                // Nếu PHP đã format đúng 'text' và 'id', bạn không cần .map() lại
                                 return {
                                     results: data.results || [],
                                     pagination: {
