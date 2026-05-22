@@ -551,7 +551,7 @@ function initTable(){
                             row_custom += '</div>';
 
                             html += `
-                          <tr class="shown">
+                          <tr class="shown" data-id="${rowData.id}">
                             <td style="display: none;"></td>
                             <td></td>
                             <td colspan="3">${row_image}</td>
