@@ -594,8 +594,7 @@ function initTable(){
                                 return {
                                     q: params.term || '',
                                     page: params.page || 1,
-                                    type: 'shipping',
-                                    folow_val: $select.val()
+                                    type: 'shipping'
                                 };
                             },
                             processResults: function (data, params) {
