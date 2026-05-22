@@ -552,7 +552,7 @@ function initTable(){
                             row_custom += '</div>';
 
                             html += `
-                          <tr class="shown order-item" data-id="${rowData.id}" data-item-id="${item.itemId}">
+                          <tr class="order-item" data-id="${rowData.id}" data-item-id="${item.itemId}">
                             <td style="display: none;"></td>
                             <td></td>
                             <td colspan="3">${row_image}</td>
