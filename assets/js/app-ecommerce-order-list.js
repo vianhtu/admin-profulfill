@@ -18,7 +18,6 @@ async function init() {
 
         // 2️⃣ Sau khi có dữ liệu → tạo bảng
         initTable();
-        addTrackingNumber();
     } catch (err) {
         alert('Không thể tải danh mục');
     }
@@ -617,9 +616,9 @@ function initTable(){
                     });
                 });
             },
-            initComplete: function(settings, json) {
+            nitComplete: function(settings, json) {
                 const api = this.api();
-                addTrackingNumber(api);
+                addTrackingNumber(api); // Truyền instance api vào hàm xử lý
             }
         });
 
@@ -701,8 +700,6 @@ function addTrackingNumber(api) {
                 },
                 success: function(response) {
                     if (response.status === 'success') {
-                        $row.addClass('table-success'); // Đổi màu nền hàng con báo hiệu đã lưu thành công
-
                         if (response.data && response.data.order_status) {
                             const newStatus = response.data.order_status;
 
