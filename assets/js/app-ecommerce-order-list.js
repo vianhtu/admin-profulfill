@@ -609,13 +609,7 @@ function initTable(){
                             },
                             cache: true
                         },
-                        minimumInputLength: 0, // Nên để 0 để khi click vào là hiện danh sách ngay (nếu muốn)
-                        language: {
-                            inputTooShort: () => 'Gõ ít nhất 1 ký tự',
-                            searching: () => 'Đang tìm...',
-                            noResults: () => 'Không có kết quả',
-                            errorLoading: () => 'Lỗi tải dữ liệu'
-                        }
+                        minimumInputLength: 0
                     });
                 });
             }
