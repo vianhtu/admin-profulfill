@@ -616,7 +616,7 @@ function initTable(){
                     });
                 });
             },
-            nitComplete: function(settings, json) {
+            initComplete: function(settings, json) {
                 const api = this.api();
                 addTrackingNumber(api); // Truyền instance api vào hàm xử lý
             }
