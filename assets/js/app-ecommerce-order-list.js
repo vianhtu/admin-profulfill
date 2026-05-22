@@ -564,7 +564,7 @@ function initTable(){
                                         <option></option>
                                     </select>
                                     <!-- Ô nhập liệu (Input text) -->
-                                    <input type="text" class="form-control shipping-tracking" placeholder="Add track here...">
+                                    <input type="text" value="${item?.track || ''}" class="form-control shipping-tracking" placeholder="Add track here...">
                                 </div>
                             </td>
                             <td></td>
