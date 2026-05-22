@@ -228,7 +228,7 @@ class Extensions
                 $account_id,
                 $order->id,
                 json_encode($order->items ?? []),
-                'Unshipped',
+                'unshipped',
                 $order->timeline->buyerPaidDate ?? null,
                 $order->timeline->shipByDate ?? null,
                 $order->timeline->estimatedDelivery ?? null,
