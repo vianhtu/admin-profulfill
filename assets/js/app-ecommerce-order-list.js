@@ -616,6 +616,10 @@ function initTable(){
                         minimumInputLength: 0
                     });
                 });
+            },
+            initComplete: function(settings, json) {
+                const api = this.api();
+                addTrackingNumber(api);
             }
         });
 
@@ -668,19 +672,21 @@ function initTable(){
     }, 100);
 }
 
-function addTrackingNumber() {
-    $(document).on('select2:select select2:clear change input', '.shipping-service, .shipping-tracking', function() {
-        let $row = $(this).closest('tr');
+function addTrackingNumber(api) {
+    // 🚀 SỬA LỖI 1: Thay $(document) bằng $(api.table().container()) để không bị lặp sự kiện khi reload bảng
+    $(api.table().container()).on('select2:select select2:clear change input', '.shipping-service, .shipping-tracking', function() {
+        let $row = $(this).closest('tr'); // Đây là tr.child-item-row
         let orderId = $row.data('id');
         let itemId  = $row.data('item-id');
-        let selectedText   = $row.find('.shipping-service').find(':selected').text();
-        let services= selectedText ? selectedText.trim() : '';
-        let track   = $row.find('.shipping-tracking').val() ? $row.find('.shipping-tracking').val().trim() : '';
 
-        // Kiểm tra điều kiện: Đủ cả 2 trường mới bắn AJAX
-        if (services !== '' && track !== '') {
+        let selectedText = $row.find('.shipping-service').find(':selected').text();
+        let services     = selectedText ? selectedText.trim() : '';
+        let track        = $row.find('.shipping-tracking').val() ? $row.find('.shipping-tracking').val().trim() : '';
 
-            // Khóa tạm thời các input trong hàng này lại để tránh double-click / double-ajax
+        // Kiểm tra điều kiện: Đủ cả 2 trường và không dính placeholder mới bắn AJAX
+        if (services !== '' && services !== 'Shipping service...' && track !== '') {
+
+            // Khóa tạm thời các input trong hàng này lại để tránh double-ajax
             $row.find('.shipping-service, .shipping-tracking').prop('disabled', true);
 
             $.ajax({
@@ -695,34 +701,38 @@ function addTrackingNumber() {
                 },
                 success: function(response) {
                     if (response.status === 'success') {
-                        // Hiển thị thành công hoặc đổi màu nền hàng làm dấu
-                        // 🚀 ĐOẠN XỬ LÝ CẬP NHẬT TRẠNG THÁI BADGE DỰA VÀO ĐỊNH DẠNG DATATABLES CỦA BẠN
+                        $row.addClass('table-success'); // Đổi màu nền hàng con báo hiệu đã lưu thành công
+
                         if (response.data && response.data.order_status) {
                             const newStatus = response.data.order_status;
 
+                            // Tìm hàng cha cụ thể phía trên
                             let $parentRow = $row.prevAll('tr.order').first();
 
-                            // 2. Lấy instance DataTable của bảng (Thay '#myTable' bằng ID bảng thực tế của bạn)
-                            let table = $('.datatables-order').DataTable();
-
-                            // 3. Lấy đối tượng Row trong bộ nhớ DataTable của hàng cha
-                            let dtRow = table.row($parentRow);
+                            // 🚀 SỬA LỖI 2: Sử dụng trực tiếp biến `api` có sẵn, không gọi lại .DataTable()
+                            let dtRow = api.row($parentRow);
 
                             if (dtRow.any()) {
                                 let rowData = dtRow.data();
 
-                                // Chỉ xử lý cập nhật nếu trạng thái trong DB thực sự thay đổi
                                 if (rowData.status !== newStatus) {
-                                    // Cập nhật giá trị status mới vào bộ nhớ Cache của DataTable
+                                    // 1. Cập nhật giá trị vào cache ngầm để khi chuyển trang/sắp xếp không bị mất dữ liệu
                                     rowData.status = newStatus;
+                                    dtRow.data(rowData).invalidate();
 
-                                    // Ghi đè dữ liệu mới này vào row và ra lệnh vẽ lại (invalidate) riêng row này thôi
-                                    // Việc này sẽ kích hoạt hàm `render` ở cột số 7 chạy lại tự động sinh Badge mới
-                                    dtRow.data(rowData).invalidate().draw(false);
+                                    // 2. 🚀 SỬA LỖI 3: Không chạy hàm .draw(false) trực tiếp tại đây vì nó sẽ làm biến mất các dòng con (items).
+                                    // Thay vào đó, ta gọi hàm cập nhật giao diện hiển thị HTML của Badge bằng jQuery:
+                                    if (typeof statusObj !== 'undefined' && statusObj[newStatus]) {
+                                        const statusInfo = statusObj[newStatus];
+                                        const badgeHtml = `<span class="badge px-2 ${statusInfo.class} text-capitalized">${statusInfo.title}</span>`;
+
+                                        // Tìm cột chứa status ở hàng cha (targets: 7 tức là cột số 8 trong mảng index từ 0)
+                                        $parentRow.find('td').eq(7).html(badgeHtml);
+                                    }
                                 }
                             }
                         }
-                        console.log(response.message, response);
+                        console.log(response.message);
                     } else {
                         alert('Lỗi: ' + response.message);
                     }
