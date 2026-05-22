@@ -722,7 +722,7 @@ function addTrackingNumber() {
                                 }
                             }
                         }
-                        console.log(response.message);
+                        console.log(response.message, response);
                     } else {
                         alert('Lỗi: ' + response.message);
                     }
