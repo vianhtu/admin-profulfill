@@ -53,7 +53,7 @@ function initTable(){
         statusObj = {
             unshipped: { title: 'Unshipped', class: 'bg-label-warning' },
             shipped: { title: 'Shipped', class: 'bg-label-secondary' },
-            2: { title: 'Delivered', class: 'bg-label-success' },
+            delivered: { title: 'Delivered', class: 'bg-label-success' },
             3: { title: 'Out for Delivery', class: 'bg-label-primary' },
             4: { title: 'Ready to Pickup', class: 'bg-label-info' }
         },
