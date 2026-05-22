@@ -719,7 +719,7 @@ function addTrackingNumber(api) {
                         if (response.data && response.data.order_status) {
                             const newStatus = response.data.order_status;
                             let $parentRow = $row.prevAll('tr.order').first();
-                            let dtRow = api.row($parentRow); console.log(dtRow);
+                            let dtRow = api.row($parentRow);
 
                             if (dtRow.any()) {
                                 let rowData = dtRow.data();
