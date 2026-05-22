@@ -51,7 +51,8 @@ function initTable(){
 
     const dt_order_table = document.querySelector('.datatables-order'),
         statusObj = {
-            Unshipped: { title: 'Unshipped', class: 'bg-label-warning' },
+            unshipped: { title: 'Unshipped', class: 'bg-label-warning' },
+            shipped: { title: 'Shipped', class: 'bg-label-secondary' },
             2: { title: 'Delivered', class: 'bg-label-success' },
             3: { title: 'Out for Delivery', class: 'bg-label-primary' },
             4: { title: 'Ready to Pickup', class: 'bg-label-info' }
