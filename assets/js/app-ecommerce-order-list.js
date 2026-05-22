@@ -594,7 +594,7 @@ function initTable(){
                                 return {
                                     q: params.term || '',
                                     page: params.page || 1,
-                                    type: 'accounts',
+                                    type: 'shipping',
                                     folow_val: $select.val()
                                 };
                             },

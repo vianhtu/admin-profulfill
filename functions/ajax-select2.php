@@ -24,6 +24,11 @@ function getCommonFilterData(): array {
             'base_sql' => "SELECT a.id, CONCAT(t.name, ' (', a.username, ')') AS text FROM authors a JOIN team t ON a.team_id = t.id",
             'search_where' => "(a.email LIKE ? OR a.username LIKE ?)",
             'order' => "a.team_id ASC"
+        ],
+        'shipping' => [
+            'base_sql' => "SELECT id, name AS text FROM shipping_services",
+            'search_where' => "name LIKE ?",
+            'order' => "id ASC"
         ]
     ];
 
@@ -78,6 +83,9 @@ function getCommonFilterData(): array {
             $params[] = (int)($auth['user_id'] ?? 0);
             $types .= "i";
         }
+    } elseif ($type === 'shipping'){
+        $params = [$like];
+        $types = "s";
     }
 
     $sql = $cfg['base_sql'] . " WHERE " . implode(" AND ", $whereClauses);
