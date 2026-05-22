@@ -547,6 +547,9 @@ function initTable(){
                           </div>`;
 
                             let row_custom = '<div class="d-flex flex-column">';
+                            if(item?.sku){
+                                row_custom += `<small>SKU: ${item.sku}</small>`;
+                            }
                             item.attributes.forEach(value => {
                                 row_custom += `<small>${value}</small>`;
                             });
