@@ -18,6 +18,7 @@ async function init() {
 
         // 2️⃣ Sau khi có dữ liệu → tạo bảng
         initTable();
+        addTrackingNumber();
     } catch (err) {
         alert('Không thể tải danh mục');
     }
@@ -551,7 +552,7 @@ function initTable(){
                             row_custom += '</div>';
 
                             html += `
-                          <tr class="shown" data-id="${rowData.id}">
+                          <tr class="shown" data-id="${rowData.id}" data-item-id="${item.itemId}">
                             <td style="display: none;"></td>
                             <td></td>
                             <td colspan="3">${row_image}</td>
@@ -563,7 +564,7 @@ function initTable(){
                                         <option></option>
                                     </select>
                                     <!-- Ô nhập liệu (Input text) -->
-                                    <input type="text" class="form-control" placeholder="Add track here...">
+                                    <input type="text" class="form-control shipping-tracking" placeholder="Add track here...">
                                 </div>
                             </td>
                             <td></td>
@@ -662,6 +663,53 @@ function initTable(){
             });
         });
     }, 100);
+}
+
+function addTrackingNumber() {
+    $(document).on('select2:select select2:clear change input', '.shipping-service, .shipping-tracking', function() {
+        let $row = $(this).closest('tr');
+
+        let orderId = $row.data('id');
+        let itemId  = $row.data('item-id');
+
+        let services = $row.find('.shipping-service').val() ? $row.find('.shipping-service').val().trim() : '';
+        let track    = $row.find('.shipping-tracking').val() ? $row.find('.shipping-tracking').val().trim() : '';
+
+        // Kiểm tra điều kiện: Đủ cả 2 trường mới bắn AJAX
+        if (services !== '' && track !== '') {
+
+            // Khóa tạm thời các input trong hàng này lại để tránh double-click / double-ajax
+            $row.find('.shipping-service, .shipping-tracking').prop('disabled', true);
+
+            $.ajax({
+                url: '../../ajax.php?action=add-order-tracking',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    id: orderId,
+                    itemId: itemId,
+                    services: services,
+                    track: track
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        // Hiển thị thành công hoặc đổi màu nền hàng làm dấu
+                        $row.addClass('table-success');
+                        console.log(response.message);
+                    } else {
+                        alert('Lỗi: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Hệ thống gặp lỗi khi kết nối!');
+                },
+                complete: function() {
+                    // Mở khóa lại hàng sau khi chạy xong
+                    $row.find('.shipping-service, .shipping-tracking').prop('disabled', false);
+                }
+            });
+        }
+    });
 }
 
 document.addEventListener('DOMContentLoaded', function (e) {
