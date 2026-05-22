@@ -696,7 +696,32 @@ function addTrackingNumber() {
                 success: function(response) {
                     if (response.status === 'success') {
                         // Hiển thị thành công hoặc đổi màu nền hàng làm dấu
-                        $row.addClass('table-success');
+                        // 🚀 ĐOẠN XỬ LÝ CẬP NHẬT TRẠNG THÁI BADGE DỰA VÀO ĐỊNH DẠNG DATATABLES CỦA BẠN
+                        if (response.data && response.data.order_status) {
+                            const newStatus = response.data.order_status;
+
+                            let $parentRow = $row.prevAll('tr.order').first();
+
+                            // 2. Lấy instance DataTable của bảng (Thay '#myTable' bằng ID bảng thực tế của bạn)
+                            let table = $('.datatables-order').DataTable();
+
+                            // 3. Lấy đối tượng Row trong bộ nhớ DataTable của hàng cha
+                            let dtRow = table.row($parentRow);
+
+                            if (dtRow.any()) {
+                                let rowData = dtRow.data();
+
+                                // Chỉ xử lý cập nhật nếu trạng thái trong DB thực sự thay đổi
+                                if (rowData.status !== newStatus) {
+                                    // Cập nhật giá trị status mới vào bộ nhớ Cache của DataTable
+                                    rowData.status = newStatus;
+
+                                    // Ghi đè dữ liệu mới này vào row và ra lệnh vẽ lại (invalidate) riêng row này thôi
+                                    // Việc này sẽ kích hoạt hàm `render` ở cột số 7 chạy lại tự động sinh Badge mới
+                                    dtRow.data(rowData).invalidate().draw(false);
+                                }
+                            }
+                        }
                         console.log(response.message);
                     } else {
                         alert('Lỗi: ' + response.message);
