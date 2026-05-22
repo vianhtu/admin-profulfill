@@ -174,6 +174,7 @@ function initTable(){
                 },
                 {
                     targets: 7,
+                    className: 'order-status-column',
                     render: function (data, type, full, meta) {
                         const status = full['status'];
                         const statusInfo = statusObj[status];
