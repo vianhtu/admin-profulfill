@@ -557,15 +557,13 @@ function initTable(){
                             <td colspan="3">${row_image}</td>
                             <td colspan="3">${row_custom}</td>
                             <td>
-                                <div class="d-flex flex-column gap-1">
-                                <div class="select2-sm-wrapper">
+                                <div class="d-flex flex-column gap-2">
                                     <!-- Hộp chọn (Select) -->
                                     <select class="form-select form-select-sm shipping-service">
                                         <option></option>
                                     </select>
-                                </div>
-                                <!-- Ô nhập liệu (Input text) -->
-                                <input type="text" class="form-control form-control-sm" placeholder="Add track here...">
+                                    <!-- Ô nhập liệu (Input text) -->
+                                    <input type="text" class="form-control" placeholder="Add track here...">
                                 </div>
                             </td>
                             <td></td>
