@@ -575,7 +575,7 @@ function initTable(){
 
                     // Chèn hàng con ngay sau hàng cha ở trang hiện tại
                     $(this.node()).after(html);
-                    $(this.node()).addClass('shown');
+                    $(this.node()).addClass('order');
                 });
 
                 // 🚀 KHỞI TẠO SELECT2 CHO CÁC Ô INPUT VỪA SINH RA
