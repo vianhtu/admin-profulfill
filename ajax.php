@@ -87,6 +87,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         case 'get-orders-table':
             echo json_encode(Orders::get_orders());
             break;
+        case 'add-order-tracking':
+            echo json_encode(Order::add_tracking());
+            break;
         case 'get-stores-table-filter':
             echo json_encode(getStoresTableFilters());
             break;
