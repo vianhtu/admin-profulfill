@@ -80,7 +80,7 @@ class Extensions
         $conn = db();
 
         // 1. Chuẩn bị câu lệnh SQL (Chỉ lấy ID và status)
-        $sql = "SELECT ID, host_id, status FROM orders WHERE account_id = ? AND status IN ('unshipped', 'shipped')";
+        $sql = "SELECT ID, host_id, status, items FROM orders WHERE account_id = ? AND status IN ('unshipped', 'shipped')";
 
         try {
             $result = $conn->execute_query($sql, [$account_id]);
