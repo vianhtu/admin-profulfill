@@ -149,7 +149,7 @@ function dropzoneFileUpload(){
             previewTemplate: previewTemplate,
             parallelUploads: 5,
             maxFilesize: 5,
-            acceptedFiles: '.xlsx, .png, .pdf, .jpg, .jpeg, .txt',
+            acceptedFiles: '.xlsx, .png, .pdf, .jpg, .jpeg, .txt, .zip, .rar',
             addRemoveLinks: true,
             uploadMultiple: true,
             maxFiles: 10,
