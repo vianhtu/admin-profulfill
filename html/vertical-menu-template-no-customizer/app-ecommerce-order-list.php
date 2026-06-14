@@ -94,6 +94,10 @@ if(!checkRoles('view', 'orders')){
 <!-- Modal -->
 <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-header">
+            <h5 class="modal-title" id="imageModalLabel">Xem ảnh chi tiết</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
         <div class="modal-content">
             <div class="modal-body text-center">
                 <img id="modalImage" src="" class="img-fluid rounded" alt="Preview">
