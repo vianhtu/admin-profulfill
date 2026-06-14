@@ -120,3 +120,8 @@ td .product-name h6{
 .form-repeater .fv-plugins-message-container {
     display: none !important;
 }
+
+body.modal-open,
+.modal-open .container-xxl {
+  padding-right: 0px !important;
+}
