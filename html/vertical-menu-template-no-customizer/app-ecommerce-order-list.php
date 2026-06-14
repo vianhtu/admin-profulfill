@@ -94,13 +94,25 @@ if(!checkRoles('view', 'orders')){
 <!-- Modal -->
 <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-header">
-            <h5 class="modal-title" id="imageModalLabel">Xem ảnh chi tiết</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
         <div class="modal-content">
             <div class="modal-body text-center">
-                <img id="modalImage" src="" class="img-fluid rounded" alt="Preview">
+                <div class="row align-items-center">
+                    <div class="col-md-6 text-center mb-3 mb-md-0">
+                        <img id="modalImage" src="" class="img-fluid rounded" alt="Preview">
+                    </div>
+                    <div class="col-md-6">
+                        <form id="modalForm">
+                            <div class="mb-3">
+                                <label for="imgTitle" class="form-label font-weight-bold">Tên hình ảnh</label>
+                                <input type="text" class="form-control" id="imgTitle" placeholder="Nhập tên hoặc tiêu đề ảnh">
+                            </div>
+                            <div class="mb-3">
+                                <label for="imgDesc" class="form-label">Mô tả chi tiết</label>
+                                <textarea class="form-control" id="imgDesc" rows="3" placeholder="Nhập mô tả ngắn..."></textarea>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
