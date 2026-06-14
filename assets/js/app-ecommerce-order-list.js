@@ -26,7 +26,11 @@ async function init() {
 function showImageModal(src) {
     const modalImg = document.getElementById('modalImage');
     modalImg.src = src;
-    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    const modal = new bootstrap.Modal(document.getElementById('imageModal'), {
+        backdrop: true,
+        focus: true,
+        keyboard: true
+    });
     modal.show();
 }
 
