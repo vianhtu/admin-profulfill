@@ -197,18 +197,7 @@ function initTable(){
                     targets: 6,
                     className: 'order-price-column',
                     render: function (data, type, full, meta) {
-                        let base_cost = '';
-                        let profit = '';
-                        if(full['base_cost'] !== null) {
-                            let totalPrice = parseFloat(full['total_price']) || 0;
-                            let baseCostVal = parseFloat(full['base_cost']) || 0;
-                            let profitValue = (totalPrice - baseCostVal).toFixed(2);
-                            base_cost = '<small class="text-warning">$' + full['base_cost'] + '</small>';
-                            profit ='<span class="text-success"> ($' + profitValue + ')</span>';
-                        }
-                        return '<div class="d-flex flex-column">' +
-                            '<h6 class="text-nowrap mb-0">$'+full['total_price']+ profit +'</h6>'+base_cost+
-                        '</div>';
+                        return renderPriceHtml(full['total_price'], full['base_cost']);
                     }
                 },
                 {
@@ -728,7 +717,8 @@ function updateItemData(api){
             item_id: $('#item_id').val(),
             order_id: $('#order_id').val(),
             base_cost: $('#item-base-cost').val(),
-            note: $('#item-note').val()
+            note: $('#item-note').val(),
+            order_price: $('#order_price').val()
         };
 
         // Gọi AJAX bằng jQuery
@@ -738,7 +728,7 @@ function updateItemData(api){
             data: data,
             success: function(response) {
                 const row = $('tr[data-order-id="'+data.order_id+'"]');
-                row.find('.order-price-column').html('');
+                row.find('.order-price-column').html(renderPriceHtml(data.order_price, data.base_cost));
                 console.log('Cập nhật thành công:', response);
             },
             error: function(xhr, status, error) {
@@ -827,6 +817,19 @@ function addTrackingNumber(api) {
             });
         }
     }
+}
+
+function renderPriceHtml(total_price, base_cost){
+    let base_cost_html = '';
+    let profit_html = '';
+    if(total_price && base_cost) {
+        let _total_price = parseFloat(total_price) || 0;
+        let _base_cost = parseFloat(base_cost) || 0;
+        let profitValue = (_total_price - _base_cost).toFixed(2);
+        base_cost_html = '<small class="text-warning">$' + base_cost + '</small>';
+        profit_html ='<span class="text-success"> ($' + profitValue + ')</span>';
+    }
+    return '<div class="d-flex flex-column"><h6 class="text-nowrap mb-0">$' + total_price + profit_html +'</h6>' + base_cost_html + '</div>';
 }
 
 document.addEventListener('DOMContentLoaded', function (e) {
