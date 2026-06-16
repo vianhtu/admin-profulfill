@@ -545,6 +545,8 @@ function initTable(){
                         items = rowData.items || [];
                     }
 
+                    const order_id = rowData.id;
+
                     let html = '';
                     items.forEach((item, index) => {
                         const row_image = `
@@ -554,7 +556,7 @@ function initTable(){
                                 <img src="${item.imageUrl}" 
                                      class="rounded img-fluid" 
                                      style="cursor:pointer;" 
-                                     onclick="showImageModal('${item.imageUrl}', rowData.id, index)">
+                                     onclick="showImageModal('${item.imageUrl}', ${order_id} , ${index})">
                               </div>
                             </div>
                             <div class="d-flex flex-column">
