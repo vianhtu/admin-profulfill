@@ -205,7 +205,7 @@ function initTable(){
                             let profitValue = (totalPrice - baseCostVal).toFixed(2);
 
                             base_cost = '<small>$' + full['base_cost'] + '</small>';
-                            profit =' ($' + profitValue + ')';
+                            profit ='<span class="text-success"> ($' + profitValue + ')</span>';
                         }
                         return '<div class="d-flex flex-column">' +
                             '<h6 class="text-nowrap mb-0">$'+full['total_price']+ profit +'</h6>'+base_cost+
