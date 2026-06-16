@@ -101,14 +101,14 @@ if(!checkRoles('view', 'orders')){
                         <img id="modalImage" src="" class="img-fluid rounded" alt="Preview">
                     </div>
                     <div class="col-md-6">
-                        <form id="modalForm">
+                        <form id="item-modal-form">
                             <div class="mb-3">
-                                <label for="imgTitle" class="form-label font-weight-bold">Base Cost</label>
+                                <label for="item-base-cost" class="form-label font-weight-bold">Base Cost</label>
                                 <input type="number" step="0.01" class="form-control" id="item-base-cost" placeholder="9.99">
                             </div>
                             <div class="mb-3">
-                                <label for="imgDesc" class="form-label">Mô tả chi tiết</label>
-                                <textarea class="form-control" id="imgDesc" rows="3" placeholder="Nhập mô tả ngắn..."></textarea>
+                                <label for="item-note" class="form-label">Note</label>
+                                <textarea class="form-control" id="item-note" rows="3"></textarea>
                             </div>
                         </form>
                     </div>
