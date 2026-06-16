@@ -197,8 +197,15 @@ function initTable(){
                         let base_cost = '';
                         let profit = '';
                         if(full['base_cost'] !== null) {
+                            // 1. Ép kiểu về float cho cả 2 giá trị để đảm bảo tính toán chính xác
+                            let totalPrice = parseFloat(full['total_price']) || 0;
+                            let baseCostVal = parseFloat(full['base_cost']) || 0;
+
+                            // 2. Tính lợi nhuận và dùng .toFixed(2) để lấy 2 số sau dấu phẩy
+                            let profitValue = (totalPrice - baseCostVal).toFixed(2);
+
                             base_cost = '<small>$' + full['base_cost'] + '</small>';
-                            profit =' ($' + (parseFloat(full['total_price']) - parseFloat(full['base_cost'])) + ')';
+                            profit =' ($' + profitValue + ')';
                         }
                         return '<div class="d-flex flex-column">' +
                             '<h6 class="text-nowrap mb-0">$'+full['total_price']+ profit +'</h6>'+base_cost+
