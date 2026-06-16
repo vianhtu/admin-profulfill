@@ -30,11 +30,15 @@ function showImageModal(itemJsonString, order_id, item_index) {
     const form = document.getElementById('item-modal-form');
     const item = document.getElementById('item_id');
     const order = document.getElementById('order_id');
+    const base_cost = document.getElementById('item-base-cost');
+    const note = document.getElementById('item-note');
     if (form && item && order) {
         item.value = '';
         order.value = '';
         item.value = item_index;
         order.value = order_id;
+        base_cost.value = item_data?.cost ?? '';
+        note.value = item_data?.note ?? '';
     }
 
     const modalImg = document.getElementById('modalImage');
