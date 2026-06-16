@@ -23,11 +23,16 @@ async function init() {
     }
 }
 
-function showImageModal(src) {
+function showImageModal(src, order_id, item_index) {
     // 1. Xóa toàn bộ giá trị trong form trước
     const form = document.getElementById('item-modal-form');
-    if (form) {
-        form.reset();
+    const item = document.getElementById('item_id');
+    const order = document.getElementById('order_id');
+    if (form && item && order) {
+        item.value = '';
+        order.value = '';
+        item.value = item_index;
+        order.value = order_id;
     }
 
     const modalImg = document.getElementById('modalImage');
@@ -549,7 +554,7 @@ function initTable(){
                                 <img src="${item.imageUrl}" 
                                      class="rounded img-fluid" 
                                      style="cursor:pointer;" 
-                                     onclick="showImageModal('${item.imageUrl}')">
+                                     onclick="showImageModal('${item.imageUrl}', rowData.id, index)">
                               </div>
                             </div>
                             <div class="d-flex flex-column">
@@ -636,7 +641,8 @@ function initTable(){
             },
             initComplete: function(settings, json) {
                 const api = this.api();
-                addTrackingNumber(api); // Truyền instance api vào hàm xử lý
+                addTrackingNumber(api);
+                updateItemData(api);
             }
         });
 
@@ -687,6 +693,10 @@ function initTable(){
             });
         });
     }, 100);
+}
+
+function updateItemData(api){
+
 }
 
 function addTrackingNumber(api) {
