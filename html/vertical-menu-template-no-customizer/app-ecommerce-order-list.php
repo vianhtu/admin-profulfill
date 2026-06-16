@@ -81,7 +81,7 @@ if(!checkRoles('view', 'orders')){
                 <th>purchase date</th>
                 <th>ship date</th>
                 <th>delivery date</th>
-                <th>payment</th>
+                <th>payment/profit</th>
                 <th>status</th>
                 <th>customers</th>
                 <th>actions</th>
