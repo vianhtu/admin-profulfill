@@ -625,7 +625,7 @@ function initTable(){
 
                     // Chèn hàng con ngay sau hàng cha ở trang hiện tại
                     $(this.node()).after(html);
-                    $(this.node()).addClass('order');
+                    $(this.node()).addClass('order').attr('data-order-id', order_id);
                 });
 
                 // 🚀 KHỞI TẠO SELECT2 CHO CÁC Ô INPUT VỪA SINH RA
