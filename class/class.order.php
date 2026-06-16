@@ -88,10 +88,18 @@ class Order
         $items[$itemIndex]['cost'] = $base_cost;
         $items[$itemIndex]['note'] = $note;
 
+        // 5. Kiểm tra xem TẤT CẢ các sản phẩm.
+        $total_cost = 0;
+        foreach ($items as $item) {
+            if (!empty($item['cost'])) {
+                $total_cost += (float)$item['cost'];
+            }
+        }
+
         // 6. Chuẩn bị câu lệnh SQL cập nhật dữ liệu linh hoạt
         $updatedJson = json_encode($items, JSON_UNESCAPED_UNICODE);
-        $updateSql   = "UPDATE orders SET items = ? WHERE id = ?";
-        $bindParams  = [$updatedJson, $orderId];
+        $updateSql   = "UPDATE orders SET items = ?, base_cost = ? WHERE id = ?";
+        $bindParams  = [$updatedJson, $total_cost, $orderId];
 
         // 7. Thực thi truy vấn vào MySQL
         $updateStmt = $conn->prepare($updateSql);
