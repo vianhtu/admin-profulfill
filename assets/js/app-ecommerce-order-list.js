@@ -24,7 +24,8 @@ async function init() {
     }
 }
 
-function showImageModal(item_data, order_id, item_index) {
+function showImageModal(itemJsonString, order_id, item_index) {
+    const item_data = JSON.parse(itemJsonString);
     // 1. Xóa toàn bộ giá trị trong form trước
     const form = document.getElementById('item-modal-form');
     const item = document.getElementById('item_id');
@@ -550,6 +551,7 @@ function initTable(){
 
                     let html = '';
                     items.forEach((item, index) => {
+                        const itemString = JSON.stringify(item).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
                         const row_image = `
                           <div class="d-flex justify-content-start align-items-center product-name">
                             <div class="avatar-wrapper">
@@ -557,7 +559,7 @@ function initTable(){
                                 <img src="${item.imageUrl}" 
                                      class="rounded img-fluid" 
                                      style="cursor:pointer;" 
-                                     onclick="showImageModal('${item}', ${order_id} , ${index})">
+                                     onclick="showImageModal('${itemString}', ${order_id} , ${index})">
                               </div>
                             </div>
                             <div class="d-flex flex-column">
