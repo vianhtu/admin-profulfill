@@ -103,8 +103,8 @@ if(!checkRoles('view', 'orders')){
                     <div class="col-md-6">
                         <form id="modalForm">
                             <div class="mb-3">
-                                <label for="imgTitle" class="form-label font-weight-bold">Tên hình ảnh</label>
-                                <input type="text" class="form-control" id="imgTitle" placeholder="Nhập tên hoặc tiêu đề ảnh">
+                                <label for="imgTitle" class="form-label font-weight-bold">Base Cost</label>
+                                <input type="number" step="0.01" class="form-control" id="item-base-cost" placeholder="9.99">
                             </div>
                             <div class="mb-3">
                                 <label for="imgDesc" class="form-label">Mô tả chi tiết</label>
