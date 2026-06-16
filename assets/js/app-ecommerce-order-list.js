@@ -78,22 +78,7 @@ function initTable(){
     headingColor = config.colors.headingColor;
 
     // Variable declaration for table
-
-    const dt_order_table = document.querySelector('.datatables-order'),
-        statusObj = {
-            unshipped: { title: 'Unshipped', class: 'bg-label-warning' },
-            shipped: { title: 'Shipped', class: 'bg-label-secondary' },
-            delivered: { title: 'Delivered', class: 'bg-label-success' },
-            3: { title: 'Out for Delivery', class: 'bg-label-primary' },
-            4: { title: 'Ready to Pickup', class: 'bg-label-info' }
-        },
-        paymentObj = {
-            1: { title: 'Paid', class: 'text-success' },
-            2: { title: 'Pending', class: 'text-warning' },
-            3: { title: 'Failed', class: 'text-danger' },
-            4: { title: 'Cancelled', class: 'text-secondary' }
-        };
-
+    const dt_order_table = document.querySelector('.datatables-order')
     // E-commerce Products datatable
 
     if (dt_order_table) {
@@ -204,12 +189,7 @@ function initTable(){
                     targets: 7,
                     className: 'order-status-column',
                     render: function (data, type, full, meta) {
-                        const status = full['status'];
-                        const statusInfo = statusObj[status];
-                        if (statusInfo) {
-                            return `<span class="badge px-2 ${statusInfo.class} text-capitalized">${statusInfo.title}</span>`;
-                        }
-                        return data;
+                        return renderStatusHtml(full['status']);
                     }
                 },
                 {
@@ -792,12 +772,7 @@ function addTrackingNumber(api) {
                                 if (rowData.status !== newStatus) {
                                     rowData.status = newStatus;
                                     dtRow.data(rowData).invalidate();
-
-                                    if (typeof statusObj !== 'undefined' && statusObj[newStatus]) {
-                                        const statusInfo = statusObj[newStatus];
-                                        const badgeHtml = `<span class="badge px-2 ${statusInfo.class} text-capitalized">${statusInfo.title}</span>`;
-                                        $parentRow.find('.order-status-column').html(badgeHtml);
-                                    }
+                                    $parentRow.find('.order-status-column').html(renderStatusHtml(newStatus));
                                 }
                             }
                         }
@@ -830,6 +805,21 @@ function renderPriceHtml(total_price, base_cost){
         profit_html ='<span class="text-success"> ($' + profitValue + ')</span>';
     }
     return '<div class="d-flex flex-column"><h6 class="text-nowrap mb-0">$' + total_price + profit_html +'</h6>' + base_cost_html + '</div>';
+}
+
+function renderStatusHtml(status){
+    const statusObj = {
+        unshipped: { title: 'Unshipped', class: 'bg-label-warning' },
+        shipped: { title: 'Shipped', class: 'bg-label-secondary' },
+        delivered: { title: 'Delivered', class: 'bg-label-success' },
+        3: { title: 'Out for Delivery', class: 'bg-label-primary' },
+        4: { title: 'Ready to Pickup', class: 'bg-label-info' }
+    };
+
+    const statusInfo = statusObj[status];
+    if (statusInfo) {
+        return `<span class="badge px-2 ${statusInfo.class} text-capitalized">${statusInfo.title}</span>`;
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function (e) {
