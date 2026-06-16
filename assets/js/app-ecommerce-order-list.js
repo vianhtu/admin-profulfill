@@ -23,7 +23,7 @@ async function init() {
     }
 }
 
-function showImageModal(src, order_id, item_index) {
+function showImageModal(item_data, order_id, item_index) {
     // 1. Xóa toàn bộ giá trị trong form trước
     const form = document.getElementById('item-modal-form');
     const item = document.getElementById('item_id');
@@ -36,7 +36,7 @@ function showImageModal(src, order_id, item_index) {
     }
 
     const modalImg = document.getElementById('modalImage');
-    modalImg.src = getFullSizeImage(src);
+    modalImg.src = getFullSizeImage(item_data.imageUrl);
     const modal = new bootstrap.Modal(document.getElementById('imageModal'), {
         backdrop: true,
         focus: true,
@@ -556,7 +556,7 @@ function initTable(){
                                 <img src="${item.imageUrl}" 
                                      class="rounded img-fluid" 
                                      style="cursor:pointer;" 
-                                     onclick="showImageModal('${item.imageUrl}', ${order_id} , ${index})">
+                                     onclick="showImageModal('${item}', ${order_id} , ${index})">
                               </div>
                             </div>
                             <div class="d-flex flex-column">
