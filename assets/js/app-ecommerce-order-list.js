@@ -24,6 +24,12 @@ async function init() {
 }
 
 function showImageModal(src) {
+    // 1. Xóa toàn bộ giá trị trong form trước
+    const form = document.getElementById('item-modal-form');
+    if (form) {
+        form.reset();
+    }
+
     const modalImg = document.getElementById('modalImage');
     modalImg.src = getFullSizeImage(src);
     const modal = new bootstrap.Modal(document.getElementById('imageModal'), {
