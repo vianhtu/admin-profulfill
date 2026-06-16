@@ -24,7 +24,7 @@ async function init() {
     }
 }
 
-function showImageModal(base64Str, order_id, item_index) {
+function showImageModal(base64Str, order_id, order_price, item_index) {
     let item_data = {};
     try {
         // Giải mã Base64 Unicode phiên bản viết gọn
@@ -39,6 +39,7 @@ function showImageModal(base64Str, order_id, item_index) {
     if (form) {
         document.getElementById('item_id').value = item_index;
         document.getElementById('order_id').value = order_id;
+        document.getElementById('order_price').value = order_price;
         document.getElementById('item-base-cost').value = item_data?.cost ?? '';
         document.getElementById('item-note').value = item_data?.note ?? '';
     }
@@ -565,6 +566,7 @@ function initTable(){
                     }
 
                     const order_id = rowData.id;
+                    const order_price = rowData.total_price;
 
                     let html = '';
                     items.forEach((item, index) => {
@@ -580,7 +582,7 @@ function initTable(){
                                 <img src="${item.imageUrl}" 
                                      class="rounded img-fluid" 
                                      style="cursor:pointer;" 
-                                     onclick="showImageModal('${base64Str}', ${order_id} , ${index})">
+                                     onclick="showImageModal('${base64Str}', ${order_id} , ${order_price} , ${index})">
                               </div>
                             </div>
                             <div class="d-flex flex-column">
