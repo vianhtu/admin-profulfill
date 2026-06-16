@@ -110,6 +110,7 @@ class Orders
                 "address"          => $row['address'],
                 "phone"            => $row['phone'],
                 "total_price"      => $row['total_price'],
+                "base_cost"        => $row['base_cost'],
                 "items"            => $row['items'],
                 "status"           => $row['status'],
                 "site_id"          => $row['site_id'],

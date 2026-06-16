@@ -194,7 +194,10 @@ function initTable(){
                 {
                     targets: 6,
                     render: function (data, type, full, meta) {
-                        return '<h6 class="text-nowrap mb-0">$'+full['total_price']+'</h6>';
+                        return '<div class="d-flex flex-column">' +
+                            '<h6 class="text-nowrap mb-0">$'+full['total_price']+'</h6>'+
+                            '<small>$'+full['base_cost']+'</small>' +
+                            '</div>';
                     }
                 },
                 {
