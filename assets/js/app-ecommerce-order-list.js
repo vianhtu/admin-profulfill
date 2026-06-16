@@ -194,10 +194,13 @@ function initTable(){
                 {
                     targets: 6,
                     render: function (data, type, full, meta) {
+                        let base_cost = '';
+                        if(full['base_cost'] !== null) {
+                            base_cost = '<small>$' + full['base_cost'] + '</small>';
+                        }
                         return '<div class="d-flex flex-column">' +
-                            '<h6 class="text-nowrap mb-0">$'+full['total_price']+'</h6>'+
-                            '<small>$'+full['base_cost']+'</small>' +
-                            '</div>';
+                            '<h6 class="text-nowrap mb-0">$'+full['total_price']+'</h6>'+base_cost+
+                        '</div>';
                     }
                 },
                 {
