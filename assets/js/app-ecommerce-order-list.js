@@ -195,11 +195,13 @@ function initTable(){
                     targets: 6,
                     render: function (data, type, full, meta) {
                         let base_cost = '';
+                        let profit = '';
                         if(full['base_cost'] !== null) {
                             base_cost = '<small>$' + full['base_cost'] + '</small>';
+                            profit =' ($' + full['total_price'] - full['base_cost'] + ')';
                         }
                         return '<div class="d-flex flex-column">' +
-                            '<h6 class="text-nowrap mb-0">$'+full['total_price']+'</h6>'+base_cost+
+                            '<h6 class="text-nowrap mb-0">$'+full['total_price']+ profit +'</h6>'+base_cost+
                         '</div>';
                     }
                 },
