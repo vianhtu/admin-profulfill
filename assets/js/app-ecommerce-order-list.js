@@ -25,7 +25,7 @@ async function init() {
 
 function showImageModal(src) {
     const modalImg = document.getElementById('modalImage');
-    modalImg.src = src;
+    modalImg.src = getFullSizeImage(src);
     const modal = new bootstrap.Modal(document.getElementById('imageModal'), {
         backdrop: true,
         focus: true,
@@ -35,12 +35,19 @@ function showImageModal(src) {
 }
 
 function getFullSizeImage(url) {
-    return url.replace(/_.*\.jpg$/, '.jpg');
-}
+    switch (true) {
+        // Trường hợp 1: Ảnh từ eBay
+        case url.includes('ebayimg.com'):
+            return url.replace(/\/s-l\d+\.jpg$/, '/s-l2000.jpg');
 
-function replaceAmazonImageSize(url, newSize) {
-    // newSize chỉ cần số, ví dụ 200
-    return url.replace(/SX\d+/, `SX${newSize}`);
+        // Trường hợp 2: Ví dụ sau này bạn muốn thêm quy tắc cho Amazon
+        // case url.includes('media-amazon.com'):
+        //     return url.replace('_SL160_', '_SL1500_');
+
+        // Trường hợp mặc định: Không khớp quy tắc nào thì giữ nguyên URL
+        default:
+            return url;
+    }
 }
 
 // Datatable (js)
