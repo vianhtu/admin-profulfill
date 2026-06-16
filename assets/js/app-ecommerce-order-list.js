@@ -198,7 +198,7 @@ function initTable(){
                         let profit = '';
                         if(full['base_cost'] !== null) {
                             base_cost = '<small>$' + full['base_cost'] + '</small>';
-                            profit =' ($' + parseFloat(full['total_price']) - parseFloat(full['base_cost']) + ')';
+                            profit =' ($' + (parseFloat(full['total_price']) - parseFloat(full['base_cost'])) + ')';
                         }
                         return '<div class="d-flex flex-column">' +
                             '<h6 class="text-nowrap mb-0">$'+full['total_price']+ profit +'</h6>'+base_cost+
