@@ -194,6 +194,7 @@ function initTable(){
                 },
                 {
                     targets: 6,
+                    className: 'order-price-column',
                     render: function (data, type, full, meta) {
                         let base_cost = '';
                         let profit = '';
@@ -734,6 +735,8 @@ function updateItemData(api){
             method: 'POST',
             data: data,
             success: function(response) {
+                const row = $('tr[data-order-id="'+data.order_id+'"]');
+                row.find('.order-price-column').html('');
                 console.log('Cập nhật thành công:', response);
             },
             error: function(xhr, status, error) {
