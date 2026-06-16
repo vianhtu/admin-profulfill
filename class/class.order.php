@@ -52,6 +52,65 @@ class Order
 
         return $order ? $order : null;
     }
+
+    public static function update_order_item(): array
+    {
+        $conn      = db();
+        // 1. Nhận và lọc dữ liệu đầu vào từ AJAX POST
+        $itemIndex = filter_input(INPUT_POST, 'item_id', FILTER_VALIDATE_INT) ?? -1;
+        $orderId  = filter_input(INPUT_POST, 'order_id', FILTER_VALIDATE_INT) ?? 0;
+        $base_cost = filter_input(INPUT_POST, 'base_cost', FILTER_VALIDATE_FLOAT) ?? 0.0;
+        $note      = isset($_POST['note']) ? trim((string)$_POST['note']) : '';
+
+        if ($itemIndex < 0 || $orderId <= 0) {
+            return ['status' => 'error', 'message' => 'Dữ liệu không hợp lệ.'];
+        }
+
+        // 2. Gọi function dùng chung để kiểm tra quyền truy cập bản ghi
+        $order = self::check_order_ownership($conn, $orderId);
+
+        if (!$order) {
+            return ['status' => 'error', 'message' => 'Đơn hàng không tồn tại hoặc bạn không có quyền chỉnh sửa.'];
+        }
+
+        // 3. Giải mã chuỗi JSON items
+        $items = json_decode($order['items'], true);
+        if (!is_array($items)) {
+            return ['status' => 'error', 'message' => 'Dữ liệu danh sách sản phẩm bị lỗi định dạng JSON.'];
+        }
+
+        // 4. KIỂM TRA TRỰC TIẾP QUA INDEX
+        if (!isset($items[$itemIndex])) {
+            return ['status' => 'error', 'message' => 'Không tìm thấy sản phẩm tại vị trí yêu cầu.'];
+        }
+
+        // Tiến hành gán thẳng dữ liệu mới vào vị trí index đó
+        $items[$itemIndex]['cost'] = $base_cost;
+        $items[$itemIndex]['note'] = $note;
+
+        // 6. Chuẩn bị câu lệnh SQL cập nhật dữ liệu linh hoạt
+        $updatedJson = json_encode($items, JSON_UNESCAPED_UNICODE);
+        $updateSql   = "UPDATE orders SET items = ? WHERE id = ?";
+        $bindParams  = [$updatedJson, $orderId];
+
+        // 7. Thực thi truy vấn vào MySQL
+        $updateStmt = $conn->prepare($updateSql);
+        if (!$updateStmt) {
+            return ['status' => 'error', 'message' => 'Lỗi chuẩn bị cập nhật dữ liệu.'];
+        }
+
+        $success = $updateStmt->execute($bindParams);
+        $updateStmt->close();
+
+        if ($success) {
+            return [
+                'status' => 'success',
+                'message' => 'Cập nhật thành công!'
+            ];
+        }
+
+        return ['status' => 'error', 'message' => 'Không thể lưu dữ liệu mới.'];
+    }
     public static function add_tracking(): array {
         $conn = db();
 

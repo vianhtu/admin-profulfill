@@ -18,6 +18,7 @@ async function init() {
 
         // 2️⃣ Sau khi có dữ liệu → tạo bảng
         initTable();
+        updateItemData();
     } catch (err) {
         alert('Không thể tải danh mục');
     }
@@ -644,7 +645,6 @@ function initTable(){
             initComplete: function(settings, json) {
                 const api = this.api();
                 addTrackingNumber(api);
-                updateItemData(api);
             }
         });
 
@@ -698,7 +698,27 @@ function initTable(){
 }
 
 function updateItemData(api){
+    $('#item-modal-form').on('change', 'input, textarea', function() {
+        const data = {
+            item_id: $('#item_id').val(),
+            order_id: $('#order_id').val(),
+            base_cost: $('#item-base-cost').val(),
+            note: $('#item-note').val()
+        };
 
+        // Gọi AJAX bằng jQuery
+        $.ajax({
+            url: '../../ajax.php?action=update-order-item',
+            method: 'POST',
+            data: data,
+            success: function(response) {
+                console.log('Cập nhật thành công:', response);
+            },
+            error: function(xhr, status, error) {
+                console.error('Lỗi AJAX:', error);
+            }
+        });
+    });
 }
 
 function addTrackingNumber(api) {
