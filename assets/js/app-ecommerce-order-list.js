@@ -24,30 +24,31 @@ async function init() {
     }
 }
 
-function showImageModal(itemJsonString, order_id, item_index) {
-    const item_data = JSON.parse(itemJsonString);
-    // 1. Xóa toàn bộ giá trị trong form trước
-    const form = document.getElementById('item-modal-form');
-    const item = document.getElementById('item_id');
-    const order = document.getElementById('order_id');
-    const base_cost = document.getElementById('item-base-cost');
-    const note = document.getElementById('item-note');
-    if (form && item && order) {
-        item.value = '';
-        order.value = '';
-        item.value = item_index;
-        order.value = order_id;
-        base_cost.value = item_data?.cost ?? '';
-        note.value = item_data?.note ?? '';
+function showImageModal(base64Str, order_id, item_index) {
+    let item_data = {};
+    try {
+        // Giải mã Base64 Unicode phiên bản viết gọn
+        const jsonStr = decodeURIComponent(atob(base64Str).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+        item_data = JSON.parse(jsonStr);
+    } catch (e) {
+        return console.error("Lỗi giải mã dữ liệu sản phẩm:", e);
     }
 
-    const modalImg = document.getElementById('modalImage');
-    modalImg.src = getFullSizeImage(item_data.imageUrl);
-    const modal = new bootstrap.Modal(document.getElementById('imageModal'), {
-        backdrop: true,
-        focus: true,
-        keyboard: true
-    });
+    // 1. Reset và đổ dữ liệu vào Form gọn gàng
+    const form = document.getElementById('item-modal-form');
+    if (form) {
+        document.getElementById('item_id').value = item_index;
+        document.getElementById('order_id').value = order_id;
+        document.getElementById('item-base-cost').value = item_data?.cost ?? '';
+        document.getElementById('item-note').value = item_data?.note ?? '';
+    }
+
+    // 2. Cập nhật ảnh (Nhớ kiểm tra hàm getFullSizeImage phòng hờ item_data.imageUrl bị undefined)
+    document.getElementById('modalImage').src = getFullSizeImage(item_data?.imageUrl || '');
+
+    // 3. Khởi tạo và hiển thị Bootstrap Modal
+    const modalEl = document.getElementById('imageModal');
+    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl, { backdrop: true, focus: true, keyboard: true });
     modal.show();
 }
 
@@ -566,7 +567,11 @@ function initTable(){
 
                     let html = '';
                     items.forEach((item, index) => {
-                        const itemString = JSON.stringify(item).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+                        // Chuyển Object thành JSON -> Mã hóa sang Base64 an toàn tuyệt đối
+                        const jsonStr = JSON.stringify(item);
+                        const base64Str = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+                            return String.fromCharCode('0x' + p1);
+                        }));
                         const row_image = `
                           <div class="d-flex justify-content-start align-items-center product-name">
                             <div class="avatar-wrapper">
@@ -574,7 +579,7 @@ function initTable(){
                                 <img src="${item.imageUrl}" 
                                      class="rounded img-fluid" 
                                      style="cursor:pointer;" 
-                                     onclick="showImageModal('${itemString}', ${order_id} , ${index})">
+                                     onclick="showImageModal('${base64Str}', ${order_id} , ${index})">
                               </div>
                             </div>
                             <div class="d-flex flex-column">
