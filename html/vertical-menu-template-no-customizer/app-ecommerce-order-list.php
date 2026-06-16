@@ -105,7 +105,7 @@ if(!checkRoles('view', 'orders')){
                             <input type="hidden" name="item_id" id="item_id" value="">
                             <input type="hidden" name="item_name" id="order_id" value="">
                             <div class="mb-3">
-                                <label for="item-base-cost" class="form-label font-weight-bold">Base Cost</label>
+                                <label for="item-base-cost" class="form-label font-weight-bold">Base Cost $</label>
                                 <input type="number" step="0.01" class="form-control" id="item-base-cost" placeholder="9.99">
                             </div>
                             <div class="mb-3">
