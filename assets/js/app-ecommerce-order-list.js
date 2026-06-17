@@ -789,8 +789,9 @@ function renderPriceHtml(total_price, base_cost){
         let _total_price = parseFloat(total_price) || 0;
         let _base_cost = parseFloat(base_cost) || 0;
         let profitValue = (_total_price - _base_cost).toFixed(2);
+        let profitClass = parseFloat(profitValue) >= 0 ? 'text-success' : 'text-danger';
         base_cost_html = '<small class="text-warning">$' + base_cost + '</small>';
-        profit_html ='<span class="text-success"> ($' + profitValue + ')</span>';
+        profit_html ='<span class="'+profitClass+'"> ($' + profitValue + ')</span>';
     }
     return '<div class="d-flex flex-column"><h6 class="text-nowrap mb-0">$' + total_price + profit_html +'</h6>' + base_cost_html + '</div>';
 }
