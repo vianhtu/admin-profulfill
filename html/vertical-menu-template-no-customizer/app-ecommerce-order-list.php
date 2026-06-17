@@ -1,4 +1,5 @@
 <?php
+
 if(!checkRoles('view', 'orders')){
     return;
 }

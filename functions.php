@@ -10,6 +10,7 @@ use GuzzleHttp\Client as GuzzleClient;
 require __DIR__ . '/functions/functions-accounts.php';
 require __DIR__ . '/functions/functions-authors.php';
 require __DIR__ . '/functions/functions-upload-files.php';
+require __DIR__ . '/class/class.orders.php';
 
 function menuArgs():array
 {
