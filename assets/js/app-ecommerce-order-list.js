@@ -846,7 +846,7 @@ function renderShipCountdownHtml(shipDateStr, status) {
         const totalHours = Math.floor(diffTime / (1000 * 60 * 60));
         const hh = totalHours.toString().padStart(2, '0');
         textClass = "text-warning";
-        countdownText = `!${hh}:${mm}:${ss}`; // Hiển thị tổng số giờ
+        countdownText = `<i class="icon-base ti tabler-alert-triangle"></i> ${hh}:${mm}:${ss}`; // Hiển thị tổng số giờ
     } else {
         // Còn trên 2 ngày -> Hiện số ngày thong thả
         textClass = "text-success";
