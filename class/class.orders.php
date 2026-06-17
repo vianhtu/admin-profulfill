@@ -18,8 +18,10 @@ class Orders
         }
 
         // 2. Kiểm tra role cơ bản trên module orders
-        if (!is_admin() && !checkRoles($action, 'orders')) {
-            return [];
+        if (!is_admin()) {
+            if (!checkRoles($action, 'orders')) {
+                return [];
+            }
         }
 
         // 3. Xây dựng câu lệnh SQL phân quyền dựa trên cấu trúc table
