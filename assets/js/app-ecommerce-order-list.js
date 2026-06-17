@@ -862,7 +862,7 @@ function renderShipCountdownHtml(shipDateStr) {
     countdownText += `${hours}h ${minutes}m ${seconds}s`;
 
     // Trả về chuỗi HTML đã bọc class Bootstrap 5
-    return `<span class="${textClass} fw-bold">${countdownText}</span>`;
+    return `<span class="${textClass}">${countdownText}</span>`;
 }
 
 document.addEventListener('DOMContentLoaded', function (e) {
