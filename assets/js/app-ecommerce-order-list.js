@@ -151,16 +151,7 @@ function initTable(){
                 {
                     targets: 4,
                     render: function (data, type, full, meta) {
-                        const date = new Date(full['ship_date']);
-                        const formattedDate = date.toLocaleString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: false,
-                            timeZone: 'Asia/Ho_Chi_Minh'
-                        });
-                        return `<span class="text-nowrap">${formattedDate}</span>`;
+                        return renderShipCountdownHtml(full['ship_date']);
                     }
                 },
                 {
@@ -820,6 +811,58 @@ function renderStatusHtml(status){
     if (statusInfo) {
         return `<span class="badge px-2 ${statusInfo.class} text-capitalized">${statusInfo.title}</span>`;
     }
+}
+
+/**
+ * Hàm tính thời gian đếm ngược cho Ship Date
+ * @param {string} shipDateStr - Chuỗi ngày tháng dạng "Jun 30, 00:00" hoặc định dạng Date hợp lệ
+ * @return {string} - Chuỗi HTML chứa text kèm class màu của Bootstrap 5
+ */
+function renderShipCountdownHtml(shipDateStr) {
+    // Tự động thêm năm hiện tại nếu chuỗi chỉ có "Jun 30, 00:00" để JS parse chính xác
+    let dateString = shipDateStr;
+    if (!shipDateStr.includes(new Date().getFullYear().toString())) {
+        // Tách chuỗi để chèn năm vào trước phần giờ: "Jun 30, 00:00" -> "Jun 30, 2026 00:00"
+        const parts = shipDateStr.split(',');
+        if (parts.length === 2) {
+            dateString = `${parts[0].trim()} ${new Date().getFullYear()} ${parts[1].trim()}`;
+        }
+    }
+
+    const targetDate = new Date(dateString);
+    const now = new Date();
+
+    // Nếu không parse được ngày hoặc ngày hiện tại đã lớn hơn hoặc bằng ngày ship
+    if (isNaN(targetDate.getTime()) || now >= targetDate) {
+        return `<span>${shipDateStr}</span>`;
+    }
+
+    // Tính khoảng cách thời gian (miligiây)
+    const diffTime = targetDate - now;
+
+    // Tính toán số ngày, giờ, phút, giây còn lại
+    const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diffTime % (1000 * 60)) / 1000);
+
+    // Xác định class màu của Bootstrap 5 dựa trên số ngày còn lại
+    let textClass = "";
+    if (days < 1) {
+        textClass = "text-danger";   // Còn dưới 1 ngày -> Màu đỏ
+    } else if (days < 2) {
+        textClass = "text-warning";  // Còn từ 1 đến dưới 2 ngày -> Màu vàng
+    } else {
+        textClass = "text-dark";     // Còn trên 2 ngày -> Màu mặc định (hoặc text-body)
+    }
+
+    // Format chuỗi hiển thị: "X ngày Y giờ Z phút W giây"
+    let countdownText = "";
+    if (days > 0) countdownText += `${days}d `;
+    countdownText += `${hours}h ${minutes}m ${seconds}s`;
+
+    // Trả về chuỗi HTML đã bọc class Bootstrap 5
+    return `<span class="${textClass} fw-bold">${countdownText}</span>`;
 }
 
 document.addEventListener('DOMContentLoaded', function (e) {
