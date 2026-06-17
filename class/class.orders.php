@@ -253,10 +253,15 @@ class Orders
 
         $rs = $conn->execute_query($sql, $bindParams);
 
-        // 5. Build mảng kết quả dạng ['delivered' => 100, 'shipped' => 30]
-        $statistics = [];
+        $statistics = [
+            'unshipped' => 0,
+            'cancel' => 0,
+            'shipped' => 0,
+            'replace' => 0,
+            'refund' => 0,
+            'delivered' => 0,
+        ];
         foreach ($rs as $row) {
-            // Đảm bảo kiểu số cho chính xác
             $statistics[$row['status']] = (int)$row['total_count'];
         }
 
