@@ -200,95 +200,136 @@ class Orders
         ];
     }
 
-    public static function update_orders_status(): array
+    /**
+     * Engine lõi xử lý hàng loạt mọi thao tác (Update, Delete, v.v.)
+     */
+    private static function process_orders(string $action, array $inputData): array
     {
         $conn = db();
 
-        // 1. Nhận dữ liệu mảng orders từ POST (Cấu trúc: [order_id => status])
-        $ordersData = $_POST['orders'] ?? [];
-
-        if (!is_array($ordersData) || empty($ordersData)) {
-            return ['status' => 'error', 'message' => 'Không tìm thấy dữ liệu đơn hàng cần cập nhật.'];
+        if (empty($inputData)) {
+            return ['status' => 'error', 'message' => 'Không tìm thấy dữ liệu đơn hàng cần xử lý.'];
         }
 
-        // 2. Lấy danh sách ID để kiểm tra quyền sở hữu hàng loạt (Bulk Check)
-        $orderIds = array_keys($ordersData);
+        // 1. Chuẩn hóa danh sách ID
+        // Nếu là Update ($inputData dạng [id => status]), nếu là Delete ($inputData dạng [id1, id2])
+        $isAssoc = array_keys($inputData) !== range(0, count($inputData) - 1);
+        $orderIds = $isAssoc ? array_keys($inputData) : array_values($inputData);
+
+        // 2. Kiểm tra quyền sở hữu hàng loạt (Bulk Check)
         $validOrders = self::check_orders_ownership($conn, $orderIds);
 
-        // Nếu không có đơn hàng nào hợp lệ/có quyền chỉnh sửa
         if (empty($validOrders)) {
             return ['status' => 'error', 'message' => 'Bạn không có quyền chỉnh sửa các đơn hàng này hoặc đơn hàng không tồn tại.'];
         }
 
-        // 3. Khởi tạo mảng lưu các thông tin cập nhật hợp lệ để build SQL
-        // Định nghĩa các trạng thái hợp lệ được phép cập nhật để chống lừa đảo dữ liệu (Tampering)
-        $allowedStatuses = ['unshipped', 'cancel', 'refund', 'shipped', 'replace', 'delivered'];
         $successCount = 0;
         $errors = [];
-        $successOrders = [];
+        $processedOrders = [];
+        $allowedStatuses = ['unshipped', 'cancel', 'refund', 'shipped', 'replace', 'delivered'];
 
-        // Sử dụng Transaction để đảm bảo tính toàn vẹn dữ liệu nếu cập nhật nhiều dòng cùng lúc
+        // 3. Khởi tạo Transaction
         $conn->begin_transaction();
+
         try {
-            // Chuẩn bị sẵn khung câu lệnh SQL bằng Prepared Statement
-            $stmt = $conn->prepare("UPDATE orders SET status = ? WHERE id = ?");
+            // Sử dụng cú pháp match() của PHP 8+ để linh hoạt quyết định câu lệnh SQL
+            $sql = match ($action) {
+                'update' => "UPDATE orders SET status = ? WHERE id = ?",
+                'delete' => "DELETE FROM orders WHERE id = ?",
+                default => throw new Exception("Hành động '{$action}' không được hệ thống hỗ trợ.")
+            };
+
+            $stmt = $conn->prepare($sql);
             if (!$stmt) {
-                throw new Exception("Lỗi khởi tạo câu lệnh cập nhật.");
+                throw new Exception("Lỗi khởi tạo câu lệnh SQL.");
             }
 
-            // 4. Lặp qua danh sách dữ liệu gửi lên, chỉ xử lý những ID đã được chứng thực hợp lệ
-            foreach ($ordersData as $orderId => $status) {
+            // 4. Lặp qua danh sách dữ liệu hợp lệ và thực thi
+            foreach ($orderIds as $orderId) {
                 $orderId = (int)$orderId;
-                $status = trim((string)$status);
 
-                // Kiểm tra: ID phải có quyền sửa VÀ trạng thái phải nằm trong danh mục cho phép
+                // Bỏ qua nếu user không có quyền trên ID này
                 if (!isset($validOrders[$orderId])) {
                     $errors[] = "Đơn hàng #{$orderId}: Không có quyền truy cập.";
                     continue;
                 }
 
-                if (!in_array($status, $allowedStatuses, true)) {
-                    $errors[] = "Đơn hàng #{$orderId}: Trạng thái '{$status}' không hợp lệ.";
-                    continue;
+                // Xử lý Logic riêng theo từng Action
+                if ($action === 'update') {
+                    $status = trim((string)($inputData[$orderId] ?? ''));
+                    if (!in_array($status, $allowedStatuses, true)) {
+                        $errors[] = "Đơn hàng #{$orderId}: Trạng thái '{$status}' không hợp lệ.";
+                        continue;
+                    }
+                    // PHP 8.4 truyền mảng trực tiếp vào execute()
+                    $stmt->execute([$status, $orderId]);
+                    $processedOrders[$orderId] = $status;
+
+                } elseif ($action === 'delete') {
+                    $stmt->execute([$orderId]);
+                    $processedOrders[$orderId] = 'deleted';
                 }
 
-                // Thực thi cập nhật bằng cách truyền tham số trực tiếp (PHP 8.4)
-                $stmt->execute([$status, $orderId]);
-                $successOrders[$orderId] = $status;
                 $successCount++;
             }
 
             $stmt->close();
-            $conn->commit(); // Lưu tất cả thay đổi vào DB
+            $conn->commit();
 
         } catch (Exception $e) {
-            $conn->rollback(); // Hoàn tác nếu có bất kỳ lỗi hệ thống nào xảy ra
+            $conn->rollback();
             return ['status' => 'error', 'message' => 'Hệ thống gặp sự cố: ' . $e->getMessage()];
         }
 
-        // 5. Trả về kết quả phản hồi dựa trên số lượng xử lý thành công
+        // 5. Trả về Response
         if ($successCount === 0) {
             return [
                 'status' => 'error',
-                'message' => 'Không có đơn hàng nào được cập nhật thành công.',
+                'message' => 'Không có đơn hàng nào được xử lý thành công.',
                 'errors' => $errors
             ];
         }
 
         return [
             'status' => 'success',
-            'message' => "Đã cập nhật thành công {$successCount} đơn hàng.",
+            'message' => "Đã {$action} thành công {$successCount} đơn hàng.",
             'details' => [
                 'success_count' => $successCount,
                 'failed_count' => count($errors),
                 'errors' => $errors
             ],
-            'orders' => $successOrders
+            'orders' => $processedOrders
         ];
     }
 
-    public static function delete_orders()
+    /**
+     * API: Cập nhật trạng thái
+     */
+    public static function update_orders_status(): array
     {
+        $ordersData = $_POST['orders'] ?? [];
 
+        if (!is_array($ordersData) || empty($ordersData)) {
+            return ['status' => 'error', 'message' => 'Không tìm thấy dữ liệu đơn hàng cần cập nhật.'];
+        }
+
+        // Đẩy thẳng xuống hàm process_orders xử lý
+        return self::process_orders('update', $ordersData);
+    }
+
+    /**
+     * API: Xóa đơn hàng
+     */
+    public static function delete_orders(): array
+    {
+        // Cấu trúc POST thường gửi mảng ID cần xóa lên: $_POST['order_ids'] = [1, 5, 9]
+        $orderIds = $_POST['order_ids'] ?? [];
+
+        if (!is_array($orderIds) || empty($orderIds)) {
+            return ['status' => 'error', 'message' => 'Vui lòng chọn ít nhất một đơn hàng để xóa.'];
+        }
+
+        // Đẩy thẳng xuống hàm process_orders xử lý
+        return self::process_orders('delete', $orderIds);
     }
 }
