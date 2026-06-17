@@ -830,7 +830,7 @@ function renderShipCountdownHtml(shipDateStr, fulfillDate , status) {
         });
         let c = '';
         const fd = new Date(fulfillDate);
-        c = fd < targetDate ? 'text-success' : 'text-danger';
+        c = fd <= targetDate ? 'text-success' : 'text-danger';
         return `<span class="${c} text-nowrap">${formattedDate}</span>`;
     }
 
