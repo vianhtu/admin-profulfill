@@ -144,8 +144,7 @@ function initTable(){
                 {
                     targets: 3,
                     render: function (data, type, full, meta) {
-                        const formattedDate = toLocalDate(full['purchase_date']);
-                        return `<span class="text-nowrap">${formattedDate}</span>`;
+                        return `<span class="text-nowrap">${toLocalDate(full['purchase_date'])}</span>`;
                     }
                 },
                 {
@@ -157,16 +156,7 @@ function initTable(){
                 {
                     targets: 5,
                     render: function (data, type, full, meta) {
-                        const date = new Date(full['delivery_date']);
-                        const formattedDate = date.toLocaleString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: false,
-                            timeZone: 'Asia/Ho_Chi_Minh'
-                        });
-                        return `<span class="text-nowrap">${formattedDate}</span>`;
+                        return `<span class="text-nowrap">${toLocalDate(full['delivery_date'])}</span>`;
                     }
                 },
                 {
