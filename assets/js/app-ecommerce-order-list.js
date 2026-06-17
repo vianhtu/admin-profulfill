@@ -852,7 +852,7 @@ function renderShipCountdownHtml(shipDateStr) {
 
     // Format chuỗi hiển thị: "X ngày Y giờ Z phút W giây"
     let countdownText = "";
-    if (days > 0) countdownText += `${days}d `;
+    if (days > 0) countdownText += `${days}days `;
     countdownText += `${hours}:${minutes}`;
 
     // Trả về chuỗi HTML đã bọc class Bootstrap 5
