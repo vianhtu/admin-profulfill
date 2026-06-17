@@ -844,7 +844,6 @@ function renderShipCountdownHtml(shipDateStr) {
     const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diffTime % (1000 * 60)) / 1000);
 
     // Xác định class màu của Bootstrap 5 dựa trên số ngày còn lại
     let textClass = "";
@@ -859,7 +858,7 @@ function renderShipCountdownHtml(shipDateStr) {
     // Format chuỗi hiển thị: "X ngày Y giờ Z phút W giây"
     let countdownText = "";
     if (days > 0) countdownText += `${days}d `;
-    countdownText += `${hours}h ${minutes}m ${seconds}s`;
+    countdownText += `${hours}h ${minutes}m`;
 
     // Trả về chuỗi HTML đã bọc class Bootstrap 5
     return `<span class="${textClass} text-nowrap">${countdownText}</span>`;
