@@ -95,7 +95,10 @@ if(!checkRoles('view', 'orders')){
 <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
-            <div class="modal-body text-center">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
                 <div class="row align-items-center">
                     <div class="col-md-6 text-center mb-3 mb-md-0">
                         <img id="modalImage" src="" class="img-fluid rounded" alt="Preview">
