@@ -635,23 +635,35 @@ function initTable(){
             }
         });
 
-        //? The 'delete-record' class is necessary for the functionality of the following code.
-        document.addEventListener('click', function (e) {
-            if (e.target.classList.contains('delete-record')) {
-                dt_products.row(e.target.closest('tr')).remove().draw();
-                const modalEl = document.querySelector('.dtr-bs-modal');
-                if (modalEl && modalEl.classList.contains('show')) {
-                    const modal = bootstrap.Modal.getInstance(modalEl);
-                    modal?.hide();
-                }
-            } else if (e.target.classList.contains('update-status')) {
-                const updateBtn = e.target.closest('.update-status');
-                const row = updateBtn.closest('tr');
-                // 1. Lấy dữ liệu từ attribute
-                const status = updateBtn.getAttribute('data-status');
-                const orderId = row.getAttribute('data-order-id');
-                updateOrdersStatus({[orderId]:status}, row);
+        // 1. Xử lý sự kiện click vào nút xóa bản ghi (.delete-record)
+        $(document).on('click', '.delete-record', function (e) {
+            // $(this) đại diện chính xác cho nút .delete-record được click
+            var $tr = $(this).closest('tr');
+
+            // Xóa dòng trong DataTables (dt_products phải là thực thể DataTable của bạn)
+            dt_products.row($tr).remove().draw();
+
+            // Xử lý ẩn Bootstrap Modal nếu đang hiển thị (Thường gặp khi dùng Responsive DataTable)
+            var $modalEl = $('.dtr-bs-modal.show');
+            if ($modalEl.length > 0) {
+                var modal = bootstrap.Modal.getInstance($modalEl[0]); // Lấy instance JS gốc bằng phần tử DOM đầu tiên [0]
+                modal?.hide();
             }
+        });
+
+        // 2. Xử lý sự kiện click vào nút cập nhật trạng thái (.update-status)
+        $(document).on('click', '.update-status', function (e) {
+            e.preventDefault(); // Ngăn hành vi mặc định nếu nút là thẻ <a>
+
+            var $updateBtn = $(this); // Đã dùng Event Delegation nên $(this) luôn là .update-status (không lo hụt vào icon bên trong)
+            var $row = $updateBtn.closest('tr');
+
+            // Lấy dữ liệu từ attribute bằng hàm .attr() hoặc .data() của jQuery
+            var status = $updateBtn.attr('data-status');
+            var orderId = $row.attr('data-order-id');
+
+            // Gọi hàm xử lý AJAX cập nhật trạng thái
+            updateOrdersStatus({ [orderId]: status });
         });
     }
 
