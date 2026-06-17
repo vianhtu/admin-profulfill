@@ -850,7 +850,7 @@ function renderShipCountdownHtml(shipDateStr, status) {
     } else {
         // Còn trên 2 ngày -> Hiện số ngày thong thả
         textClass = "text-success";
-        countdownText = `${days} days left`;
+        countdownText = `<i class="icon-base ti tabler-clock"></i> ${days} days left`;
     }
 
     return `<span class="${textClass} text-nowrap">${countdownText}</span>`;
