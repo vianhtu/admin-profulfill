@@ -151,7 +151,7 @@ function initTable(){
                 {
                     targets: 4,
                     render: function (data, type, full, meta) {
-                        return renderShipCountdownHtml(full['ship_date']);
+                        return renderShipCountdownHtml(full['ship_date'], full['status']);
                     }
                 },
                 {
@@ -818,11 +818,11 @@ function renderStatusHtml(status){
  * @param {string} shipDateStr - Chuỗi ngày tháng dạng "Jun 30, 00:00" hoặc định dạng Date hợp lệ
  * @return {string} - Chuỗi HTML chứa text kèm class màu của Bootstrap 5
  */
-function renderShipCountdownHtml(shipDateStr) {
+function renderShipCountdownHtml(shipDateStr, status) {
     const targetDate = new Date(shipDateStr);
     const now = new Date();
 
-    if (isNaN(targetDate.getTime()) || now >= targetDate) {
+    if (status !== 'unshipped' || isNaN(targetDate.getTime()) || now >= targetDate) {
         const formattedDate = targetDate.toLocaleString('en-US', {
             month: 'short',
             day: 'numeric',
