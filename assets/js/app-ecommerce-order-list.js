@@ -828,10 +828,10 @@ function renderPriceHtml(total_price, base_cost){
 function renderStatusHtml(status){
     const statusObj = {
         unshipped: { title: 'Unshipped', class: 'bg-label-warning' },
-        cancel: { title: 'Cancel', class: 'bg-label-primary' },
-        shipped: { title: 'Shipped', class: 'bg-label-secondary' },
-        replace: { title: 'Replace', class: 'bg-label-info' },
-        refund: { title: 'Refund', class: 'bg-label-info' },
+        cancel: { title: 'Cancel', class: 'bg-label-secondary' },
+        shipped: { title: 'Shipped', class: 'bg-label-primary' },
+        replace: { title: 'Replace', class: 'bg-label-dark' },
+        refund: { title: 'Refund', class: 'bg-label-danger' },
         delivered: { title: 'Delivered', class: 'bg-label-success' }
     };
 
