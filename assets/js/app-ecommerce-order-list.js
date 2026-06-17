@@ -650,7 +650,7 @@ function initTable(){
                 // 1. Lấy dữ liệu từ attribute
                 const status = updateBtn.getAttribute('data-status');
                 const orderId = row.getAttribute('data-order-id');
-                updateOrdersStatus({[orderId]:status});
+                updateOrdersStatus({[orderId]:status}, row);
             }
         });
     }
@@ -691,7 +691,7 @@ function initTable(){
     }, 100);
 }
 
-function updateOrdersStatus(orders) {
+function updateOrdersStatus(orders, row) {
     // Gọi AJAX bằng jQuery
     $.ajax({
         url: '../../ajax.php?action=update-orders-status',
@@ -700,7 +700,21 @@ function updateOrdersStatus(orders) {
             orders: orders
         },
         success: function(response) {
-            console.log('Cập nhật thành công:', response);
+            if (response?.status === 'success' && response?.orders) {
+                Object.entries(response.orders).forEach(([orderId, status]) => {
+
+                    // 1. Tìm thẻ tr có class="order" và đúng data-order-id
+                    const $row = $(`tr.order[data-order-id="${orderId}"]`);
+
+                    if ($row.length > 0) {
+                        // 2. Tìm cột hiển thị status bên trong dòng đó và chèn HTML mới
+                        // Truyền biến status lấy từ server vào hàm renderStatusHtml của bạn
+                        $row.find('.order-status-column').html(renderStatusHtml(status));
+                    }
+                });
+            } else {
+                console.log(response);
+            }
         },
         error: function(xhr, status, error) {
             console.error('Lỗi AJAX:', error);

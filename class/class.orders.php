@@ -225,6 +225,7 @@ class Orders
         $allowedStatuses = ['unshipped', 'cancel', 'refund', 'shipped', 'replace', 'delivered'];
         $successCount = 0;
         $errors = [];
+        $successOrders = [];
 
         // Sử dụng Transaction để đảm bảo tính toàn vẹn dữ liệu nếu cập nhật nhiều dòng cùng lúc
         $conn->begin_transaction();
@@ -253,6 +254,7 @@ class Orders
 
                 // Thực thi cập nhật bằng cách truyền tham số trực tiếp (PHP 8.4)
                 $stmt->execute([$status, $orderId]);
+                $successOrders[$orderId] = $status;
                 $successCount++;
             }
 
@@ -280,7 +282,8 @@ class Orders
                 'success_count' => $successCount,
                 'failed_count' => count($errors),
                 'errors' => $errors
-            ]
+            ],
+            'orders' => $successOrders
         ];
     }
 
