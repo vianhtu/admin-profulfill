@@ -72,6 +72,15 @@ $orders_statistic = Orders::get_orders_statistic();
 
 <!-- Order List Table -->
 <div class="card">
+    <div class="card-header border-bottom">
+        <h5 class="card-title mb-0">Filter</h5>
+        <div class="d-flex justify-content-between align-items-center row pt-4 gap-4 gap-md-0">
+            <div class="col-md-2 product_from_date"></div>
+            <div class="col-md-2 product_to_date"></div>
+            <div class="col-md-3 product_accounts"></div>
+            <div class="col-md-5 product_sites"></div>
+        </div>
+    </div>
     <div class="card-datatable table-responsive">
         <table class="datatables-order table border-top">
             <thead>
