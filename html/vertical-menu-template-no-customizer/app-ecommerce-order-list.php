@@ -27,8 +27,8 @@ $orders_statistic = Orders::get_orders_statistic(); var_dump($orders_statistic);
                     <div
                             class="d-flex justify-content-between align-items-start card-widget-2 border-end pb-4 pb-sm-0">
                         <div>
-                            <h4 class="mb-0">12,689</h4>
-                            <p class="mb-0">Completed</p>
+                            <h4 class="mb-0"><?= $orders_statistic['shipped']; ?></h4>
+                            <p class="mb-0">Shipped</p>
                         </div>
                         <span class="avatar p-2 me-lg-6">
                         <span class="avatar-initial bg-label-secondary rounded"
