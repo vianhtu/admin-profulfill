@@ -700,15 +700,10 @@ function updateOrdersStatus(orders, row) {
             orders: orders
         },
         success: function(response) {
-            if (response?.status === 'success' && response?.orders) {
-                Object.entries(response.orders).forEach(([orderId, status]) => {
-
-                    // 1. Tìm thẻ tr có class="order" và đúng data-order-id
-                    const $row = $(`tr.order[data-order-id="${orderId}"]`);
-
-                    if ($row.length > 0) {
-                        // 2. Tìm cột hiển thị status bên trong dòng đó và chèn HTML mới
-                        // Truyền biến status lấy từ server vào hàm renderStatusHtml của bạn
+            if (response?.status === 'success' && !$.isEmptyObject(response?.orders)) {
+                $.each(response.orders, function(orderId, status) {
+                    var $row = $('tr.order[data-order-id="' + orderId + '"]');
+                    if ($row.length) {
                         $row.find('.order-status-column').html(renderStatusHtml(status));
                     }
                 });
