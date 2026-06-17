@@ -156,7 +156,7 @@ function initTable(){
                             <i class="ti tabler-truck me-1 fs-5"></i>${toLocalDate(full['fulfill_date'])}</small>`;
                         }
                         return '<div class="d-flex flex-column">' +
-                            renderShipCountdownHtml(full['ship_date'], full['fulfill_date'], full['status']) + fulfill_date +
+                            renderShipCountdownHtml(full['status'], full['ship_date'], full['fulfill_date'], full['server_date']) + fulfill_date +
                             '</div>';
                     }
                 },
@@ -815,12 +815,13 @@ function renderStatusHtml(status){
  * Hàm tính thời gian đếm ngược cho Ship Date
  * @param {string} shipDateStr - Chuỗi ngày tháng dạng "Jun 30, 00:00" hoặc định dạng Date hợp lệ
  * @param {string} fulfillDate - Chuỗi ngày tháng dạng "Jun 30, 00:00" hoặc định dạng Date hợp lệ
+ * @param {string} serverDate - Chuỗi ngày tháng dạng "Jun 30, 00:00" hoặc định dạng Date hợp lệ
  * @param {string} status - Trạng thái đơn hàng.
  * @return {string} - Chuỗi HTML chứa text kèm class màu của Bootstrap 5
  */
-function renderShipCountdownHtml(shipDateStr, fulfillDate , status) {
+function renderShipCountdownHtml(status, shipDateStr, fulfillDate , serverDate= '') {
     const targetDate = new Date(shipDateStr);
-    const now = new Date();
+    const now = fulfillDate ? new Date(serverDate) : new Date();
 
     if (status !== 'unshipped' || isNaN(targetDate.getTime()) || now >= targetDate) {
         const formattedDate = targetDate.toLocaleString('en-US', {

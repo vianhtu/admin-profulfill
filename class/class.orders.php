@@ -80,7 +80,7 @@ class Orders
         $length = filter_var($params['length'], FILTER_VALIDATE_INT) !== false ? (int)$params['length'] : 10;
 
         // 6. Lấy dữ liệu thực tế
-        $sql = "SELECT orders.*,
+        $sql = "SELECT orders.*, NOW() AS server_date,
             accounts.site_id, accounts.name AS account_name, accounts.email AS account_email
         FROM orders
         INNER JOIN accounts ON accounts.ID = orders.account_id
@@ -115,7 +115,8 @@ class Orders
                 "items"            => $row['items'],
                 "status"           => $row['status'],
                 "site_id"          => $row['site_id'],
-                "account_name"     => $row['account_name']
+                "account_name"     => $row['account_name'],
+                "server_date"      => $row['server_date'],
             ];
         }
 
