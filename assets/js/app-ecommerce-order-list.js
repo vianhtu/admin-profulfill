@@ -636,6 +636,7 @@ function initTable(){
         });
 
         // 1. Xử lý sự kiện click vào nút xóa bản ghi (.delete-record)
+        let $rowToDelete = null;
         $(document).on('click', '.delete-record', function (e) {
             e.preventDefault();
 
@@ -643,20 +644,31 @@ function initTable(){
             const $rowToDelete = $(this).closest('tr');
 
             // Khởi tạo và hiển thị Modal Xác Nhận
-            var deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+            const deleteModal = new bootstrap.Modal($('#deleteConfirmModal'));
             deleteModal.show();
+        });
+        $('#btn-confirm-delete').on('click', function () {
+            if ($rowToDelete) {
+                const orderId = $rowToDelete.attr('data-order-id');
+                deleteOrders([orderId], dt_order_table);
+                // B. Ẩn Modal xác nhận xóa
+                let deleteModalInstance = bootstrap.Modal.getInstance($('#deleteConfirmModal')[0]);
+                deleteModalInstance?.hide();
+                // D. Reset lại biến sau khi xử lý xong
+                $rowToDelete = null;
+            }
         });
 
         // 2. Xử lý sự kiện click vào nút cập nhật trạng thái (.update-status)
         $(document).on('click', '.update-status', function (e) {
             e.preventDefault(); // Ngăn hành vi mặc định nếu nút là thẻ <a>
 
-            var $updateBtn = $(this); // Đã dùng Event Delegation nên $(this) luôn là .update-status (không lo hụt vào icon bên trong)
-            var $row = $updateBtn.closest('tr');
+            const $updateBtn = $(this); // Đã dùng Event Delegation nên $(this) luôn là .update-status (không lo hụt vào icon bên trong)
+            const $row = $updateBtn.closest('tr');
 
             // Lấy dữ liệu từ attribute bằng hàm .attr() hoặc .data() của jQuery
-            var status = $updateBtn.attr('data-status');
-            var orderId = $row.attr('data-order-id');
+            const status = $updateBtn.attr('data-status');
+            const orderId = $row.attr('data-order-id');
 
             // Gọi hàm xử lý AJAX cập nhật trạng thái
             updateOrdersStatus({ [orderId]: status });
@@ -725,8 +737,43 @@ function updateOrdersStatus(orders) {
     });
 }
 
-function deleteOrders(orders) {
+function deleteOrders(orders, table) {
+    // Gọi AJAX bằng jQuery
+    $.ajax({
+        url: '../../ajax.php?action=delete-orders',
+        method: 'POST',
+        data: {
+            orders: orders
+        },
+        success: function(response) {
+            if (response?.status === 'success' && !$.isEmptyObject(response?.orders)) {
+                let hasRemoved = false;
 
+                // Duyệt qua danh sách các ID đơn hàng đã xóa thành công từ server trả về
+                $.each(response.orders, function(orderId) {
+                    // Tìm dòng <tr> dựa vào data attribute
+                    var $row = $('tr.order[data-order-id="' + orderId + '"]');
+
+                    // Nếu tìm thấy dòng và thực thể DataTable tồn tại
+                    if ($row.length > 0 && table) {
+                        table.row($row).remove();
+                        hasRemoved = true;
+                    }
+                });
+
+                // Tối ưu: Chỉ vẽ lại bảng 1 lần sau khi đã xóa hết các dòng khỏi bộ nhớ
+                if (hasRemoved) {
+                    // Truyền 'false' vào draw() để giữ nguyên trang hiện tại (Pagination) chứ không bị nhảy về trang 1
+                    table.draw(false);
+                }
+            } else {
+                console.log(response);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Lỗi AJAX:', error);
+        }
+    });
 }
 
 function updateItemData(){

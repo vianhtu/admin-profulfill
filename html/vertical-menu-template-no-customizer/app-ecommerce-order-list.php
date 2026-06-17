@@ -132,7 +132,7 @@ if(!checkRoles('view', 'orders')){
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-label-secondary waves-effect" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary waves-effect waves-light" id="btn-confirm-delete">Yes</button>
+                <button type="button" class="btn btn-primary waves-effect waves-light" id="btn-confirm-delete">Delete</button>
             </div>
         </div>
     </div>
