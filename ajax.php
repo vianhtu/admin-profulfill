@@ -5,7 +5,7 @@ require __DIR__ . '/functions.php';
 require __DIR__ . '/functions/functions-telnyx.php';
 require __DIR__ . '/functions/ajax-select2.php';
 require __DIR__ . '/class/class.extension.php';
-require __DIR__ . '/class/class.orders.php';
+require_once __DIR__ . '/class/class.orders.php';
 require __DIR__ . '/class/class.order.php';
 require __DIR__ . '/model/functions-gemini.php';
 require __DIR__ . '/model/functions-openai.php';
