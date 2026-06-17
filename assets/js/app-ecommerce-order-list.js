@@ -650,7 +650,7 @@ function initTable(){
         $('#btn-confirm-delete').on('click', function () {
             if ($rowToDelete) {
                 const orderId = $rowToDelete.attr('data-order-id');
-                deleteOrders([orderId], dt_order_table);
+                deleteOrders([orderId], dt_products);
                 // B. Ẩn Modal xác nhận xóa
                 let deleteModalInstance = bootstrap.Modal.getInstance($('#deleteConfirmModal')[0]);
                 deleteModalInstance?.hide();
@@ -756,7 +756,7 @@ function deleteOrders(orders, table) {
 
                     // Nếu tìm thấy dòng và thực thể DataTable tồn tại
                     if ($row.length > 0 && table) {
-                        table.api().row($row).remove();
+                        table.row($row).remove();
                         hasRemoved = true;
                     }
                 });
