@@ -649,7 +649,7 @@ function initTable(){
         });
         $('#btn-confirm-delete').on('click', function () {
             if ($rowToDelete) {
-                const orderId = $rowToDelete.attr('data-order-id');
+                const orderId = $rowToDelete.attr('data-order-id'); console.log(orderId);
                 deleteOrders([orderId], dt_order_table);
                 // B. Ẩn Modal xác nhận xóa
                 let deleteModalInstance = bootstrap.Modal.getInstance($('#deleteConfirmModal')[0]);
