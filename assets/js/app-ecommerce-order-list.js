@@ -761,9 +761,7 @@ function deleteOrders(orders, table) {
                     }
                 });
 
-                // Tối ưu: Chỉ vẽ lại bảng 1 lần sau khi đã xóa hết các dòng khỏi bộ nhớ
                 if (hasRemoved) {
-                    // Truyền 'false' vào draw() để giữ nguyên trang hiện tại (Pagination) chứ không bị nhảy về trang 1
                     table.draw(false);
                 }
             } else {
