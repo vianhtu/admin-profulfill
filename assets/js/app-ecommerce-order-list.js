@@ -819,22 +819,19 @@ function renderStatusHtml(status){
  * @return {string} - Chuỗi HTML chứa text kèm class màu của Bootstrap 5
  */
 function renderShipCountdownHtml(shipDateStr) {
-    // Tự động thêm năm hiện tại nếu chuỗi chỉ có "Jun 30, 00:00" để JS parse chính xác
-    let dateString = shipDateStr;
-    if (!shipDateStr.includes(new Date().getFullYear().toString())) {
-        // Tách chuỗi để chèn năm vào trước phần giờ: "Jun 30, 00:00" -> "Jun 30, 2026 00:00"
-        const parts = shipDateStr.split(',');
-        if (parts.length === 2) {
-            dateString = `${parts[0].trim()} ${new Date().getFullYear()} ${parts[1].trim()}`;
-        }
-    }
-
-    const targetDate = new Date(dateString);
+    const targetDate = new Date(shipDateStr);
     const now = new Date();
 
-    // Nếu không parse được ngày hoặc ngày hiện tại đã lớn hơn hoặc bằng ngày ship
     if (isNaN(targetDate.getTime()) || now >= targetDate) {
-        return `<span>${dateString}</span>`;
+        const formattedDate = targetDate.toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+            timeZone: 'Asia/Ho_Chi_Minh'
+        });
+        return `<span>${formattedDate}</span>`;
     }
 
     // Tính khoảng cách thời gian (miligiây)
