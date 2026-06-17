@@ -756,7 +756,7 @@ function deleteOrders(orders, table) {
 
                     // Nếu tìm thấy dòng và thực thể DataTable tồn tại
                     if ($row.length > 0 && table) {
-                        table.row($row).remove();
+                        table.api().row($row).remove();
                         hasRemoved = true;
                     }
                 });
