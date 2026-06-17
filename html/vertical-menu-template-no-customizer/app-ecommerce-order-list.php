@@ -42,7 +42,7 @@ $orders_statistic = Orders::get_orders_statistic(); var_dump($orders_statistic);
                     <div
                             class="d-flex justify-content-between align-items-start border-end pb-4 pb-sm-0 card-widget-3">
                         <div>
-                            <h4 class="mb-0">124</h4>
+                            <h4 class="mb-0"><?= $orders_statistic['refund']; ?></h4>
                             <p class="mb-0">Refunded</p>
                         </div>
                         <span class="avatar p-2 me-sm-6">
@@ -55,8 +55,8 @@ $orders_statistic = Orders::get_orders_statistic(); var_dump($orders_statistic);
                 <div class="col-sm-6 col-lg-3">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <h4 class="mb-0">32</h4>
-                            <p class="mb-0">Failed</p>
+                            <h4 class="mb-0"><?= $orders_statistic['cancel']; ?></h4>
+                            <p class="mb-0">Cancel</p>
                         </div>
                         <span class="avatar p-2">
                         <span class="avatar-initial bg-label-secondary rounded"
