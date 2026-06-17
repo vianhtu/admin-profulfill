@@ -645,7 +645,12 @@ function initTable(){
                     modal?.hide();
                 }
             } else if (e.target.classList.contains('update-status')) {
-                
+                const updateBtn = e.target.closest('.update-status');
+                const row = updateBtn.closest('tr');
+                // 1. Lấy dữ liệu từ attribute
+                const status = updateBtn.getAttribute('data-status');
+                const orderId = row.getAttribute('data-order-id');
+                updateOrdersStatus({[orderId]:status});
             }
         });
     }
@@ -684,6 +689,23 @@ function initTable(){
             });
         });
     }, 100);
+}
+
+function updateOrdersStatus(orders) {
+    // Gọi AJAX bằng jQuery
+    $.ajax({
+        url: '../../ajax.php?action=update-orders-status',
+        method: 'POST',
+        data: {
+            orders: orders
+        },
+        success: function(response) {
+            console.log('Cập nhật thành công:', response);
+        },
+        error: function(xhr, status, error) {
+            console.error('Lỗi AJAX:', error);
+        }
+    });
 }
 
 function updateItemData(api){
