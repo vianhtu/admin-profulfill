@@ -828,10 +828,11 @@ function renderPriceHtml(total_price, base_cost){
 function renderStatusHtml(status){
     const statusObj = {
         unshipped: { title: 'Unshipped', class: 'bg-label-warning' },
+        cancel: { title: 'Cancel', class: 'bg-label-primary' },
         shipped: { title: 'Shipped', class: 'bg-label-secondary' },
-        delivered: { title: 'Delivered', class: 'bg-label-success' },
-        3: { title: 'Out for Delivery', class: 'bg-label-primary' },
-        4: { title: 'Ready to Pickup', class: 'bg-label-info' }
+        replace: { title: 'Replace', class: 'bg-label-info' },
+        refund: { title: 'Refund', class: 'bg-label-info' },
+        delivered: { title: 'Delivered', class: 'bg-label-success' }
     };
 
     const statusInfo = statusObj[status];
