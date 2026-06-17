@@ -73,26 +73,22 @@ class Orders
 
         return $validOrders;
     }
-    public static function get_orders(): array {
-        $allowedCols = ['ID', 'status', 'purchase_date', 'delivery_date', 'ship_date', 'total_price'];
-        $params = getDataTableParams($allowedCols);
-        $conn = db();
 
+    private static function get_base_auth_conditions(): array {
         $whereClauses = [];
-        $bindParams = []; // Chỉ cần một mảng phẳng chứa giá trị, không cần chuỗi "ssii" nữa!
+        $bindParams = [];
 
         // 1. Kiểm tra phân quyền (Role)
         if (!is_admin()) {
             if (!checkRoles('view', 'orders')) {
                 return [
-                    "draw" => $params['draw'],
-                    "recordsTotal" => 0,
-                    "recordsFiltered" => 0,
-                    "data" => []
+                    'has_permission' => false,
+                    'where' => [],
+                    'params' => []
                 ];
             }
 
-            // Phân quyền theo Team (Tự động hiểu INT nếu bạn truyền int)
+            // Phân quyền theo Team
             $whereClauses[] = "accounts.team_id = ?";
             $bindParams[] = (int)$_SESSION['auth']['team'];
 
@@ -102,6 +98,33 @@ class Orders
                 $bindParams[] = (int)$_SESSION['auth']['user_id'];
             }
         }
+
+        return [
+            'has_permission' => true,
+            'where' => $whereClauses,
+            'params' => $bindParams
+        ];
+    }
+    public static function get_orders(): array {
+        $allowedCols = ['ID', 'status', 'purchase_date', 'delivery_date', 'ship_date', 'total_price'];
+        $params = getDataTableParams($allowedCols);
+        $conn = db();
+
+        // Lấy điều kiện phân quyền cơ bản
+        $auth = self::get_base_auth_conditions();
+
+        // Trả về rỗng nếu không có quyền
+        if (!$auth['has_permission']) {
+            return [
+                "draw" => $params['draw'],
+                "recordsTotal" => 0,
+                "recordsFiltered" => 0,
+                "data" => []
+            ];
+        }
+
+        $whereClauses = $auth['where'];
+        $bindParams = $auth['params'];
 
         // 2. Tính tổng số bản ghi MÀ USER ĐƯỢC PHÉP THẤY (Trước khi tìm kiếm)
         $whereAuth = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
@@ -198,6 +221,50 @@ class Orders
             "recordsFiltered" => $totalFiltered,
             "data"            => $data
         ];
+    }
+
+    public static function get_orders_table(): array {
+        // trả dữ liệu cho data table
+    }
+
+    public static function get_orders_statistic(): array {
+        $conn = db();
+
+        // 1. Lấy điều kiện phân quyền dùng chung
+        $auth = self::get_base_auth_conditions();
+        if (!$auth['has_permission']) {
+            return []; // Trả về mảng rỗng nếu không có quyền
+        }
+
+        $whereClauses = $auth['where'];
+        $bindParams = $auth['params'];
+
+        // 2. Thêm điều kiện 30 ngày gần nhất (dùng INTERVAL của MySQL)
+        // Giả sử lấy theo ngày tạo (purchase_date) hoặc ngày nào đó bạn muốn.
+        $whereClauses[] = "orders.purchase_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+
+        // 3. Xây dựng câu truy vấn WHERE
+        $whereSql = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
+
+        // 4. Query lấy thống kê
+        // Cần JOIN các bảng như ở trên vì điều kiện phân quyền (team_id, author_id) nằm ở bảng khác
+        $sql = "SELECT orders.status, COUNT(DISTINCT orders.ID) AS total_count
+            FROM orders
+            INNER JOIN accounts ON accounts.ID = orders.account_id
+            LEFT JOIN accounts_authors ON accounts_authors.account_id = accounts.ID
+            $whereSql
+            GROUP BY orders.status";
+
+        $rs = $conn->execute_query($sql, $bindParams);
+
+        // 5. Build mảng kết quả dạng ['delivered' => 100, 'shipped' => 30]
+        $statistics = [];
+        foreach ($rs as $row) {
+            // Đảm bảo kiểu số cho chính xác
+            $statistics[$row['status']] = (int)$row['total_count'];
+        }
+
+        return $statistics;
     }
 
     /**
