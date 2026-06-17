@@ -124,15 +124,15 @@ if(!checkRoles('view', 'orders')){
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="deleteConfirmModalLabel">Xác nhận xóa</h5>
+                <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm deletion!</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Bạn có chắc chắn muốn xóa bản ghi này không? Hành động này không thể hoàn tác.
+                Are you sure you want to delete this record? This action cannot be undone.
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-danger" id="btn-confirm-delete">Đồng ý xóa</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="btn-confirm-delete">Yes</button>
             </div>
         </div>
     </div>
