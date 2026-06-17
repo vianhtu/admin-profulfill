@@ -150,7 +150,11 @@ function initTable(){
                 {
                     targets: 4,
                     render: function (data, type, full, meta) {
-                        return renderShipCountdownHtml(full['ship_date'], full['status']);
+                        let fulfill_date = "";
+                        if(full['fulfill_date']){
+                            fulfill_date = `<small>${toLocalDate(full['fulfill_date'])}</small>`;
+                        }
+                        return renderShipCountdownHtml(full['ship_date'], full['status']) + fulfill_date;
                     }
                 },
                 {

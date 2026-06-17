@@ -106,6 +106,7 @@ class Orders
                 "purchase_date"    => $row['purchase_date'],
                 "delivery_date"    => $row['delivery_date'],
                 "ship_date"        => $row['ship_date'],
+                "fulfill_date"     => $row['fulfill_date'],
                 "full_name"        => $row['full_name'],
                 "address"          => $row['address'],
                 "phone"            => $row['phone'],
