@@ -813,9 +813,11 @@ function renderStatusHtml(status){
 /**
  * Hàm tính thời gian đếm ngược cho Ship Date
  * @param {string} shipDateStr - Chuỗi ngày tháng dạng "Jun 30, 00:00" hoặc định dạng Date hợp lệ
+ * @param {string} fulfillDate - Chuỗi ngày tháng dạng "Jun 30, 00:00" hoặc định dạng Date hợp lệ
+ * @param {string} status - Trạng thái đơn hàng.
  * @return {string} - Chuỗi HTML chứa text kèm class màu của Bootstrap 5
  */
-function renderShipCountdownHtml(shipDateStr, status) {
+function renderShipCountdownHtml(shipDateStr, fulfillDate , status) {
     const targetDate = new Date(shipDateStr);
     const now = new Date();
 
@@ -826,7 +828,10 @@ function renderShipCountdownHtml(shipDateStr, status) {
             year: 'numeric',
             timeZone: 'Asia/Ho_Chi_Minh'
         });
-        return `<span class="text-nowrap">${formattedDate}</span>`;
+        let c = '';
+        const fd = new Date(fulfillDate);
+        c = fd < targetDate ? 'text-success' : 'text-danger';
+        return `<span class="${c} text-nowrap">${formattedDate}</span>`;
     }
 
     // Tính khoảng cách thời gian (miligiây)
