@@ -271,7 +271,7 @@ class Orders
     /**
      * Engine lõi xử lý hàng loạt mọi thao tác (Update, Delete, v.v.)
      */
-    private static function process_orders(string $action, array $inputData): array
+    private static function process_orders(string $action, array $inputData, $role = ['edit']): array
     {
         $conn = db();
 
@@ -285,7 +285,7 @@ class Orders
         $orderIds = $isAssoc ? array_keys($inputData) : array_values($inputData);
 
         // 2. Kiểm tra quyền sở hữu hàng loạt (Bulk Check)
-        $validOrders = self::check_orders_ownership($conn, $orderIds);
+        $validOrders = self::check_orders_ownership($conn, $orderIds, $role);
 
         if (empty($validOrders)) {
             return ['status' => 'error', 'message' => 'Bạn không có quyền chỉnh sửa các đơn hàng này hoặc đơn hàng không tồn tại.'];
@@ -398,6 +398,6 @@ class Orders
         }
 
         // Đẩy thẳng xuống hàm process_orders xử lý
-        return self::process_orders('delete', $orderIds);
+        return self::process_orders('delete', $orderIds, ['delete']);
     }
 }
