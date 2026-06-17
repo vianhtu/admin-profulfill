@@ -153,7 +153,7 @@ function initTable(){
                         let fulfill_date = "";
                         if(full['fulfill_date']){
                             fulfill_date = `<small class="d-inline-flex align-items-center">
-                            <i class="ti tabler-truck me-1 size2"></i> ${toLocalDate(full['fulfill_date'])}</small>`;
+                            <i class="ti tabler-truck me-1 size2"></i>${toLocalDate(full['fulfill_date'])}</small>`;
                         }
                         return '<div class="d-flex flex-column">' +
                             renderShipCountdownHtml(full['ship_date'], full['status']) + fulfill_date +
