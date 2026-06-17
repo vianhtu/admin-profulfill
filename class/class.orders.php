@@ -68,7 +68,7 @@ class Orders
         while ($row = $result->fetch_assoc()) {
             // Sử dụng chính ID của đơn hàng làm Key của mảng
             // Việc này giúp bạn dễ dàng tìm kiếm o(1) khi xử lý logic ở bên ngoài
-            $validOrders[$row['id']] = $row;
+            $validOrders[$row['ID']] = $row;
         }
 
         $stmt->close();
