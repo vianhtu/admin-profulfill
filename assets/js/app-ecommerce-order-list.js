@@ -637,18 +637,14 @@ function initTable(){
 
         // 1. Xử lý sự kiện click vào nút xóa bản ghi (.delete-record)
         $(document).on('click', '.delete-record', function (e) {
-            // $(this) đại diện chính xác cho nút .delete-record được click
-            var $tr = $(this).closest('tr');
+            e.preventDefault();
 
-            // Xóa dòng trong DataTables (dt_products phải là thực thể DataTable của bạn)
-            dt_products.row($tr).remove().draw();
+            // Lưu lại chính xác dòng <tr> chứa nút vừa click
+            const $rowToDelete = $(this).closest('tr');
 
-            // Xử lý ẩn Bootstrap Modal nếu đang hiển thị (Thường gặp khi dùng Responsive DataTable)
-            var $modalEl = $('.dtr-bs-modal.show');
-            if ($modalEl.length > 0) {
-                var modal = bootstrap.Modal.getInstance($modalEl[0]); // Lấy instance JS gốc bằng phần tử DOM đầu tiên [0]
-                modal?.hide();
-            }
+            // Khởi tạo và hiển thị Modal Xác Nhận
+            var deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+            deleteModal.show();
         });
 
         // 2. Xử lý sự kiện click vào nút cập nhật trạng thái (.update-status)
@@ -727,6 +723,10 @@ function updateOrdersStatus(orders) {
             console.error('Lỗi AJAX:', error);
         }
     });
+}
+
+function deleteOrders(orders) {
+
 }
 
 function updateItemData(){
