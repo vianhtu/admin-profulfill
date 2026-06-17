@@ -826,9 +826,7 @@ function renderShipCountdownHtml(shipDateStr) {
         const formattedDate = targetDate.toLocaleString('en-US', {
             month: 'short',
             day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
+            year: 'numeric',
             timeZone: 'Asia/Ho_Chi_Minh'
         });
         return `<span>${formattedDate}</span>`;
