@@ -829,33 +829,44 @@ function renderShipCountdownHtml(shipDateStr) {
             year: 'numeric',
             timeZone: 'Asia/Ho_Chi_Minh'
         });
-        return `<span class="text-nowrap">${formattedDate}</span>`;
+        return `<span class="text-nowrap text-muted">${formattedDate}</span>`;
     }
 
     // Tính khoảng cách thời gian (miligiây)
     const diffTime = targetDate - now;
 
-    // Tính toán số ngày, giờ, phút, giây còn lại
+    // Tính toán các thành phần thời gian cơ bản
     const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diffTime % (1000 * 60)) / 1000);
 
-    // Xác định class màu của Bootstrap 5 dựa trên số ngày còn lại
+    // Chuẩn hóa chuỗi Phút và Giây luôn có 2 chữ số (font-monospace giúp text không bị giật)
+    const mm = minutes.toString().padStart(2, '0');
+    const ss = seconds.toString().padStart(2, '0');
+
     let textClass = "";
+    let countdownText = "";
+
     if (days < 1) {
-        textClass = "text-danger";   // Còn dưới 1 ngày -> Màu đỏ
+        // Còn dưới 1 ngày -> Màu đỏ gấp
+        const hours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const hh = hours.toString().padStart(2, '0');
+
+        textClass = "text-danger fw-bold font-monospace";
+        countdownText = `${hh}:${mm}:${ss}`;
     } else if (days < 2) {
-        textClass = "text-warning";  // Còn từ 1 đến dưới 2 ngày -> Màu vàng
+        // Còn từ 1 đến dưới 2 ngày -> Tính tổng số giờ (Ví dụ: từ 24h đến 47h)
+        const totalHours = Math.floor(diffTime / (1000 * 60 * 60));
+        const hh = totalHours.toString().padStart(2, '0');
+
+        textClass = "text-warning fw-bold font-monospace";
+        countdownText = `${hh}:${mm}:${ss}`; // Hiển thị tổng số giờ
     } else {
-        textClass = "text-dark";     // Còn trên 2 ngày -> Màu mặc định (hoặc text-body)
+        // Còn trên 2 ngày -> Hiện số ngày thong thả
+        textClass = "text-dark";
+        countdownText = `${days} days left`;
     }
 
-    // Format chuỗi hiển thị: "X ngày Y giờ Z phút W giây"
-    let countdownText = "";
-    if (days > 0) countdownText += `${days}days `;
-    countdownText += `${hours}:${minutes}`;
-
-    // Trả về chuỗi HTML đã bọc class Bootstrap 5
     return `<span class="${textClass} text-nowrap">${countdownText}</span>`;
 }
 
