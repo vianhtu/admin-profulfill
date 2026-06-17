@@ -271,7 +271,8 @@ class Orders
             return [
                 'status' => 'error',
                 'message' => 'Không có đơn hàng nào được cập nhật thành công.',
-                'errors' => $errors
+                'errors' => $errors,
+                'ddd' => $validOrders
             ];
         }
 
