@@ -1,5 +1,4 @@
 <?php
-
 if(!checkRoles('view', 'orders')){
     return;
 }
@@ -13,7 +12,7 @@ $orders_statistic = Orders::get_orders_statistic(); var_dump($orders_statistic);
                     <div
                             class="d-flex justify-content-between align-items-start card-widget-1 border-end pb-4 pb-sm-0">
                         <div>
-                            <h4 class="mb-0">56</h4>
+                            <h4 class="mb-0"><?= $orders_statistic['unshipped']; ?></h4>
                             <p class="mb-0">Unshipped</p>
                         </div>
                         <span class="avatar me-sm-6">
