@@ -154,7 +154,9 @@ function initTable(){
                         if(full['fulfill_date']){
                             fulfill_date = `<small>${toLocalDate(full['fulfill_date'])}</small>`;
                         }
-                        return renderShipCountdownHtml(full['ship_date'], full['status']) + fulfill_date;
+                        return '<div class="d-flex flex-column">' +
+                            renderShipCountdownHtml(full['ship_date'], full['status']) + fulfill_date +
+                            '</div>';
                     }
                 },
                 {
