@@ -863,7 +863,7 @@ function renderShipCountdownHtml(shipDateStr) {
         countdownText = `${hh}:${mm}:${ss}`; // Hiển thị tổng số giờ
     } else {
         // Còn trên 2 ngày -> Hiện số ngày thong thả
-        textClass = "text-dark";
+        textClass = "text-success";
         countdownText = `${days} days left`;
     }
 
