@@ -1,58 +1,6 @@
 <?php
 class Order
 {
-    /**
-     * Kiểm tra quyền sở hữu và phân quyền chỉnh sửa đối với một đơn hàng cụ thể
-     * * @param mysqli $conn Đối tượng kết nối MySQLi
-     * @param int $orderId ID của đơn hàng cần kiểm tra
-     * @param array $action Quyền cần kiểm tra (mặc định là 'edit')
-     * @return array|null Trả về mảng dữ liệu đơn hàng nếu hợp lệ, ngược lại trả về null
-     */
-    public static function check_order_ownership(mysqli $conn, int $orderId, array $action = ['edit']): ?array {
-        // 1. Kiểm tra role cơ bản trên module orders
-        if (!is_admin()) {
-            if (!checkRoles($action, 'orders')) {
-                return null;
-            }
-        }
-
-        // 2. Xây dựng câu lệnh SQL phân quyền dựa trên cấu trúc table
-        $sql = "SELECT o.* FROM orders o
-            INNER JOIN accounts a ON o.account_id = a.ID";
-
-        $whereClauses = ["o.id = ?"];
-        $bindParams = [$orderId];
-
-        // Áp dụng phân quyền theo cấp bậc nếu không phải Admin
-        if (!is_admin()) {
-            // Phân quyền cấp Team
-            $whereClauses[] = "a.team_id = ?";
-            $bindParams[] = (int)$_SESSION['auth']['team'];
-
-            // Phân quyền cấp User (Nhân viên) dựa trên bảng accounts_authors
-            if (is_user()) {
-                $sql .= " INNER JOIN accounts_authors aa ON a.ID = aa.account_id";
-                $whereClauses[] = "aa.author_id = ?";
-                $bindParams[] = (int)$_SESSION['auth']['user_id'];
-            }
-        }
-
-        $sql .= " WHERE " . implode(" AND ", $whereClauses) . " LIMIT 1";
-
-        // 3. Thực thi truy vấn an toàn bằng Prepared Statement
-        $stmt = $conn->prepare($sql);
-        if (!$stmt) {
-            return null;
-        }
-
-        $stmt->execute($bindParams);
-        $result = $stmt->get_result();
-        $order = $result->fetch_assoc();
-        $stmt->close();
-
-        return $order ? $order : null;
-    }
-
     public static function update_item(int $orderId, int $itemIndex, callable $callback): array
     {
         $conn = db();
@@ -63,10 +11,12 @@ class Order
         }
 
         // 2. Kiểm tra quyền truy cập bản ghi
-        $order = self::check_order_ownership($conn, $orderId);
-        if (!$order) {
+        $validOrders = Orders::check_orders_ownership($conn, [$orderId]);
+        if (empty($validOrders[$orderId])) {
             return ['status' => 'error', 'message' => 'Đơn hàng không tồn tại hoặc bạn không có quyền chỉnh sửa.'];
         }
+
+        $order = $validOrders[$orderId];
 
         // 3. Giải mã JSON
         $items = json_decode($order['items'], true);

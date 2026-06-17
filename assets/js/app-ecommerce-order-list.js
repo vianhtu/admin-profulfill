@@ -204,12 +204,12 @@ function initTable(){
                               <i class="icon-base ti tabler-dots-vertical"></i>
                             </button>
                             <div class="dropdown-menu dropdown-menu-end m-0">
-                              <a href="app-ecommerce-order-details.html" class="dropdown-item">Unshipped</a>
-                              <a href="app-ecommerce-order-details.html" class="dropdown-item">Cancel</a>
-                              <a href="app-ecommerce-order-details.html" class="dropdown-item">Refund</a>
-                              <a href="app-ecommerce-order-details.html" class="dropdown-item">Shipped</a>
-                              <a href="app-ecommerce-order-details.html" class="dropdown-item">Replace</a>
-                              <a href="app-ecommerce-order-details.html" class="dropdown-item">Delivered</a>
+                              <a href="javascript:void(0);" class="dropdown-item update-status" data-status="unshipped">Unshipped</a>
+                              <a href="javascript:void(0);" class="dropdown-item update-status" data-status="cancel">Cancel</a>
+                              <a href="javascript:void(0);" class="dropdown-item update-status" data-status="refund">Refund</a>
+                              <a href="javascript:void(0);" class="dropdown-item update-status" data-status="shipped">Shipped</a>
+                              <a href="javascript:void(0);" class="dropdown-item update-status" data-status="replace">Replace</a>
+                              <a href="javascript:void(0);" class="dropdown-item update-status" data-status="delivered">Delivered</a>
                               <a href="javascript:void(0);" class="dropdown-item delete-record">Delete</a>
                             </div>
                           </div>`;
@@ -644,6 +644,8 @@ function initTable(){
                     const modal = bootstrap.Modal.getInstance(modalEl);
                     modal?.hide();
                 }
+            } else if (e.target.classList.contains('update-status')) {
+                
             }
         });
     }

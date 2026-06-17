@@ -1,6 +1,78 @@
 <?php
 class Orders
 {
+    /**
+     * Kiểm tra quyền sở hữu và phân quyền chỉnh sửa đối với danh sách đơn hàng
+     * * @param mysqli $conn Đối tượng kết nối MySQLi
+     * @param int[] $orderIds Mảng chứa danh sách ID các đơn hàng cần kiểm tra
+     * @param array $action Quyền cần kiểm tra (mặc định là ['edit'])
+     * @return array Trả về mảng danh sách các đơn hàng hợp lệ (key là order_id để dễ truy xuất)
+     */
+    public static function check_orders_ownership(mysqli $conn, array $orderIds, array $action = ['edit']): array {
+        // 1. Lọc và làm sạch mảng ID (ép kiểu int và chỉ lấy số dương)
+        $validIds = array_filter(array_map('intval', $orderIds), fn($id) => $id > 0);
+
+        // Nếu mảng rỗng sau khi lọc, trả về mảng rỗng ngay lập tức để tiết kiệm tài nguyên
+        if (empty($validIds)) {
+            return [];
+        }
+
+        // 2. Kiểm tra role cơ bản trên module orders
+        if (!is_admin() && !checkRoles($action, 'orders')) {
+            return [];
+        }
+
+        // 3. Xây dựng câu lệnh SQL phân quyền dựa trên cấu trúc table
+        $sql = "SELECT o.* FROM orders o
+            INNER JOIN accounts a ON o.account_id = a.ID";
+
+        // Tạo các dấu '?' tương ứng với số lượng ID hợp lệ cho mệnh đề IN
+        $placeholders = implode(',', array_fill(0, count($validIds), '?'));
+        $whereClauses = ["o.id IN ($placeholders)"];
+
+        // Khởi tạo mảng bind tham số bằng chính danh sách ID đã lọc
+        // Hàm array_values đảm bảo key của mảng là tuần tự (0, 1, 2...)
+        $bindParams = array_values($validIds);
+
+        // Áp dụng phân quyền theo cấp bậc nếu không phải Admin
+        if (!is_admin()) {
+            // Phân quyền cấp Team
+            $whereClauses[] = "a.team_id = ?";
+            $bindParams[] = (int)$_SESSION['auth']['team'];
+
+            // Phân quyền cấp User (Nhân viên) dựa trên bảng accounts_authors
+            if (is_user()) {
+                $sql .= " INNER JOIN accounts_authors aa ON a.ID = aa.account_id";
+                $whereClauses[] = "aa.author_id = ?";
+                $bindParams[] = (int)$_SESSION['auth']['user_id'];
+            }
+        }
+
+        // Nối các điều kiện WHERE lại với nhau
+        $sql .= " WHERE " . implode(" AND ", $whereClauses);
+
+        // 4. Thực thi truy vấn an toàn bằng Prepared Statement
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            // Log lỗi hoặc xử lý exception tại đây nếu cần
+            return [];
+        }
+
+        // Tận dụng tính năng của PHP 8+ truyền thẳng mảng vào execute()
+        $stmt->execute($bindParams);
+        $result = $stmt->get_result();
+
+        $validOrders = [];
+        while ($row = $result->fetch_assoc()) {
+            // Sử dụng chính ID của đơn hàng làm Key của mảng
+            // Việc này giúp bạn dễ dàng tìm kiếm o(1) khi xử lý logic ở bên ngoài
+            $validOrders[$row['id']] = $row;
+        }
+
+        $stmt->close();
+
+        return $validOrders;
+    }
     public static function get_orders(): array {
         $allowedCols = ['ID', 'status', 'purchase_date', 'delivery_date', 'ship_date', 'total_price'];
         $params = getDataTableParams($allowedCols);
@@ -126,5 +198,15 @@ class Orders
             "recordsFiltered" => $totalFiltered,
             "data"            => $data
         ];
+    }
+
+    public static function update_orders_status()
+    {
+
+    }
+
+    public static function delete_orders()
+    {
+
     }
 }
