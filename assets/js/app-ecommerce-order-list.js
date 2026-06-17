@@ -691,7 +691,7 @@ function updateItemData(api){
 
         // Gọi AJAX bằng jQuery
         $.ajax({
-            url: '../../ajax.php?action=update-order-item',
+            url: '../../ajax.php?action=update-order-item-data',
             method: 'POST',
             data: data,
             success: function(response) {
@@ -739,7 +739,7 @@ function addTrackingNumber(api) {
             $row.find('.shipping-service, .shipping-tracking').prop('disabled', true);
 
             $.ajax({
-                url: '../../ajax.php?action=add-order-tracking',
+                url: '../../ajax.php?action=add-order-item-tracking',
                 type: 'POST',
                 dataType: 'json',
                 data: {
