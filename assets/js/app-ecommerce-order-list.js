@@ -703,7 +703,7 @@ function initTable(){
     }, 100);
 }
 
-function updateOrdersStatus(orders, row) {
+function updateOrdersStatus(orders) {
     // Gọi AJAX bằng jQuery
     $.ajax({
         url: '../../ajax.php?action=update-orders-status',
@@ -729,7 +729,7 @@ function updateOrdersStatus(orders, row) {
     });
 }
 
-function updateItemData(api){
+function updateItemData(){
     $('#item-modal-form').on('change', 'input, textarea', function() {
         const data = {
             item_id: $('#item_id').val(),
