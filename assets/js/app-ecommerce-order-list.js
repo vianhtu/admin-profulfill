@@ -829,7 +829,7 @@ function renderShipCountdownHtml(shipDateStr) {
             year: 'numeric',
             timeZone: 'Asia/Ho_Chi_Minh'
         });
-        return `<span class="text-nowrap text-muted">${formattedDate}</span>`;
+        return `<span class="text-nowrap">${formattedDate}</span>`;
     }
 
     // Tính khoảng cách thời gian (miligiây)
@@ -839,8 +839,6 @@ function renderShipCountdownHtml(shipDateStr) {
     const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     const minutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((diffTime % (1000 * 60)) / 1000);
-
-    // Chuẩn hóa chuỗi Phút và Giây luôn có 2 chữ số (font-monospace giúp text không bị giật)
     const mm = minutes.toString().padStart(2, '0');
     const ss = seconds.toString().padStart(2, '0');
 
@@ -851,15 +849,13 @@ function renderShipCountdownHtml(shipDateStr) {
         // Còn dưới 1 ngày -> Màu đỏ gấp
         const hours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const hh = hours.toString().padStart(2, '0');
-
-        textClass = "text-danger fw-bold font-monospace";
+        textClass = "text-danger";
         countdownText = `${hh}:${mm}:${ss}`;
     } else if (days < 2) {
         // Còn từ 1 đến dưới 2 ngày -> Tính tổng số giờ (Ví dụ: từ 24h đến 47h)
         const totalHours = Math.floor(diffTime / (1000 * 60 * 60));
         const hh = totalHours.toString().padStart(2, '0');
-
-        textClass = "text-warning fw-bold font-monospace";
+        textClass = "text-warning";
         countdownText = `${hh}:${mm}:${ss}`; // Hiển thị tổng số giờ
     } else {
         // Còn trên 2 ngày -> Hiện số ngày thong thả
@@ -867,7 +863,7 @@ function renderShipCountdownHtml(shipDateStr) {
         countdownText = `${days} days left`;
     }
 
-    return `<span class="${textClass} text-nowrap">${countdownText}</span>`;
+    return `<span class="${textClass} text-nowrap fw-bold">${countdownText}</span>`;
 }
 
 document.addEventListener('DOMContentLoaded', function (e) {
