@@ -641,7 +641,7 @@ function initTable(){
             e.preventDefault();
 
             // Lưu lại chính xác dòng <tr> chứa nút vừa click
-            const $rowToDelete = $(this).closest('tr');
+            $rowToDelete = $(this).closest('tr');
 
             // Khởi tạo và hiển thị Modal Xác Nhận
             const deleteModal = new bootstrap.Modal($('#deleteConfirmModal'));
