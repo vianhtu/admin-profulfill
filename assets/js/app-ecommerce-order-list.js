@@ -834,7 +834,7 @@ function renderShipCountdownHtml(shipDateStr) {
 
     // Nếu không parse được ngày hoặc ngày hiện tại đã lớn hơn hoặc bằng ngày ship
     if (isNaN(targetDate.getTime()) || now >= targetDate) {
-        return `<span>${shipDateStr}</span>`;
+        return `<span>${dateString}</span>`;
     }
 
     // Tính khoảng cách thời gian (miligiây)
