@@ -223,10 +223,6 @@ class Orders
         ];
     }
 
-    public static function get_orders_table(): array {
-        // trả dữ liệu cho data table
-    }
-
     public static function get_orders_statistic(): array {
         $conn = db();
 

@@ -2,7 +2,7 @@
 if(!checkRoles('view', 'orders')){
     return;
 }
-
+$orders_statistic = Orders::get_orders_statistic(); var_dump($orders_statistic);
 ?>
 <div class="card mb-6">
     <div class="card-widget-separator-wrapper">
