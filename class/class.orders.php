@@ -12,7 +12,7 @@ class Orders
         // 1. Lọc và làm sạch mảng ID (ép kiểu int và chỉ lấy số dương)
         $validIds = array_filter(array_map('intval', $orderIds), fn($id) => $id > 0);
 
-        // Nếu mảng rỗng sau khi lọc, trả về mảng rỗng ngay lập tức để tiết kiệm tài nguyên
+        // Nếu mảng rỗng sau khi lọc, trả về mảng rỗng ngay lập tức.
         if (empty($validIds)) {
             return [];
         }
@@ -28,7 +28,7 @@ class Orders
 
         // Tạo các dấu '?' tương ứng với số lượng ID hợp lệ cho mệnh đề IN
         $placeholders = implode(',', array_fill(0, count($validIds), '?'));
-        $whereClauses = ["o.id IN ($placeholders)"];
+        $whereClauses = ["o.ID IN ($placeholders)"];
 
         // Khởi tạo mảng bind tham số bằng chính danh sách ID đã lọc
         // Hàm array_values đảm bảo key của mảng là tuần tự (0, 1, 2...)
@@ -269,8 +269,7 @@ class Orders
             return [
                 'status' => 'error',
                 'message' => 'Không có đơn hàng nào được cập nhật thành công.',
-                'errors' => $errors,
-                'ddd' => $validOrders
+                'errors' => $errors
             ];
         }
 
