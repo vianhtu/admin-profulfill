@@ -237,7 +237,7 @@ class Orders
 
         // 2. Thêm điều kiện 30 ngày gần nhất (dùng INTERVAL của MySQL)
         // Giả sử lấy theo ngày tạo (purchase_date) hoặc ngày nào đó bạn muốn.
-        $whereClauses[] = "orders.purchase_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+        //$whereClauses[] = "orders.purchase_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
 
         // 3. Xây dựng câu truy vấn WHERE
         $whereSql = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
