@@ -156,7 +156,7 @@ function initTable(){
                             <i class="ti tabler-truck me-1 fs-5"></i>${toLocalDate(full['fulfill_date'])}</small>`;
                         }
                         return '<div class="d-flex flex-column">' +
-                            renderShipCountdownHtml(full['ship_date'], full['status']) + fulfill_date +
+                            renderShipCountdownHtml(full['ship_date'], full['fulfill_date'], full['status']) + fulfill_date +
                             '</div>';
                     }
                 },
