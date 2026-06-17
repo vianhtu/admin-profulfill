@@ -169,7 +169,7 @@ class Order
 
         if ($allShipped) {
             // Nếu tất cả đã có tracking, cập nhật đồng thời cả JSON items và cột status thành 'shipped'
-            $updateSql = "UPDATE orders SET items = ?, status = 'shipped' WHERE id = ?";
+            $updateSql = "UPDATE orders SET items = ?, status = 'shipped', fulfill_date = NOW() WHERE id = ?";
             $bindParams = [$updatedJson, $orderId];
         } else {
             // Nếu vẫn còn sản phẩm thiếu tracking, chỉ cập nhật trường items
