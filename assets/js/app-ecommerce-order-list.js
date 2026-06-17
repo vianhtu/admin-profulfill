@@ -828,9 +828,16 @@ function renderShipCountdownHtml(shipDateStr, fulfillDate , status) {
             year: 'numeric',
             timeZone: 'Asia/Ho_Chi_Minh'
         });
-        let c = '';
-        const fd = new Date(fulfillDate);
-        c = fd <= targetDate ? 'text-success' : 'text-danger';
+        let c = 'text-danger';
+        if (fulfillDate) {
+            const fd = new Date(fulfillDate);
+            if (!isNaN(fd.getTime())) {
+                const compareFulfill = new Date(fd).setHours(0, 0, 0, 0);
+                const compareTarget = new Date(targetDate).setHours(0, 0, 0, 0);
+                // Chỉ so sánh ngày tháng năm
+                c = compareFulfill <= compareTarget ? 'text-success' : 'text-danger';
+            }
+        }
         return `<span class="${c} text-nowrap">${formattedDate}</span>`;
     }
 
