@@ -839,7 +839,7 @@ function renderShipCountdownHtml(shipDateStr, status) {
         // Còn dưới 1 ngày -> Màu đỏ gấp
         const hours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const hh = hours.toString().padStart(2, '0');
-        textClass = "text-danger fw-bold";
+        textClass = "text-danger";
         countdownText = `<i class="icon-base ti tabler-alert-circle"></i> ${hh}:${mm}:${ss}`;
     } else if (days < 2) {
         // Còn từ 1 đến dưới 2 ngày -> Tính tổng số giờ (Ví dụ: từ 24h đến 47h)
