@@ -649,7 +649,7 @@ function initTable(){
         });
         $('#btn-confirm-delete').on('click', function () {
             if ($rowToDelete) {
-                const orderId = $rowToDelete.attr('data-order-id'); console.log(orderId);
+                const orderId = $rowToDelete.attr('data-order-id');
                 deleteOrders([orderId], dt_order_table);
                 // B. Ẩn Modal xác nhận xóa
                 let deleteModalInstance = bootstrap.Modal.getInstance($('#deleteConfirmModal')[0]);
@@ -743,7 +743,7 @@ function deleteOrders(orders, table) {
         url: '../../ajax.php?action=delete-orders',
         method: 'POST',
         data: {
-            orders: orders
+            order_ids: orders
         },
         success: function(response) {
             if (response?.status === 'success' && !$.isEmptyObject(response?.orders)) {
