@@ -829,7 +829,7 @@ function renderShipCountdownHtml(shipDateStr) {
             year: 'numeric',
             timeZone: 'Asia/Ho_Chi_Minh'
         });
-        return `<span>${formattedDate}</span>`;
+        return `<span class="text-nowrap">${formattedDate}</span>`;
     }
 
     // Tính khoảng cách thời gian (miligiây)
