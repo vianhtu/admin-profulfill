@@ -568,9 +568,10 @@ function getAccountsTable(): array
     // Sử dụng cùng điều kiện WHERE và JOIN để tính tổng chính xác cho tập dữ liệu đang hiển thị
     $sumSql = "SELECT SUM(af.available_funds) AS total_funds, SUM(af.on_hold) AS total_hold,  SUM(af.subscription_fee) AS total_fee
                FROM accounts 
-               INNER JOIN accounts_finance af ON accounts.ID = af.account_id 
-               $where
-               GROUP BY accounts.ID";
+               INNER JOIN accounts_finance af ON accounts.ID = af.account_id
+               AND YEAR(af.date) = YEAR(CURRENT_DATE()) 
+               AND MONTH(af.date) = MONTH(CURRENT_DATE()) 
+               $where";
     $sumResult = $conn->query($sumSql)->fetch_assoc();
 
     // Tổng số bản ghi sau khi lọc
