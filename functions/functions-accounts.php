@@ -569,7 +569,8 @@ function getAccountsTable(): array
     $sumSql = "SELECT SUM(af.available_funds) AS total_funds, SUM(af.on_hold) AS total_hold,  SUM(af.subscription_fee) AS total_fee
                FROM accounts 
                INNER JOIN accounts_finance af ON accounts.ID = af.account_id 
-               $where";
+               $where
+               GROUP BY accounts.ID";
     $sumResult = $conn->query($sumSql)->fetch_assoc();
 
     // Tổng số bản ghi sau khi lọc
