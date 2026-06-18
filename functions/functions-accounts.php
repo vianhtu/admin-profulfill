@@ -586,6 +586,8 @@ function getAccountsTable(): array
                    af.sys_date
             FROM accounts
             LEFT JOIN accounts_finance af ON accounts.ID = af.account_id
+            AND YEAR(af.date) = YEAR(CURRENT_DATE()) 
+            AND MONTH(af.date) = MONTH(CURRENT_DATE()) 
             $where
             GROUP BY accounts.ID
             ORDER BY {$params['orderColumn']} {$params['orderDir']}
