@@ -585,6 +585,7 @@ function getAccountsTable(): array
             FROM accounts
             LEFT JOIN accounts_finance af ON accounts.ID = af.account_id
             $where
+            GROUP BY accounts.ID
             ORDER BY {$params['orderColumn']} {$params['orderDir']}
             LIMIT {$params['start']}, {$params['length']}";
     $rs = $conn->query($sql);
