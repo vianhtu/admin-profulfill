@@ -10,6 +10,9 @@ require __DIR__ . '/class/class.order.php';
 require __DIR__ . '/model/functions-gemini.php';
 require __DIR__ . '/model/functions-openai.php';
 require __DIR__ . '/tables/functions-teams.php';
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 header('Content-Type: application/json; charset=utf-8');
 // Nếu chưa login hoặc cookie nhớ đăng nhập không hợp lệ → chặn
 if (!is_logged_in() && !attempt_cookie_login()) {
