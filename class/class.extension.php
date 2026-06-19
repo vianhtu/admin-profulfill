@@ -465,7 +465,7 @@ class Extensions
             return ['success' => false, 'message' => 'Dữ liệu không đúng định dạng.'];
         }
 
-        return $requestData;
+        return ['dfgdgfdgfd'];
     }
 
     private static function check_condition($conn): array
