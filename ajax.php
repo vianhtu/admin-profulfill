@@ -43,6 +43,9 @@ if (!is_logged_in() && !attempt_cookie_login()) {
             case 'extension-add-account-orders':
                 echo json_encode(Extensions::add_account_orders());
                 break;
+            case 'extension-add-products':
+                echo json_encode(Extensions::add_products());
+                break;
             case 'extension-get-account-2fa':
                 echo json_encode(Extensions::get_account_2fa());
                 break;
@@ -54,6 +57,9 @@ if (!is_logged_in() && !attempt_cookie_login()) {
                 break;
             case 'extension-get-account-login':
                 echo json_encode(Extensions::get_account_login());
+                break;
+            case 'extension-check-products-exist':
+                echo json_encode(Extensions::check_products_exist());
                 break;
         }
     } else {

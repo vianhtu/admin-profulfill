@@ -255,6 +255,17 @@ class Extensions
         return ['success' => true, 'message' => 'Orders processed'];
     }
 
+    public static function add_products(): array
+    {
+        $conn = db();
+        $authors_id = self::check_authors_key($conn);
+        if (!$authors_id) {
+            return ['success' => false, 'message' => 'Bạn không có quyền thêm sản phẩm.'];
+        }
+
+        return [];
+    }
+
     public static function update_account_finance(): array
     {
         // 1. Kiểm tra tài khoản qua key và id (user_id)
@@ -434,6 +445,29 @@ class Extensions
         }
     }
 
+    public static function check_products_exist(): array
+    {
+        $conn = db();
+        $authors_id = self::check_authors_key($conn);
+        if (!$authors_id) {
+            return ['success' => false, 'message' => 'Bạn không có quyền kiểm tra sản phẩm.'];
+        }
+
+        // 1. Lấy chuỗi JSON từ $_POST['data'] gửi lên từ Extension
+        $jsonData = $_POST['data'] ?? '';
+        if (empty($jsonData)) {
+            return ['success' => false, 'message' => 'Dữ liệu trống.'];
+        }
+
+        // 2. Giải mã JSON thành mảng PHP
+        $requestData = json_decode($jsonData, true);
+        if (!is_array($requestData)) {
+            return ['success' => false, 'message' => 'Dữ liệu không đúng định dạng.'];
+        }
+
+        return $requestData;
+    }
+
     private static function check_condition($conn): array
     {
         $id = trim($_POST['id'] ?? '');
@@ -453,30 +487,38 @@ class Extensions
         return ['success' => true, 'id' => $id, 'site' => $site, 'team_id' => $team_id];
     }
 
-    private static function check_team_key($conn, string $key): int
+    private static function check_team_key(\mysqli $conn, string $key): int
     {
-        if (empty($key)) {
+        if (empty(trim($key))) {
             return 0;
         }
 
         $sql = "SELECT ID FROM team WHERE `key` = ? LIMIT 1";
 
         try {
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param("s", $key);
-            $stmt->execute();
-            $result = $stmt->get_result();
+            $result = $conn->execute_query($sql, [$key]);
+            return (int)($result->fetch_assoc()['ID'] ?? 0);
 
-            $id = 0;
-            if ($row = $result->fetch_assoc()) {
-                $id = (int)$row['ID'];
-            }
+        } catch (\mysqli_sql_exception) {
+            return 0;
+        }
+    }
 
-            $stmt->close();
+    private static function check_authors_key(\mysqli $conn): int
+    {
+        $email = trim($_POST['email'] ?? '');
+        $key = trim($_POST['key'] ?? '');
 
-            return $id;
+        if (empty($key) || empty($email)) {
+            return 0;
+        }
 
-        } catch (mysqli_sql_exception $e) {
+        $sql = "SELECT ID FROM authors WHERE `key` = ? AND `email` = ? LIMIT 1";
+
+        try {
+            $result = $conn->execute_query($sql, [$key, $email]);
+            return (int)($result->fetch_assoc()['ID'] ?? 0);
+        } catch (\mysqli_sql_exception) {
             return 0;
         }
     }
