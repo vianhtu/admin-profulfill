@@ -402,12 +402,14 @@ class Extensions
             return ['success' => true, 'data' => []];
         }
 
-        // ID sản phẩm marketplace được lưu ở posts.sku, gắn với author_id của người gọi.
+        // ID sản phẩm marketplace được lưu ở posts.sku. key/email chỉ dùng để xác minh
+        // quyền gọi API (đã check ở check_authors_key), không lọc theo author_id —
+        // kiểm tra tồn tại trên toàn bộ sản phẩm, không riêng của author này.
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
         try {
             $result = db()->execute_query(
-                "SELECT sku FROM posts WHERE sku IN ($placeholders) AND author_id = ?",
-                [...$ids, $authors_id]
+                "SELECT sku FROM posts WHERE sku IN ($placeholders)",
+                $ids
             );
             return ['success' => true, 'data' => array_column($result->fetch_all(MYSQLI_ASSOC), 'sku')];
         } catch (\mysqli_sql_exception $e) {
