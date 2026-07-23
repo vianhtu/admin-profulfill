@@ -11,7 +11,49 @@ require __DIR__ . '/model/functions-gemini.php';
 require __DIR__ . '/model/functions-openai.php';
 require __DIR__ . '/tables/functions-teams.php';
 header('Content-Type: application/json; charset=utf-8');
-header('Cache-Control: no-store, no-cache, must-revalidate, no-transform');
+
+// Xử lý các action extension-* độc lập với trạng thái đăng nhập session,
+// vì đã xác thực bằng key/email riêng.
+if (isset($_GET['action']) && isset($_POST['key']) && str_starts_with($_GET['action'], 'extension-')) {
+    ini_set('display_errors', '0');
+    ini_set('log_errors', '1');
+    ini_set('error_log', __DIR__ . '/php_errors.log');
+    error_reporting(E_ALL);
+    switch ($_GET['action']) {
+        case 'extension-update-account-finance':
+            echo json_encode(Extensions::update_account_finance());
+            break;
+        case 'extension-update-account-seller':
+            echo json_encode(Extensions::update_account_seller());
+            break;
+        case 'extension-update-account-cookies':
+            echo json_encode(Extensions::update_account_cookies());
+            break;
+        case 'extension-add-account-orders':
+            echo json_encode(Extensions::add_account_orders());
+            break;
+        case 'extension-add-products':
+            echo json_encode(Extensions::add_products());
+            break;
+        case 'extension-get-account-2fa':
+            echo json_encode(Extensions::get_account_2fa());
+            break;
+        case 'extension-get-account-orders':
+            echo json_encode(Extensions::get_account_orders());
+            break;
+        case 'extension-get-account-cookies':
+            echo json_encode(Extensions::get_account_cookies());
+            break;
+        case 'extension-get-account-login':
+            echo json_encode(Extensions::get_account_login());
+            break;
+        case 'extension-check-products-exist':
+            echo json_encode(Extensions::check_products_exist());
+            break;
+    }
+    exit;
+}
+
 // Nếu chưa login hoặc cookie nhớ đăng nhập không hợp lệ → chặn
 if (!is_logged_in() && !attempt_cookie_login()) {
     if (isset($_GET['action']) && isset($_POST['key'])) {
@@ -31,36 +73,6 @@ if (!is_logged_in() && !attempt_cookie_login()) {
                 break;
             case 'debug':
                 echo json_encode(getDebug());
-                break;
-            case 'extension-update-account-finance':
-                echo json_encode(Extensions::update_account_finance());
-                break;
-            case 'extension-update-account-seller':
-                echo json_encode(Extensions::update_account_seller());
-                break;
-            case 'extension-update-account-cookies':
-                echo json_encode(Extensions::update_account_cookies());
-                break;
-            case 'extension-add-account-orders':
-                echo json_encode(Extensions::add_account_orders());
-                break;
-            case 'extension-add-products':
-                echo json_encode(Extensions::add_products());
-                break;
-            case 'extension-get-account-2fa':
-                echo json_encode(Extensions::get_account_2fa());
-                break;
-            case 'extension-get-account-orders':
-                echo json_encode(Extensions::get_account_orders());
-                break;
-            case 'extension-get-account-cookies':
-                echo json_encode(Extensions::get_account_cookies());
-                break;
-            case 'extension-get-account-login':
-                echo json_encode(Extensions::get_account_login());
-                break;
-            case 'extension-check-products-exist':
-                echo json_encode(Extensions::check_products_exist());
                 break;
         }
     } else {
