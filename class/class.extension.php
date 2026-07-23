@@ -233,11 +233,6 @@ class Extensions
         }
     }
 
-    /**
-     * TODO: chưa triển khai — mới chỉ kiểm tra quyền (authors key), chưa insert
-     * sản phẩm vào bảng `posts`. Cần xác nhận cách map images/type_id/site_id/store_id
-     * trước khi viết phần lưu DB.
-     */
     public static function add_products(): array
     {
         $authors_id = self::check_authors_key(db());
@@ -245,7 +240,82 @@ class Extensions
             return ['success' => false, 'message' => 'Bạn không có quyền thêm sản phẩm.'];
         }
 
-        return ['success' => false, 'message' => 'Chức năng chưa được triển khai.'];
+        $data = json_decode($_POST['data'] ?? '', true);
+        if (!is_array($data)) {
+            return ['success' => false, 'message' => 'Dữ liệu không đúng định dạng.'];
+        }
+
+        $sku = trim((string) ($data['id'] ?? ''));
+        $title = trim((string) ($data['title'] ?? ''));
+        $type_id = (int) ($data['type'] ?? 0);
+        $site = trim((string) ($data['site'] ?? ''));
+        $shop_id = trim((string) ($data['shop']['id'] ?? ''));
+        $image_main = $data['images']['main'] ?? '';
+
+        if ($sku === '' || $title === '' || $type_id === 0 || $site === '' || $shop_id === '' || empty($image_main)) {
+            return ['success' => false, 'message' => 'Thiếu dữ liệu bắt buộc.'];
+        }
+
+        $conn = db();
+
+        try {
+            // 1. Loại sản phẩm phải khớp bảng `type` (dùng chung cache với check_products_exist).
+            $types = self::get_types_cached();
+            if (!isset($types[$type_id])) {
+                return ['success' => false, 'message' => 'Loại sản phẩm không hợp lệ.'];
+            }
+
+            // 2. Site phải tồn tại (etsy.com/amazon.com/ebay.com...).
+            $site_row = $conn->execute_query('SELECT ID FROM site WHERE name = ? LIMIT 1', [$site])->fetch_assoc();
+            if (!$site_row) {
+                return ['success' => false, 'message' => 'Site không hợp lệ.'];
+            }
+            $site_id = (int) $site_row['ID'];
+
+            // 3. Chặn thêm trùng — kiểm tra lại phía server dù extension đã check trước đó.
+            $existing = $conn->execute_query('SELECT ID FROM posts WHERE sku = ? LIMIT 1', [$sku])->fetch_assoc();
+            if ($existing) {
+                return ['success' => false, 'message' => 'Sản phẩm đã tồn tại.'];
+            }
+
+            // 4. Lấy hoặc tạo mới store theo slug (tên shop viết thường).
+            $store_slug = strtolower($shop_id);
+            $store_row = $conn->execute_query('SELECT ID FROM store WHERE slug = ? LIMIT 1', [$store_slug])->fetch_assoc();
+            if ($store_row) {
+                $store_id = (int) $store_row['ID'];
+            } else {
+                $conn->execute_query(
+                    'INSERT INTO store (name, slug, site_id) VALUES (?, ?, ?)',
+                    [$shop_id, $store_slug, $site_id]
+                );
+                $store_id = (int) $conn->insert_id;
+                if (!$store_id) {
+                    return ['success' => false, 'message' => 'Không thể tạo store.'];
+                }
+            }
+
+            // 5. Lưu sản phẩm — tags không có cột riêng nên gộp vào metadata (JSON).
+            $conn->execute_query(
+                "INSERT INTO posts (author_id, date, title, status, sku, images, type_id, site_id, store_id, badge, description, metadata)
+                    VALUES (?, NOW(), ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?)",
+                [
+                    $authors_id,
+                    $title,
+                    $sku,
+                    json_encode($data['images'] ?? []),
+                    $type_id,
+                    $site_id,
+                    $store_id,
+                    $data['badge'] ?? '',
+                    $data['description'] ?? '',
+                    json_encode(['tags' => $data['tags'] ?? []]),
+                ]
+            );
+
+            return ['success' => true, 'data' => ['id' => (int) $conn->insert_id]];
+        } catch (\mysqli_sql_exception $e) {
+            return self::db_error(__FUNCTION__, $e);
+        }
     }
 
     public static function update_account_finance(): array
