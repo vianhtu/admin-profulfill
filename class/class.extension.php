@@ -461,11 +461,29 @@ class Extensions
 
         // 2. Giải mã JSON thành mảng PHP
         $requestData = json_decode($jsonData, true);
-        if (!is_array($requestData)) {
+        if (!is_array($requestData) || empty($requestData['ids']) || !is_array($requestData['ids'])) {
             return ['success' => false, 'message' => 'Dữ liệu không đúng định dạng.'];
         }
 
-        return ['success' => true, []];
+        // 3. Chuẩn hoá danh sách ID cần kiểm tra
+        $ids = array_values(array_unique(array_map('strval', $requestData['ids'])));
+        if (empty($ids)) {
+            return ['success' => true, 'data' => []];
+        }
+
+        // 4. Tìm các ID (sku) đã tồn tại của author này
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        try {
+            $result = $conn->execute_query(
+                "SELECT sku FROM posts WHERE sku IN ($placeholders) AND author_id = ?",
+                [...$ids, $authors_id]
+            );
+            $existing = array_column($result->fetch_all(MYSQLI_ASSOC), 'sku');
+        } catch (\mysqli_sql_exception) {
+            return ['success' => false, 'message' => 'Lỗi truy vấn dữ liệu.'];
+        }
+
+        return ['success' => true, 'data' => $existing];
     }
 
     private static function check_condition($conn): array
