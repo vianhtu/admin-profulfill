@@ -295,22 +295,31 @@ class Extensions
             }
 
             // 5. Lưu sản phẩm — tags không có cột riêng nên gộp vào metadata (JSON).
-            $conn->execute_query(
-                "INSERT INTO posts (author_id, date, title, status, sku, images, type_id, site_id, store_id, badge, description, metadata)
-                    VALUES (?, NOW(), ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?)",
-                [
-                    $authors_id,
-                    $title,
-                    $sku,
-                    json_encode($data['images'] ?? []),
-                    $type_id,
-                    $site_id,
-                    $store_id,
-                    $data['badge'] ?? '',
-                    $data['description'] ?? '',
-                    json_encode(['tags' => $data['tags'] ?? []]),
-                ]
-            );
+            try {
+                $conn->execute_query(
+                    "INSERT INTO posts (author_id, date, title, status, sku, images, type_id, site_id, store_id, badge, description, metadata)
+                        VALUES (?, NOW(), ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?)",
+                    [
+                        $authors_id,
+                        $title,
+                        $sku,
+                        json_encode($data['images'] ?? []),
+                        $type_id,
+                        $site_id,
+                        $store_id,
+                        $data['badge'] ?? '',
+                        $data['description'] ?? '',
+                        json_encode(['tags' => $data['tags'] ?? []]),
+                    ]
+                );
+            } catch (\mysqli_sql_exception $e) {
+                // sku có UNIQUE index — race condition giữa bước check (3) và insert này
+                // sẽ rơi vào đây thay vì lọt qua thành 2 bản ghi trùng.
+                if ($e->getCode() === 1062) {
+                    return ['success' => false, 'message' => 'Sản phẩm đã tồn tại.'];
+                }
+                throw $e;
+            }
 
             return ['success' => true, 'data' => ['id' => (int) $conn->insert_id]];
         } catch (\mysqli_sql_exception $e) {
