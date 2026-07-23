@@ -6,14 +6,24 @@ class Extensions
     {
         $conn = db();
         $res = self::check_condition($conn);
-
-        if (!$res['success']) return $res;
+        if (!$res['success']) {
+            return $res;
+        }
 
         ['id' => $id, 'site' => $site, 'team_id' => $team_id] = $res;
 
-        // Truy vấn lấy dữ liệu account
-        $select_clause = implode(', ', array_map(fn($f) => "a.$f", $fields));
-        $sql = "SELECT $select_clause 
+        // Chỉ cho phép tên cột hợp lệ (chữ/số/gạch dưới) để tránh SQL injection
+        // nếu sau này có nơi gọi hàm này với $fields lấy từ input người dùng.
+        $safe_fields = array_values(array_filter(
+            $fields,
+            fn($f) => is_string($f) && preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $f)
+        ));
+        if (empty($safe_fields)) {
+            $safe_fields = ['ID'];
+        }
+        $select_clause = implode(', ', array_map(fn($f) => "a.$f", $safe_fields));
+
+        $sql = "SELECT $select_clause
             FROM accounts a
             INNER JOIN site s ON a.site_id = s.ID
             WHERE (a.user_id = ? OR a.email = ?) AND a.team_id = ? AND s.slug = ?
@@ -21,210 +31,176 @@ class Extensions
 
         try {
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ssis", $id, $id, $team_id, $site);
+            $stmt->bind_param('ssis', $id, $id, $team_id, $site);
             $stmt->execute();
-            $result = $stmt->get_result();
-            $account = $result->fetch_assoc();
+            $account = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
 
-            if ($account) {
-                return ['success' => true, 'data' => $account];
-            } else {
+            if (!$account) {
                 return ['success' => false, 'message' => 'Account not found'];
             }
-
-        } catch (mysqli_sql_exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Database error: ' . $e->getMessage()
-            ];
-        } finally {
-            $stmt?->close();
+            return ['success' => true, 'data' => $account];
+        } catch (\mysqli_sql_exception $e) {
+            return self::db_error(__FUNCTION__, $e);
         }
     }
 
     public static function get_account_2fa(): array
     {
-        // 1. Lấy dữ liệu từ DB (truyền mảng chứa cột cần lấy)
-        $arg = self::get_account_by_id(['2fa']);
-
-        // 2. Kiểm tra nếu lấy dữ liệu thành công
-        if ($arg['success']) {
-            // Lấy chuỗi secret từ mảng data (đảm bảo đúng key là '2fa')
-            $secret = $arg['data']['2fa'] ?? '';
-
-            // Kiểm tra xem secret có rỗng không trước khi tính toán
-            if (empty($secret)) {
-                return ['success' => false, 'message' => 'Secret key is empty'];
-            }
-
-            $secret = decrypt($secret);
-
-            // 3. Trả về mã số 6 số
-            return [
-                'success' => true,
-                'code'    => self::getTOTPCode($secret)
-            ];
+        $account = self::get_account_by_id(['2fa']);
+        if (!$account['success']) {
+            return $account;
         }
 
-        // Nếu thất bại (không tìm thấy account), trả về nguyên văn lỗi từ get_account_by_id
-        return $arg;
+        $secret = $account['data']['2fa'] ?? '';
+        if (empty($secret)) {
+            return ['success' => false, 'message' => 'Secret key is empty'];
+        }
+
+        $secret = decrypt($secret);
+        if ($secret === false) {
+            return ['success' => false, 'message' => 'Không thể giải mã secret key'];
+        }
+
+        return ['success' => true, 'code' => self::getTOTPCode($secret)];
     }
 
     public static function get_account_orders(): array
     {
         $account = self::get_account_by_id();
-
-        if (!$account['success']) return $account;
-
-        $account_id = $account['data']['ID'];
-        $conn = db();
-
-        // 1. Chuẩn bị câu lệnh SQL (Chỉ lấy ID và status)
-        $sql = "SELECT ID, host_id, status, items FROM orders WHERE account_id = ? AND status IN ('unshipped', 'shipped')";
+        if (!$account['success']) {
+            return $account;
+        }
 
         try {
-            $result = $conn->execute_query($sql, [$account_id]);
-
-            $orders = $result->fetch_all(MYSQLI_ASSOC);
-
-            return [
-                'success' => true,
-                'data' => $orders
-            ];
-        } catch (mysqli_sql_exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Database error: ' . $e->getMessage()
-            ];
+            $result = db()->execute_query(
+                "SELECT ID, host_id, status, items FROM orders WHERE account_id = ? AND status IN ('unshipped', 'shipped')",
+                [$account['data']['ID']]
+            );
+            return ['success' => true, 'data' => $result->fetch_all(MYSQLI_ASSOC)];
+        } catch (\mysqli_sql_exception $e) {
+            return self::db_error(__FUNCTION__, $e);
         }
     }
 
     /**
-     * Tạo mã 2FA (6 số) từ Secret Key
+     * Sinh mã OTP 6 số (TOTP/HMAC-SHA1, chu kỳ 30s, secret Base32) — chuẩn Google Authenticator.
      */
     private static function getTOTPCode(string $secret): string
     {
-        // 1. Loại bỏ khoảng trắng và chuyển về chữ hoa
         $secret = str_replace(' ', '', strtoupper($secret));
+        $base32chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 
-        // 2. Bảng mã Base32
-        $base32chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-
-        // 3. Giải mã Base32 (Giải thuật thủ công để không phụ thuộc thư viện)
-        $binarySecret = "";
+        $bits = '';
         foreach (str_split($secret) as $char) {
-            if (str_contains($base32chars, $char)) {
-                $binarySecret .= str_pad(decbin(strpos($base32chars, $char)), 5, '0', STR_PAD_LEFT);
+            $pos = strpos($base32chars, $char);
+            if ($pos !== false) {
+                $bits .= str_pad(decbin($pos), 5, '0', STR_PAD_LEFT);
             }
         }
 
-        $binarySecret = str_split($binarySecret, 8);
-        $binarySecretString = "";
-        foreach ($binarySecret as $bin) {
-            if (strlen($bin) === 8) {
-                $binarySecretString .= chr(bindec($bin));
+        $binary_secret = '';
+        foreach (str_split($bits, 8) as $byte) {
+            if (strlen($byte) === 8) {
+                $binary_secret .= chr(bindec($byte));
             }
         }
 
-        // 4. Tính toán chu kỳ thời gian (mỗi 30 giây)
-        $timeStep = floor(time() / 30);
-        $timeBinary = pack('N*', 0) . pack('N*', $timeStep);
+        $time_step = (int) floor(time() / 30);
+        $time_binary = pack('N*', 0) . pack('N*', $time_step);
+        $hash = hash_hmac('sha1', $time_binary, $binary_secret, true);
 
-        // 5. Tạo mã Hash HMAC-SHA1
-        $hash = hash_hmac('sha1', $timeBinary, $binarySecretString, true);
-
-        // 6. Kỹ thuật Dynamic Truncation để lấy 4 bytes
+        // Dynamic truncation (RFC 4226) để lấy 4 byte từ vị trí do byte cuối chỉ định.
         $offset = ord($hash[19]) & 0xf;
-        $otp = (
-            (ord($hash[$offset + 0]) & 0x7f) << 24 |
-            (ord($hash[$offset + 1]) & 0xff) << 16 |
-            (ord($hash[$offset + 2]) & 0xff) << 8 |
-            (ord($hash[$offset + 3]) & 0xff)
-        );
+        $otp = (ord($hash[$offset]) & 0x7f) << 24
+            | (ord($hash[$offset + 1]) & 0xff) << 16
+            | (ord($hash[$offset + 2]) & 0xff) << 8
+            | (ord($hash[$offset + 3]) & 0xff);
 
-        // 7. Lấy 6 số cuối cùng
-        return str_pad((string)($otp % 1000000), 6, '0', STR_PAD_LEFT);
+        return str_pad((string) ($otp % 1000000), 6, '0', STR_PAD_LEFT);
     }
 
     public static function get_account_cookies(): array
     {
-        $arg = self::get_account_by_id(['cookies']);
-
-        if ($arg['success']) {
-            $cookies = $arg['data']['cookies'] ?? '';
-
-            if (empty($cookies)) {
-                return ['success' => false, 'message' => 'Cookies is empty'];
-            }
-
-            return [
-                'success' => true,
-                'cookies' => decrypt($cookies)
-            ];
+        $account = self::get_account_by_id(['cookies']);
+        if (!$account['success']) {
+            return $account;
         }
 
-        return $arg;
+        $cookies = $account['data']['cookies'] ?? '';
+        if (empty($cookies)) {
+            return ['success' => false, 'message' => 'Cookies is empty'];
+        }
+
+        $cookies = decrypt($cookies);
+        if ($cookies === false) {
+            return ['success' => false, 'message' => 'Không thể giải mã cookies'];
+        }
+
+        return ['success' => true, 'cookies' => $cookies];
     }
 
     public static function get_account_login(): array
     {
-        $arg = self::get_account_by_id(['password', 'email', 'user_id', 'custom_fields']);
-
-        if ($arg['success']) {
-            $password = $arg['data']['password'] ?? '';
-            $email = $arg['data']['email'] ?? '';
-            $custom_fields = $arg['data']['custom_fields'] ?? '{}';
-
-            if (empty($password) || empty($email)) {
-                return ['success' => false, 'message' => 'Password is empty'];
-            }
-
-            return [
-                'success' => true,
-                'password' => decrypt($password),
-                'email' => $email,
-                'user_id' => $arg['data']['user_id'] ?? '',
-                'custom_fields' => json_decode($custom_fields, true),
-            ];
+        $account = self::get_account_by_id(['password', 'email', 'user_id', 'custom_fields']);
+        if (!$account['success']) {
+            return $account;
         }
 
-        return $arg;
+        $password = $account['data']['password'] ?? '';
+        $email = $account['data']['email'] ?? '';
+        if (empty($password) || empty($email)) {
+            return ['success' => false, 'message' => 'Password is empty'];
+        }
+
+        $password = decrypt($password);
+        if ($password === false) {
+            return ['success' => false, 'message' => 'Không thể giải mã password'];
+        }
+
+        return [
+            'success' => true,
+            'password' => $password,
+            'email' => $email,
+            'user_id' => $account['data']['user_id'] ?? '',
+            'custom_fields' => json_decode($account['data']['custom_fields'] ?? '{}', true),
+        ];
     }
 
     public static function add_account_orders(): array
     {
-        $account_res = self::get_account_by_id();
-        if (!$account_res['success']) return $account_res;
+        $account = self::get_account_by_id();
+        if (!$account['success']) {
+            return $account;
+        }
+        $account_id = $account['data']['ID'];
 
-        $conn = db();
-        $account_id = $account_res['data']['ID'];
         $data_json = $_POST['data'] ?? null;
-
         if (!$data_json) {
             return ['success' => false, 'message' => 'No selling data provided'];
         }
 
-        $data = json_decode($data_json);
-        if (!$data || !is_array($data)) {
+        $orders = json_decode($data_json);
+        if (!is_array($orders)) {
             return ['success' => false, 'message' => 'Invalid data format'];
         }
 
-        $values = [];
         $placeholders = [];
-
-        foreach ($data as $order) {
-            // Tạo chuỗi (?) tương ứng với 13 cột
-            $placeholders[] = "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $values = [];
+        foreach ($orders as $order) {
+            // Bỏ qua đơn hàng thiếu ID — không có gì để đối chiếu/định danh trong DB.
+            if (empty($order->id)) {
+                continue;
+            }
 
             $price = $order->financials->orderEarnings ?? 0;
             if (is_string($price)) {
-                // Loại bỏ tất cả ký tự ngoại trừ số, dấu chấm (.) và dấu phẩy (,)
-                $cleanPrice = preg_replace('/[^\d.]/', '', $price);
-                $price = (float) $cleanPrice;
+                $price = (float) preg_replace('/[^\d.]/', '', $price);
             }
 
-            // Đẩy các giá trị vào mảng phẳng
-            array_push($values,
+            $placeholders[] = '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+            array_push(
+                $values,
                 $account_id,
                 $order->id,
                 json_encode($order->items ?? []),
@@ -239,45 +215,48 @@ class Extensions
             );
         }
 
-        if (!empty($values)) {
-            $sql = "INSERT IGNORE INTO orders (
-            account_id, host_id, items, status, purchase_date, ship_date, delivery_date,
-            total_price, full_name, phone, address
-        ) VALUES " . implode(', ', $placeholders);
-
-            try {
-                $conn->execute_query($sql, $values);
-            } catch (mysqli_sql_exception $e) {
-                return ['success' => false, 'message' => 'Database error: ' . $e->getMessage()];
-            }
+        if (empty($values)) {
+            return ['success' => true, 'message' => 'Orders processed'];
         }
 
-        return ['success' => true, 'message' => 'Orders processed'];
+        try {
+            db()->execute_query(
+                'INSERT IGNORE INTO orders (
+                    account_id, host_id, items, status, purchase_date, ship_date, delivery_date,
+                    total_price, full_name, phone, address
+                ) VALUES ' . implode(', ', $placeholders),
+                $values
+            );
+            return ['success' => true, 'message' => 'Orders processed'];
+        } catch (\mysqli_sql_exception $e) {
+            return self::db_error(__FUNCTION__, $e);
+        }
     }
 
+    /**
+     * TODO: chưa triển khai — mới chỉ kiểm tra quyền (authors key), chưa insert
+     * sản phẩm vào bảng `posts`. Cần xác nhận cách map images/type_id/site_id/store_id
+     * trước khi viết phần lưu DB.
+     */
     public static function add_products(): array
     {
-        $conn = db();
-        $authors_id = self::check_authors_key($conn);
+        $authors_id = self::check_authors_key(db());
         if (!$authors_id) {
             return ['success' => false, 'message' => 'Bạn không có quyền thêm sản phẩm.'];
         }
 
-        return [];
+        return ['success' => false, 'message' => 'Chức năng chưa được triển khai.'];
     }
 
     public static function update_account_finance(): array
     {
-        // 1. Kiểm tra tài khoản qua key và id (user_id)
-        $account_res = self::get_account_by_id();
-        if (!$account_res['success']) {
-            return $account_res;
+        $account = self::get_account_by_id();
+        if (!$account['success']) {
+            return $account;
         }
+        $account_id = $account['data']['ID'];
 
-        $conn = db();
-        $account_id = $account_res['data']['ID'];
         $financial_json = $_POST['financial_data'] ?? null;
-
         if (!$financial_json) {
             return ['success' => false, 'message' => 'No financial data provided'];
         }
@@ -287,74 +266,57 @@ class Extensions
             return ['success' => false, 'message' => 'Invalid JSON format'];
         }
 
-        // 2. Xử lý số liệu (Loại bỏ dấu $ và ép kiểu về float)
-        $available  = (float) str_replace(['$', ','], '', $data['available'] ?? '0');
-        $hold       = (float) str_replace(['$', ','], '', $data['hold'] ?? '0');
+        $available = (float) str_replace(['$', ','], '', $data['available'] ?? '0');
+        $hold = (float) str_replace(['$', ','], '', $data['hold'] ?? '0');
         $processing = (float) str_replace(['$', ','], '', $data['processing'] ?? '0');
 
-        // 3. Tính tổng subscription_fee cho tháng hiện tại
-        $current_month_key = date('Y-n'); // Ví dụ: 2026-4 (không có số 0 ở tháng theo JSON của bạn)
-        $total_fees = 0;
-        if (isset($data['fees'][$current_month_key])) {
-            foreach ($data['fees'][$current_month_key] as $val) {
-                $total_fees += (float) $val;
-            }
+        // Tổng phí subscription của tháng hiện tại. Payout thường là số âm nên lấy trị tuyệt đối.
+        $month_key = date('Y-n');
+        $total_fees = 0.0;
+        foreach ($data['fees'][$month_key] ?? [] as $fee) {
+            $total_fees += (float) $fee;
         }
-        // Vì payout thường là số âm (-2), nếu bạn muốn lấy giá trị tuyệt đối thì dùng abs($total_fees)
         $total_fees = abs($total_fees);
 
-        // 4. Chuẩn bị ngày tháng (Lưu dưới dạng ngày đầu tháng: 2026-04-01)
         $first_day_of_month = date('Y-m-01');
-
-        // 5. Kiểm tra tồn tại bản ghi của tháng này chưa
-        $sql_check = "SELECT ID FROM accounts_finance WHERE account_id = ? AND `date` = ? LIMIT 1";
-        $stmt_check = $conn->prepare($sql_check);
-        $stmt_check->bind_param("is", $account_id, $first_day_of_month);
-        $stmt_check->execute();
-        $existing = $stmt_check->get_result()->fetch_assoc();
-        $stmt_check->close();
+        $conn = db();
 
         try {
+            $existing = $conn->execute_query(
+                'SELECT ID FROM accounts_finance WHERE account_id = ? AND `date` = ? LIMIT 1',
+                [$account_id, $first_day_of_month]
+            )->fetch_assoc();
+
             if ($existing) {
-                // UPDATE
-                $sql = "UPDATE accounts_finance 
-                    SET available_funds = ?, processing = ?, on_hold = ?, subscription_fee = ?, sys_date = NOW() 
-                    WHERE ID = ?";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param("ddddi", $available, $processing, $hold, $total_fees, $existing['ID']);
+                $conn->execute_query(
+                    'UPDATE accounts_finance
+                        SET available_funds = ?, processing = ?, on_hold = ?, subscription_fee = ?, sys_date = NOW()
+                        WHERE ID = ?',
+                    [$available, $processing, $hold, $total_fees, $existing['ID']]
+                );
             } else {
-                // INSERT
-                $sql = "INSERT INTO accounts_finance (account_id, available_funds, processing, on_hold, subscription_fee, sys_date, `date`) 
-                    VALUES (?, ?, ?, ?, ?, NOW(), ?)";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param("idddds", $account_id, $available, $processing, $hold, $total_fees, $first_day_of_month);
+                $conn->execute_query(
+                    'INSERT INTO accounts_finance (account_id, available_funds, processing, on_hold, subscription_fee, sys_date, `date`)
+                        VALUES (?, ?, ?, ?, ?, NOW(), ?)',
+                    [$account_id, $available, $processing, $hold, $total_fees, $first_day_of_month]
+                );
             }
 
-            if ($stmt->execute()) {
-                $res = ['success' => true, 'message' => 'Finance data updated for ' . date('M Y')];
-            } else {
-                $res = ['success' => false, 'message' => 'Update failed'];
-            }
-            $stmt->close();
-            return $res;
-
-        } catch (mysqli_sql_exception $e) {
-            return ['success' => false, 'message' => 'DB Error: ' . $e->getMessage()];
+            return ['success' => true, 'message' => 'Finance data updated for ' . date('M Y')];
+        } catch (\mysqli_sql_exception $e) {
+            return self::db_error(__FUNCTION__, $e);
         }
     }
 
     public static function update_account_seller(): array
     {
-        // 1. Kiểm tra tài khoản qua key và id (user_id)
-        $account_res = self::get_account_by_id();
-        if (!$account_res['success']) {
-            return $account_res;
+        $account = self::get_account_by_id();
+        if (!$account['success']) {
+            return $account;
         }
+        $account_id = $account['data']['ID'];
 
-        $conn = db();
-        $account_id = $account_res['data']['ID'];
         $data_json = $_POST['data'] ?? null;
-
         if (!$data_json) {
             return ['success' => false, 'message' => 'No selling data provided'];
         }
@@ -363,130 +325,97 @@ class Extensions
         if (!$data) {
             return ['success' => false, 'message' => 'Invalid JSON format'];
         }
-
-        $data_json = json_encode($data);
+        $normalized_json = json_encode($data);
         $first_day_of_month = date('Y-m-01');
-
-        // 1. Kiểm tra tồn tại bản ghi của tháng này chưa
-        $sql_check = "SELECT ID FROM accounts_seller WHERE account_id = ? AND `date` = ? LIMIT 1";
-        $stmt_check = $conn->prepare($sql_check);
-        $stmt_check->bind_param("is", $account_id, $first_day_of_month);
-        $stmt_check->execute();
-        $existing = $stmt_check->get_result()->fetch_assoc();
-        $stmt_check->close();
+        $conn = db();
 
         try {
+            $existing = $conn->execute_query(
+                'SELECT ID FROM accounts_seller WHERE account_id = ? AND `date` = ? LIMIT 1',
+                [$account_id, $first_day_of_month]
+            )->fetch_assoc();
+
             if ($existing) {
-                // UPDATE
-                $sql = "UPDATE accounts_seller 
-                    SET data = ?, sys_date = NOW() 
-                    WHERE ID = ?";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param("si", $data_json, $existing['ID']);
+                $conn->execute_query(
+                    'UPDATE accounts_seller SET data = ?, sys_date = NOW() WHERE ID = ?',
+                    [$normalized_json, $existing['ID']]
+                );
             } else {
-                // INSERT
-                $sql = "INSERT INTO accounts_seller (account_id, data, sys_date, `date`) 
-                    VALUES (?, ?, NOW(), ?)";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param("iss", $account_id, $data_json, $first_day_of_month);
+                $conn->execute_query(
+                    'INSERT INTO accounts_seller (account_id, data, sys_date, `date`) VALUES (?, ?, NOW(), ?)',
+                    [$account_id, $normalized_json, $first_day_of_month]
+                );
             }
 
-            if ($stmt->execute()) {
-                $res = ['success' => true, 'message' => 'Selling data updated for ' . date('M Y')];
-            } else {
-                $res = ['success' => false, 'message' => 'Update failed'];
-            }
-            $stmt->close();
-            return $res;
-
-        } catch (mysqli_sql_exception $e) {
-            return ['success' => false, 'message' => 'DB Error: ' . $e->getMessage()];
+            return ['success' => true, 'message' => 'Selling data updated for ' . date('M Y')];
+        } catch (\mysqli_sql_exception $e) {
+            return self::db_error(__FUNCTION__, $e);
         }
     }
 
-    public static function update_account_cookies(): array{
-        // 1. Kiểm tra tài khoản qua key và id (user_id)
-        $account_res = self::get_account_by_id();
-        if (!$account_res['success']) {
-            return $account_res;
+    public static function update_account_cookies(): array
+    {
+        $account = self::get_account_by_id();
+        if (!$account['success']) {
+            return $account;
         }
+        $account_id = $account['data']['ID'];
 
-        $conn = db();
-        $account_id = $account_res['data']['ID'];
-        $data_json = $_POST['cookies'] ?? null;
-
-        if (!$data_json) {
+        $raw_cookies = $_POST['cookies'] ?? null;
+        if (!$raw_cookies) {
             return ['success' => false, 'message' => 'No cookies data provided'];
         }
 
-        $data = json_decode($data_json, true);
+        $data = json_decode($raw_cookies, true);
         if (!$data) {
             return ['success' => false, 'message' => 'Invalid JSON format'];
         }
 
         $user_agent = $data['user_agent'] ?? null;
-        $encrypted_cookies = encrypt($data_json);
+        $encrypted_cookies = encrypt($raw_cookies);
 
-        // Sử dụng Prepared Statement để đảm bảo an toàn SQL Injection
-        $sql = "UPDATE `accounts` SET `cookies` = ?, `user_agent` = ? WHERE `ID` = ?";
-        $stmt = $conn->prepare($sql);
-        // 's' cho string (cookies), 'i' cho integer (ID)
-        $stmt->bind_param("ssi", $encrypted_cookies,$user_agent, $account_id);
-        if ($stmt->execute()) {
-            $stmt->close();
-            return [
-                'success' => true,
-                'message' => 'Cookies updated successfully'
-            ];
-        } else {
-            $error = $stmt->error;
-            $stmt->close();
-            return ['success' => false, 'message' => 'Update failed: ' . $error];
+        try {
+            db()->execute_query(
+                'UPDATE accounts SET cookies = ?, user_agent = ? WHERE ID = ?',
+                [$encrypted_cookies, $user_agent, $account_id]
+            );
+            return ['success' => true, 'message' => 'Cookies updated successfully'];
+        } catch (\mysqli_sql_exception $e) {
+            return self::db_error(__FUNCTION__, $e);
         }
     }
 
     public static function check_products_exist(): array
     {
-        $conn = db();
-        $authors_id = self::check_authors_key($conn);
+        $authors_id = self::check_authors_key(db());
         if (!$authors_id) {
             return ['success' => false, 'message' => 'Bạn không có quyền kiểm tra sản phẩm.'];
         }
 
-        // 1. Lấy chuỗi JSON từ $_POST['data'] gửi lên từ Extension
-        $jsonData = $_POST['data'] ?? '';
-        if (empty($jsonData)) {
-            return ['success' => false, 'message' => 'Dữ liệu trống.'];
-        }
-
-        // 2. Giải mã JSON thành mảng PHP
-        $requestData = json_decode($jsonData, true);
-        if (!is_array($requestData) || empty($requestData['ids']) || !is_array($requestData['ids'])) {
+        $request_data = json_decode($_POST['data'] ?? '', true);
+        if (!is_array($request_data) || empty($request_data['ids']) || !is_array($request_data['ids'])) {
             return ['success' => false, 'message' => 'Dữ liệu không đúng định dạng.'];
         }
 
-        // 3. Chuẩn hoá danh sách ID cần kiểm tra
-        $ids = array_values(array_unique(array_map('strval', $requestData['ids'])));
+        $ids = array_values(array_unique(array_map('strval', $request_data['ids'])));
         if (empty($ids)) {
             return ['success' => true, 'data' => []];
         }
 
-        // 4. Tìm các ID (sku) đã tồn tại của author này
+        // ID sản phẩm marketplace được lưu ở posts.sku, gắn với author_id của người gọi.
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
         try {
-            $result = $conn->execute_query(
+            $result = db()->execute_query(
                 "SELECT sku FROM posts WHERE sku IN ($placeholders) AND author_id = ?",
                 [...$ids, $authors_id]
             );
-            $existing = array_column($result->fetch_all(MYSQLI_ASSOC), 'sku');
-        } catch (\mysqli_sql_exception) {
-            return ['success' => false, 'message' => 'Lỗi truy vấn dữ liệu.'];
+            return ['success' => true, 'data' => array_column($result->fetch_all(MYSQLI_ASSOC), 'sku')];
+        } catch (\mysqli_sql_exception $e) {
+            return self::db_error(__FUNCTION__, $e);
         }
-
-        return ['success' => true, 'data' => $existing];
     }
 
-    private static function check_condition($conn): array
+    private static function check_condition(\mysqli $conn): array
     {
         $id = trim($_POST['id'] ?? '');
         $site = trim($_POST['site'] ?? '');
@@ -496,7 +425,6 @@ class Extensions
             return ['success' => false, 'message' => 'Missing parameters'];
         }
 
-        // Kiểm tra team_id qua key
         $team_id = self::check_team_key($conn, $key);
         if (!$team_id) {
             return ['success' => false, 'message' => 'Invalid team key'];
@@ -507,16 +435,13 @@ class Extensions
 
     private static function check_team_key(\mysqli $conn, string $key): int
     {
-        if (empty(trim($key))) {
+        if ($key === '') {
             return 0;
         }
 
-        $sql = "SELECT ID FROM team WHERE `key` = ? LIMIT 1";
-
         try {
-            $result = $conn->execute_query($sql, [$key]);
-            return (int)($result->fetch_assoc()['ID'] ?? 0);
-
+            $result = $conn->execute_query('SELECT ID FROM team WHERE `key` = ? LIMIT 1', [$key]);
+            return (int) ($result->fetch_assoc()['ID'] ?? 0);
         } catch (\mysqli_sql_exception) {
             return 0;
         }
@@ -527,17 +452,25 @@ class Extensions
         $email = trim($_POST['email'] ?? '');
         $key = trim($_POST['key'] ?? '');
 
-        if (empty($key) || empty($email)) {
+        if ($key === '' || $email === '') {
             return 0;
         }
 
-        $sql = "SELECT ID FROM authors WHERE `key` = ? AND `email` = ? LIMIT 1";
-
         try {
-            $result = $conn->execute_query($sql, [$key, $email]);
-            return (int)($result->fetch_assoc()['ID'] ?? 0);
+            $result = $conn->execute_query('SELECT ID FROM authors WHERE `key` = ? AND `email` = ? LIMIT 1', [$key, $email]);
+            return (int) ($result->fetch_assoc()['ID'] ?? 0);
         } catch (\mysqli_sql_exception) {
             return 0;
         }
+    }
+
+    /**
+     * Ghi log chi tiết lỗi DB ra server, chỉ trả thông báo chung cho client —
+     * tránh lộ tên bảng/cột/câu truy vấn cho bên gọi (extension).
+     */
+    private static function db_error(string $context, \mysqli_sql_exception $e): array
+    {
+        error_log("[Extensions::$context] " . $e->getMessage());
+        return ['success' => false, 'message' => 'Đã xảy ra lỗi hệ thống, vui lòng thử lại sau.'];
     }
 }
