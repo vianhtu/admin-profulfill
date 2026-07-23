@@ -419,6 +419,12 @@ class Extensions
                 $existing['products'][$row['sku']] = new \stdClass();
             }
 
+            // Extension tự quyết định khi nào cần đồng bộ lại types (bảng gần như
+            // tĩnh) — chỉ tính/trả khi client chủ động xin qua need_types.
+            if (!empty($request_data['need_types'])) {
+                $existing['types'] = self::get_types_cached();
+            }
+
             return ['success' => true, 'data' => $existing];
         } catch (\mysqli_sql_exception $e) {
             return self::db_error(__FUNCTION__, $e);
@@ -472,6 +478,40 @@ class Extensions
         } catch (\mysqli_sql_exception) {
             return 0;
         }
+    }
+
+    /**
+     * Lấy danh sách type (ID => name) có cache qua APCu (TTL 1 giờ) — bảng `type`
+     * gần như không đổi, tránh query lại mỗi lần extension gọi check-listings.
+     * Server không có extension apcu thì tự fallback về query DB bình thường.
+     */
+    private static function get_types_cached(): array
+    {
+        $cache_key = 'pff_types_v1';
+        $use_cache = function_exists('apcu_fetch');
+
+        if ($use_cache) {
+            $cached = apcu_fetch($cache_key, $found);
+            if ($found) {
+                return $cached;
+            }
+        }
+
+        $types = [];
+        try {
+            $result = db()->execute_query('SELECT ID, name FROM type');
+            foreach ($result->fetch_all(MYSQLI_ASSOC) as $row) {
+                $types[$row['ID']] = $row['name'];
+            }
+        } catch (\mysqli_sql_exception) {
+            return [];
+        }
+
+        if ($use_cache) {
+            apcu_store($cache_key, $types, 3600);
+        }
+
+        return $types;
     }
 
     /**
