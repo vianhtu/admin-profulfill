@@ -411,7 +411,15 @@ class Extensions
                 "SELECT sku FROM posts WHERE sku IN ($placeholders)",
                 $ids
             );
-            return ['success' => true, 'data' => array_column($result->fetch_all(MYSQLI_ASSOC), 'sku')];
+
+            // Key là sku, value là object rỗng — chỗ để sau này gắn thêm dữ liệu
+            // (status, title...) mà không phải đổi lại cấu trúc response.
+            $existing = [];
+            foreach ($result->fetch_all(MYSQLI_ASSOC) as $row) {
+                $existing[$row['sku']] = new \stdClass();
+            }
+
+            return ['success' => true, 'data' => $existing];
         } catch (\mysqli_sql_exception $e) {
             return self::db_error(__FUNCTION__, $e);
         }
