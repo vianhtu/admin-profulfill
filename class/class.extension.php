@@ -416,7 +416,7 @@ class Extensions
             // (status, title...) mà không phải đổi lại cấu trúc response.
             $existing = [];
             foreach ($result->fetch_all(MYSQLI_ASSOC) as $row) {
-                $existing[$row['sku']] = new \stdClass();
+                $existing['products'][$row['sku']] = new \stdClass();
             }
 
             return ['success' => true, 'data' => $existing];
