@@ -323,10 +323,21 @@ class Extensions
             }
 
             // 5. Lưu sản phẩm — tags không có cột riêng nên gộp vào metadata (JSON).
+            //    variants extension gửi lên sẵn là 1 chuỗi JSON (không phải object lồng
+            //    trong $data) — chỉ validate rồi lưu nguyên văn, không json_encode lại
+            //    (tránh double-encode). Optional: không có/không hợp lệ thì lưu NULL.
+            $variant_data = null;
+            if (isset($data['variants']) && is_string($data['variants']) && $data['variants'] !== '') {
+                json_decode($data['variants']);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $variant_data = $data['variants'];
+                }
+            }
+
             try {
                 $conn->execute_query(
-                    "INSERT INTO posts (author_id, date, title, status, sku, images, type_id, site_id, store_id, badge, description, metadata)
-                        VALUES (?, NOW(), ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?)",
+                    "INSERT INTO posts (author_id, date, title, status, sku, images, type_id, site_id, store_id, badge, description, metadata, variantdata)
+                        VALUES (?, NOW(), ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     [
                         $authors_id,
                         $title,
@@ -338,6 +349,7 @@ class Extensions
                         $data['badge'] ?? '',
                         $data['description'] ?? '',
                         json_encode(['tags' => $data['tags'] ?? []]),
+                        $variant_data,
                     ]
                 );
             } catch (\mysqli_sql_exception $e) {
