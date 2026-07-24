@@ -241,10 +241,40 @@ class Extensions
         }
 
         $data = json_decode($_POST['data'] ?? '', true);
-        if (!is_array($data)) {
+        if (!is_array($data) || empty($data)) {
             return ['success' => false, 'message' => 'Dữ liệu không đúng định dạng.'];
         }
 
+        // Hỗ trợ cả 2 dạng: 1 sản phẩm (object phẳng, có key 'id'/'title'...) hoặc
+        // nhiều sản phẩm (mảng object) — phân biệt bằng array_is_list: JSON array
+        // luôn decode ra PHP list (key số 0,1,2...), JSON object thì không.
+        $is_batch = array_is_list($data);
+        $products = $is_batch ? $data : [$data];
+
+        $conn = db();
+        $results = [];
+        foreach ($products as $product) {
+            $results[] = self::add_single_product($conn, $authors_id, is_array($product) ? $product : []);
+        }
+
+        if (!$is_batch) {
+            return $results[0];
+        }
+
+        $success_count = count(array_filter($results, fn($r) => $r['success']));
+        return [
+            'success' => $success_count > 0,
+            'message' => "$success_count/" . count($results) . ' sản phẩm đã thêm thành công.',
+            'data' => $results,
+        ];
+    }
+
+    /**
+     * Validate + insert 1 sản phẩm vào `posts`. Dùng chung cho cả luồng thêm
+     * 1 sản phẩm và thêm hàng loạt (add_products() gọi lặp lại hàm này).
+     */
+    private static function add_single_product(\mysqli $conn, int $authors_id, array $data): array
+    {
         $sku = trim((string) ($data['id'] ?? ''));
         $title = trim((string) ($data['title'] ?? ''));
         $type_id = (int) ($data['type'] ?? 0);
@@ -253,29 +283,27 @@ class Extensions
         $image_main = $data['images']['main'] ?? '';
 
         if ($sku === '' || $title === '' || $type_id === 0 || $site === '' || $shop_id === '' || empty($image_main)) {
-            return ['success' => false, 'message' => 'Thiếu dữ liệu bắt buộc.'];
+            return ['success' => false, 'sku' => $sku ?: null, 'message' => 'Thiếu dữ liệu bắt buộc.'];
         }
-
-        $conn = db();
 
         try {
             // 1. Loại sản phẩm phải khớp bảng `type` (dùng chung cache với check_products_exist).
             $types = self::get_types_cached();
             if (!isset($types[$type_id])) {
-                return ['success' => false, 'message' => 'Loại sản phẩm không hợp lệ.'];
+                return ['success' => false, 'sku' => $sku, 'message' => 'Loại sản phẩm không hợp lệ.'];
             }
 
             // 2. Site phải tồn tại (etsy.com/amazon.com/ebay.com...).
             $site_row = $conn->execute_query('SELECT ID FROM site WHERE name = ? LIMIT 1', [$site])->fetch_assoc();
             if (!$site_row) {
-                return ['success' => false, 'message' => 'Site không hợp lệ.'];
+                return ['success' => false, 'sku' => $sku, 'message' => 'Site không hợp lệ.'];
             }
             $site_id = (int) $site_row['ID'];
 
             // 3. Chặn thêm trùng — kiểm tra lại phía server dù extension đã check trước đó.
             $existing = $conn->execute_query('SELECT ID FROM posts WHERE sku = ? LIMIT 1', [$sku])->fetch_assoc();
             if ($existing) {
-                return ['success' => false, 'message' => 'Sản phẩm đã tồn tại.'];
+                return ['success' => false, 'sku' => $sku, 'message' => 'Sản phẩm đã tồn tại.'];
             }
 
             // 4. Lấy hoặc tạo mới store theo slug (tên shop viết thường).
@@ -290,7 +318,7 @@ class Extensions
                 );
                 $store_id = (int) $conn->insert_id;
                 if (!$store_id) {
-                    return ['success' => false, 'message' => 'Không thể tạo store.'];
+                    return ['success' => false, 'sku' => $sku, 'message' => 'Không thể tạo store.'];
                 }
             }
 
@@ -316,14 +344,15 @@ class Extensions
                 // sku có UNIQUE index — race condition giữa bước check (3) và insert này
                 // sẽ rơi vào đây thay vì lọt qua thành 2 bản ghi trùng.
                 if ($e->getCode() === 1062) {
-                    return ['success' => false, 'message' => 'Sản phẩm đã tồn tại.'];
+                    return ['success' => false, 'sku' => $sku, 'message' => 'Sản phẩm đã tồn tại.'];
                 }
                 throw $e;
             }
 
-            return ['success' => true, 'data' => ['id' => (int) $conn->insert_id]];
+            return ['success' => true, 'sku' => $sku, 'data' => ['id' => (int) $conn->insert_id]];
         } catch (\mysqli_sql_exception $e) {
-            return self::db_error(__FUNCTION__, $e);
+            error_log('[Extensions::add_single_product] ' . $e->getMessage());
+            return ['success' => false, 'sku' => $sku, 'message' => 'Đã xảy ra lỗi hệ thống, vui lòng thử lại sau.'];
         }
     }
 
