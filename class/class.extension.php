@@ -323,16 +323,9 @@ class Extensions
             }
 
             // 5. Lưu sản phẩm — tags không có cột riêng nên gộp vào metadata (JSON).
-            //    variants extension gửi lên sẵn là 1 chuỗi JSON (không phải object lồng
-            //    trong $data) — chỉ validate rồi lưu nguyên văn, không json_encode lại
-            //    (tránh double-encode). Optional: không có/không hợp lệ thì lưu NULL.
-            $variant_data = null;
-            if (isset($data['variants']) && is_string($data['variants']) && $data['variants'] !== '') {
-                json_decode($data['variants']);
-                if (json_last_error() === JSON_ERROR_NONE) {
-                    $variant_data = $data['variants'];
-                }
-            }
+            //    variants là object lồng trong $data (không phải chuỗi JSON) — encode
+            //    lại trước khi lưu. Optional: không có thì lưu NULL.
+            $variant_data = isset($data['variants']) ? json_encode($data['variants']) : null;
 
             try {
                 $conn->execute_query(
