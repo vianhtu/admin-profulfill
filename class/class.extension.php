@@ -544,6 +544,61 @@ class Extensions
         }
     }
 
+    /**
+     * Truy vấn danh sách sản phẩm (toàn bộ cột của `posts`) của author đang gọi API
+     * (author_id suy ra từ key/email xác thực). Các điều kiện type_id/site_id/store_id/
+     * date_from/date_to/offset_from/offset_to đều optional, chỉ áp dụng khi được gửi.
+     */
+    public static function get_products(): array
+    {
+        $authors_id = self::check_authors_key(db());
+        if (!$authors_id) {
+            return ['success' => false, 'message' => 'Bạn không có quyền truy vấn sản phẩm.'];
+        }
+
+        $where = ['author_id = ?'];
+        $params = [$authors_id];
+
+        if (!empty($_POST['type_id'])) {
+            $where[] = 'type_id = ?';
+            $params[] = (int) $_POST['type_id'];
+        }
+        if (!empty($_POST['site_id'])) {
+            $where[] = 'site_id = ?';
+            $params[] = (int) $_POST['site_id'];
+        }
+        if (!empty($_POST['store_id'])) {
+            $where[] = 'store_id = ?';
+            $params[] = (int) $_POST['store_id'];
+        }
+        if (!empty($_POST['date_from'])) {
+            $where[] = '`date` >= ?';
+            $params[] = trim((string) $_POST['date_from']);
+        }
+        if (!empty($_POST['date_to'])) {
+            $where[] = '`date` <= ?';
+            $params[] = trim((string) $_POST['date_to']);
+        }
+
+        // offset_from/offset_to xác định 1 khoảng trong kết quả, vd offset_from=0&offset_to=50
+        // lấy 50 bản ghi đầu. Không gửi thì mặc định 100 bản ghi đầu; giới hạn tối đa 500/lần
+        // để tránh 1 request kéo cả bảng.
+        $offset_from = max(0, (int) ($_POST['offset_from'] ?? 0));
+        $offset_to = (int) ($_POST['offset_to'] ?? 0);
+        $limit = $offset_to > $offset_from ? min($offset_to - $offset_from, 500) : 100;
+
+        $sql = 'SELECT * FROM posts WHERE ' . implode(' AND ', $where) . ' ORDER BY ID DESC LIMIT ? OFFSET ?';
+        $params[] = $limit;
+        $params[] = $offset_from;
+
+        try {
+            $result = db()->execute_query($sql, $params);
+            return ['success' => true, 'data' => $result->fetch_all(MYSQLI_ASSOC)];
+        } catch (\mysqli_sql_exception $e) {
+            return self::db_error(__FUNCTION__, $e);
+        }
+    }
+
     private static function check_condition(\mysqli $conn): array
     {
         $id = trim($_POST['id'] ?? '');

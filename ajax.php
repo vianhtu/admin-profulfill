@@ -50,6 +50,9 @@ if (isset($_GET['action']) && isset($_POST['key']) && str_starts_with($_GET['act
         case 'extension-check-products-exist':
             echo json_encode(Extensions::check_products_exist());
             break;
+        case 'extension-get-products':
+            echo json_encode(Extensions::get_products());
+            break;
     }
     exit;
 }
