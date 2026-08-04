@@ -1223,8 +1223,18 @@ function getProductsTable(): array {
     // Lọc theo type (int)
     addTableFilter($whereClauses, 'posts.type_id', 4, 'int', $conn);
 
-    // Lọc theo author (int)
-    addTableFilter($whereClauses, 'posts.author_id', 5, 'int', $conn);
+    // Lọc theo author (int) — chỉ admin/manager mới được lọc; user luôn bị ép về
+    // chính mình bởi scope nên bỏ qua tham số author họ tự gửi lên.
+    if (is_admin() || is_manager()) {
+        addTableFilter($whereClauses, 'posts.author_id', 5, 'int', $conn);
+    }
+
+    // Lọc theo team — chỉ admin. Non-admin đã bị scope giới hạn sẵn nên tham số này bị bỏ qua.
+    $filterTeam = (int)($_POST['team'] ?? 0);
+    if ($filterTeam > 0 && is_admin()) {
+        $scopeJoin = "INNER JOIN authors scope_a ON scope_a.ID = posts.author_id";
+        $whereClauses[] = "scope_a.team_id = $filterTeam";
+    }
 
     // Lọc theo sites
     $filterSites = $_POST['sites'] ?? [];
@@ -1330,13 +1340,16 @@ function getProductsTableFilters(): array {
         $options['authors'][$id]['team'] = $teamNames[$id] ?? '';
     }
     $options['sites'] = getAllSites();
-    $options['teams'] = getAllTeams();
-    // Frontend dùng để ẩn/hiện nút theo quyền (backend vẫn tự kiểm tra lại)
+    // Danh sách team chỉ gửi cho admin — user/manager không được lọc chéo team
+    $options['teams'] = is_admin() ? getAllTeams() : [];
+    // Frontend dùng để ẩn/hiện nút & filter theo quyền (backend vẫn tự kiểm tra lại)
     $options['perms'] = [
-        'add'    => checkRoles('add', 'products'),
-        'edit'   => checkRoles('edit', 'products'),
-        'delete' => checkRoles('delete', 'products'),
-        'export' => checkRoles('add', 'exports_download'),
+        'add'           => checkRoles('add', 'products'),
+        'edit'          => checkRoles('edit', 'products'),
+        'delete'        => checkRoles('delete', 'products'),
+        'export'        => checkRoles('add', 'exports_download'),
+        'filter_team'   => is_admin(),              // chỉ admin lọc theo team
+        'filter_author' => is_admin() || is_manager(), // user không có select Manager
     ];
     return $options;
 }

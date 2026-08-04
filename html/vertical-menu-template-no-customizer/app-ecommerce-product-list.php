@@ -104,16 +104,21 @@ $info = getAuthorsProductInfo();
     <div class="collapse show" id="filterExportBody">
         <div class="card-body pt-0">
             <div class="d-flex justify-content-between align-items-center row pt-4 gap-4 gap-md-0">
+                <div class="col-md-3 product_team d-none"></div>
                 <div class="col-md-3 product_status"></div>
                 <div class="col-md-3 product_category"></div>
                 <div class="col-md-3 product_author"></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center row pt-4 gap-4 gap-md-0">
                 <div class="col-md-3 product_store"></div>
+                <div class="col-md-3 product_sites"></div>
+                <div class="col-md-3 product_accounts"></div>
+                <div class="col-md-3"></div>
             </div>
             <div class="d-flex justify-content-between align-items-center row pt-4 gap-4 gap-md-0">
                 <div class="col-md-3 product_from_date"></div>
                 <div class="col-md-3 product_to_date"></div>
-                <div class="col-md-3 product_accounts"></div>
-                <div class="col-md-3 product_sites"></div>
+                <div class="col-md-6"></div>
             </div>
             <div class="d-flex justify-content-between align-items-center row pt-4 gap-4 gap-md-0">
                 <div class="col-md-3 export_accounts"></div>

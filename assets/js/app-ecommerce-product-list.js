@@ -9,7 +9,8 @@ let authorsObj = {};
 let sitesObj = {};
 let lastPostData = {};
 let dtProducts = null;
-let productPerms = { add: false, edit: false, delete: false, export: false };
+let teamsObj = {};
+let productPerms = { add: false, edit: false, delete: false, export: false, filter_team: false, filter_author: false };
 const statusObj = {
     pending: { title: 'Pending', class: 'bg-label-primary' },
     schedule: { title: 'Schedule', class: 'bg-label-secondary' },
@@ -25,6 +26,7 @@ async function init() {
         categoryObj = options['types'];
         authorsObj = options['authors'];
         sitesObj = options['sites'];
+        teamsObj = options['teams'] ?? {};
         productPerms = options['perms'] ?? productPerms;
 
         // 2️⃣ Sau khi có dữ liệu → tạo bảng
@@ -69,6 +71,7 @@ function initProductTable(){
                     d.stores = $('#storeFilter').val();
                     d.sites = getCheckedSites();
                     d.accounts = $('#accountsFilter').val();
+                    d.team = $('#teamFilter').val() || '';
                     d.exported = $('#exportAccount').val();
                     lastPostData = d;
                 },
@@ -640,7 +643,25 @@ function initProductTable(){
 
                 getSelect2filterTable(api,'ProductStatus', '.product_status', 8, 'Status', statusObj);
                 getSelect2filterTable(api,'ProductCategory', '.product_category', 4, 'Category', categoryObj);
-                getSelect2filterTable(api,'ProductAuthor', '.product_author', 5, 'Manager', authorsObj);
+
+                // Manager (author): admin/manager mới thấy; user chỉ có dữ liệu của mình nên ẩn
+                if (productPerms.filter_author) {
+                    getSelect2filterTable(api,'ProductAuthor', '.product_author', 5, 'Manager', authorsObj);
+                } else {
+                    $('.product_author').addClass('d-none').empty();
+                }
+
+                // Team: chỉ admin — lọc chéo team
+                if (productPerms.filter_team) {
+                    const $teamBox = $('.product_team').removeClass('d-none');
+                    $teamBox.html('<label class="form-label" for="teamFilter">Team</label><select id="teamFilter" class="form-select"><option value="">All</option></select>');
+                    $.each(teamsObj, function (id, item) {
+                        $('#teamFilter').append($('<option>', { value: id, text: item.title ?? item }));
+                    });
+                    $('#teamFilter').select2({ dropdownParent: $teamBox }).on('change', function () {
+                        api.draw();
+                    });
+                }
 
                 // Adding store filter once table is initialized
                 getAjaxSelect2HTML('product_store', 'storeFilter', 'Store', 'filter-stores', true);
@@ -829,7 +850,7 @@ function getCheckedSites() {
 // có nhớ trạng thái và badge đếm số filter đang bật.
 function countActiveFilters() {
     let n = 0;
-    ['#ProductStatus', '#ProductCategory', '#ProductAuthor', '#storeFilter', '#accountsFilter', '#sitesFilter', '#minDate', '#maxDate'].forEach(function (sel) {
+    ['#teamFilter', '#ProductStatus', '#ProductCategory', '#ProductAuthor', '#storeFilter', '#accountsFilter', '#sitesFilter', '#minDate', '#maxDate'].forEach(function (sel) {
         const v = $(sel).val();
         if (Array.isArray(v) ? v.length : (v !== null && v !== undefined && v !== '')) {
             n++;
@@ -854,6 +875,7 @@ function clearAllFilters() {
         deleteUrlParam(id, true);
     });
     $('#storeFilter, #accountsFilter, #sitesFilter').val(null).trigger('change.select2');
+    $('#teamFilter').val('').trigger('change.select2');
 
     ['#minDate', '#maxDate'].forEach(function (sel) {
         const el = document.querySelector(sel);
@@ -892,7 +914,7 @@ function setFilterCollapsed(collapsed, animate) {
 function initFilterCollapse() {
     refreshFilterBadge();
     // Cập nhật badge mỗi khi filter đổi
-    $(document).on('change', '#ProductStatus,#ProductCategory,#ProductAuthor,#storeFilter,#accountsFilter,#sitesFilter', refreshFilterBadge);
+    $(document).on('change', '#teamFilter,#ProductStatus,#ProductCategory,#ProductAuthor,#storeFilter,#accountsFilter,#sitesFilter', refreshFilterBadge);
     $('#minDate,#maxDate').on('change', refreshFilterBadge);
 
     $('#clearFilters').on('click', clearAllFilters);
