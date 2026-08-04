@@ -761,10 +761,17 @@ function openBulkEditModal(dt) {
 
     $('#bulkEditCount').text(ids.length);
     $('#bulkEditModal').data('ids', ids);
+
+    // Reset trạng thái tiến trình mỗi lần mở
+    $('#bulkEditProgress').addClass('d-none');
+    $('#bulkEditProgressBar').css('width', '0%').removeClass('bg-danger');
+    $('#bulkEditProgressText').text('');
+    $('#bulkTypeSelect').prop('disabled', false);
+
     bootstrap.Modal.getOrCreateInstance(document.getElementById('bulkEditModal')).show();
 }
 
-$(document).on('click', '#bulkEditApply', function () {
+$(document).on('click', '#bulkEditApply', async function () {
     const $btn = $(this);
     const ids = $('#bulkEditModal').data('ids') || [];
     const typeId = $('#bulkTypeSelect').val();
@@ -772,28 +779,54 @@ $(document).on('click', '#bulkEditApply', function () {
         return;
     }
 
-    $('#bulkEditSpinner').removeClass('d-none');
-    $btn.prop('disabled', true);
+    const BATCH_SIZE = 200;
+    const $bar = $('#bulkEditProgressBar');
+    const $text = $('#bulkEditProgressText');
 
-    $.ajax({
-        url: '../../ajax.php?action=update-products-type',
-        type: 'POST',
-        data: { ids: ids, type_id: typeId }
-    }).done(function (res) {
-        if (res?.status === 'success') {
+    $btn.prop('disabled', true);
+    $('#bulkTypeSelect').prop('disabled', true);
+    $('#bulkEditSpinner').removeClass('d-none');
+    $('#bulkEditProgress').removeClass('d-none');
+    $bar.css('width', '0%').removeClass('bg-danger');
+    $text.text('Đang cập nhật 0/' + ids.length + '...');
+
+    let updated = 0;
+    try {
+        // Chia batch để hiện tiến trình thật khi chọn nhiều dòng
+        for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+            const batch = ids.slice(i, i + BATCH_SIZE);
+            const res = await $.ajax({
+                url: '../../ajax.php?action=update-products-type',
+                type: 'POST',
+                data: { ids: batch, type_id: typeId }
+            });
+            if (res?.status !== 'success') {
+                throw new Error(res?.message || 'Cập nhật thất bại');
+            }
+            updated += res.updated ?? 0;
+            const done = Math.min(i + BATCH_SIZE, ids.length);
+            $bar.css('width', Math.round((done / ids.length) * 100) + '%');
+            $text.text('Đang cập nhật ' + done + '/' + ids.length + '...');
+        }
+
+        $bar.css('width', '100%');
+        $text.text('Hoàn tất: đã cập nhật ' + updated + '/' + ids.length + ' sản phẩm');
+
+        // Cho user thấy kết quả rồi mới đóng popup
+        setTimeout(function () {
             bootstrap.Modal.getOrCreateInstance(document.getElementById('bulkEditModal')).hide();
             if (dtProducts) {
                 dtProducts.rows().deselect?.();
                 dtProducts.draw(false);
             }
-        } else {
-            alert(res?.message || 'Cập nhật thất bại');
-        }
-    }).fail(function () {
-        alert('Lỗi kết nối server');
-    }).always(function () {
+        }, 1200);
+    } catch (err) {
+        $bar.addClass('bg-danger');
+        $text.text(err?.message || 'Lỗi kết nối server');
+    } finally {
         $('#bulkEditSpinner').addClass('d-none');
         $btn.prop('disabled', false);
-    });
+        $('#bulkTypeSelect').prop('disabled', false);
+    }
 });
 

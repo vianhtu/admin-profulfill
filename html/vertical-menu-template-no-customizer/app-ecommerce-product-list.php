@@ -139,6 +139,12 @@ $info = getAuthorsProductInfo();
                     <label class="form-label" for="bulkTypeSelect">Type</label>
                     <select id="bulkTypeSelect" class="form-select"></select>
                 </div>
+                <div id="bulkEditProgress" class="d-none mt-4">
+                    <div class="progress mb-2" style="height: 8px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" id="bulkEditProgressBar" style="width: 0%"></div>
+                    </div>
+                    <small id="bulkEditProgressText" class="text-body-secondary"></small>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancel</button>
