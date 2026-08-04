@@ -73,7 +73,8 @@ class Site
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mime = finfo_file($finfo, $file['tmp_name']);
         finfo_close($finfo);
-        $size = getimagesize($file['tmp_name']);
+        // @ vì file không phải ảnh sẽ sinh Notice; trường hợp đó đã xử lý bằng false bên dưới
+        $size = @getimagesize($file['tmp_name']);
         if ($mime !== $allowed[$ext] || $size === false) {
             return ['status' => 'error', 'message' => 'This file is not a valid image.'];
         }
