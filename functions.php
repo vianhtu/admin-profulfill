@@ -1332,8 +1332,16 @@ function getProductsTableFilters(): array {
     }
     $options = [];
     $options['types'] = getAllTypes();
-    // Non-admin chỉ thấy authors trong team của mình (getAuthorsByTeam tự xử lý admin/non-admin)
-    $options['authors'] = is_admin() ? getAllAuthors() : getAuthorsByTeam();
+    // Danh sách authors đúng phạm vi: admin = tất cả, manager = trong team,
+    // còn lại chỉ chính mình (không lộ username đồng đội).
+    if (is_admin()) {
+        $options['authors'] = getAllAuthors();
+    } elseif (is_manager()) {
+        $options['authors'] = getAuthorsByTeam();
+    } else {
+        $uid = (int)($_SESSION['auth']['user_id'] ?? 0);
+        $options['authors'] = [$uid => ['title' => getFieldByID('authors', 'username', $uid) ?? '']];
+    }
     // Gắn tên team để cột Author hiển thị team name dưới tên tác giả
     $teamNames = getAuthorTeamNames();
     foreach ($options['authors'] as $id => $info) {
