@@ -692,7 +692,7 @@ function initProductTable(){
                 // file.
                 $('.export_file').html('<label class="form-label">Export File</label><select id="exportFile" disabled></select>');
                 $('#exportFile').select2({
-                    placeholder: 'Chọn file xuất',
+                    placeholder: 'Select export file',
                     allowClear: true
                 });
                 $('#exportAccount').on('change', function () {
@@ -708,24 +708,20 @@ function initProductTable(){
                             type: $('#ProductCategory').val()
                         },
                     }).done(function(data) {
-                        // Xóa option cũ
-                        $('#exportFile').empty();
-                        if (!data || Object.keys(data).length === 0) {
-                            $('#exportFile').prop('disabled', true);
-                            return;
+                        // Destroy select2 cũ trước khi thay option, tránh container rác
+                        const $file = $('#exportFile');
+                        if ($file.hasClass('select2-hidden-accessible')) {
+                            $file.select2('destroy');
                         }
-                        $.each(data, function (index, item) {
-                            $('#exportFile').append(
-                                $('<option>', {
-                                    value: index,
-                                    text: item
-                                })
-                            );
-                        });
-                        $('#exportFile').prop('disabled', false);
-                        // Khởi tạo hoặc refresh Select2
-                        $('#exportFile').select2({
-                            placeholder: 'Chọn file xuất',
+                        $file.empty().append('<option></option>');
+                        const hasFiles = data && Object.keys(data).length > 0;
+                        if (hasFiles) {
+                            $.each(data, function (index, item) {
+                                $file.append($('<option>', { value: index, text: item }));
+                            });
+                        }
+                        $file.prop('disabled', !hasFiles).select2({
+                            placeholder: hasFiles ? 'Select export file' : 'No export file available',
                             allowClear: true
                         });
                     });

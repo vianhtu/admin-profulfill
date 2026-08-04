@@ -7,7 +7,7 @@ function getAjaxSelect2HTML(div_class, select_id, select_label, action, multiple
 
 function ajaxSelect2(select_id, action, multiple = false){
     $('#'+select_id).select2({
-        placeholder: 'Tìm và chọn...',
+        placeholder: 'Search and select...',
         multiple: multiple,
         ajax: {
             url: '../../ajax.php?action='+action,
@@ -35,16 +35,16 @@ function ajaxSelect2(select_id, action, multiple = false){
         },
         minimumInputLength: 1,
         language: {
-            inputTooShort: () => 'Gõ ít nhất 1 ký tự',
-            searching: () => 'Đang tìm...',
-            noResults: () => 'Không có kết quả'
+            inputTooShort: () => 'Type at least 1 character',
+            searching: () => 'Searching...',
+            noResults: () => 'No results'
         }
     });
 }
 
 function ajaxSelectV2(select_id, folow_id, type, multiple = false) {
     $('#' + select_id).select2({
-        placeholder: 'Tìm và chọn...',
+        placeholder: 'Search and select...',
         multiple: multiple,
         ajax: {
             // URL nên giữ action cố định, 'type' sẽ được gửi trong POST data
@@ -74,10 +74,10 @@ function ajaxSelectV2(select_id, folow_id, type, multiple = false) {
         },
         minimumInputLength: 0, // Nên để 0 để khi click vào là hiện danh sách ngay (nếu muốn)
         language: {
-            inputTooShort: () => 'Gõ ít nhất 1 ký tự',
-            searching: () => 'Đang tìm...',
-            noResults: () => 'Không có kết quả',
-            errorLoading: () => 'Lỗi tải dữ liệu'
+            inputTooShort: () => 'Type at least 1 character',
+            searching: () => 'Searching...',
+            noResults: () => 'No results',
+            errorLoading: () => 'Failed to load data'
         }
     });
 }
@@ -230,7 +230,7 @@ async function fetchTableFilter(action = 'get-products-table-filter', data = {})
         },
         body: new URLSearchParams(data)
     });
-    if (!res.ok) throw new Error('Lỗi lấy danh mục');
+    if (!res.ok) throw new Error('Failed to load filter options');
     return await res.json();
 }
 
