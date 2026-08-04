@@ -3497,13 +3497,19 @@ function insertAmazonListingFromAI($conn, $downloadId, string $post_id, array $a
 function saveExportQuery(): array
 {
     if(!checkRoles('add', 'exports_download')){
-        return ['status' => 'error', 'message' => 'Bạn Không có quyền thêm và sửa từ khóa'];
+        return ['status' => 'error', 'message' => 'You do not have permission to create exports.'];
     }
     $conn = db();
+
+    // Account đích phải thuộc team của user — chặn trước khi chạm dữ liệu
+    if (!accountInTeamScope($conn, (int)($_POST['exported'] ?? 0))) {
+        return ['status' => 'error', 'message' => 'Account not found or not in your team.'];
+    }
+
     $products = getProductsTable();
 
     if (empty($products['data'])) {
-        return ['status' => 'error', 'message' => 'Không có sản phẩm nào để xử lý'];
+        return ['status' => 'error', 'message' => 'No products to process.'];
     }
 
     // Lấy dữ liệu từ form & session
@@ -3514,11 +3520,6 @@ function saveExportQuery(): array
     $status      = 'schedule';
     $total_items = count($products['data']);
 
-    // Tài khoản phải tồn tại VÀ thuộc team của user (không export sang team khác)
-    if (!accountInTeamScope($conn, $account_id)) {
-        return ['status' => 'error', 'message' => 'Account not found or not in your team.'];
-    }
-
     // Thêm bản ghi download
     $insertDownload = $conn->prepare("
         INSERT INTO download (author_id, exports_id, status, date, total_items)
@@ -3527,7 +3528,7 @@ function saveExportQuery(): array
     $insertDownload->bind_param("iissi", $author_id, $exports_id, $status, $date_create, $total_items);
 
     if (!$insertDownload->execute()) {
-        return ['status' => 'error', 'message' => 'Lỗi khi thêm bản ghi download: ' . $insertDownload->error];
+        return ['status' => 'error', 'message' => 'Failed to create download record: ' . $insertDownload->error];
     }
 
     $new_id = $conn->insert_id;
@@ -3535,7 +3536,7 @@ function saveExportQuery(): array
 
     $postIds = array_column($products['data'], 'id');
     if (empty($postIds)) {
-        return ['status' => 'error', 'message' => 'Không có bài viết nào để cập nhật'];
+        return ['status' => 'error', 'message' => 'No products to update.'];
     }
 
     $chunks = array_chunk($postIds, 500);
