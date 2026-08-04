@@ -54,7 +54,7 @@ if (!empty($edit_data)) {
     $edit_data['ui'] = ['title' => 'Edit', 'button' => 'Update'];
 }
 // Select options.
-$options = getStoresTableFilters();
+$options = get_stores_filters();
 
 // Merge dữ liệu mặc định với dữ liệu thật
 $d = array_merge($defaultData, $edit_data);
@@ -305,7 +305,7 @@ if (empty($custom_fields)) {
                 </div>
                 <div class="card-body">
                     <div class="mb-6 form-control-validation accounts_status">
-                        <?php renderSelect('accounts_status', 'Status', $status, $d['status']); ?>
+                        <?php render_select('accounts_status', 'Status', $status, $d['status']); ?>
                     </div>
                     <div class="mb-6">
                         <label class="form-label" for="accounts_date">Date</label>
@@ -328,15 +328,15 @@ if (empty($custom_fields)) {
                 <div class="card-body">
                     <!-- Site -->
                     <div class="mb-6 form-control-validation col ecommerce-select2-dropdown">
-                        <?php renderSelect('account_site', 'Site', $options['sites'], $d['site_id']); ?>
+                        <?php render_select('account_site', 'Site', $options['sites'], $d['site_id']); ?>
                     </div>
                     <!-- Team -->
                     <div class="mb-6 col ecommerce-select2-dropdown">
-                        <?php renderSelect('account_team', 'Team', $options['teams'], $d['team_id']); ?>
+                        <?php render_select('account_team', 'Team', $options['teams'], $d['team_id']); ?>
                     </div>
                     <!-- authors -->
                     <div class="mb-6 col ecommerce-select2-dropdown">
-                        <?php renderSelect('account_author', 'Authors', $d['authors_args'], null, true); ?>
+                        <?php render_select('account_author', 'Authors', $d['authors_args'], null, true); ?>
                     </div>
                 </div>
             </div>
@@ -348,7 +348,7 @@ if (empty($custom_fields)) {
                 </div>
                 <div class="card-body">
                     <div class="mb-6 col ecommerce-select2-dropdown">
-                        <?php renderSelect('link_accounts', 'Accounts', $d['linked_args'], null, true); ?>
+                        <?php render_select('link_accounts', 'Accounts', $d['linked_args'], null, true); ?>
                     </div>
                 </div>
             </div>

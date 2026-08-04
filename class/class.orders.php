@@ -107,7 +107,7 @@ class Orders
     }
     public static function get_orders(): array {
         $allowedCols = ['ID', 'status', 'purchase_date', 'delivery_date', 'ship_date', 'total_price'];
-        $params = getDataTableParams($allowedCols);
+        $params = get_datatable_params($allowedCols);
         $conn = db();
 
         // Lấy điều kiện phân quyền cơ bản

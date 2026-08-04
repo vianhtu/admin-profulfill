@@ -142,7 +142,7 @@ function getSMS(): array
 function getPhonesTable(): array
 {
     $allowedCols = ['ID', 'number', 'status'];
-    $params = getDataTableParams($allowedCols);
+    $params = get_datatable_params($allowedCols);
     if(!checkRoles('view', 'phones_numbers')){
         return [
             "draw"            => $params['draw'],

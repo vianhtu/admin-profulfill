@@ -157,7 +157,7 @@ if(!empty($export_data)){
                 <div class="card-body">
                     <!-- Base Price -->
                     <div class="mb-6 form-control-validation export_accounts">
-                        <?php renderSelect('accountsExport', 'Select Account', $account, $account_id); ?>
+                        <?php render_select('accountsExport', 'Select Account', $account, $account_id); ?>
                     </div>
                 </div>
             </div>
@@ -178,7 +178,7 @@ if(!empty($export_data)){
                     </div>
                     <?php if($file_name): ?>
                     <div class="mb-6 form-control-validation col export_sheet_name">
-                        <?php renderSelect('export_sheet_name', 'Sheet Name', $file_tabs, $sheet_name); ?>
+                        <?php render_select('export_sheet_name', 'Sheet Name', $file_tabs, $sheet_name); ?>
                     </div>
                     <?php endif; ?>
                 </div>
@@ -192,16 +192,16 @@ if(!empty($export_data)){
                 <div class="card-body">
                     <!-- Type -->
                     <div class="mb-6 form-control-validation col ecommerce-select2-dropdown">
-                        <?php renderSelect('export_type', 'Type', $options['types'], $type_id); ?>
+                        <?php render_select('export_type', 'Type', $options['types'], $type_id); ?>
                     </div>
                     <!-- Site -->
                     <div class="mb-6 form-control-validation col ecommerce-select2-dropdown">
-                        <?php renderSelect('export_site', 'Site', $options['sites'], $site_id); ?>
+                        <?php render_select('export_site', 'Site', $options['sites'], $site_id); ?>
                     </div>
                     <!-- authors -->
                     <?php if(is_admin()): ?>
                     <div class="mb-6 col ecommerce-select2-dropdown">
-                        <?php renderSelect('export_author', 'Author', $options['authors'], $authors_id); ?>
+                        <?php render_select('export_author', 'Author', $options['authors'], $authors_id); ?>
                     </div>
                     <?php endif; ?>
                 </div>

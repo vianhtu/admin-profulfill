@@ -102,7 +102,7 @@ class Products
     public static function get_products(): array {
     $allowedCols = ['ID', 'title', 'status', 'date', 'type_id', 'author_id', 'badge'];
     // Lấy tham số từ DataTables
-    $params = getDataTableParams($allowedCols);
+    $params = get_datatable_params($allowedCols);
     if(!checkRoles('view', 'products')){
         return [
             "draw"            => $params['draw'],
@@ -150,10 +150,10 @@ class Products
     }
 
     // Lọc theo status (string)
-    addTableFilter($whereClauses, 'posts.status', 8, 'string', $conn);
+    add_table_filter($whereClauses, 'posts.status', 8, 'string', $conn);
 
     // Lọc theo type (int)
-    addTableFilter($whereClauses, 'posts.type_id', 4, 'int', $conn);
+    add_table_filter($whereClauses, 'posts.type_id', 4, 'int', $conn);
 
     // Lọc theo author — chỉ admin/manager mới được lọc; user luôn bị ép về
     // chính mình bởi scope nên bỏ qua tham số author họ tự gửi lên.
@@ -269,31 +269,31 @@ class Products
         return ['status' => 'error', 'message' => 'You do not have permission to view products.'];
     }
     $options = [];
-    $options['types'] = getAllTypes();
+    $options['types'] = get_all_types();
     // Trang Products gửi skip_authors: filter Manager dùng select2 ajax và tên tác giả
     // đã đi kèm từng dòng, không cần nạp toàn bộ user (các trang khác vẫn cần map này).
     if (empty($_POST['skip_authors'])) {
         // Danh sách authors đúng phạm vi: admin = tất cả, manager = trong team,
         // còn lại chỉ chính mình (không lộ username đồng đội).
         if (is_admin()) {
-            $options['authors'] = getAllAuthors();
+            $options['authors'] = get_all_authors();
         } elseif (is_manager()) {
-            $options['authors'] = getAuthorsByTeam();
+            $options['authors'] = get_authors_by_team();
         } else {
             $uid = (int)($_SESSION['auth']['user_id'] ?? 0);
-            $options['authors'] = [$uid => ['title' => getFieldByID('authors', 'username', $uid) ?? '']];
+            $options['authors'] = [$uid => ['title' => get_field_by_id('authors', 'username', $uid) ?? '']];
         }
         // Gắn tên team để cột Author hiển thị team name dưới tên tác giả
-        $teamNames = getAuthorTeamNames();
+        $teamNames = get_author_team_names();
         foreach ($options['authors'] as $id => $info) {
             $options['authors'][$id]['team'] = $teamNames[$id] ?? '';
         }
     } else {
         $options['authors'] = [];
     }
-    $options['sites'] = getAllSites();
+    $options['sites'] = get_all_sites();
     // Danh sách team chỉ gửi cho admin — user/manager không được lọc chéo team
-    $options['teams'] = is_admin() ? getAllTeams() : [];
+    $options['teams'] = is_admin() ? get_all_teams() : [];
     // Frontend dùng để ẩn/hiện nút & filter theo quyền (backend vẫn tự kiểm tra lại)
     $options['perms'] = [
         'add'           => checkRoles('add', 'products'),

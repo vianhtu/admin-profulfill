@@ -139,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             echo json_encode(Order::add_item_data());
             break;
         case 'get-stores-table-filter':
-            echo json_encode(getStoresTableFilters());
+            echo json_encode(get_stores_filters());
             break;
         case 'get-stores-table':
             echo json_encode(getAccountsTable());
@@ -163,10 +163,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             echo json_encode(getAuthorsTable());
             break;
         case 'get-authors-table-filter':
-            echo json_encode(getAuthorsTableFilters());
+            echo json_encode(get_authors_filters());
             break;
         case 'get-authors-by-team':
-            echo json_encode(getAuthorsByTeam());
+            echo json_encode(get_authors_by_team());
             break;
         case 'get-roles-permissions-table':
             echo json_encode(getRolesPermissionsTable());
@@ -181,19 +181,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             echo json_encode(getAccountUploadFiles());
             break;
 		case 'filter-stores':
-			echo json_encode(getStoresTableFilter());
+			echo json_encode(get_stores_select_options());
 			break;
 		case 'filter-sites':
-			echo json_encode(getSitesTableFilter());
+			echo json_encode(get_sites_select_options());
 			break;
 		case 'filter-authors':
-			echo json_encode(getAuthorsFilter());
+			echo json_encode(get_authors_select_options());
 			break;
 		case 'filter-accounts':
-			echo json_encode(getAccountsTableFilter());
+			echo json_encode(get_accounts_select_options());
 			break;
 		case 'filter-export-file':
-			echo json_encode(getFilesTableFilter());
+			echo json_encode(get_export_files_select_options());
 			break;
         case 'action-download-table-model':
             echo json_encode(actionDownloadTableModel());

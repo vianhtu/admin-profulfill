@@ -145,7 +145,13 @@ function renderMenu($currentMenu): void
     }
 }
 
-function renderSelect($id, $label, $options = [], $selected = null, $multiple = false): void
+/**
+ * Render 1 thẻ <select> (kèm label) theo chuẩn select2 của template.
+ *
+ * @param array<string|int,array{title:string,selected?:bool}> $options Danh sách option dạng [key => ['title' => ...]]
+ * @param string|int|array|null $selected Giá trị đang chọn (mảng nếu multiple)
+ */
+function render_select(string $id, string $label, array $options = [], string|int|array|null $selected = null, bool $multiple = false): void
 {
     // 1. Xử lý thuộc tính multiple và name
     $multipleAttr = $multiple ? ' multiple' : '';
@@ -732,7 +738,13 @@ function actionDownloadTableModel(): array
     return ['status' => 'success', 'ids' => $processedIds];
 }
 
-function getDataTableParams(array $allowedCols, string $defaultCol = 'ID'): array {
+/**
+ * Đọc và làm sạch tham số DataTables gửi lên (draw/start/length/order/search).
+ *
+ * @param string[] $allowedCols Whitelist cột được phép sắp xếp — chặn SQL injection qua order
+ * @return array{draw:int,start:int,length:int,orderColumn:string,orderDir:string,searchValue:string}
+ */
+function get_datatable_params(array $allowedCols, string $defaultCol = 'ID'): array {
     $draw             = intval($_POST['draw'] ?? 1);
     $start            = intval($_POST['start'] ?? 0);
     $length           = intval($_POST['length'] ?? 10);
@@ -761,7 +773,7 @@ function getDataTableParams(array $allowedCols, string $defaultCol = 'ID'): arra
  * - Admin: 0 = không giới hạn, hoặc đúng team đang chọn ở filter.
  * - Còn lại: luôn là team của chính user (bỏ qua tham số họ gửi lên).
  */
-function currentTeamScopeId(): int {
+function get_current_team_scope_id(): int {
     if (is_admin()) {
         return (int)($_POST['team'] ?? 0);
     }
@@ -772,11 +784,11 @@ function currentTeamScopeId(): int {
  * Account có nằm trong phạm vi team của user hiện tại không.
  * Admin: luôn true (trừ khi đang lọc theo 1 team cụ thể).
  */
-function accountInTeamScope(mysqli $conn, int $accountId): bool {
+function check_account_team_scope(mysqli $conn, int $accountId): bool {
     if ($accountId <= 0) {
         return false;
     }
-    $team = currentTeamScopeId();
+    $team = get_current_team_scope_id();
     if ($team <= 0) {
         return is_admin();
     }
@@ -786,10 +798,15 @@ function accountInTeamScope(mysqli $conn, int $accountId): bool {
     return (bool)$stmt->get_result()->fetch_row();
 }
 
-function getAllTypes(): array {
-    $team = currentTeamScopeId();
+/**
+ * Danh sách category theo phạm vi team (dùng chung qua bảng type_teams).
+ *
+ * @return array<int,array{title:string}>
+ */
+function get_all_types(): array {
+    $team = get_current_team_scope_id();
     if ($team <= 0) {
-        return getAllDataMap('type', 'name');
+        return get_data_map('type', 'name');
     }
     // type_teams: 1 category có thể thuộc nhiều team (hai team dùng chung cùng danh mục)
     $rs = db()->query("SELECT t.ID, t.name FROM `type` t
@@ -802,14 +819,19 @@ function getAllTypes(): array {
     return $data;
 }
 
-function getAllAuthors(): array {
-    return getAllDataMap('authors', 'username');
+/**
+ * Toàn bộ author dạng map [id => ['title' => username]].
+ *
+ * @return array<int,array{title:string}>
+ */
+function get_all_authors(): array {
+    return get_data_map('authors', 'username');
 }
 
 /**
  * Map author_id => tên team, dùng để hiện team name dưới tên tác giả.
  */
-function getAuthorTeamNames(): array {
+function get_author_team_names(): array {
     $rs = db()->query('SELECT a.ID, t.name FROM authors a LEFT JOIN team t ON t.ID = a.team_id');
     $map = [];
     while ($row = $rs->fetch_row()) {
@@ -818,13 +840,18 @@ function getAuthorTeamNames(): array {
     return $map;
 }
 
-function getAuthorsByTeam(): array
+/**
+ * Author trong team của user hiện tại (admin có thể lọc theo filter_team).
+ *
+ * @return array<int,array{title:string}>
+ */
+function get_authors_by_team(): array
 {
     if(is_admin()){
         if (!empty($_POST['filter_team'])) {
             $team_id = intval($_POST['filter_team']);
         } else {
-            return getAllDataMap('authors', 'username');
+            return get_data_map('authors', 'username');
         }
     } else {
         $team_id = intval($_SESSION['auth']['team']);
@@ -855,8 +882,13 @@ function getAuthorsByTeam(): array
     return $data;
 }
 
-function getAllSites(): array {
-    $raw_data = getAllData('site', ['name', 'logo']);
+/**
+ * Toàn bộ site (etsy.com, amazon.com...).
+ *
+ * @return array<int,array{title:string}>
+ */
+function get_all_sites(): array {
+    $raw_data = get_data_list('site', ['name', 'logo']);
     return array_map(function($value) {
         // Giả sử trong DB cột tên là 'name' và 'logo'
         return [
@@ -866,30 +898,51 @@ function getAllSites(): array {
     }, $raw_data);
 }
 
-function getAllRoles(): array {
+/**
+ * Toàn bộ nhóm quyền trong bảng roles_permissions.
+ *
+ * @return array<int,array{title:string}>
+ */
+function get_all_roles(): array {
     $roles = [0 => ['title' => 'Admin']];
-    return $roles + getAllDataMap('roles_permissions', 'name');
+    return $roles + get_data_map('roles_permissions', 'name');
 }
 
-function getAllTeams(): array {
+/**
+ * Toàn bộ team.
+ *
+ * @return array<int,array{title:string}>
+ */
+function get_all_teams(): array {
     if(is_admin()) {
-        return getAllDataMap('team', 'name');
+        return get_data_map('team', 'name');
     } else {
         $team_id = $_SESSION['auth']['team'] ?? 0;
-        $team_name = getFieldByID('team', 'name', $team_id);
+        $team_name = get_field_by_id('team', 'name', $team_id);
         return [$team_id => ['title' => $team_name]];
     }
 }
 
-function getAllDataMap(string $table, string $field): array
+/**
+ * Lấy 1 bảng lookup thành map [ID => ['title' => <field>]] cho select2/render_select.
+ *
+ * @return array<int,array{title:string}>
+ */
+function get_data_map(string $table, string $field): array
 {
-    $raw_data = getAllData($table, $field);
+    $raw_data = get_data_list($table, $field);
     return array_map(function($value) {
         return ['title' => $value];
     }, $raw_data);
 }
 
-function getAllData(string $table, $field): array
+/**
+ * Lấy ID + các field yêu cầu của 1 bảng. 1 field trả giá trị đơn, nhiều field trả mảng.
+ *
+ * @param string|string[] $field
+ * @return array<int,mixed>
+ */
+function get_data_list(string $table, string|array $field): array
 {
     $conn = db();
 
@@ -928,7 +981,10 @@ function getAllData(string $table, $field): array
     return $data;
 }
 
-function getFieldByID(string $table, string $field, int $id): ?string
+/**
+ * Lấy giá trị 1 cột của 1 bản ghi theo ID. Trả null nếu không có.
+ */
+function get_field_by_id(string $table, string $field, int $id): ?string
 {
     $conn = db();
 
@@ -1001,7 +1057,7 @@ function getMissingOrders(): array
  * Phạm vi: admin = mọi author (lọc thêm theo team nếu chọn), manager = trong team mình,
  * còn lại = chỉ chính mình.
  */
-function getAuthorsFilter(): array {
+function get_authors_select_options(): array {
 	$conn = db();
 	$q    = isset($_POST['q']) ? trim($_POST['q']) : '';
 	$page = isset($_POST['page']) ? max(1, intval($_POST['page'])) : 1;
@@ -1044,7 +1100,7 @@ function getAuthorsFilter(): array {
 /**
  * Nguồn dữ liệu cho select2 ajax của bộ lọc "From sites".
  */
-function getSitesTableFilter(): array {
+function get_sites_select_options(): array {
 	$conn = db();
 	$q    = isset($_POST['q']) ? trim($_POST['q']) : '';
 	$page = isset($_POST['page']) ? max(1, intval($_POST['page'])) : 1;
@@ -1071,7 +1127,12 @@ function getSitesTableFilter(): array {
 	return ['items' => $items, 'more' => (count($items) === $perPage)];
 }
 
-function getStoresTableFilter(): array {
+/**
+ * Nguồn dữ liệu select2 ajax cho bộ lọc Store (đã lọc theo team, store dùng chung tính qua store_teams).
+ *
+ * @return array{items:array<int,array{id:int,name:string}>,more:bool}
+ */
+function get_stores_select_options(): array {
 	$conn = db();
 	// Lấy giá trị tìm kiếm từ POST
 	$q    = isset($_POST['q']) ? trim($_POST['q']) : '';
@@ -1081,7 +1142,7 @@ function getStoresTableFilter(): array {
 
 // Chuẩn bị câu truy vấn (Prepared Statement để chống SQL injection)
 	// store_teams: 1 store có thể dùng chung cho nhiều team
-	$teamScope = currentTeamScopeId();
+	$teamScope = get_current_team_scope_id();
 	$teamCond  = $teamScope > 0
 		? " AND EXISTS (SELECT 1 FROM store_teams st WHERE st.store_id = t.ID AND st.team_id = $teamScope)"
 		: '';
@@ -1131,7 +1192,12 @@ function getAccountsByID($id): array {
 	return $types;
 }
 
-function getAccountsTableFilter(): array {
+/**
+ * Nguồn dữ liệu select2 ajax cho bộ lọc Listed Accounts / Export to Account (lọc theo team).
+ *
+ * @return array{items:array<int,array{id:int,name:string}>,more:bool}
+ */
+function get_accounts_select_options(): array {
 	$conn = db();
 	// Lấy giá trị tìm kiếm từ POST
 	$q    = isset($_POST['q']) ? trim($_POST['q']) : '';
@@ -1140,7 +1206,7 @@ function getAccountsTableFilter(): array {
 	$offset  = ($page - 1) * $perPage;
 
     // Chuẩn bị câu truy vấn (Prepared Statement để chống SQL injection)
-	$teamScope = currentTeamScopeId();
+	$teamScope = get_current_team_scope_id();
 	$teamCond  = $teamScope > 0 ? " AND a.team_id = $teamScope" : '';
 	$sql = "SELECT a.id, CONCAT(s.name, ' (', a.name, ')') AS name
         FROM accounts AS a
@@ -1232,7 +1298,7 @@ function getKeywordsTable(): array
 {
     $allowedCols = ['ID', 'name', 'status'];
     // Lấy tham số từ DataTables
-    $params = getDataTableParams($allowedCols);
+    $params = get_datatable_params($allowedCols);
     if(!checkRoles('view', 'keywords')){
         return [
             "draw"            => $params['draw'],
@@ -1286,7 +1352,7 @@ function getKeywordsTable(): array
 function getDownloadTable(): array {
     $allowedCols = ['ID', 'status', 'date', 'download_date', 'total_items'];
     // Lấy tham số từ DataTables
-    $params = getDataTableParams($allowedCols);
+    $params = get_datatable_params($allowedCols);
     if(!checkRoles('view', 'exports_download')){
         return [
             "draw"            => $params['draw'],
@@ -1311,16 +1377,16 @@ function getDownloadTable(): array {
             OR accounts.name LIKE '%$searchEsc%')";
     }
     // Lọc theo status (string)
-    addTableFilter($whereClauses, 'download.status', 4, 'string', $conn);
+    add_table_filter($whereClauses, 'download.status', 4, 'string', $conn);
 
     // Lọc theo type (int)
-    addTableFilter($whereClauses, 'exports.type_id', 10, 'int', $conn);
+    add_table_filter($whereClauses, 'exports.type_id', 10, 'int', $conn);
 
     // Lọc theo role (int)
-    addTableFilter($whereClauses, 'exports.site_id', 3, 'int', $conn);
+    add_table_filter($whereClauses, 'exports.site_id', 3, 'int', $conn);
 
     // Lọc theo team name (int)
-    addTableFilter($whereClauses, 'download.author_id', 9, 'int', $conn);
+    add_table_filter($whereClauses, 'download.author_id', 9, 'int', $conn);
 
     // Lọc theo accounts
     $filterAccounts = $_POST['accounts'] ?? [];
@@ -1382,11 +1448,16 @@ function getDownloadTable(): array {
     ];
 }
 
-function getStoresTableFilters(): array {
+/**
+ * Danh sách option cho các bộ lọc của trang Manager Stores.
+ *
+ * @return array{authors:array,sites:array,teams:array}
+ */
+function get_stores_filters(): array {
     $options = [];
-    $options['authors'] = getAuthorsByTeam();
-    $options['sites'] = getAllSites();
-    $options['teams'] = getAllTeams();
+    $options['authors'] = get_authors_by_team();
+    $options['sites'] = get_all_sites();
+    $options['teams'] = get_all_teams();
     return $options;
 }
 
@@ -1455,7 +1526,7 @@ function getFilesTable(): array {
     $allowedCols = ['ID', 'file_name', 'date_create', 'type_id', 'site_id', 'authors_id'];
 
     // Lấy tham số từ DataTables
-    $params = getDataTableParams($allowedCols);
+    $params = get_datatable_params($allowedCols);
     if(!checkRoles('view', 'exports_xlsx')){
         return [
             "draw"            => $params['draw'],
@@ -1479,13 +1550,13 @@ function getFilesTable(): array {
     }
 
     // Lọc theo type (int)
-    addTableFilter($whereClauses, 'exports.type_id', 3, 'int', $conn);
+    add_table_filter($whereClauses, 'exports.type_id', 3, 'int', $conn);
 
     // Lọc theo role (int)
-    addTableFilter($whereClauses, 'exports.site_id', 4, 'int', $conn);
+    add_table_filter($whereClauses, 'exports.site_id', 4, 'int', $conn);
 
     // Lọc theo team name (int)
-    addTableFilter($whereClauses, 'exports.authors_id', 5, 'int', $conn);
+    add_table_filter($whereClauses, 'exports.authors_id', 5, 'int', $conn);
 
     // Lọc theo accounts
     $filterAccounts = $_POST['accounts'] ?? [];
@@ -1544,7 +1615,12 @@ function getFilesTable(): array {
     ];
 }
 
-function getFilesTableFilter(): array
+/**
+ * Danh sách file export của 1 account (account phải thuộc team của user).
+ *
+ * @return array<int,string>
+ */
+function get_export_files_select_options(): array
 {
     if(!checkRoles('view', 'exports_xlsx')){
         return [];
@@ -1554,7 +1630,7 @@ function getFilesTableFilter(): array
     $type = isset($_POST['type']) ? $_POST['type'] : '';
 
     // Account phải thuộc phạm vi team của user thì mới được xem file export của nó
-    if (!accountInTeamScope($conn, (int)$id)) {
+    if (!check_account_team_scope($conn, (int)$id)) {
         return [];
     }
 
@@ -1591,7 +1667,7 @@ function getAuthorsTable():array
     $allowedCols = ['ID', 'team_id', 'level', 'wage', 'username', 'status', 'date'];
 
     // Lấy tham số từ DataTables
-    $params = getDataTableParams($allowedCols);
+    $params = get_datatable_params($allowedCols);
     if(!checkRoles('view', 'users')){
         return [
             "draw"            => $params['draw'],
@@ -1615,13 +1691,13 @@ function getAuthorsTable():array
     }
 
     // Lọc theo status (int)
-    addTableFilter($whereClauses, 'authors.status', 6, 'int', $conn);
+    add_table_filter($whereClauses, 'authors.status', 6, 'int', $conn);
 
     // Lọc theo role (int)
-    addTableFilter($whereClauses, 'authors.level', 3, 'int', $conn);
+    add_table_filter($whereClauses, 'authors.level', 3, 'int', $conn);
 
     // Lọc theo team name (int)
-    addTableFilter($whereClauses, 'authors.team_id', 4, 'int', $conn);
+    add_table_filter($whereClauses, 'authors.team_id', 4, 'int', $conn);
 
     $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
 
@@ -1666,13 +1742,18 @@ function getAuthorsTable():array
     ];
 }
 
-function getAuthorsTableFilters(): array {
+/**
+ * Danh sách option cho các bộ lọc của trang Users.
+ *
+ * @return array<string,array>
+ */
+function get_authors_filters(): array {
     if(!checkRoles('view', 'users')){
         return [];
     }
     $options = [];
-    $options['role'] = getAllRoles();
-    $options['team'] = getAllTeams();
+    $options['role'] = get_all_roles();
+    $options['team'] = get_all_teams();
     return $options;
 }
 
@@ -1680,7 +1761,7 @@ function getRolesPermissionsTable(): array {
     $allowedCols = ['ID', 'name'];
 
     // Lấy tham số từ DataTables
-    $params = getDataTableParams($allowedCols);
+    $params = get_datatable_params($allowedCols);
     if(!checkRoles('view', 'roles-permissions')){
         return [
             "draw"            => $params['draw'],
@@ -1859,7 +1940,7 @@ function getXlsxFileHeader(string $filePath, string $sheetName = '', int $header
  * @param string $type          Kiểu dữ liệu: int|string|like
  * @param mysqli $conn          Kết nối DB để escape string
  */
-function addTableFilter(array &$whereClauses, string $field, int $colIndex, string $type, mysqli $conn): void {
+function add_table_filter(array &$whereClauses, string $field, int $colIndex, string $type, mysqli $conn): void {
     $val = trim($_POST['columns'][$colIndex]['search']['value'] ?? '', '^$');
     if ($val === '') return;
 
@@ -3031,7 +3112,7 @@ function saveExportQuery(): array
     $conn = db();
 
     // Account đích phải thuộc team của user — chặn trước khi chạm dữ liệu
-    if (!accountInTeamScope($conn, (int)($_POST['exported'] ?? 0))) {
+    if (!check_account_team_scope($conn, (int)($_POST['exported'] ?? 0))) {
         return ['status' => 'error', 'message' => 'Account not found or not in your team.'];
     }
 

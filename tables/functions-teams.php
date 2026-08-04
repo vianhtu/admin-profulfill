@@ -4,7 +4,7 @@ function getTeamsTable():array
     $allowedCols = ['ID', 'name', 'status'];
 
     // Lấy tham số từ DataTables
-    $params = getDataTableParams($allowedCols);
+    $params = get_datatable_params($allowedCols);
     if(!checkRoles('view', 'teams')){
         return [
             "draw"            => $params['draw'],

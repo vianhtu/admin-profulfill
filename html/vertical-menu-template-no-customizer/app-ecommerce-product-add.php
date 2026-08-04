@@ -193,7 +193,7 @@ $options = Products::get_products_filters();
                     </div>
                     <div class="card-body">
                         <div class="mb-2 form-control-validation product_status_box">
-                            <?php renderSelect('product_status', 'Status', $statusOptions, $d['status']); ?>
+                            <?php render_select('product_status', 'Status', $statusOptions, $d['status']); ?>
                         </div>
                     </div>
                 </div>
@@ -204,10 +204,10 @@ $options = Products::get_products_filters();
                     </div>
                     <div class="card-body">
                         <div class="mb-6 form-control-validation product_category_box">
-                            <?php renderSelect('product_type', 'Category', $options['types'], $d['type_id']); ?>
+                            <?php render_select('product_type', 'Category', $options['types'], $d['type_id']); ?>
                         </div>
                         <div class="mb-6 form-control-validation product_site_box">
-                            <?php renderSelect('product_site', 'Site', $options['sites'], $d['site_id']); ?>
+                            <?php render_select('product_site', 'Site', $options['sites'], $d['site_id']); ?>
                         </div>
                         <div class="mb-6 form-control-validation product_store_box">
                             <label class="form-label" for="product_store">Store</label>
@@ -223,7 +223,7 @@ $options = Products::get_products_filters();
                             // Admin/Manager được gán sản phẩm cho thành viên khác;
                             // user thường luôn là chính họ nên không hiện ô này.
                             $curAuthorId = (int)($d['author_id'] ?? ($_SESSION['auth']['user_id'] ?? 0));
-                            $curAuthorName = getFieldByID('authors', 'username', $curAuthorId) ?? '';
+                            $curAuthorName = get_field_by_id('authors', 'username', $curAuthorId) ?? '';
                             ?>
                             <div class="mb-2 form-control-validation product_author_box">
                                 <label class="form-label" for="product_author">Manager</label>
