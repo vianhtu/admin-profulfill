@@ -22,7 +22,8 @@ const statusObj = {
 async function init() {
     try {
         // 1️⃣ Gọi API trước
-        let options = await fetchTableFilter();
+        // skip_authors: trang này dùng select2 ajax cho Manager, không nạp toàn bộ user
+        let options = await fetchTableFilter('get-products-table-filter', { skip_authors: 1 });
         categoryObj = options['types'];
         authorsObj = options['authors'];
         sitesObj = options['sites'];
@@ -53,10 +54,9 @@ function initProductTable(){
                     const urlParams = new URLSearchParams(window.location.search);
                     const initialFilters = {
                         ProductStatus: urlParams.get('ProductStatus') || '',
-                        ProductCategory: urlParams.get('ProductCategory') || '',
-                        ProductAuthor: urlParams.get('ProductAuthor') || ''
+                        ProductCategory: urlParams.get('ProductCategory') || ''
                     };
-                    const mapping = { ProductStatus: 'status', ProductCategory: 'type_id', ProductAuthor: 'author_id' }; // data names in your columns config
+                    const mapping = { ProductStatus: 'status', ProductCategory: 'type_id' }; // data names in your columns config
                     d.columns.forEach(col => {
                         for (const key in mapping) {
                             if (col.data === mapping[key]) {
@@ -72,6 +72,7 @@ function initProductTable(){
                     d.sites = getCheckedSites();
                     d.accounts = $('#accountsFilter').val();
                     d.team = $('#teamFilter').val() || '';
+                    d.author = $('#authorFilter').val() || '';
                     d.exported = $('#exportAccount').val();
                     lastPostData = d;
                 },
@@ -187,10 +188,9 @@ function initProductTable(){
                     orderable: false,
                     responsivePriority: 3,
                     render: function (data, type, full, meta) {
-                        // Fallback khi author không có trong map (vd. author đã chuyển team)
-                        const stock = full['author_id'];
-                        const stockTitle = authorsObj[stock]?.title ?? stock;
-                        const teamName = authorsObj[stock]?.team ?? '';
+                        // Tên tác giả + team đi kèm từng dòng từ server
+                        const stockTitle = full['author_name'] || full['author_id'];
+                        const teamName = full['team_name'] || '';
 
                         // Hai dòng giống cột product: tên tác giả + team bên dưới
                         return `
@@ -644,13 +644,6 @@ function initProductTable(){
                 getSelect2filterTable(api,'ProductStatus', '.product_status', 8, 'Status', statusObj);
                 getSelect2filterTable(api,'ProductCategory', '.product_category', 4, 'Category', categoryObj);
 
-                // Manager (author): admin/manager mới thấy; user chỉ có dữ liệu của mình nên ẩn
-                if (productPerms.filter_author) {
-                    getSelect2filterTable(api,'ProductAuthor', '.product_author', 5, 'Manager', authorsObj);
-                } else {
-                    $('.product_author').addClass('d-none').empty();
-                }
-
                 // Team: chỉ admin — lọc chéo team
                 if (productPerms.filter_team) {
                     const $teamBox = $('.product_team').removeClass('d-none');
@@ -659,8 +652,28 @@ function initProductTable(){
                         $('#teamFilter').append($('<option>', { value: id, text: item.title ?? item }));
                     });
                     $('#teamFilter').select2({ dropdownParent: $teamBox }).on('change', function () {
+                        // Đổi team thì bỏ chọn author cũ (có thể thuộc team khác)
+                        $('#authorFilter').val(null).trigger('change.select2');
                         api.draw();
                     });
+                }
+
+                // Manager (author): select2 ajax — admin có thể rất nhiều user nên không nạp sẵn.
+                // User thường chỉ thấy dữ liệu của mình nên ẩn hẳn.
+                if (productPerms.filter_author) {
+                    getAjaxSelect2HTML('product_author', 'authorFilter', 'Manager', 'filter-authors');
+                    // Gửi kèm team đang chọn để danh sách author bám theo team
+                    const $author = $('#authorFilter');
+                    const opts = $author.data('select2').options.options;
+                    const baseData = opts.ajax.data;
+                    opts.ajax.data = function (params) {
+                        return Object.assign(baseData(params), { team: $('#teamFilter').val() || '' });
+                    };
+                    $author.on('change', function () {
+                        api.draw();
+                    });
+                } else {
+                    $('.product_author').addClass('d-none').empty();
                 }
 
                 // Adding store filter once table is initialized
@@ -850,7 +863,7 @@ function getCheckedSites() {
 // có nhớ trạng thái và badge đếm số filter đang bật.
 function countActiveFilters() {
     let n = 0;
-    ['#teamFilter', '#ProductStatus', '#ProductCategory', '#ProductAuthor', '#storeFilter', '#accountsFilter', '#sitesFilter', '#minDate', '#maxDate'].forEach(function (sel) {
+    ['#teamFilter', '#ProductStatus', '#ProductCategory', '#authorFilter', '#storeFilter', '#accountsFilter', '#sitesFilter', '#minDate', '#maxDate'].forEach(function (sel) {
         const v = $(sel).val();
         if (Array.isArray(v) ? v.length : (v !== null && v !== undefined && v !== '')) {
             n++;
@@ -870,11 +883,11 @@ function refreshFilterBadge() {
 // Xóa toàn bộ filter: cập nhật UI không kích hoạt reload từng cái,
 // xóa URL param (3 filter chính đọc trực tiếp từ URL), rồi vẽ lại bảng 1 lần.
 function clearAllFilters() {
-    ['ProductStatus', 'ProductCategory', 'ProductAuthor'].forEach(function (id) {
+    ['ProductStatus', 'ProductCategory'].forEach(function (id) {
         $('#' + id).val('').trigger('change.select2');
         deleteUrlParam(id, true);
     });
-    $('#storeFilter, #accountsFilter, #sitesFilter').val(null).trigger('change.select2');
+    $('#storeFilter, #accountsFilter, #sitesFilter, #authorFilter').val(null).trigger('change.select2');
     $('#teamFilter').val('').trigger('change.select2');
 
     ['#minDate', '#maxDate'].forEach(function (sel) {
@@ -914,7 +927,7 @@ function setFilterCollapsed(collapsed, animate) {
 function initFilterCollapse() {
     refreshFilterBadge();
     // Cập nhật badge mỗi khi filter đổi
-    $(document).on('change', '#teamFilter,#ProductStatus,#ProductCategory,#ProductAuthor,#storeFilter,#accountsFilter,#sitesFilter', refreshFilterBadge);
+    $(document).on('change', '#teamFilter,#ProductStatus,#ProductCategory,#authorFilter,#storeFilter,#accountsFilter,#sitesFilter', refreshFilterBadge);
     $('#minDate,#maxDate').on('change', refreshFilterBadge);
 
     $('#clearFilters').on('click', clearAllFilters);

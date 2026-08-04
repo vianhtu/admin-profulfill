@@ -1047,6 +1047,51 @@ function getMissingOrders(): array
 }
 
 /**
+ * Nguồn dữ liệu cho select2 ajax của bộ lọc "Manager" (author).
+ * Phạm vi: admin = mọi author (lọc thêm theo team nếu chọn), manager = trong team mình,
+ * còn lại = chỉ chính mình.
+ */
+function getAuthorsFilter(): array {
+	$conn = db();
+	$q    = isset($_POST['q']) ? trim($_POST['q']) : '';
+	$page = isset($_POST['page']) ? max(1, intval($_POST['page'])) : 1;
+	$perPage = 20;
+	$offset  = ($page - 1) * $perPage;
+
+	$where = ["(? = '' OR a.username LIKE ?)"];
+	if (is_admin()) {
+		$team = (int)($_POST['team'] ?? 0);
+		if ($team > 0) {
+			$where[] = "a.team_id = $team";
+		}
+	} elseif (is_manager()) {
+		$where[] = 'a.team_id = ' . (int)($_SESSION['auth']['team'] ?? 0);
+	} else {
+		$where[] = 'a.ID = ' . (int)($_SESSION['auth']['user_id'] ?? 0);
+	}
+
+	$sql = "SELECT a.ID AS id, CONCAT(a.username, COALESCE(CONCAT(' (', t.name, ')'), '')) AS name
+        FROM authors AS a
+        LEFT JOIN team t ON t.ID = a.team_id
+        WHERE " . implode(' AND ', $where) . "
+        ORDER BY a.username ASC
+        LIMIT ?, ?";
+	$stmt = $conn->prepare($sql);
+	$like = "%{$q}%";
+	$stmt->bind_param("ssii", $q, $like, $offset, $perPage);
+	$stmt->execute();
+
+	$result = $stmt->get_result();
+	$items = [];
+	while ($row = $result->fetch_assoc()) {
+		$items[] = $row;
+	}
+	$stmt->close();
+
+	return ['items' => $items, 'more' => (count($items) === $perPage)];
+}
+
+/**
  * Nguồn dữ liệu cho select2 ajax của bộ lọc "From sites".
  */
 function getSitesTableFilter(): array {
@@ -1223,10 +1268,11 @@ function getProductsTable(): array {
     // Lọc theo type (int)
     addTableFilter($whereClauses, 'posts.type_id', 4, 'int', $conn);
 
-    // Lọc theo author (int) — chỉ admin/manager mới được lọc; user luôn bị ép về
+    // Lọc theo author — chỉ admin/manager mới được lọc; user luôn bị ép về
     // chính mình bởi scope nên bỏ qua tham số author họ tự gửi lên.
-    if (is_admin() || is_manager()) {
-        addTableFilter($whereClauses, 'posts.author_id', 5, 'int', $conn);
+    $filterAuthor = (int)($_POST['author'] ?? 0);
+    if ($filterAuthor > 0 && (is_admin() || is_manager())) {
+        $whereClauses[] = "posts.author_id = $filterAuthor";
     }
 
     // Lọc theo team — chỉ admin. Non-admin đã bị scope giới hạn sẵn nên tham số này bị bỏ qua.
@@ -1284,7 +1330,8 @@ function getProductsTable(): array {
 
     // Lấy dữ liệu: lọc/sắp xếp/phân trang trên subquery chỉ chứa ID (đi bằng index,
     // không phải đọc các cột longtext) rồi mới join lấy dữ liệu — offset sâu nhanh hơn nhiều
-    $sql = "SELECT posts.ID, posts.title, posts.status, posts.sku, posts.images, posts.badge, posts.date, posts.type_id, posts.author_id
+    $sql = "SELECT posts.ID, posts.title, posts.status, posts.sku, posts.images, posts.badge, posts.date, posts.type_id, posts.author_id,
+                   au.username AS author_name, tm.name AS team_name
             FROM (SELECT posts.ID AS pid
                   FROM posts
                   $scopeJoin
@@ -1293,6 +1340,8 @@ function getProductsTable(): array {
                   ORDER BY posts.{$params['orderColumn']} {$params['orderDir']}
                   LIMIT {$params['start']}, {$params['length']}) AS sel
             JOIN posts ON posts.ID = sel.pid
+            LEFT JOIN authors au ON au.ID = posts.author_id
+            LEFT JOIN team tm ON tm.ID = au.team_id
             ORDER BY posts.{$params['orderColumn']} {$params['orderDir']}";
     $rs = $conn->query($sql);
 
@@ -1310,6 +1359,8 @@ function getProductsTable(): array {
             "sku"           => $row['sku'],
             "type_id"       => $row['type_id'],
             "author_id"     => $row['author_id'],
+            "author_name"   => $row['author_name'] ?? '',
+            "team_name"     => $row['team_name'] ?? '',
             "badge"         => $row['badge'],
             "date"          => $row['date'],
             "status"        => $row['status'],
@@ -1332,20 +1383,26 @@ function getProductsTableFilters(): array {
     }
     $options = [];
     $options['types'] = getAllTypes();
-    // Danh sách authors đúng phạm vi: admin = tất cả, manager = trong team,
-    // còn lại chỉ chính mình (không lộ username đồng đội).
-    if (is_admin()) {
-        $options['authors'] = getAllAuthors();
-    } elseif (is_manager()) {
-        $options['authors'] = getAuthorsByTeam();
+    // Trang Products gửi skip_authors: filter Manager dùng select2 ajax và tên tác giả
+    // đã đi kèm từng dòng, không cần nạp toàn bộ user (các trang khác vẫn cần map này).
+    if (empty($_POST['skip_authors'])) {
+        // Danh sách authors đúng phạm vi: admin = tất cả, manager = trong team,
+        // còn lại chỉ chính mình (không lộ username đồng đội).
+        if (is_admin()) {
+            $options['authors'] = getAllAuthors();
+        } elseif (is_manager()) {
+            $options['authors'] = getAuthorsByTeam();
+        } else {
+            $uid = (int)($_SESSION['auth']['user_id'] ?? 0);
+            $options['authors'] = [$uid => ['title' => getFieldByID('authors', 'username', $uid) ?? '']];
+        }
+        // Gắn tên team để cột Author hiển thị team name dưới tên tác giả
+        $teamNames = getAuthorTeamNames();
+        foreach ($options['authors'] as $id => $info) {
+            $options['authors'][$id]['team'] = $teamNames[$id] ?? '';
+        }
     } else {
-        $uid = (int)($_SESSION['auth']['user_id'] ?? 0);
-        $options['authors'] = [$uid => ['title' => getFieldByID('authors', 'username', $uid) ?? '']];
-    }
-    // Gắn tên team để cột Author hiển thị team name dưới tên tác giả
-    $teamNames = getAuthorTeamNames();
-    foreach ($options['authors'] as $id => $info) {
-        $options['authors'][$id]['team'] = $teamNames[$id] ?? '';
+        $options['authors'] = [];
     }
     $options['sites'] = getAllSites();
     // Danh sách team chỉ gửi cho admin — user/manager không được lọc chéo team

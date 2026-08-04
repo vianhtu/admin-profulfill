@@ -181,6 +181,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 		case 'filter-sites':
 			echo json_encode(getSitesTableFilter());
 			break;
+		case 'filter-authors':
+			echo json_encode(getAuthorsFilter());
+			break;
 		case 'filter-accounts':
 			echo json_encode(getAccountsTableFilter());
 			break;
