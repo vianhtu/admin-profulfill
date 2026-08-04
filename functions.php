@@ -1189,6 +1189,45 @@ function getProductsTableFilters(): array {
     return $options;
 }
 
+function updateProductsType(): array
+{
+    if (!checkRoles('edit', 'products')) {
+        return ['status' => 'error', 'message' => 'Bạn không có quyền sửa sản phẩm.'];
+    }
+
+    $ids = $_POST['ids'] ?? [];
+    $typeId = (int)($_POST['type_id'] ?? 0);
+
+    if (!is_array($ids) || empty($ids) || $typeId <= 0) {
+        return ['status' => 'error', 'message' => 'Thiếu danh sách sản phẩm hoặc type.'];
+    }
+
+    // Chuẩn hóa danh sách ID về số nguyên dương, loại trùng
+    $ids = array_values(array_unique(array_filter(array_map('intval', $ids), fn($v) => $v > 0)));
+    if (empty($ids)) {
+        return ['status' => 'error', 'message' => 'Danh sách sản phẩm không hợp lệ.'];
+    }
+
+    $conn = db();
+
+    // Type phải tồn tại
+    $stmt = $conn->prepare('SELECT ID FROM `type` WHERE ID = ?');
+    $stmt->bind_param('i', $typeId);
+    $stmt->execute();
+    if (!$stmt->get_result()->fetch_row()) {
+        return ['status' => 'error', 'message' => 'Type không tồn tại.'];
+    }
+
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $stmt = $conn->prepare("UPDATE posts SET type_id = ? WHERE ID IN ($placeholders)");
+    $stmt->bind_param(str_repeat('i', count($ids) + 1), $typeId, ...$ids);
+    if (!$stmt->execute()) {
+        return ['status' => 'error', 'message' => 'Cập nhật thất bại: ' . $conn->error];
+    }
+
+    return ['status' => 'success', 'updated' => $stmt->affected_rows];
+}
+
 function getProductCopyrightWarning(): array
 {
     $conn = db();

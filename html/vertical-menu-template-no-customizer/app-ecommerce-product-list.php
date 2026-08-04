@@ -124,5 +124,30 @@ $info = getAuthorsProductInfo();
         </table>
     </div>
 </div>
+
+<!-- Bulk Edit Modal -->
+<div class="modal fade" id="bulkEditModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Sửa hàng loạt</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-4">Đã chọn <span id="bulkEditCount" class="fw-bold">0</span> sản phẩm</p>
+                <div class="mb-2">
+                    <label class="form-label" for="bulkTypeSelect">Type</label>
+                    <select id="bulkTypeSelect" class="form-select"></select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="bulkEditApply">
+                    <span class="spinner-border spinner-border-sm me-2 d-none" id="bulkEditSpinner" role="status"></span>Apply
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 </div>
 <!-- / Content -->

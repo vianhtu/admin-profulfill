@@ -8,6 +8,7 @@ let categoryObj = {};
 let authorsObj = {};
 let sitesObj = {};
 let lastPostData = {};
+let dtProducts = null;
 
 async function init() {
     try {
@@ -479,6 +480,20 @@ function initProductTable(){
                                     ]
                                 },
                                 {
+                                    extend: 'collection',
+                                    className: 'btn btn-label-primary dropdown-toggle me-4',
+                                    text: '<span class="d-flex align-items-center gap-1"><i class="icon-base ti tabler-settings icon-xs"></i> <span class="d-none d-sm-inline-block">Actions</span></span>',
+                                    buttons: [
+                                        {
+                                            text: `<span class="d-flex align-items-center"><i class="icon-base ti tabler-edit me-1"></i>Sửa hàng loạt</span>`,
+                                            className: 'dropdown-item',
+                                            action: function (e, dt) {
+                                                openBulkEditModal(dt);
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
                                     text: '<i class="icon-base ti tabler-plus me-0 me-sm-1 icon-16px"></i><span class="d-none d-sm-inline-block">Add Product</span>',
                                     className: 'add-new btn btn-primary',
                                     action: function () {
@@ -664,6 +679,8 @@ function initProductTable(){
             }
         });
 
+        dtProducts = dt_products;
+
         // Khi bảng vẽ xong, enable nút
         dt_products.on('draw.dt', function () {
             $('.export_save button').prop('disabled', false);
@@ -715,4 +732,68 @@ function getCheckedSites() {
     });
     return selectedValues;
 }
+
+// Lấy ID các sản phẩm đang được chọn (qua select extension + checkbox)
+function getSelectedProductIds(dt) {
+    const ids = dt.rows({ selected: true }).data().toArray().map(r => r.id);
+    $('.datatables-products tbody input.dt-checkboxes:checked').each(function () {
+        const rowData = dt.row($(this).closest('tr')).data();
+        if (rowData && !ids.includes(rowData.id)) {
+            ids.push(rowData.id);
+        }
+    });
+    return ids;
+}
+
+function openBulkEditModal(dt) {
+    const ids = getSelectedProductIds(dt);
+    if (!ids.length) {
+        alert('Chọn ít nhất 1 sản phẩm để sửa.');
+        return;
+    }
+
+    // Đổ danh sách type vào select
+    const $select = $('#bulkTypeSelect');
+    $select.empty();
+    $.each(categoryObj, function (id, item) {
+        $select.append($('<option>', { value: id, text: item.title ?? item }));
+    });
+
+    $('#bulkEditCount').text(ids.length);
+    $('#bulkEditModal').data('ids', ids);
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('bulkEditModal')).show();
+}
+
+$(document).on('click', '#bulkEditApply', function () {
+    const $btn = $(this);
+    const ids = $('#bulkEditModal').data('ids') || [];
+    const typeId = $('#bulkTypeSelect').val();
+    if (!ids.length || !typeId) {
+        return;
+    }
+
+    $('#bulkEditSpinner').removeClass('d-none');
+    $btn.prop('disabled', true);
+
+    $.ajax({
+        url: '../../ajax.php?action=update-products-type',
+        type: 'POST',
+        data: { ids: ids, type_id: typeId }
+    }).done(function (res) {
+        if (res?.status === 'success') {
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('bulkEditModal')).hide();
+            if (dtProducts) {
+                dtProducts.rows().deselect?.();
+                dtProducts.draw(false);
+            }
+        } else {
+            alert(res?.message || 'Cập nhật thất bại');
+        }
+    }).fail(function () {
+        alert('Lỗi kết nối server');
+    }).always(function () {
+        $('#bulkEditSpinner').addClass('d-none');
+        $btn.prop('disabled', false);
+    });
+});
 
