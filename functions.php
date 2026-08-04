@@ -186,8 +186,9 @@ function renderSelect($id, $label, $options = [], $selected = null, $multiple = 
 
 function checkRoles(string|array $role = '', string $menu = ''): bool
 {
-    // 1. Ưu tiên cao nhất: Admin
-    if (is_admin()) {
+    // 1. Ưu tiên cao nhất: Admin (toàn quyền, mọi team) và Manager (toàn quyền
+    // nhưng dữ liệu bị giới hạn trong team của họ — xem productsScopeSql()).
+    if (is_admin() || is_manager()) {
         return true;
     }
 
@@ -1274,12 +1275,22 @@ function getProductsTable(): array {
 }
 
 function getProductsTableFilters(): array {
+    if (!checkRoles('view', 'products')) {
+        return ['status' => 'error', 'message' => 'You do not have permission to view products.'];
+    }
     $options = [];
     $options['types'] = getAllTypes();
     // Non-admin chỉ thấy authors trong team của mình (getAuthorsByTeam tự xử lý admin/non-admin)
     $options['authors'] = is_admin() ? getAllAuthors() : getAuthorsByTeam();
     $options['sites'] = getAllSites();
     $options['teams'] = getAllTeams();
+    // Frontend dùng để ẩn/hiện nút theo quyền (backend vẫn tự kiểm tra lại)
+    $options['perms'] = [
+        'add'    => checkRoles('add', 'products'),
+        'edit'   => checkRoles('edit', 'products'),
+        'delete' => checkRoles('delete', 'products'),
+        'export' => checkRoles('add', 'exports_download'),
+    ];
     return $options;
 }
 

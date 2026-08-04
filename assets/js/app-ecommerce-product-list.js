@@ -9,6 +9,7 @@ let authorsObj = {};
 let sitesObj = {};
 let lastPostData = {};
 let dtProducts = null;
+let productPerms = { add: false, edit: false, delete: false, export: false };
 const statusObj = {
     pending: { title: 'Pending', class: 'bg-label-primary' },
     schedule: { title: 'Schedule', class: 'bg-label-secondary' },
@@ -24,6 +25,7 @@ async function init() {
         categoryObj = options['types'];
         authorsObj = options['authors'];
         sitesObj = options['sites'];
+        productPerms = options['perms'] ?? productPerms;
 
         // 2️⃣ Sau khi có dữ liệu → tạo bảng
         initProductTable();
@@ -233,15 +235,23 @@ function initProductTable(){
                     searchable: false,
                     orderable: false,
                     render: function (data, type, full, meta) {
+                        // Chỉ hiện nút sửa/suspend khi user có quyền edit
+                        const editBtn = productPerms.edit
+                            ? `<button class="btn btn-text-secondary rounded-pill waves-effect btn-icon"><i class="icon-base ti tabler-edit icon-22px"></i></button>`
+                            : '';
+                        const suspendItem = productPerms.edit
+                            ? `<a href="javascript:void(0);" class="dropdown-item suspend-product" data-id="${full['id']}">Suspend</a>`
+                            : '';
+
                         return `
               <div class="d-inline-block text-nowrap">
-                <button class="btn btn-text-secondary rounded-pill waves-effect btn-icon"><i class="icon-base ti tabler-edit icon-22px"></i></button>
+                ${editBtn}
                 <button class="btn btn-text-secondary rounded-pill waves-effect btn-icon dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
                   <i class="icon-base ti tabler-dots-vertical icon-22px"></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-end m-0">
                   <a href="javascript:void(0);" class="dropdown-item">View</a>
-                  <a href="javascript:void(0);" class="dropdown-item suspend-product" data-id="${full['id']}">Suspend</a>
+                  ${suspendItem}
                 </div>
               </div>
             `;
@@ -483,12 +493,12 @@ function initProductTable(){
                                         }
                                     ]
                                 },
-                                {
+                                ...(productPerms.edit || productPerms.delete ? [{
                                     extend: 'collection',
                                     className: 'btn btn-label-primary dropdown-toggle me-4',
                                     text: '<span class="d-flex align-items-center gap-1"><i class="icon-base ti tabler-settings icon-xs"></i> <span class="d-none d-sm-inline-block">Actions</span></span>',
                                     buttons: [
-                                        {
+                                        ...(productPerms.edit ? [{
                                             text: `<span class="d-flex align-items-center"><i class="icon-base ti tabler-edit me-1"></i>Bulk Edit</span>`,
                                             className: 'dropdown-item',
                                             action: function (e, dt) {
@@ -522,8 +532,8 @@ function initProductTable(){
                                                     alert(err?.message || 'Server connection error');
                                                 }
                                             }
-                                        },
-                                        {
+                                        }] : []),
+                                        ...(productPerms.delete ? [{
                                             text: `<span class="d-flex align-items-center text-danger"><i class="icon-base ti tabler-trash me-1"></i>Delete Selected</span>`,
                                             className: 'dropdown-item',
                                             action: async function (e, dt) {
@@ -550,16 +560,16 @@ function initProductTable(){
                                                     alert(err?.message || 'Server connection error');
                                                 }
                                             }
-                                        }
+                                        }] : [])
                                     ]
-                                },
-                                {
+                                }] : []),
+                                ...(productPerms.add ? [{
                                     text: '<i class="icon-base ti tabler-plus me-0 me-sm-1 icon-16px"></i><span class="d-none d-sm-inline-block">Add Product</span>',
                                     className: 'add-new btn btn-primary',
                                     action: function () {
                                         window.location.href = productAdd;
                                     }
-                                }
+                                }] : [])
                             ]
                         }
                     ]
@@ -648,7 +658,10 @@ function initProductTable(){
                 });
                 $('.product_sites').html(typesHTML);
 
-                // Export.
+                // Export — chỉ dựng khi user có quyền tạo export
+                if (!productPerms.export) {
+                    $('.export_accounts').closest('.row').addClass('d-none');
+                } else {
                 getAjaxSelect2HTML('export_accounts', 'exportAccount', 'Export to Account', 'filter-accounts');
                 // file.
                 $('.export_file').html('<label class="form-label">Export File</label><select id="exportFile" disabled></select>');
@@ -732,6 +745,7 @@ function initProductTable(){
                         $btn.prop('disabled', false);
                     });
                 });
+                }
 
                 $('#maxDate,#storeFilter,#accountsFilter,.product_sites input').on('change', function () {
                     tableApi.draw();
