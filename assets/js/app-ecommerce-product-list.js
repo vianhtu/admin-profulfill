@@ -773,6 +773,10 @@ function initProductTable(){
                 $('#storeFilter,#accountsFilter,.product_sites input').on('change', function () {
                     tableApi.draw();
                 });
+
+                // Khối Filter & Export: init xong mới thu gọn (select2 cần container hiện hình
+                // lúc khởi tạo mới tính đúng chiều rộng)
+                initFilterCollapse();
             }
         });
 
@@ -828,6 +832,62 @@ function getCheckedSites() {
         selectedValues.push($(this).val());
     });
     return selectedValues;
+}
+
+// Thu gọn/mở khối Filter & Export theo pattern card-collapsible của template,
+// có nhớ trạng thái và badge đếm số filter đang bật.
+const FILTER_COLLAPSE_KEY = 'pff_products_filter_collapsed';
+
+function countActiveFilters() {
+    let n = 0;
+    ['#ProductStatus', '#ProductCategory', '#ProductAuthor', '#storeFilter', '#accountsFilter', '#minDate', '#maxDate'].forEach(function (sel) {
+        const v = $(sel).val();
+        if (Array.isArray(v) ? v.length : (v !== null && v !== undefined && v !== '')) {
+            n++;
+        }
+    });
+    n += $('.product_sites input:checked').length;
+    return n;
+}
+
+function refreshFilterBadge() {
+    const n = countActiveFilters();
+    $('#activeFilterCount').text(n).toggleClass('d-none', n === 0);
+}
+
+function setFilterCollapsed(collapsed, animate) {
+    const $header = $('#filterExportCard .card-header');
+    const $icon = $('#filterExportCard .card-collapsible i');
+    const body = document.getElementById('filterExportBody');
+    if (!body) {
+        return;
+    }
+    if (animate) {
+        bootstrap.Collapse.getOrCreateInstance(body, { toggle: false })[collapsed ? 'hide' : 'show']();
+    } else {
+        $(body).toggleClass('show', !collapsed);
+    }
+    $header.toggleClass('collapsed', collapsed);
+    $icon.toggleClass('tabler-chevron-up', !collapsed).toggleClass('tabler-chevron-down', collapsed);
+}
+
+function initFilterCollapse() {
+    refreshFilterBadge();
+    // Cập nhật badge mỗi khi filter đổi
+    $(document).on('change', '#ProductStatus,#ProductCategory,#ProductAuthor,#storeFilter,#accountsFilter,.product_sites input', refreshFilterBadge);
+    $('#minDate,#maxDate').on('change', refreshFilterBadge);
+
+    $('#filterExportCard .card-collapsible').on('click', function (e) {
+        e.preventDefault();
+        const collapsed = !$('#filterExportCard .card-header').hasClass('collapsed');
+        setFilterCollapsed(collapsed, true);
+        localStorage.setItem(FILTER_COLLAPSE_KEY, collapsed ? '1' : '0');
+    });
+
+    // Mặc định thu gọn cho gọn màn hình, trừ khi user đã chọn mở
+    if (localStorage.getItem(FILTER_COLLAPSE_KEY) !== '0') {
+        setFilterCollapsed(true, false);
+    }
 }
 
 // Chạy 1 thao tác bulk theo batch, trả về tổng số bản ghi bị ảnh hưởng
