@@ -11,25 +11,54 @@ function init() {
     saveSite(fv);
 }
 
-// Logo: dropzone giống form Store, upload xong lưu đường dẫn vào ô ẩn #site_logo
+// Logo: dropzone hiển thị luôn ảnh (previewTemplate + displayExistingFile),
+// cùng kiểu với dropzone ở form Store
 function initLogoDropzone() {
     const el = document.querySelector('#dropzone-logo');
     if (!el || typeof Dropzone === 'undefined') {
         return;
     }
+
+    const previewTemplate = `<div class="dz-preview dz-file-preview">
+    <div class="dz-details">
+      <div class="dz-thumbnail">
+        <img data-dz-thumbnail>
+        <span class="dz-nopreview">No preview</span>
+        <div class="dz-success-mark"></div>
+        <div class="dz-error-mark"></div>
+        <div class="dz-error-message"><span data-dz-errormessage></span></div>
+        <div class="progress">
+          <div class="progress-bar progress-bar-primary" role="progressbar" aria-valuemin="0" aria-valuemax="100" data-dz-uploadprogress></div>
+        </div>
+      </div>
+      <div class="dz-filename" data-dz-name></div>
+      <div class="dz-size" data-dz-size></div>
+    </div>
+    </div>`;
+
     new Dropzone(el, {
         url: '../../ajax.php?action=upload-site-logo',
+        previewTemplate: previewTemplate,
         paramName: 'file',
         maxFiles: 1,
         maxFilesize: 2,
-        acceptedFiles: '.png,.jpg,.jpeg',
-        addRemoveLinks: false,
-        createImageThumbnails: false,
+        acceptedFiles: '.png, .jpg, .jpeg',
+        addRemoveLinks: true,
         params: { csrf_token: window.csrfToken },
         init: function () {
             const dz = this;
-            // Chỉ giữ 1 file: thả file mới thì bỏ file cũ
-            this.on('addedfile', function (file) {
+
+            // Đang sửa và đã có logo: hiện sẵn ảnh hiện tại trong dropzone
+            const current = $('#site_logo').val();
+            if (current) {
+                const mockFile = { name: current.split('/').pop(), size: 0, accepted: true };
+                dz.displayExistingFile(mockFile, siteLogoUrl(current));
+                dz.emit('complete', mockFile);
+                dz.files.push(mockFile);
+            }
+
+            // Chỉ giữ 1 logo: thêm ảnh mới thì bỏ ảnh cũ khỏi khung
+            this.on('addedfile', function () {
                 if (dz.files.length > 1) {
                     dz.removeFile(dz.files[0]);
                 }
@@ -37,7 +66,6 @@ function initLogoDropzone() {
             this.on('success', function (file, res) {
                 if (res && res.status === 'success') {
                     $('#site_logo').val(res.logo);
-                    $('#logoPreview').attr('src', '../../' + res.logo).removeClass('d-none');
                 } else {
                     alert(res?.message || 'Upload failed');
                     dz.removeFile(file);
@@ -47,8 +75,19 @@ function initLogoDropzone() {
                 alert(typeof msg === 'string' ? msg : (msg?.message || 'Upload failed'));
                 dz.removeFile(file);
             });
+            // Gỡ ảnh khỏi khung = bỏ logo của site
+            this.on('removedfile', function () {
+                if (dz.files.length === 0) {
+                    $('#site_logo').val('');
+                }
+            });
         }
     });
+}
+
+// logo lưu 2 dạng: 'uploads/...' (user tải lên) hoặc tên file trong assets/img/icons/brands/
+function siteLogoUrl(logo) {
+    return logo.includes('/') ? '../../' + logo : '../../assets/img/icons/brands/' + logo;
 }
 
 // Slug tự sinh theo Name, dừng tự sinh khi người dùng tự sửa slug

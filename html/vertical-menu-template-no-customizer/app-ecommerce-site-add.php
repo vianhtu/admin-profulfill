@@ -72,29 +72,19 @@ $fields = $d['fields'] ?: [['text' => '', 'value' => '']];
                         <?php
                         // Cột logo có 2 dạng: tên file trần (ảnh có sẵn trong
                         // assets/img/icons/brands/) hoặc đường dẫn uploads/... do user tải lên
+                        // JS đọc ô ẩn này để hiện sẵn ảnh trong dropzone
                         $logoVal = (string)$d['logo'];
-                        $logoSrc = $logoVal === '' ? ''
-                            : (str_contains($logoVal, '/') ? '../../' . $logoVal
-                                                           : '../../assets/img/icons/brands/' . $logoVal);
                         ?>
                         <input type="hidden" id="site_logo" value="<?= htmlspecialchars($logoVal) ?>">
                         <div class="mb-2">
                             <label class="form-label">Logo</label>
-                            <div class="d-flex align-items-start gap-4">
-                                <div class="avatar avatar-xl rounded-2 bg-label-secondary flex-shrink-0">
-                                    <img id="logoPreview" src="<?= htmlspecialchars($logoSrc) ?>"
-                                         alt="" class="rounded<?= $logoSrc === '' ? ' d-none' : '' ?>">
+                            <div class="dropzone needsclick p-0" id="dropzone-logo">
+                                <div class="dz-message needsclick">
+                                    <p class="h6 needsclick pt-3 mb-1">Drop the logo here or click to browse</p>
+                                    <p class="small text-body-secondary d-block mb-2">PNG or JPG, exactly 96x96px</p>
+                                    <span class="needsclick btn btn-sm btn-label-primary">Browse file</span>
                                 </div>
-                                <div class="flex-grow-1">
-                                    <div class="dropzone needsclick p-0" id="dropzone-logo">
-                                        <div class="dz-message needsclick">
-                                            <p class="h6 needsclick pt-3 mb-1">Drop the logo here</p>
-                                            <p class="small text-body-secondary d-block mb-2">PNG or JPG, exactly 96x96px</p>
-                                            <span class="needsclick btn btn-sm btn-label-primary">Browse file</span>
-                                        </div>
-                                        <div class="fallback"><input name="file" type="file" accept=".png,.jpg,.jpeg"/></div>
-                                    </div>
-                                </div>
+                                <div class="fallback"><input name="file" type="file" accept=".png,.jpg,.jpeg"/></div>
                             </div>
                         </div>
                     </div>
