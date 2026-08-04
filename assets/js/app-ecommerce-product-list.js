@@ -661,15 +661,36 @@ function initProductTable(){
                 // Manager (author): select2 ajax — admin có thể rất nhiều user nên không nạp sẵn.
                 // User thường chỉ thấy dữ liệu của mình nên ẩn hẳn.
                 if (productPerms.filter_author) {
-                    getAjaxSelect2HTML('product_author', 'authorFilter', 'Manager', 'filter-authors');
-                    // Gửi kèm team đang chọn để danh sách author bám theo team
-                    const $author = $('#authorFilter');
-                    const opts = $author.data('select2').options.options;
-                    const baseData = opts.ajax.data;
-                    opts.ajax.data = function (params) {
-                        return Object.assign(baseData(params), { team: $('#teamFilter').val() || '' });
-                    };
-                    $author.on('change', function () {
+                    const $authorBox = $('.product_author');
+                    $authorBox.html('<label class="form-label" for="authorFilter">Manager</label><select id="authorFilter"></select>');
+                    $('#authorFilter').select2({
+                        placeholder: 'Search and select...',
+                        allowClear: true,
+                        dropdownParent: $authorBox,
+                        // 0: mở ra là thấy ngay danh sách đúng team đang chọn
+                        minimumInputLength: 0,
+                        ajax: {
+                            url: '../../ajax.php?action=filter-authors',
+                            dataType: 'json',
+                            type: 'POST',
+                            delay: 250,
+                            cache: false,
+                            data: function (params) {
+                                // Danh sách author luôn bám theo team đang chọn
+                                return { q: params.term || '', page: params.page || 1, team: $('#teamFilter').val() || '' };
+                            },
+                            processResults: function (data) {
+                                return {
+                                    results: (data.items || []).map(i => ({ id: i.id, text: i.name })),
+                                    pagination: { more: !!data.more }
+                                };
+                            }
+                        },
+                        language: {
+                            searching: () => 'Searching...',
+                            noResults: () => 'No results'
+                        }
+                    }).on('change', function () {
                         api.draw();
                     });
                 } else {
