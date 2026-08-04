@@ -1307,6 +1307,44 @@ function updateProductsStatus(): array
     return ['status' => 'success', 'updated' => $stmt->affected_rows];
 }
 
+/**
+ * Bulk delete products (Actions > Delete Selected trên trang Products).
+ * Xóa bản ghi liên quan trước rồi mới xóa posts, tất cả trong 1 transaction.
+ */
+function deleteProducts(): array
+{
+    if (!checkRoles('delete', 'products')) {
+        return ['status' => 'error', 'message' => 'You do not have permission to delete products.'];
+    }
+
+    $ids = $_POST['ids'] ?? [];
+    if (!is_array($ids) || empty($ids)) {
+        return ['status' => 'error', 'message' => 'Missing product list.'];
+    }
+    $ids = array_values(array_unique(array_filter(array_map('intval', $ids), fn($v) => $v > 0)));
+    if (empty($ids)) {
+        return ['status' => 'error', 'message' => 'Invalid product list.'];
+    }
+
+    $conn = db();
+    $idsStr = implode(',', $ids);
+
+    $conn->begin_transaction();
+    try {
+        // accounts_relationships có FK tới posts nên phải dọn trước
+        $conn->query("DELETE FROM accounts_relationships WHERE post_id IN ($idsStr)");
+        $conn->query("DELETE FROM download_relationships WHERE post_id IN ($idsStr)");
+        $conn->query("DELETE FROM amazon_listings WHERE post_id IN ($idsStr)");
+        $conn->query("DELETE FROM posts WHERE ID IN ($idsStr)");
+        $deleted = $conn->affected_rows;
+        $conn->commit();
+        return ['status' => 'success', 'deleted' => $deleted];
+    } catch (\Throwable $e) {
+        $conn->rollback();
+        return ['status' => 'error', 'message' => 'Delete failed: ' . $e->getMessage()];
+    }
+}
+
 function updateProductsType(): array
 {
     if (!checkRoles('edit', 'products')) {

@@ -109,6 +109,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 		case 'get-product-images':
 			echo json_encode(getProductImages());
 			break;
+		case 'delete-products':
+			echo json_encode(deleteProducts());
+			break;
         case 'get-product-copyright-warning':
             echo json_encode(getProductCopyrightWarning());
             break;

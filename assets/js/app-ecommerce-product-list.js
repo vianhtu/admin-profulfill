@@ -492,6 +492,62 @@ function initProductTable(){
                                             action: function (e, dt) {
                                                 openBulkEditModal(dt);
                                             }
+                                        },
+                                        {
+                                            text: `<span class="d-flex align-items-center"><i class="icon-base ti tabler-ban me-1"></i>Suspend Selected</span>`,
+                                            className: 'dropdown-item',
+                                            action: async function (e, dt) {
+                                                const ids = getSelectedProductIds(dt);
+                                                if (!ids.length) {
+                                                    alert('Select at least 1 product.');
+                                                    return;
+                                                }
+                                                if (!confirm('Suspend ' + ids.length + ' selected products?')) {
+                                                    return;
+                                                }
+                                                try {
+                                                    const n = await runBatchedProducts(ids, function (batch) {
+                                                        return $.ajax({
+                                                            url: '../../ajax.php?action=update-products-status',
+                                                            type: 'POST',
+                                                            data: { ids: batch, status: 'inactive' }
+                                                        });
+                                                    });
+                                                    alert('Suspended ' + n + ' products.');
+                                                    dt.rows().deselect?.();
+                                                    dt.draw(false);
+                                                } catch (err) {
+                                                    alert(err?.message || 'Server connection error');
+                                                }
+                                            }
+                                        },
+                                        {
+                                            text: `<span class="d-flex align-items-center text-danger"><i class="icon-base ti tabler-trash me-1"></i>Delete Selected</span>`,
+                                            className: 'dropdown-item',
+                                            action: async function (e, dt) {
+                                                const ids = getSelectedProductIds(dt);
+                                                if (!ids.length) {
+                                                    alert('Select at least 1 product.');
+                                                    return;
+                                                }
+                                                if (!confirm('Permanently delete ' + ids.length + ' selected products? This cannot be undone.')) {
+                                                    return;
+                                                }
+                                                try {
+                                                    const n = await runBatchedProducts(ids, function (batch) {
+                                                        return $.ajax({
+                                                            url: '../../ajax.php?action=delete-products',
+                                                            type: 'POST',
+                                                            data: { ids: batch }
+                                                        });
+                                                    });
+                                                    alert('Deleted ' + n + ' products.');
+                                                    dt.rows().deselect?.();
+                                                    dt.draw(false);
+                                                } catch (err) {
+                                                    alert(err?.message || 'Server connection error');
+                                                }
+                                            }
                                         }
                                     ]
                                 },
@@ -733,6 +789,20 @@ function getCheckedSites() {
         selectedValues.push($(this).val());
     });
     return selectedValues;
+}
+
+// Chạy 1 thao tác bulk theo batch, trả về tổng số bản ghi bị ảnh hưởng
+async function runBatchedProducts(ids, runBatch) {
+    const BATCH_SIZE = 200;
+    let affected = 0;
+    for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+        const res = await runBatch(ids.slice(i, i + BATCH_SIZE));
+        if (res?.status !== 'success') {
+            throw new Error(res?.message || 'Update failed');
+        }
+        affected += res.updated ?? res.deleted ?? 0;
+    }
+    return affected;
 }
 
 // Lấy ID các sản phẩm đang được chọn (qua select extension + checkbox)
