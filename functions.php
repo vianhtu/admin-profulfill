@@ -962,19 +962,20 @@ function getAuthorsProductInfo(): ?array {
 	if ($c !== null && (time() - $c['t']) < 300) {
 		return $c['data'];
 	}
+	// Cột phải qualify posts.* vì scope join thêm bảng authors (trùng tên status/date)
 	$sql = "SELECT
     -- Tổng số bài viết
     COUNT(*) AS total_items,
     -- Tổng số bài viết đang chờ duyệt
-    COUNT(CASE WHEN status = 'pending' THEN 1 END) AS pending_items,
+    COUNT(CASE WHEN posts.status = 'pending' THEN 1 END) AS pending_items,
     -- Tổng số bài viết của tác giả hiện tại
-    COUNT(CASE WHEN author_id = ? THEN 1 END) AS author_items,
+    COUNT(CASE WHEN posts.author_id = ? THEN 1 END) AS author_items,
     -- Tổng số bài viết trong tháng hiện tại
-    COUNT(CASE WHEN MONTH(date) = MONTH(CURRENT_DATE()) AND YEAR(date) = YEAR(CURRENT_DATE()) THEN 1 END) AS total_this_month,
+    COUNT(CASE WHEN MONTH(posts.date) = MONTH(CURRENT_DATE()) AND YEAR(posts.date) = YEAR(CURRENT_DATE()) THEN 1 END) AS total_this_month,
     -- Tổng số bài viết đang chờ duyệt trong tháng hiện tại
-    COUNT(CASE WHEN status = 'pending' AND MONTH(date) = MONTH(CURRENT_DATE()) AND YEAR(date) = YEAR(CURRENT_DATE()) THEN 1 END) AS pending_this_month,
+    COUNT(CASE WHEN posts.status = 'pending' AND MONTH(posts.date) = MONTH(CURRENT_DATE()) AND YEAR(posts.date) = YEAR(CURRENT_DATE()) THEN 1 END) AS pending_this_month,
     -- Tổng số bài viết của tác giả hiện tại trong tháng hiện tại
-    COUNT(CASE WHEN author_id = ? AND MONTH(date) = MONTH(CURRENT_DATE()) AND YEAR(date) = YEAR(CURRENT_DATE()) THEN 1 END) AS author_this_month
+    COUNT(CASE WHEN posts.author_id = ? AND MONTH(posts.date) = MONTH(CURRENT_DATE()) AND YEAR(posts.date) = YEAR(CURRENT_DATE()) THEN 1 END) AS author_this_month
     FROM posts";
 	// Áp phân quyền dữ liệu (admin: tất cả, user: của mình, manager: theo team)
 	[$scopeJoin, $scopeWhere] = productsScopeSql();
