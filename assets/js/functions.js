@@ -1,12 +1,13 @@
 'use strict';
 
 // extraData: hàm trả về object gửi kèm mỗi request (vd. team đang chọn)
-function getAjaxSelect2HTML(div_class, select_id, select_label, action, multiple = false, extraData = null) {
+// minLength: 0 = mở ra là nạp sẵn danh sách, không cần gõ
+function getAjaxSelect2HTML(div_class, select_id, select_label, action, multiple = false, extraData = null, minLength = 1) {
     $('.'+div_class).html('<label class="form-label">'+select_label+'</label><select id="'+select_id+'"></select>');
-    ajaxSelect2(select_id, action, multiple, extraData);
+    ajaxSelect2(select_id, action, multiple, extraData, minLength);
 }
 
-function ajaxSelect2(select_id, action, multiple = false, extraData = null){
+function ajaxSelect2(select_id, action, multiple = false, extraData = null, minLength = 1){
     $('#'+select_id).select2({
         placeholder: 'Search and select...',
         multiple: multiple,
@@ -34,7 +35,7 @@ function ajaxSelect2(select_id, action, multiple = false, extraData = null){
             },
             cache: true
         },
-        minimumInputLength: 1,
+        minimumInputLength: minLength,
         language: {
             inputTooShort: () => 'Type at least 1 character',
             searching: () => 'Searching...',

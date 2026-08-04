@@ -699,10 +699,11 @@ function initProductTable(){
                     $('.product_author').addClass('d-none').empty();
                 }
 
-                // Store / Listed Accounts: danh sách bám theo team đang chọn
+                // Store / Listed Accounts: danh sách bám theo team đang chọn,
+                // minLength 0 để mở ra là thấy sẵn danh sách (giống Manager)
                 const teamParam = () => ({ team: $('#teamFilter').val() || '' });
-                getAjaxSelect2HTML('product_store', 'storeFilter', 'Store', 'filter-stores', true, teamParam);
-                getAjaxSelect2HTML('product_accounts', 'accountsFilter', 'Listed Accounts', 'filter-accounts', true, teamParam);
+                getAjaxSelect2HTML('product_store', 'storeFilter', 'Store', 'filter-stores', true, teamParam, 0);
+                getAjaxSelect2HTML('product_accounts', 'accountsFilter', 'Listed Accounts', 'filter-accounts', true, teamParam, 0);
 
                 // Adding date filter once table is initialized
                 const tableApi = this.api();
@@ -734,7 +735,7 @@ function initProductTable(){
                 });
 
                 // From sites: select2 ajax multiple (danh sách site nhiều, checkbox chiếm chỗ)
-                getAjaxSelect2HTML('product_sites', 'sitesFilter', 'From sites', 'filter-sites', true);
+                getAjaxSelect2HTML('product_sites', 'sitesFilter', 'From sites', 'filter-sites', true, null, 0);
 
                 // Export — chỉ dựng khi user có quyền tạo export
                 if (!productPerms.export) {
