@@ -101,67 +101,6 @@ function repeaterOptions() {
         });
     }
 
-    // Repeater biến thể: màu (ngoài) chứa nhiều size (trong)
-    const $variants = $('#variantRepeater');
-    if ($variants.length) {
-        $variants.repeater({
-            initEmpty: false,
-            show: function () {
-                $(this).find('input, textarea').val('');
-                $(this).slideDown();
-            },
-            hide: function (deleteElement) {
-                if (confirm('Delete this color and all its sizes?')) {
-                    $(this).slideUp(deleteElement);
-                }
-            },
-            isFirstItemUndeletable: false,
-            repeaters: [{
-                selector: '.inner-repeater',
-                show: function () {
-                    $(this).find('input').val('');
-                    $(this).slideDown();
-                },
-                hide: function (deleteElement) {
-                    $(this).slideUp(deleteElement);
-                },
-                isFirstItemUndeletable: false
-            }]
-        });
-    }
-}
-
-// Gom biến thể từ form: [{color, base_cost, badge, images[], sizes[{size,stock,sku_code}]}]
-function getVariants() {
-    const variants = [];
-    $('#variantRepeater > [data-repeater-list] > [data-repeater-item]').each(function () {
-        const $v = $(this);
-        const color = ($v.find('.variant_color').val() || '').trim();
-        if (!color) {
-            return; // bỏ qua dòng màu trống
-        }
-        const sizes = [];
-        $v.find('.inner-repeater [data-repeater-item]').each(function () {
-            const $s = $(this);
-            const name = ($s.find('.size_name').val() || '').trim();
-            if (!name) {
-                return;
-            }
-            sizes.push({
-                size: name,
-                stock: parseInt($s.find('.size_stock').val(), 10) || 0,
-                sku_code: ($s.find('.size_sku').val() || '').trim()
-            });
-        });
-        variants.push({
-            color: color,
-            base_cost: ($v.find('.variant_cost').val() || '').trim(),
-            badge: ($v.find('.variant_badge').val() || '').trim(),
-            images: ($v.find('.variant_images').val() || '').split('\n').map(s => s.trim()).filter(Boolean),
-            sizes: sizes
-        });
-    });
-    return variants;
 }
 
 function getImageUrls() {
@@ -263,7 +202,6 @@ function saveProduct(fv) {
                 store_id: $('#product_store').val(),
                 author_id: $('#product_author').val() || '',
                 images: JSON.stringify(images),
-                variants: JSON.stringify(getVariants()),
                 tags: JSON.stringify(getTags()),
                 csrf_token: window.csrfToken
             }
