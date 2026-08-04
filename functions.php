@@ -1235,6 +1235,39 @@ function getProductsTableFilters(): array {
     return $options;
 }
 
+function updateProductsStatus(): array
+{
+    if (!checkRoles('edit', 'products')) {
+        return ['status' => 'error', 'message' => 'Bạn không có quyền sửa sản phẩm.'];
+    }
+
+    $ids = $_POST['ids'] ?? [];
+    $newStatus = (string)($_POST['status'] ?? '');
+
+    $allowed = ['pending', 'schedule', 'listed', 'inactive', 'trademark'];
+    if (!in_array($newStatus, $allowed, true)) {
+        return ['status' => 'error', 'message' => 'Status không hợp lệ.'];
+    }
+
+    if (!is_array($ids) || empty($ids)) {
+        return ['status' => 'error', 'message' => 'Thiếu danh sách sản phẩm.'];
+    }
+    $ids = array_values(array_unique(array_filter(array_map('intval', $ids), fn($v) => $v > 0)));
+    if (empty($ids)) {
+        return ['status' => 'error', 'message' => 'Danh sách sản phẩm không hợp lệ.'];
+    }
+
+    $conn = db();
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $stmt = $conn->prepare("UPDATE posts SET status = ? WHERE ID IN ($placeholders)");
+    $stmt->bind_param('s' . str_repeat('i', count($ids)), $newStatus, ...$ids);
+    if (!$stmt->execute()) {
+        return ['status' => 'error', 'message' => 'Cập nhật thất bại: ' . $conn->error];
+    }
+
+    return ['status' => 'success', 'updated' => $stmt->affected_rows];
+}
+
 function updateProductsType(): array
 {
     if (!checkRoles('edit', 'products')) {

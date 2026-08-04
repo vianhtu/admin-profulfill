@@ -239,7 +239,7 @@ function initProductTable(){
                 </button>
                 <div class="dropdown-menu dropdown-menu-end m-0">
                   <a href="javascript:void(0);" class="dropdown-item">View</a>
-                  <a href="javascript:void(0);" class="dropdown-item">Suspend</a>
+                  <a href="javascript:void(0);" class="dropdown-item suspend-product" data-id="${full['id']}">Suspend</a>
                 </div>
               </div>
             `;
@@ -772,6 +772,29 @@ function openBulkEditModal(dt) {
 
     bootstrap.Modal.getOrCreateInstance(document.getElementById('bulkEditModal')).show();
 }
+
+// Suspend 1 sản phẩm từ dropdown actions của dòng
+$(document).on('click', '.suspend-product', function () {
+    const id = $(this).data('id');
+    if (!id || !confirm('Suspend sản phẩm #' + id + '?')) {
+        return;
+    }
+    $.ajax({
+        url: '../../ajax.php?action=update-products-status',
+        type: 'POST',
+        data: { ids: [id], status: 'inactive' }
+    }).done(function (res) {
+        if (res?.status === 'success') {
+            if (dtProducts) {
+                dtProducts.draw(false);
+            }
+        } else {
+            alert(res?.message || 'Cập nhật thất bại');
+        }
+    }).fail(function () {
+        alert('Lỗi kết nối server');
+    });
+});
 
 $(document).on('click', '#bulkEditApply', async function () {
     const $btn = $(this);

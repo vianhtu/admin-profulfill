@@ -103,6 +103,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 		case 'update-products-type':
 			echo json_encode(updateProductsType());
 			break;
+		case 'update-products-status':
+			echo json_encode(updateProductsStatus());
+			break;
         case 'get-product-copyright-warning':
             echo json_encode(getProductCopyrightWarning());
             break;
