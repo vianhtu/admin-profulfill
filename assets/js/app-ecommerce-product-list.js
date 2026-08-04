@@ -677,12 +677,8 @@ function initProductTable(){
                     }
                 });
 
-                // For date range filter
-                let typesHTML = '<div class="mb-2"><label class="form-label">From sites</label></div>';
-                $.each(sitesObj, function(key, value) {
-                    typesHTML += '<div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" value="'+key+'" id="check'+key+'"><label class="form-check-label">'+value.title+'</label></div>';
-                });
-                $('.product_sites').html(typesHTML);
+                // From sites: select2 ajax multiple (danh sách site nhiều, checkbox chiếm chỗ)
+                getAjaxSelect2HTML('product_sites', 'sitesFilter', 'From sites', 'filter-sites', true);
 
                 // Export — chỉ dựng khi user có quyền tạo export
                 if (!productPerms.export) {
@@ -770,7 +766,7 @@ function initProductTable(){
                 }
 
                 // Ngày đã có onChange riêng của flatpickr nên không đưa vào đây (tránh draw 2 lần)
-                $('#storeFilter,#accountsFilter,.product_sites input').on('change', function () {
+                $('#storeFilter,#accountsFilter,#sitesFilter').on('change', function () {
                     tableApi.draw();
                 });
 
@@ -826,27 +822,19 @@ document.addEventListener('DOMContentLoaded', function (e) {
 });
 
 function getCheckedSites() {
-    const selectedValues = [];
-    // Lấy tất cả checkbox đã được chọn
-    $('.product_sites input.form-check-input:checked').each(function () {
-        selectedValues.push($(this).val());
-    });
-    return selectedValues;
+    return $('#sitesFilter').val() || [];
 }
 
 // Thu gọn/mở khối Filter & Export theo pattern card-collapsible của template,
 // có nhớ trạng thái và badge đếm số filter đang bật.
-const FILTER_COLLAPSE_KEY = 'pff_products_filter_collapsed';
-
 function countActiveFilters() {
     let n = 0;
-    ['#ProductStatus', '#ProductCategory', '#ProductAuthor', '#storeFilter', '#accountsFilter', '#minDate', '#maxDate'].forEach(function (sel) {
+    ['#ProductStatus', '#ProductCategory', '#ProductAuthor', '#storeFilter', '#accountsFilter', '#sitesFilter', '#minDate', '#maxDate'].forEach(function (sel) {
         const v = $(sel).val();
         if (Array.isArray(v) ? v.length : (v !== null && v !== undefined && v !== '')) {
             n++;
         }
     });
-    n += $('.product_sites input:checked').length;
     return n;
 }
 
@@ -865,8 +853,7 @@ function clearAllFilters() {
         $('#' + id).val('').trigger('change.select2');
         deleteUrlParam(id, true);
     });
-    $('#storeFilter, #accountsFilter').val(null).trigger('change.select2');
-    $('.product_sites input:checked').prop('checked', false);
+    $('#storeFilter, #accountsFilter, #sitesFilter').val(null).trigger('change.select2');
 
     ['#minDate', '#maxDate'].forEach(function (sel) {
         const el = document.querySelector(sel);
@@ -905,7 +892,7 @@ function setFilterCollapsed(collapsed, animate) {
 function initFilterCollapse() {
     refreshFilterBadge();
     // Cập nhật badge mỗi khi filter đổi
-    $(document).on('change', '#ProductStatus,#ProductCategory,#ProductAuthor,#storeFilter,#accountsFilter,.product_sites input', refreshFilterBadge);
+    $(document).on('change', '#ProductStatus,#ProductCategory,#ProductAuthor,#storeFilter,#accountsFilter,#sitesFilter', refreshFilterBadge);
     $('#minDate,#maxDate').on('change', refreshFilterBadge);
 
     $('#clearFilters').on('click', clearAllFilters);
@@ -916,13 +903,10 @@ function initFilterCollapse() {
         e.preventDefault();
         const collapsed = !$('#filterExportCard .card-header').hasClass('collapsed');
         setFilterCollapsed(collapsed, true);
-        localStorage.setItem(FILTER_COLLAPSE_KEY, collapsed ? '1' : '0');
     });
 
-    // Mặc định thu gọn cho gọn màn hình, trừ khi user đã chọn mở
-    if (localStorage.getItem(FILTER_COLLAPSE_KEY) !== '0') {
-        setFilterCollapsed(true, false);
-    }
+    // Luôn thu gọn khi vào trang (không nhớ trạng thái giữa các lần tải)
+    setFilterCollapsed(true, false);
 }
 
 // Chạy 1 thao tác bulk theo batch, trả về tổng số bản ghi bị ảnh hưởng

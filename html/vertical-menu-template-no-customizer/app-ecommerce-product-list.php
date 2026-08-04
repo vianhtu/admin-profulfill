@@ -110,10 +110,10 @@ $info = getAuthorsProductInfo();
                 <div class="col-md-3 product_store"></div>
             </div>
             <div class="d-flex justify-content-between align-items-center row pt-4 gap-4 gap-md-0">
-                <div class="col-md-2 product_from_date"></div>
-                <div class="col-md-2 product_to_date"></div>
+                <div class="col-md-3 product_from_date"></div>
+                <div class="col-md-3 product_to_date"></div>
                 <div class="col-md-3 product_accounts"></div>
-                <div class="col-md-5 product_sites"></div>
+                <div class="col-md-3 product_sites"></div>
             </div>
             <div class="d-flex justify-content-between align-items-center row pt-4 gap-4 gap-md-0">
                 <div class="col-md-3 export_accounts"></div>
