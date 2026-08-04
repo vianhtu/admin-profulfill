@@ -212,13 +212,15 @@ function initProductTable(){
                     // Status
                     targets: -2,
                     render: function (data, type, full, meta) {
-                        const status = full['status'];
+                        // Chuẩn hóa key + fallback để status lạ không làm crash bảng
+                        const status = String(full['status'] || '').toLowerCase();
+                        const s = statusObj[status] || { title: full['status'] || '-', class: 'bg-label-secondary' };
 
                         return (
                             '<span class="badge ' +
-                            statusObj[status].class +
+                            s.class +
                             '" text-capitalized>' +
-                            statusObj[status].title +
+                            s.title +
                             '</span>'
                         );
                     }
