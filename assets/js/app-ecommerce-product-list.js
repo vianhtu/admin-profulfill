@@ -654,7 +654,9 @@ function initProductTable(){
                     $('#teamFilter').select2({ dropdownParent: $teamBox }).on('change', async function () {
                         // Đổi team: bỏ chọn các filter phụ thuộc team (author/store/accounts)
                         // và nạp lại danh sách Category của team đó
-                        $('#authorFilter, #storeFilter, #accountsFilter').val(null).trigger('change.select2');
+                        $('#authorFilter, #storeFilter, #accountsFilter, #exportAccount').val(null).trigger('change.select2');
+                        // Export File phụ thuộc account nên phải reset theo
+                        $('#exportFile').val(null).empty().prop('disabled', true).trigger('change.select2');
                         await reloadTeamScopedCategories();
                         api.draw();
                     });
@@ -741,7 +743,7 @@ function initProductTable(){
                 if (!productPerms.export) {
                     $('.export_accounts').closest('.row').addClass('d-none');
                 } else {
-                getAjaxSelect2HTML('export_accounts', 'exportAccount', 'Export to Account', 'filter-accounts');
+                getAjaxSelect2HTML('export_accounts', 'exportAccount', 'Export to Account', 'filter-accounts', false, teamParam, 0);
                 // file.
                 $('.export_file').html('<label class="form-label">Export File</label><select id="exportFile" disabled></select>');
                 $('#exportFile').select2({

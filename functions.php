@@ -768,6 +768,24 @@ function currentTeamScopeId(): int {
     return (int)($_SESSION['auth']['team'] ?? 0);
 }
 
+/**
+ * Account có nằm trong phạm vi team của user hiện tại không.
+ * Admin: luôn true (trừ khi đang lọc theo 1 team cụ thể).
+ */
+function accountInTeamScope(mysqli $conn, int $accountId): bool {
+    if ($accountId <= 0) {
+        return false;
+    }
+    $team = currentTeamScopeId();
+    if ($team <= 0) {
+        return is_admin();
+    }
+    $stmt = $conn->prepare('SELECT 1 FROM accounts WHERE ID = ? AND team_id = ? LIMIT 1');
+    $stmt->bind_param('ii', $accountId, $team);
+    $stmt->execute();
+    return (bool)$stmt->get_result()->fetch_row();
+}
+
 function getAllTypes(): array {
     $team = currentTeamScopeId();
     if ($team <= 0) {
@@ -2005,6 +2023,11 @@ function getFilesTableFilter(): array
     $conn = db();
     $id   = isset($_POST['id']) ? $_POST['id'] : '';
     $type = isset($_POST['type']) ? $_POST['type'] : '';
+
+    // Account phải thuộc phạm vi team của user thì mới được xem file export của nó
+    if (!accountInTeamScope($conn, (int)$id)) {
+        return [];
+    }
 
     // Xây dựng câu truy vấn động
     $sql = "SELECT a.id, CONCAT(t.name, ' (', a.file_name, ')') AS name
@@ -3491,17 +3514,10 @@ function saveExportQuery(): array
     $status      = 'schedule';
     $total_items = count($products['data']);
 
-    // Kiểm tra tài khoản tồn tại
-    $checkAccount = $conn->prepare("SELECT id FROM accounts WHERE id = ?");
-    $checkAccount->bind_param("i", $account_id);
-    $checkAccount->execute();
-    $checkAccount->store_result();
-
-    if ($checkAccount->num_rows === 0) {
-        $checkAccount->close();
-        return ['status' => 'error', 'message' => 'Tài khoản không tồn tại'];
+    // Tài khoản phải tồn tại VÀ thuộc team của user (không export sang team khác)
+    if (!accountInTeamScope($conn, $account_id)) {
+        return ['status' => 'error', 'message' => 'Account not found or not in your team.'];
     }
-    $checkAccount->close();
 
     // Thêm bản ghi download
     $insertDownload = $conn->prepare("
