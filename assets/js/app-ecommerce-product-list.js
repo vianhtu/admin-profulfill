@@ -812,7 +812,7 @@ $(document).on('click', '.product-images-trigger', function () {
         const $wrapper = $('#swiper-product-images .swiper-wrapper');
         $wrapper.empty();
         res.images.forEach(function (url) {
-            $wrapper.append('<div class="swiper-slide"><img src="' + url + '" class="img-fluid w-100 rounded" alt="" loading="lazy"></div>');
+            $wrapper.append('<div class="swiper-slide"><img src="' + url + '" class="img-fluid w-100 rounded" alt=""></div>');
         });
 
         if (productSwiper) {

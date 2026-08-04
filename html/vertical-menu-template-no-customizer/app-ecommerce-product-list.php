@@ -169,7 +169,7 @@ $info = getAuthorsProductInfo();
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="swiper" id="swiper-product-images">
+                <div class="swiper" id="swiper-product-images" style="min-height: 200px;">
                     <div class="swiper-wrapper"></div>
                     <div class="swiper-pagination"></div>
                     <div class="swiper-button-next swiper-button-white"></div>
