@@ -366,7 +366,7 @@ if (empty($_SESSION['csrf_token'])) {
     <?php
     switch ($currentMenu) {
         case 'products': ?>
-            <script src="../../assets/js/app-ecommerce-product-list.js"></script>
+            <script src="../../assets/js/app-ecommerce-product-list.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-ecommerce-product-list.js') ?>"></script>
             <?php break;
         case 'copyright': ?>
             <script src="../../assets/js/app-ecommerce-product-copyright.js"></script>
