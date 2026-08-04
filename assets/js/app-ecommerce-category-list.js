@@ -186,6 +186,16 @@ function initCategoryTable() {
                 if (classToAdd) classToAdd.split(' ').forEach(c => el.classList.add(c));
             });
         });
+
+        // Ô chọn số item/trang cũng dùng select2 cho đồng bộ UI template
+        const $len = $('.dt-length select');
+        if ($len.length && !$len.hasClass('select2-hidden-accessible')) {
+            $len.select2({
+                minimumResultsForSearch: Infinity,
+                dropdownParent: $len.closest('.dt-length'),
+                width: 'auto'
+            });
+        }
     }, 100);
 }
 
