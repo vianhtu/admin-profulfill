@@ -308,18 +308,30 @@ class Extensions
 
             // 4. Lấy hoặc tạo mới store theo slug (tên shop viết thường).
             $store_slug = strtolower($shop_id);
+            // Team của author đang import — dùng để gắn store vào đúng team
+            $team_row = $conn->execute_query('SELECT team_id FROM authors WHERE ID = ? LIMIT 1', [$authors_id])->fetch_assoc();
+            $team_id = (int) ($team_row['team_id'] ?? 0);
+
             $store_row = $conn->execute_query('SELECT ID FROM store WHERE slug = ? LIMIT 1', [$store_slug])->fetch_assoc();
             if ($store_row) {
                 $store_id = (int) $store_row['ID'];
             } else {
                 $conn->execute_query(
-                    'INSERT INTO store (name, slug, site_id) VALUES (?, ?, ?)',
-                    [$shop_id, $store_slug, $site_id]
+                    'INSERT INTO store (name, slug, site_id, team_id) VALUES (?, ?, ?, ?)',
+                    [$shop_id, $store_slug, $site_id, $team_id]
                 );
                 $store_id = (int) $conn->insert_id;
                 if (!$store_id) {
                     return ['success' => false, 'sku' => $sku, 'message' => 'Không thể tạo store.'];
                 }
+            }
+            // Gắn store vào team của author. Store đã có sẵn của team khác thì thành
+            // dùng chung (hai team cùng bán một shop) chứ không tạo bản ghi trùng slug.
+            if ($team_id > 0) {
+                $conn->execute_query(
+                    'INSERT IGNORE INTO store_teams (store_id, team_id) VALUES (?, ?)',
+                    [$store_id, $team_id]
+                );
             }
 
             // 5. Lưu sản phẩm — tags không có cột riêng nên gộp vào metadata (JSON).

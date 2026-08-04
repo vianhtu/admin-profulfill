@@ -773,7 +773,10 @@ function getAllTypes(): array {
     if ($team <= 0) {
         return getAllDataMap('type', 'name');
     }
-    $rs = db()->query("SELECT ID, name FROM `type` WHERE team_id = $team ORDER BY name ASC");
+    // type_teams: 1 category có thể thuộc nhiều team (hai team dùng chung cùng danh mục)
+    $rs = db()->query("SELECT t.ID, t.name FROM `type` t
+        WHERE EXISTS (SELECT 1 FROM type_teams tt WHERE tt.type_id = t.ID AND tt.team_id = $team)
+        ORDER BY t.name ASC");
     $data = [];
     while ($row = $rs->fetch_assoc()) {
         $data[$row['ID']] = ['title' => $row['name']];
@@ -1151,8 +1154,11 @@ function getStoresTableFilter(): array {
 	$offset  = ($page - 1) * $perPage;
 
 // Chuẩn bị câu truy vấn (Prepared Statement để chống SQL injection)
+	// store_teams: 1 store có thể dùng chung cho nhiều team
 	$teamScope = currentTeamScopeId();
-	$teamCond  = $teamScope > 0 ? " AND t.team_id = $teamScope" : '';
+	$teamCond  = $teamScope > 0
+		? " AND EXISTS (SELECT 1 FROM store_teams st WHERE st.store_id = t.ID AND st.team_id = $teamScope)"
+		: '';
 	$sql = "SELECT t.id, CONCAT(s.name, ' (', t.name, ')') AS name
         FROM store AS t
         JOIN site s ON t.site_id = s.id
