@@ -934,20 +934,20 @@ function cachedCount(mysqli $conn, string $sql, int $ttl = 60): int {
 
 /**
  * Điều kiện phân quyền dữ liệu cho bảng posts.
- * - Admin: thấy tất cả, mọi team (không điều kiện).
- * - User: chỉ sản phẩm của chính mình (posts.author_id).
- * - Manager và các level khác: mọi sản phẩm thuộc team của mình.
+ * - Admin: toàn hệ thống, mọi team (không điều kiện).
+ * - Manager: toàn bộ team của mình.
+ * - Mọi level còn lại: chỉ sản phẩm của chính user đó.
  * Trả về [joinSql, whereSql] để gắn vào query.
  */
 function productsScopeSql(string $postsAlias = 'posts'): array {
     if (is_admin()) {
         return ['', ''];
     }
-    if (is_user()) {
-        return ['', "$postsAlias.author_id = " . (int)($_SESSION['auth']['user_id'] ?? 0)];
+    if (is_manager()) {
+        $team = (int)($_SESSION['auth']['team'] ?? 0);
+        return ["INNER JOIN authors scope_a ON scope_a.ID = $postsAlias.author_id", "scope_a.team_id = $team"];
     }
-    $team = (int)($_SESSION['auth']['team'] ?? 0);
-    return ["INNER JOIN authors scope_a ON scope_a.ID = $postsAlias.author_id", "scope_a.team_id = $team"];
+    return ['', "$postsAlias.author_id = " . (int)($_SESSION['auth']['user_id'] ?? 0)];
 }
 
 /**
