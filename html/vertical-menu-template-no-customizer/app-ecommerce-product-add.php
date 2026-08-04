@@ -20,6 +20,7 @@ $defaultData = [
     'store_name'  => '',
     'image_list'  => [''],
     'tags'        => [],
+    'variants'    => [],
     'ui'          => ['title' => 'Add a new', 'button' => 'Add'],
 ];
 
@@ -36,6 +37,9 @@ $d = array_merge($defaultData, $edit_data ?: []);
 if (empty($d['image_list'])) {
     $d['image_list'] = [''];
 }
+// Dòng trống dùng khi sản phẩm chưa có biến thể
+$emptySize = ['size' => '', 'stock' => '', 'sku_code' => ''];
+$emptyVariant = ['color' => '', 'base_cost' => '', 'badge' => '', 'images' => '', 'sizes' => [$emptySize]];
 
 $statusOptions = [
     'pending'   => ['title' => 'Pending'],
@@ -168,6 +172,84 @@ $options = Products::get_filters();
                                     <i class="icon-base ti tabler-plus icon-xs me-2"></i>Add another image
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Variants -->
+                <div class="card mb-6">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Variants</h5>
+                        <small class="text-body-secondary">Each color has its own cost, images and sizes</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-repeater" id="variantRepeater">
+                            <div data-repeater-list="variants">
+                                <?php foreach (($d['variants'] ?: [$emptyVariant]) as $v): ?>
+                                    <div data-repeater-item class="border rounded p-4 mb-4">
+                                        <div class="row g-4">
+                                            <div class="col-sm-4">
+                                                <label class="form-label">Color</label>
+                                                <input type="text" class="form-control variant_color" placeholder="Black"
+                                                       value="<?= htmlspecialchars($v['color']) ?>" />
+                                            </div>
+                                            <div class="col-sm-3">
+                                                <label class="form-label">Base cost</label>
+                                                <input type="text" class="form-control variant_cost" placeholder="12.99"
+                                                       value="<?= htmlspecialchars($v['base_cost']) ?>" />
+                                            </div>
+                                            <div class="col-sm-3">
+                                                <label class="form-label">Badge</label>
+                                                <input type="text" class="form-control variant_badge" placeholder="hot"
+                                                       value="<?= htmlspecialchars($v['badge']) ?>" />
+                                            </div>
+                                            <div class="col-sm-2 d-flex align-items-end justify-content-end">
+                                                <button type="button" data-repeater-delete class="btn btn-text-secondary rounded-pill btn-icon">
+                                                    <i class="icon-base ti tabler-trash icon-22px"></i>
+                                                </button>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label">Images (one URL per line)</label>
+                                                <textarea class="form-control variant_images" rows="2"
+                                                          placeholder="https://..."><?= htmlspecialchars($v['images']) ?></textarea>
+                                            </div>
+                                        </div>
+
+                                        <div class="inner-repeater mt-4">
+                                            <label class="form-label">Sizes</label>
+                                            <div data-repeater-list="sizes">
+                                                <?php foreach (($v['sizes'] ?: [$emptySize]) as $s): ?>
+                                                    <div data-repeater-item class="row g-3 mb-3">
+                                                        <div class="col-sm-4">
+                                                            <input type="text" class="form-control size_name" placeholder="S / M / L"
+                                                                   value="<?= htmlspecialchars($s['size']) ?>" />
+                                                        </div>
+                                                        <div class="col-sm-3">
+                                                            <input type="number" class="form-control size_stock" placeholder="Stock" min="0"
+                                                                   value="<?= htmlspecialchars($s['stock']) ?>" />
+                                                        </div>
+                                                        <div class="col-sm-4">
+                                                            <input type="text" class="form-control size_sku" placeholder="SKU code"
+                                                                   value="<?= htmlspecialchars($s['sku_code']) ?>" />
+                                                        </div>
+                                                        <div class="col-sm-1 d-flex align-items-center">
+                                                            <button type="button" data-repeater-delete class="btn btn-text-secondary rounded-pill btn-icon">
+                                                                <i class="icon-base ti tabler-x icon-22px"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                <?php endforeach; ?>
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-label-primary" data-repeater-create>
+                                                <i class="icon-base ti tabler-plus icon-xs me-1"></i>Add size
+                                            </button>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                            <button type="button" class="btn btn-primary" data-repeater-create>
+                                <i class="icon-base ti tabler-plus icon-xs me-2"></i>Add color
+                            </button>
                         </div>
                     </div>
                 </div>

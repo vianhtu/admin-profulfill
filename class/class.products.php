@@ -434,6 +434,26 @@ class Products
     $row['image_list'] = $list;
     $meta = json_decode($row['metadata'] ?? '', true);
     $row['tags'] = $meta['tags'] ?? [];
+
+    // variantdata: {"Color": {badge, base_cost, images[], sizes:[{size,stock,sku_code}]}}
+    // Đổi sang mảng phẳng cho form dễ render (ảnh gộp thành text, mỗi dòng 1 URL)
+    $variants = json_decode($row['variantdata'] ?? '', true);
+    $row['variants'] = [];
+    if (is_array($variants)) {
+        foreach ($variants as $color => $v) {
+            $row['variants'][] = [
+                'color'     => (string)$color,
+                'base_cost' => (string)($v['base_cost'] ?? ''),
+                'badge'     => (string)($v['badge'] ?? ''),
+                'images'    => implode("\n", (array)($v['images'] ?? [])),
+                'sizes'     => array_map(static fn($s) => [
+                    'size'     => (string)($s['size'] ?? ''),
+                    'stock'    => (string)($s['stock'] ?? ''),
+                    'sku_code' => (string)($s['sku_code'] ?? ''),
+                ], (array)($v['sizes'] ?? [])),
+            ];
+        }
+    }
     return $row;
 }
 
@@ -541,6 +561,34 @@ class Products
     $metaJson   = json_encode(['tags' => $tags]);
     $badgeVal   = $badge !== '' ? $badge : null;
 
+    // Biến thể: dựng lại đúng cấu trúc nguồn {màu: {badge, base_cost, images, sizes}}
+    $variantData = [];
+    foreach ((array)json_decode($_POST['variants'] ?? '[]', true) as $v) {
+        $color = trim((string)($v['color'] ?? ''));
+        if ($color === '') {
+            continue;
+        }
+        $sizes = [];
+        foreach ((array)($v['sizes'] ?? []) as $s) {
+            $sizeName = trim((string)($s['size'] ?? ''));
+            if ($sizeName === '') {
+                continue;
+            }
+            $sizes[] = [
+                'size'     => $sizeName,
+                'stock'    => (int)($s['stock'] ?? 0),
+                'sku_code' => trim((string)($s['sku_code'] ?? '')),
+            ];
+        }
+        $variantData[$color] = [
+            'badge'     => trim((string)($v['badge'] ?? '')),
+            'base_cost' => trim((string)($v['base_cost'] ?? '')),
+            'images'    => array_values(array_filter(array_map('trim', (array)($v['images'] ?? [])))),
+            'sizes'     => $sizes,
+        ];
+    }
+    $variantJson = $variantData ? json_encode($variantData) : null;
+
     // Chủ sở hữu sản phẩm: chỉ admin/manager mới được gán cho người khác,
     // và người được gán phải nằm trong phạm vi quyền của họ.
     $authorId = self::resolve_author_id($conn, (int)($_POST['author_id'] ?? 0));
@@ -550,16 +598,17 @@ class Products
 
     if ($isEdit) {
         $stmt = $conn->prepare('UPDATE posts SET title = ?, description = ?, sku = ?, status = ?, badge = ?,
-            type_id = ?, site_id = ?, store_id = ?, author_id = ?, images = ?, metadata = ?, updated_at = NOW() WHERE ID = ?');
-        // title,desc,sku,status,badge | type,site,store,author | images,metadata | id
-        $stmt->bind_param('sssssiiiissi', $title, $desc, $sku, $status, $badgeVal,
-            $typeId, $siteId, $storeId, $authorId, $imagesJson, $metaJson, $id);
+            type_id = ?, site_id = ?, store_id = ?, author_id = ?, images = ?, metadata = ?, variantdata = ?,
+            updated_at = NOW() WHERE ID = ?');
+        // title,desc,sku,status,badge | type,site,store,author | images,metadata,variantdata | id
+        $stmt->bind_param('sssssiiiisssi', $title, $desc, $sku, $status, $badgeVal,
+            $typeId, $siteId, $storeId, $authorId, $imagesJson, $metaJson, $variantJson, $id);
     } else {
         $stmt = $conn->prepare('INSERT INTO posts (author_id, date, title, description, status, sku, images,
-            type_id, site_id, store_id, badge, metadata) VALUES (?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-        // author | title,desc,status,sku,images | type,site,store | badge,metadata
-        $stmt->bind_param('isssssiiiss', $authorId, $title, $desc, $status, $sku, $imagesJson,
-            $typeId, $siteId, $storeId, $badgeVal, $metaJson);
+            type_id, site_id, store_id, badge, metadata, variantdata) VALUES (?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        // author | title,desc,status,sku,images | type,site,store | badge,metadata,variantdata
+        $stmt->bind_param('isssssiiisss', $authorId, $title, $desc, $status, $sku, $imagesJson,
+            $typeId, $siteId, $storeId, $badgeVal, $metaJson, $variantJson);
     }
 
     if (!$stmt->execute()) {
