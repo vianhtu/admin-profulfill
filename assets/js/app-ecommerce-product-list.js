@@ -171,7 +171,8 @@ function initProductTable(){
                     targets: 4,
                     responsivePriority: 5,
                     render: function (data, type, full, meta) {
-                        let category = categoryObj[full['type_id']].title;
+                        // Fallback khi type không có trong map (dữ liệu ngoài phạm vi/đã đổi)
+                        const category = categoryObj[full['type_id']]?.title ?? full['type_id'];
 
                         return '<span>' + category + '</span>';
                     }
@@ -181,8 +182,9 @@ function initProductTable(){
                     orderable: false,
                     responsivePriority: 3,
                     render: function (data, type, full, meta) {
-                        let stock = full['author_id'];
-                        let stockTitle = authorsObj[stock].title;
+                        // Fallback khi author không có trong map (vd. author đã chuyển team)
+                        const stock = full['author_id'];
+                        const stockTitle = authorsObj[stock]?.title ?? stock;
 
                         return '<span>' + stockTitle + '</span>';
                     }

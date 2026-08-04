@@ -919,6 +919,42 @@ function cachedCount(mysqli $conn, string $sql, int $ttl = 60): int {
     return $v;
 }
 
+/**
+ * Điều kiện phân quyền dữ liệu cho bảng posts.
+ * - Admin: thấy tất cả, mọi team (không điều kiện).
+ * - User: chỉ sản phẩm của chính mình (posts.author_id).
+ * - Manager và các level khác: mọi sản phẩm thuộc team của mình.
+ * Trả về [joinSql, whereSql] để gắn vào query.
+ */
+function productsScopeSql(string $postsAlias = 'posts'): array {
+    if (is_admin()) {
+        return ['', ''];
+    }
+    if (is_user()) {
+        return ['', "$postsAlias.author_id = " . (int)($_SESSION['auth']['user_id'] ?? 0)];
+    }
+    $team = (int)($_SESSION['auth']['team'] ?? 0);
+    return ["INNER JOIN authors scope_a ON scope_a.ID = $postsAlias.author_id", "scope_a.team_id = $team"];
+}
+
+/**
+ * Lọc danh sách post ID về đúng phạm vi dữ liệu của user hiện tại.
+ * Dùng trước mọi thao tác ghi/xóa hàng loạt để chặn ID ngoài quyền.
+ */
+function scopeProductIds(mysqli $conn, array $ids): array {
+    if (is_admin() || empty($ids)) {
+        return $ids;
+    }
+    [$join, $where] = productsScopeSql();
+    $idsStr = implode(',', array_map('intval', $ids));
+    $res = $conn->query("SELECT posts.ID FROM posts $join WHERE posts.ID IN ($idsStr)" . ($where !== '' ? " AND $where" : ''));
+    $allowed = [];
+    while ($row = $res->fetch_row()) {
+        $allowed[] = (int)$row[0];
+    }
+    return $allowed;
+}
+
 function getAuthorsProductInfo(): ?array {
 	// Query này quét full bảng posts (~1s ở 1M dòng) — cache 5 phút theo user
 	$cacheKey = 'products_stats_' . ($_SESSION['auth']['user_id'] ?? 0);
@@ -940,6 +976,9 @@ function getAuthorsProductInfo(): ?array {
     -- Tổng số bài viết của tác giả hiện tại trong tháng hiện tại
     COUNT(CASE WHEN author_id = ? AND MONTH(date) = MONTH(CURRENT_DATE()) AND YEAR(date) = YEAR(CURRENT_DATE()) THEN 1 END) AS author_this_month
     FROM posts";
+	// Áp phân quyền dữ liệu (admin: tất cả, user: của mình, manager: theo team)
+	[$scopeJoin, $scopeWhere] = productsScopeSql();
+	$sql .= " $scopeJoin" . ($scopeWhere !== '' ? " WHERE $scopeWhere" : '');
 	$stmt = db()->prepare($sql);
 	$stmt->bind_param('ii', $_SESSION['auth']['user_id'],$_SESSION['auth']['user_id']);
 	$stmt->execute();
@@ -1099,10 +1138,16 @@ function getProductsTable(): array {
 
     $conn = db();
 
+    // Phân quyền dữ liệu: admin = tất cả, user = của mình, manager = theo team
+    [$scopeJoin, $scopeWhere] = productsScopeSql();
+
     // Tổng số bản ghi (cache ngắn — COUNT(*) full bảng chạy lại mỗi lần draw rất tốn khi dữ liệu lớn)
-    $totalRecords = cachedCount($conn, "SELECT COUNT(*) AS cnt FROM posts", 60);
+    $totalRecords = cachedCount($conn, "SELECT COUNT(*) AS cnt FROM posts $scopeJoin" . ($scopeWhere !== '' ? " WHERE $scopeWhere" : ''), 60);
 
     $whereClauses = [];
+    if ($scopeWhere !== '') {
+        $whereClauses[] = $scopeWhere;
+    }
 
     // Lọc theo search
     if ($params['searchValue'] !== '') {
@@ -1181,13 +1226,14 @@ function getProductsTable(): array {
     $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
 
     // Tổng số bản ghi sau khi lọc (cache ngắn theo bộ lọc — chuyển trang không phải đếm lại)
-    $totalFiltered = cachedCount($conn, "SELECT COUNT(posts.ID) AS cnt FROM posts $joinAccounts $where", 60);
+    $totalFiltered = cachedCount($conn, "SELECT COUNT(posts.ID) AS cnt FROM posts $scopeJoin $joinAccounts $where", 60);
 
     // Lấy dữ liệu: lọc/sắp xếp/phân trang trên subquery chỉ chứa ID (đi bằng index,
     // không phải đọc các cột longtext) rồi mới join lấy dữ liệu — offset sâu nhanh hơn nhiều
     $sql = "SELECT posts.ID, posts.title, posts.status, posts.sku, posts.images, posts.badge, posts.date, posts.type_id, posts.author_id
             FROM (SELECT posts.ID AS pid
                   FROM posts
+                  $scopeJoin
                   $joinAccounts
                   $where
                   ORDER BY posts.{$params['orderColumn']} {$params['orderDir']}
@@ -1229,7 +1275,8 @@ function getProductsTable(): array {
 function getProductsTableFilters(): array {
     $options = [];
     $options['types'] = getAllTypes();
-    $options['authors'] = getAllAuthors();
+    // Non-admin chỉ thấy authors trong team của mình (getAuthorsByTeam tự xử lý admin/non-admin)
+    $options['authors'] = is_admin() ? getAllAuthors() : getAuthorsByTeam();
     $options['sites'] = getAllSites();
     $options['teams'] = getAllTeams();
     return $options;
@@ -1247,6 +1294,12 @@ function getProductImages(): array
     }
 
     $conn = db();
+
+    // Ngoài phạm vi dữ liệu (team/own) thì coi như không tồn tại
+    if (empty(scopeProductIds($conn, [$id]))) {
+        return ['status' => 'error', 'message' => 'Product not found.'];
+    }
+
     $stmt = $conn->prepare('SELECT title, images FROM posts WHERE ID = ?');
     $stmt->bind_param('i', $id);
     $stmt->execute();
@@ -1297,6 +1350,13 @@ function updateProductsStatus(): array
     }
 
     $conn = db();
+
+    // Chỉ giữ các ID thuộc phạm vi dữ liệu của user (team/own)
+    $ids = scopeProductIds($conn, $ids);
+    if (empty($ids)) {
+        return ['status' => 'error', 'message' => 'No permitted products in selection.'];
+    }
+
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
     $stmt = $conn->prepare("UPDATE posts SET status = ? WHERE ID IN ($placeholders)");
     $stmt->bind_param('s' . str_repeat('i', count($ids)), $newStatus, ...$ids);
@@ -1327,6 +1387,12 @@ function deleteProducts(): array
     }
 
     $conn = db();
+
+    // Chỉ giữ các ID thuộc phạm vi dữ liệu của user (team/own)
+    $ids = scopeProductIds($conn, $ids);
+    if (empty($ids)) {
+        return ['status' => 'error', 'message' => 'No permitted products in selection.'];
+    }
     $idsStr = implode(',', $ids);
 
     $conn->begin_transaction();
@@ -1365,6 +1431,12 @@ function updateProductsType(): array
     }
 
     $conn = db();
+
+    // Chỉ giữ các ID thuộc phạm vi dữ liệu của user (team/own)
+    $ids = scopeProductIds($conn, $ids);
+    if (empty($ids)) {
+        return ['status' => 'error', 'message' => 'No permitted products in selection.'];
+    }
 
     // Type phải tồn tại
     $stmt = $conn->prepare('SELECT ID FROM `type` WHERE ID = ?');
