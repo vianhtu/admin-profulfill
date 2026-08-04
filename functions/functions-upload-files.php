@@ -3,7 +3,9 @@ function handleFileUploads($conn, int $userId, array $files, string $type = '', 
 {
     $subDir = date('Y/m/d');
     $typeDir = $type ? $type . '/' : '';
-    $idDir = $id ?? $subDir;
+    // $id rỗng (chưa có bản ghi, vd. form Add) thì gom theo ngày.
+    // Dùng ?? sẽ không bắt được chuỗi rỗng -> sinh ra đường dẫn 'sites//uuid.png'
+    $idDir = ($id !== '' && $id !== null) ? $id : $subDir;
     $uploadDir = dirname(__DIR__) . '/uploads/' . $typeDir . $idDir . '/';
     $allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf', 'xlsx', 'txt', 'zip', 'rar']; // Giới hạn loại file
 
