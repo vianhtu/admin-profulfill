@@ -30,6 +30,10 @@ function menuArgs():array
                     'label' => 'Category',
                     'roles' => ['view','add','edit','delete']
                 ],
+                'sites' => [
+                    'label' => 'Sites',
+                    'roles' => ['view','add','edit','delete']
+                ],
                 'copyright' => [
                     'label' => 'Copyright Warning',
                     'roles' => ['view','edit']
