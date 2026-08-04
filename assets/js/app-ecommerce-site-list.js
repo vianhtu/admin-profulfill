@@ -49,11 +49,13 @@ function initSiteTable() {
             {
                 targets: 2, responsivePriority: 1,
                 render: function (data, type, full) {
-                    // Có logo thì hiện ảnh, không thì lấy 2 chữ cái đầu làm avatar
+                    // Cột logo chỉ lưu TÊN FILE, ảnh nằm trong assets/img/icons/brands/
+                    // (cùng quy ước với trang Stores). File thiếu thì rơi về chữ cái đầu.
                     const initials = (full['name'].match(/\b\w/g) || []).slice(0, 2).join('').toUpperCase();
+                    const fallback = `<span class="avatar-initial rounded-2 bg-label-secondary">${initials}</span>`;
                     const avatar = full['logo']
-                        ? `<img src="${full['logo']}" alt="${full['name']}" class="rounded">`
-                        : `<span class="avatar-initial rounded-2 bg-label-secondary">${initials}</span>`;
+                        ? `<img src="../../assets/img/icons/brands/${full['logo']}" alt="" class="rounded" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'avatar-initial rounded-2 bg-label-secondary',textContent:'${initials}'}))">`
+                        : fallback;
                     return `
               <div class="d-flex justify-content-start align-items-center">
                 <div class="avatar-wrapper">

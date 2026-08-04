@@ -70,9 +70,19 @@ $fields = $d['fields'] ?: [['text' => '', 'value' => '']];
                             </div>
                         </div>
                         <div class="mb-2">
-                            <label class="form-label" for="site_logo">Logo URL</label>
-                            <input type="text" class="form-control" id="site_logo" name="site_logo"
-                                   placeholder="https://..." value="<?= htmlspecialchars((string)$d['logo']) ?>" />
+                            <label class="form-label" for="site_logo">Logo file</label>
+                            <div class="d-flex align-items-center gap-4">
+                                <div class="avatar avatar-lg rounded-2 bg-label-secondary">
+                                    <?php if (!empty($d['logo'])): ?>
+                                        <img src="../../assets/img/icons/brands/<?= htmlspecialchars((string)$d['logo']) ?>" alt="" class="rounded">
+                                    <?php endif; ?>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <input type="text" class="form-control" id="site_logo" name="site_logo"
+                                           placeholder="etsy_logo.png" value="<?= htmlspecialchars((string)$d['logo']) ?>" />
+                                    <small class="text-body-secondary">File name inside <code>assets/img/icons/brands/</code></small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
