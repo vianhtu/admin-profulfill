@@ -130,11 +130,11 @@ $info = getAuthorsProductInfo();
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Sửa hàng loạt</h5>
+                <h5 class="modal-title">Bulk Edit</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p class="mb-4">Đã chọn <span id="bulkEditCount" class="fw-bold">0</span> sản phẩm</p>
+                <p class="mb-4">Selected <span id="bulkEditCount" class="fw-bold">0</span> products</p>
                 <div class="mb-2">
                     <label class="form-label" for="bulkTypeSelect">Type</label>
                     <select id="bulkTypeSelect" class="form-select"></select>

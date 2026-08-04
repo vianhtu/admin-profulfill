@@ -1238,12 +1238,12 @@ function getProductsTableFilters(): array {
 function getProductImages(): array
 {
     if (!checkRoles('view', 'products')) {
-        return ['status' => 'error', 'message' => 'Bạn không có quyền xem sản phẩm.'];
+        return ['status' => 'error', 'message' => 'You do not have permission to view products.'];
     }
 
     $id = (int)($_POST['id'] ?? 0);
     if ($id <= 0) {
-        return ['status' => 'error', 'message' => 'Thiếu ID sản phẩm.'];
+        return ['status' => 'error', 'message' => 'Missing product ID.'];
     }
 
     $conn = db();
@@ -1252,7 +1252,7 @@ function getProductImages(): array
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
     if (!$row) {
-        return ['status' => 'error', 'message' => 'Không tìm thấy sản phẩm.'];
+        return ['status' => 'error', 'message' => 'Product not found.'];
     }
 
     // images là JSON {main: url, images: [url...]}
@@ -1277,7 +1277,7 @@ function getProductImages(): array
 function updateProductsStatus(): array
 {
     if (!checkRoles('edit', 'products')) {
-        return ['status' => 'error', 'message' => 'Bạn không có quyền sửa sản phẩm.'];
+        return ['status' => 'error', 'message' => 'You do not have permission to edit products.'];
     }
 
     $ids = $_POST['ids'] ?? [];
@@ -1285,15 +1285,15 @@ function updateProductsStatus(): array
 
     $allowed = ['pending', 'schedule', 'listed', 'inactive', 'trademark'];
     if (!in_array($newStatus, $allowed, true)) {
-        return ['status' => 'error', 'message' => 'Status không hợp lệ.'];
+        return ['status' => 'error', 'message' => 'Invalid status.'];
     }
 
     if (!is_array($ids) || empty($ids)) {
-        return ['status' => 'error', 'message' => 'Thiếu danh sách sản phẩm.'];
+        return ['status' => 'error', 'message' => 'Missing product list.'];
     }
     $ids = array_values(array_unique(array_filter(array_map('intval', $ids), fn($v) => $v > 0)));
     if (empty($ids)) {
-        return ['status' => 'error', 'message' => 'Danh sách sản phẩm không hợp lệ.'];
+        return ['status' => 'error', 'message' => 'Invalid product list.'];
     }
 
     $conn = db();
@@ -1301,7 +1301,7 @@ function updateProductsStatus(): array
     $stmt = $conn->prepare("UPDATE posts SET status = ? WHERE ID IN ($placeholders)");
     $stmt->bind_param('s' . str_repeat('i', count($ids)), $newStatus, ...$ids);
     if (!$stmt->execute()) {
-        return ['status' => 'error', 'message' => 'Cập nhật thất bại: ' . $conn->error];
+        return ['status' => 'error', 'message' => 'Update failed: ' . $conn->error];
     }
 
     return ['status' => 'success', 'updated' => $stmt->affected_rows];
@@ -1310,20 +1310,20 @@ function updateProductsStatus(): array
 function updateProductsType(): array
 {
     if (!checkRoles('edit', 'products')) {
-        return ['status' => 'error', 'message' => 'Bạn không có quyền sửa sản phẩm.'];
+        return ['status' => 'error', 'message' => 'You do not have permission to edit products.'];
     }
 
     $ids = $_POST['ids'] ?? [];
     $typeId = (int)($_POST['type_id'] ?? 0);
 
     if (!is_array($ids) || empty($ids) || $typeId <= 0) {
-        return ['status' => 'error', 'message' => 'Thiếu danh sách sản phẩm hoặc type.'];
+        return ['status' => 'error', 'message' => 'Missing product list or type.'];
     }
 
     // Chuẩn hóa danh sách ID về số nguyên dương, loại trùng
     $ids = array_values(array_unique(array_filter(array_map('intval', $ids), fn($v) => $v > 0)));
     if (empty($ids)) {
-        return ['status' => 'error', 'message' => 'Danh sách sản phẩm không hợp lệ.'];
+        return ['status' => 'error', 'message' => 'Invalid product list.'];
     }
 
     $conn = db();
@@ -1333,14 +1333,14 @@ function updateProductsType(): array
     $stmt->bind_param('i', $typeId);
     $stmt->execute();
     if (!$stmt->get_result()->fetch_row()) {
-        return ['status' => 'error', 'message' => 'Type không tồn tại.'];
+        return ['status' => 'error', 'message' => 'Type does not exist.'];
     }
 
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
     $stmt = $conn->prepare("UPDATE posts SET type_id = ? WHERE ID IN ($placeholders)");
     $stmt->bind_param(str_repeat('i', count($ids) + 1), $typeId, ...$ids);
     if (!$stmt->execute()) {
-        return ['status' => 'error', 'message' => 'Cập nhật thất bại: ' . $conn->error];
+        return ['status' => 'error', 'message' => 'Update failed: ' . $conn->error];
     }
 
     return ['status' => 'success', 'updated' => $stmt->affected_rows];

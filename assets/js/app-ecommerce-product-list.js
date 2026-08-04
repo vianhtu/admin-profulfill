@@ -487,7 +487,7 @@ function initProductTable(){
                                     text: '<span class="d-flex align-items-center gap-1"><i class="icon-base ti tabler-settings icon-xs"></i> <span class="d-none d-sm-inline-block">Actions</span></span>',
                                     buttons: [
                                         {
-                                            text: `<span class="d-flex align-items-center"><i class="icon-base ti tabler-edit me-1"></i>Sửa hàng loạt</span>`,
+                                            text: `<span class="d-flex align-items-center"><i class="icon-base ti tabler-edit me-1"></i>Bulk Edit</span>`,
                                             className: 'dropdown-item',
                                             action: function (e, dt) {
                                                 openBulkEditModal(dt);
@@ -750,7 +750,7 @@ function getSelectedProductIds(dt) {
 function openBulkEditModal(dt) {
     const ids = getSelectedProductIds(dt);
     if (!ids.length) {
-        alert('Chọn ít nhất 1 sản phẩm để sửa.');
+        alert('Select at least 1 product.');
         return;
     }
 
@@ -759,7 +759,7 @@ function openBulkEditModal(dt) {
     if ($select.hasClass('select2-hidden-accessible')) {
         $select.select2('destroy');
     }
-    $select.empty().append($('<option>', { value: '', text: '— Không đổi —' }));
+    $select.empty().append($('<option>', { value: '', text: '— No change —' }));
     $.each(categoryObj, function (id, item) {
         $select.append($('<option>', { value: id, text: item.title ?? item }));
     });
@@ -769,7 +769,7 @@ function openBulkEditModal(dt) {
     if ($status.hasClass('select2-hidden-accessible')) {
         $status.select2('destroy');
     }
-    $status.empty().append($('<option>', { value: '', text: '— Không đổi —' }));
+    $status.empty().append($('<option>', { value: '', text: '— No change —' }));
     $.each(statusObj, function (key, item) {
         $status.append($('<option>', { value: key, text: item.title }));
     });
@@ -804,7 +804,7 @@ $(document).on('click', '.product-images-trigger', function () {
         data: { id: id }
     }).done(function (res) {
         if (res?.status !== 'success' || !res.images?.length) {
-            alert(res?.message || 'Sản phẩm không có ảnh.');
+            alert(res?.message || 'This product has no images.');
             return;
         }
 
@@ -835,14 +835,14 @@ $(document).on('click', '.product-images-trigger', function () {
         });
         bootstrap.Modal.getOrCreateInstance(document.getElementById('productImagesModal')).show();
     }).fail(function () {
-        alert('Lỗi kết nối server');
+        alert('Server connection error');
     });
 });
 
 // Suspend 1 sản phẩm từ dropdown actions của dòng
 $(document).on('click', '.suspend-product', function () {
     const id = $(this).data('id');
-    if (!id || !confirm('Suspend sản phẩm #' + id + '?')) {
+    if (!id || !confirm('Suspend product #' + id + '?')) {
         return;
     }
     $.ajax({
@@ -855,10 +855,10 @@ $(document).on('click', '.suspend-product', function () {
                 dtProducts.draw(false);
             }
         } else {
-            alert(res?.message || 'Cập nhật thất bại');
+            alert(res?.message || 'Update failed');
         }
     }).fail(function () {
-        alert('Lỗi kết nối server');
+        alert('Server connection error');
     });
 });
 
@@ -871,7 +871,7 @@ $(document).on('click', '#bulkEditApply', async function () {
         return;
     }
     if (!typeId && !statusVal) {
-        alert('Chọn Type hoặc Status để sửa.');
+        alert('Select a Type or Status to update.');
         return;
     }
 
@@ -884,7 +884,7 @@ $(document).on('click', '#bulkEditApply', async function () {
     $('#bulkEditSpinner').removeClass('d-none');
     $('#bulkEditProgress').removeClass('d-none');
     $bar.css('width', '0%').removeClass('bg-danger');
-    $text.text('Đang cập nhật 0/' + ids.length + '...');
+    $text.text('Updating 0/' + ids.length + '...');
 
     let updatedType = 0;
     let updatedStatus = 0;
@@ -899,7 +899,7 @@ $(document).on('click', '#bulkEditApply', async function () {
                     data: { ids: batch, type_id: typeId }
                 });
                 if (res?.status !== 'success') {
-                    throw new Error(res?.message || 'Cập nhật type thất bại');
+                    throw new Error(res?.message || 'Type update failed');
                 }
                 updatedType += res.updated ?? 0;
             }
@@ -910,20 +910,20 @@ $(document).on('click', '#bulkEditApply', async function () {
                     data: { ids: batch, status: statusVal }
                 });
                 if (res?.status !== 'success') {
-                    throw new Error(res?.message || 'Cập nhật status thất bại');
+                    throw new Error(res?.message || 'Status update failed');
                 }
                 updatedStatus += res.updated ?? 0;
             }
             const done = Math.min(i + BATCH_SIZE, ids.length);
             $bar.css('width', Math.round((done / ids.length) * 100) + '%');
-            $text.text('Đang cập nhật ' + done + '/' + ids.length + '...');
+            $text.text('Updating ' + done + '/' + ids.length + '...');
         }
 
         $bar.css('width', '100%');
         const parts = [];
         if (typeId) parts.push('type: ' + updatedType);
         if (statusVal) parts.push('status: ' + updatedStatus);
-        $text.text('Hoàn tất ' + ids.length + ' sản phẩm (' + parts.join(', ') + ')');
+        $text.text('Done: ' + ids.length + ' products (' + parts.join(', ') + ')');
 
         // Cho user thấy kết quả rồi mới đóng popup
         setTimeout(function () {
@@ -935,7 +935,7 @@ $(document).on('click', '#bulkEditApply', async function () {
         }, 1200);
     } catch (err) {
         $bar.addClass('bg-danger');
-        $text.text(err?.message || 'Lỗi kết nối server');
+        $text.text(err?.message || 'Server connection error');
     } finally {
         $('#bulkEditSpinner').addClass('d-none');
         $btn.prop('disabled', false);
