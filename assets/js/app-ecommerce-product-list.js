@@ -644,13 +644,13 @@ function initProductTable(){
                 getSelect2filterTable(api,'ProductStatus', '.product_status', 8, 'Status', statusObj);
                 getSelect2filterTable(api,'ProductCategory', '.product_category', 4, 'Category', categoryObj);
 
-                // Team: chỉ admin lọc chéo team. Người khác vẫn thấy ô nhưng bị khóa,
-                // để lưới filter không bị thủng một ô (nhìn xấu)
+                // Team: chỉ admin lọc chéo team. Không có quyền thì ẩn hẳn ô — lưới
+                // filter là grid tự dồn nên các ô còn lại lấp chỗ, không để lỗ hổng.
                 const $teamBox = $('.product_team');
-                $teamBox.html('<label class="form-label" for="teamFilter">Team</label><select id="teamFilter" class="form-select"><option value="">All</option></select>');
                 if (!productPerms.filter_team) {
-                    $('#teamFilter').prop('disabled', true).select2({ dropdownParent: $teamBox });
+                    $teamBox.addClass('d-none').empty();
                 } else {
+                    $teamBox.removeClass('d-none').html('<label class="form-label" for="teamFilter">Team</label><select id="teamFilter" class="form-select"><option value="">All</option></select>');
                     $.each(teamsObj, function (id, item) {
                         $('#teamFilter').append($('<option>', { value: id, text: item.title ?? item }));
                     });
@@ -666,7 +666,7 @@ function initProductTable(){
                 }
 
                 // Manager (author): select2 ajax — admin có thể rất nhiều user nên không nạp sẵn.
-                // Người không được lọc theo Manager thì thấy ô đã khóa (xem nhánh else).
+                // Người không được lọc theo Manager thì ô này bị ẩn (xem nhánh else).
                 if (productPerms.filter_author) {
                     const $authorBox = $('.product_author');
                     $authorBox.html('<label class="form-label" for="authorFilter">Manager</label><select id="authorFilter"></select>');
@@ -701,10 +701,8 @@ function initProductTable(){
                         api.draw();
                     });
                 } else {
-                    // Không được lọc theo Manager: hiện ô đã khóa cho đều lưới
-                    const $box = $('.product_author');
-                    $box.html('<label class="form-label" for="authorFilter">Manager</label><select id="authorFilter" class="form-select"><option value="">All</option></select>');
-                    $('#authorFilter').prop('disabled', true).select2({ dropdownParent: $box });
+                    // Không được lọc theo Manager thì ẩn hẳn ô
+                    $('.product_author').addClass('d-none').empty();
                 }
 
                 // Store / Listed Accounts: danh sách bám theo team đang chọn,

@@ -103,10 +103,10 @@ $info = Products::get_products_statistic();
     </div>
     <div class="collapse show" id="filterExportBody">
         <div class="card-body pt-0">
-            <!-- Lưới đều 4 cột: control nào không được dùng thì render disabled,
-                 không ẩn đi để tránh tạo ô trống lệch lưới -->
+            <!-- Lưới tự dồn: control nào không có quyền dùng thì JS ẩn hẳn (d-none),
+                 các ô còn lại lấp chỗ nên không để lại ô trống -->
             <div class="row g-4 pt-4">
-                <div class="col-md-3 product_team"></div>
+                <div class="col-md-3 product_team d-none"></div>
                 <div class="col-md-3 product_author"></div>
                 <div class="col-md-3 product_status"></div>
                 <div class="col-md-3 product_category"></div>
