@@ -173,7 +173,10 @@ function initCategoryTable() {
             { selector: '.dt-layout-end', classToAdd: 'gap-md-2 gap-0 mt-0' },
             { selector: '.dt-layout-start', classToAdd: 'mt-0' },
             { selector: '.dt-layout-table', classToRemove: 'row mt-2' },
-            { selector: '.dt-layout-full', classToRemove: 'col-md col-12', classToAdd: 'table-responsive' }
+            { selector: '.dt-layout-full', classToRemove: 'col-md col-12', classToAdd: 'table-responsive' },
+            // Bỏ .btn-group do DataTables Buttons thêm vào: nó làm Bootstrap cắt bo góc
+            // phải của các nút không đứng cuối, trong khi đây là các nút rời nhau
+            { selector: '.dt-buttons', classToRemove: 'btn-group' }
         ];
         tweaks.forEach(({ selector, classToRemove, classToAdd }) => {
             document.querySelectorAll(selector).forEach(el => {

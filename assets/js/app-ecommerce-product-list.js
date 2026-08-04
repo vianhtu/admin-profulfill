@@ -858,7 +858,10 @@ function initProductTable(){
             { selector: '.dt-layout-end', classToAdd: 'gap-md-2 gap-0 mt-0' },
             { selector: '.dt-layout-start', classToAdd: 'mt-0' },
             { selector: '.dt-layout-table', classToRemove: 'row mt-2' },
-            { selector: '.dt-layout-full', classToRemove: 'col-md col-12', classToAdd: 'table-responsive' }
+            { selector: '.dt-layout-full', classToRemove: 'col-md col-12', classToAdd: 'table-responsive' },
+            // DataTables Buttons tự thêm .btn-group khiến Bootstrap cắt bo góc phải của
+            // mọi nút không phải nút cuối. Các nút ở đây là nút rời (đã có me-4) nên bỏ đi.
+            { selector: '.dt-buttons', classToRemove: 'btn-group' }
         ];
 
         // Delete record
