@@ -139,7 +139,10 @@ function initTable(){
                         var store_email = full['email'];
                         var store_id = full['user_id'];
                         var store_site = full['site_id'];
-                        var image = './../../assets/img/icons/brands/' + sitesObj[store_site].logo;
+                        var logo = sitesObj[store_site].logo || '';
+                        // logo có thể là đường dẫn uploads/... hoặc tên file trong brands/
+                        var image = logo.includes('/') ? './../../' + logo
+                                                       : './../../assets/img/icons/brands/' + logo;
                         var output;
 
                         let name = '___';

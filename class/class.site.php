@@ -37,6 +37,66 @@ class Site
     }
 
     /**
+     * Upload logo cho site — dùng lại handleFileUploads() sẵn có của dự án
+     * (lưu vào uploads/sites/, ghi bản ghi vào bảng `files`, đặt tên UUID).
+     *
+     * Cột `logo` chấp nhận 2 dạng cùng tồn tại:
+     *  - tên file trần (vd. etsy_logo.png) -> ảnh có sẵn trong assets/img/icons/brands/
+     *  - đường dẫn có dấu / (uploads/...)  -> ảnh do người dùng upload
+     *
+     * @return array{status:string,logo?:string,message?:string}
+     */
+    public static function upload_logo(): array
+    {
+        if (!checkRoles(['add', 'edit'], 'sites')) {
+            return ['status' => 'error', 'message' => 'You do not have permission to upload site logos.'];
+        }
+        if (($_POST['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
+            return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
+        }
+
+        $file = $_FILES['file'] ?? null;
+        if (!$file || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            return ['status' => 'error', 'message' => 'No file uploaded.'];
+        }
+        if ($file['size'] > 2 * 1024 * 1024) {
+            return ['status' => 'error', 'message' => 'The logo must be 2 MB or smaller.'];
+        }
+
+        // Logo chỉ nhận PNG/JPG, đúng khung 96x96 — kiểm cả đuôi, MIME thật và
+        // getimagesize để chặn file khác đổi đuôi thành ảnh
+        $allowed = ['jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png'];
+        $ext = strtolower(pathinfo((string)$file['name'], PATHINFO_EXTENSION));
+        if (!isset($allowed[$ext])) {
+            return ['status' => 'error', 'message' => 'Only PNG or JPG images are allowed.'];
+        }
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+        $size = getimagesize($file['tmp_name']);
+        if ($mime !== $allowed[$ext] || $size === false) {
+            return ['status' => 'error', 'message' => 'This file is not a valid image.'];
+        }
+        if ($size[0] !== 96 || $size[1] !== 96) {
+            return ['status' => 'error',
+                'message' => sprintf('The logo must be exactly 96x96 pixels (this one is %dx%d).', $size[0], $size[1])];
+        }
+
+        $conn = db();
+        $ids = handleFileUploads($conn, (int)($_SESSION['auth']['user_id'] ?? 0), $file, 'sites');
+        if (empty($ids)) {
+            return ['status' => 'error', 'message' => 'Failed to save the uploaded file.'];
+        }
+
+        // Lấy đường dẫn vừa lưu để ghi vào cột logo
+        $row = $conn->query('SELECT storage_path FROM files WHERE ID = ' . (int)$ids[0])->fetch_assoc();
+        if (!$row) {
+            return ['status' => 'error', 'message' => 'Uploaded file not found.'];
+        }
+        return ['status' => 'success', 'logo' => $row['storage_path']];
+    }
+
+    /**
      * Chuẩn hóa slug: chữ thường, chỉ giữ chữ/số, ngăn cách bằng dấu gạch ngang.
      */
     private static function make_slug(string $text): string

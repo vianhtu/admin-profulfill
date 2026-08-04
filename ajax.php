@@ -4,6 +4,7 @@ require __DIR__ . '/config.php';
 require __DIR__ . '/functions.php';
 require __DIR__ . '/functions/functions-telnyx.php';
 require __DIR__ . '/functions/ajax-select2.php';
+require_once __DIR__ . '/functions/functions-upload-files.php';
 require __DIR__ . '/class/class.extension.php';
 require_once __DIR__ . '/class/class.orders.php';
 require __DIR__ . '/class/class.order.php';
@@ -144,6 +145,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 			break;
 		case 'save-site':
 			echo json_encode(Site::save_site());
+			break;
+		case 'upload-site-logo':
+			echo json_encode(Site::upload_logo());
 			break;
         case 'get-product-copyright-warning':
             echo json_encode(getProductCopyrightWarning());

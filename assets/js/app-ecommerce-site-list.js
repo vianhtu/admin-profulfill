@@ -54,7 +54,7 @@ function initSiteTable() {
                     const initials = (full['name'].match(/\b\w/g) || []).slice(0, 2).join('').toUpperCase();
                     const fallback = `<span class="avatar-initial rounded-2 bg-label-secondary">${initials}</span>`;
                     const avatar = full['logo']
-                        ? `<img src="../../assets/img/icons/brands/${full['logo']}" alt="" class="rounded" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'avatar-initial rounded-2 bg-label-secondary',textContent:'${initials}'}))">`
+                        ? `<img src="${siteLogoUrl(full['logo'])}" alt="" class="rounded" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'avatar-initial rounded-2 bg-label-secondary',textContent:'${initials}'}))">`
                         : fallback;
                     return `
               <div class="d-flex justify-content-start align-items-center">
@@ -158,6 +158,11 @@ function initSiteTable() {
             $len.select2({ minimumResultsForSearch: Infinity, width: '100%' });
         }
     }, 100);
+}
+
+// logo lưu 2 dạng: 'uploads/...' (user tải lên) hoặc tên file trong assets/img/icons/brands/
+function siteLogoUrl(logo) {
+    return logo.includes('/') ? '../../' + logo : '../../assets/img/icons/brands/' + logo;
 }
 
 function countBadge(n) {

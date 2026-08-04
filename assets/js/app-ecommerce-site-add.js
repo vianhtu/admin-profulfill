@@ -6,7 +6,74 @@
 function init() {
     const fv = formValidate();
     repeaterOptions();
+    initLogoDropzone();
+    initSlugAutoFill();
     saveSite(fv);
+}
+
+// Logo: dropzone giống form Store, upload xong lưu đường dẫn vào ô ẩn #site_logo
+function initLogoDropzone() {
+    const el = document.querySelector('#dropzone-logo');
+    if (!el || typeof Dropzone === 'undefined') {
+        return;
+    }
+    new Dropzone(el, {
+        url: '../../ajax.php?action=upload-site-logo',
+        paramName: 'file',
+        maxFiles: 1,
+        maxFilesize: 2,
+        acceptedFiles: '.png,.jpg,.jpeg',
+        addRemoveLinks: false,
+        createImageThumbnails: false,
+        params: { csrf_token: window.csrfToken },
+        init: function () {
+            const dz = this;
+            // Chỉ giữ 1 file: thả file mới thì bỏ file cũ
+            this.on('addedfile', function (file) {
+                if (dz.files.length > 1) {
+                    dz.removeFile(dz.files[0]);
+                }
+            });
+            this.on('success', function (file, res) {
+                if (res && res.status === 'success') {
+                    $('#site_logo').val(res.logo);
+                    $('#logoPreview').attr('src', '../../' + res.logo).removeClass('d-none');
+                } else {
+                    alert(res?.message || 'Upload failed');
+                    dz.removeFile(file);
+                }
+            });
+            this.on('error', function (file, msg) {
+                alert(typeof msg === 'string' ? msg : (msg?.message || 'Upload failed'));
+                dz.removeFile(file);
+            });
+        }
+    });
+}
+
+// Slug tự sinh theo Name, dừng tự sinh khi người dùng tự sửa slug
+function initSlugAutoFill() {
+    const $name = $('#site_name');
+    const $slug = $('#site_slug');
+    if (!$name.length || !$slug.length) {
+        return;
+    }
+    // Form Edit đã có slug => coi như user đã đặt, không ghi đè
+    let auto = $slug.val().trim() === '';
+
+    $slug.on('input', function () {
+        auto = $(this).val().trim() === '';
+    });
+    $name.on('input', function () {
+        if (auto) {
+            $slug.val(slugify($(this).val()));
+        }
+    });
+}
+
+// Cùng quy tắc với make_slug() phía server
+function slugify(text) {
+    return (text || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
 function repeaterOptions() {
