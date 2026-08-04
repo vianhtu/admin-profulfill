@@ -756,8 +756,29 @@ function getDataTableParams(array $allowedCols, string $defaultCol = 'ID'): arra
     ];
 }
 
+/**
+ * Team dùng để giới hạn các danh mục dùng chung (type/store/accounts).
+ * - Admin: 0 = không giới hạn, hoặc đúng team đang chọn ở filter.
+ * - Còn lại: luôn là team của chính user (bỏ qua tham số họ gửi lên).
+ */
+function currentTeamScopeId(): int {
+    if (is_admin()) {
+        return (int)($_POST['team'] ?? 0);
+    }
+    return (int)($_SESSION['auth']['team'] ?? 0);
+}
+
 function getAllTypes(): array {
-    return getAllDataMap('type', 'name');
+    $team = currentTeamScopeId();
+    if ($team <= 0) {
+        return getAllDataMap('type', 'name');
+    }
+    $rs = db()->query("SELECT ID, name FROM `type` WHERE team_id = $team ORDER BY name ASC");
+    $data = [];
+    while ($row = $rs->fetch_assoc()) {
+        $data[$row['ID']] = ['title' => $row['name']];
+    }
+    return $data;
 }
 
 function getAllAuthors(): array {
@@ -1130,10 +1151,12 @@ function getStoresTableFilter(): array {
 	$offset  = ($page - 1) * $perPage;
 
 // Chuẩn bị câu truy vấn (Prepared Statement để chống SQL injection)
+	$teamScope = currentTeamScopeId();
+	$teamCond  = $teamScope > 0 ? " AND t.team_id = $teamScope" : '';
 	$sql = "SELECT t.id, CONCAT(s.name, ' (', t.name, ')') AS name
         FROM store AS t
         JOIN site s ON t.site_id = s.id
-        WHERE (? = '' OR t.name LIKE ?)
+        WHERE (? = '' OR t.name LIKE ?)$teamCond
         ORDER BY t.name ASC
         LIMIT ?, ?";
 	$stmt = $conn->prepare($sql);
@@ -1185,10 +1208,12 @@ function getAccountsTableFilter(): array {
 	$offset  = ($page - 1) * $perPage;
 
     // Chuẩn bị câu truy vấn (Prepared Statement để chống SQL injection)
+	$teamScope = currentTeamScopeId();
+	$teamCond  = $teamScope > 0 ? " AND a.team_id = $teamScope" : '';
 	$sql = "SELECT a.id, CONCAT(s.name, ' (', a.name, ')') AS name
         FROM accounts AS a
         JOIN site s ON a.site_id = s.id
-        WHERE (? = '' OR a.name LIKE ? OR a.email LIKE ?)
+        WHERE (? = '' OR a.name LIKE ? OR a.email LIKE ?)$teamCond
         ORDER BY a.site_id ASC
         LIMIT ?, ?";
 	$stmt = $conn->prepare($sql);

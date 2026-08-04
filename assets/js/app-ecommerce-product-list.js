@@ -651,9 +651,11 @@ function initProductTable(){
                     $.each(teamsObj, function (id, item) {
                         $('#teamFilter').append($('<option>', { value: id, text: item.title ?? item }));
                     });
-                    $('#teamFilter').select2({ dropdownParent: $teamBox }).on('change', function () {
-                        // Đổi team thì bỏ chọn author cũ (có thể thuộc team khác)
-                        $('#authorFilter').val(null).trigger('change.select2');
+                    $('#teamFilter').select2({ dropdownParent: $teamBox }).on('change', async function () {
+                        // Đổi team: bỏ chọn các filter phụ thuộc team (author/store/accounts)
+                        // và nạp lại danh sách Category của team đó
+                        $('#authorFilter, #storeFilter, #accountsFilter').val(null).trigger('change.select2');
+                        await reloadTeamScopedCategories();
                         api.draw();
                     });
                 }
@@ -697,11 +699,10 @@ function initProductTable(){
                     $('.product_author').addClass('d-none').empty();
                 }
 
-                // Adding store filter once table is initialized
-                getAjaxSelect2HTML('product_store', 'storeFilter', 'Store', 'filter-stores', true);
-
-                // Adding accounts filter once table is initialized
-                getAjaxSelect2HTML('product_accounts', 'accountsFilter', 'Listed Accounts', 'filter-accounts', true);
+                // Store / Listed Accounts: danh sách bám theo team đang chọn
+                const teamParam = () => ({ team: $('#teamFilter').val() || '' });
+                getAjaxSelect2HTML('product_store', 'storeFilter', 'Store', 'filter-stores', true, teamParam);
+                getAjaxSelect2HTML('product_accounts', 'accountsFilter', 'Listed Accounts', 'filter-accounts', true, teamParam);
 
                 // Adding date filter once table is initialized
                 const tableApi = this.api();
@@ -882,6 +883,25 @@ function getCheckedSites() {
 
 // Thu gọn/mở khối Filter & Export theo pattern card-collapsible của template,
 // có nhớ trạng thái và badge đếm số filter đang bật.
+// Category là danh sách tĩnh nhưng thuộc về team, nên admin đổi team phải nạp lại
+async function reloadTeamScopedCategories() {
+    const $cat = $('#ProductCategory');
+    if (!$cat.length) {
+        return;
+    }
+    const options = await fetchTableFilter('get-products-table-filter', {
+        skip_authors: 1,
+        team: $('#teamFilter').val() || ''
+    });
+    categoryObj = options['types'] ?? {};
+    $cat.val('').trigger('change.select2');
+    $cat.find('option').not('[value=""]').remove();
+    $.each(categoryObj, function (id, item) {
+        $cat.append(new Option(item.title ?? item, id, false, false));
+    });
+    $cat.trigger('change.select2');
+}
+
 function countActiveFilters() {
     let n = 0;
     ['#teamFilter', '#ProductStatus', '#ProductCategory', '#authorFilter', '#storeFilter', '#accountsFilter', '#sitesFilter', '#minDate', '#maxDate'].forEach(function (sel) {

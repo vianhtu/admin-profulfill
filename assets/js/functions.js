@@ -1,11 +1,12 @@
 'use strict';
 
-function getAjaxSelect2HTML(div_class, select_id, select_label, action, multiple = false) {
+// extraData: hàm trả về object gửi kèm mỗi request (vd. team đang chọn)
+function getAjaxSelect2HTML(div_class, select_id, select_label, action, multiple = false, extraData = null) {
     $('.'+div_class).html('<label class="form-label">'+select_label+'</label><select id="'+select_id+'"></select>');
-    ajaxSelect2(select_id, action, multiple);
+    ajaxSelect2(select_id, action, multiple, extraData);
 }
 
-function ajaxSelect2(select_id, action, multiple = false){
+function ajaxSelect2(select_id, action, multiple = false, extraData = null){
     $('#'+select_id).select2({
         placeholder: 'Search and select...',
         multiple: multiple,
@@ -15,10 +16,10 @@ function ajaxSelect2(select_id, action, multiple = false){
             type: 'POST',
             delay: 250,                   // debounce
             data: function (params) {
-                return {
+                return Object.assign({
                     q: params.term || '',     // từ khóa người dùng gõ
                     page: params.page || 1    // phân trang (nếu có)
-                };
+                }, typeof extraData === 'function' ? extraData() : {});
             },
             processResults: function (data, params) {
                 // Kỳ vọng data: { items: [{id, name}], more: boolean }
