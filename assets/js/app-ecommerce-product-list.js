@@ -754,8 +754,11 @@ function openBulkEditModal(dt) {
         return;
     }
 
-    // Đổ danh sách type vào select
+    // Đổ danh sách type vào select (destroy select2 cũ trước khi đổ lại option)
     const $select = $('#bulkTypeSelect');
+    if ($select.hasClass('select2-hidden-accessible')) {
+        $select.select2('destroy');
+    }
     $select.empty().append($('<option>', { value: '', text: '— Không đổi —' }));
     $.each(categoryObj, function (id, item) {
         $select.append($('<option>', { value: id, text: item.title ?? item }));
@@ -763,10 +766,18 @@ function openBulkEditModal(dt) {
 
     // Đổ danh sách status vào select
     const $status = $('#bulkStatusSelect');
+    if ($status.hasClass('select2-hidden-accessible')) {
+        $status.select2('destroy');
+    }
     $status.empty().append($('<option>', { value: '', text: '— Không đổi —' }));
     $.each(statusObj, function (key, item) {
         $status.append($('<option>', { value: key, text: item.title }));
     });
+
+    // select2 đồng bộ UI template; dropdownParent để dropdown không bị chìm dưới modal
+    const $modal = $('#bulkEditModal');
+    $select.select2({ dropdownParent: $modal });
+    $status.select2({ dropdownParent: $modal, minimumResultsForSearch: Infinity });
 
     $('#bulkEditCount').text(ids.length);
     $('#bulkEditModal').data('ids', ids);
