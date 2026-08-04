@@ -57,7 +57,8 @@ class Product
  */
     public static function get_product(int $id): ?array
 {
-    if ($id <= 0) {
+    // Phải có quyền xem products; ID còn bị lọc theo phạm vi dữ liệu ở dưới
+    if ($id <= 0 || !checkRoles('view', 'products')) {
         return null;
     }
     $conn = db();

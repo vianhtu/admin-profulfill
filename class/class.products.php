@@ -65,6 +65,11 @@ class Products
 }
 
     public static function get_products_statistic(): ?array {
+	// Không có quyền xem thì trả 0, không chạy query
+	if (!checkRoles('view', 'products')) {
+		return ['total_items' => 0, 'pending_items' => 0, 'author_items' => 0,
+			'total_this_month' => 0, 'pending_this_month' => 0, 'author_this_month' => 0];
+	}
 	// Query này quét full bảng posts (~1s ở 1M dòng) — cache 5 phút theo user
 	$cacheKey = 'products_stats_' . ($_SESSION['auth']['user_id'] ?? 0);
 	$c = $_SESSION[$cacheKey] ?? null;
