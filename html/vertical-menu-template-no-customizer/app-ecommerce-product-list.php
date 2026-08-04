@@ -103,24 +103,21 @@ $info = Products::get_products_statistic();
     </div>
     <div class="collapse show" id="filterExportBody">
         <div class="card-body pt-0">
-            <div class="d-flex justify-content-between align-items-center row pt-4 gap-4 gap-md-0">
-                <div class="col-md-3 product_team d-none"></div>
+            <!-- Lưới đều 4 cột: control nào không được dùng thì render disabled,
+                 không ẩn đi để tránh tạo ô trống lệch lưới -->
+            <div class="row g-4 pt-4">
+                <div class="col-md-3 product_team"></div>
                 <div class="col-md-3 product_author"></div>
                 <div class="col-md-3 product_status"></div>
                 <div class="col-md-3 product_category"></div>
-            </div>
-            <div class="d-flex justify-content-between align-items-center row pt-4 gap-4 gap-md-0">
                 <div class="col-md-3 product_store"></div>
                 <div class="col-md-3 product_sites"></div>
                 <div class="col-md-3 product_accounts"></div>
-                <div class="col-md-3"></div>
-            </div>
-            <div class="d-flex justify-content-between align-items-center row pt-4 gap-4 gap-md-0">
                 <div class="col-md-3 product_from_date"></div>
                 <div class="col-md-3 product_to_date"></div>
-                <div class="col-md-6"></div>
             </div>
-            <div class="d-flex justify-content-between align-items-center row pt-4 gap-4 gap-md-0">
+            <hr class="my-6">
+            <div class="row g-4">
                 <div class="col-md-3 export_accounts"></div>
                 <div class="col-md-3 export_file"></div>
                 <div class="col-md-2 export_limited"></div>
