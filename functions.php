@@ -192,9 +192,11 @@ function render_select(string $id, string $label, array $options = [], string|in
 
 function checkRoles(string|array $role = '', string $menu = ''): bool
 {
-    // 1. Ưu tiên cao nhất: Admin (toàn quyền, mọi team) và Manager (toàn quyền
-    // nhưng dữ liệu bị giới hạn trong team của họ — xem productsScopeSql()).
-    if (is_admin() || is_manager()) {
+    // 1. Chỉ Admin bỏ qua kiểm tra role (toàn quyền, mọi team).
+    // Manager KHÔNG bỏ qua: nhiều quản lý chỉ được giao một số menu nhất định,
+    // nên vẫn phải có quyền trong roles_permissions. Điểm khác biệt của manager
+    // nằm ở phạm vi DỮ LIỆU (toàn team) — xem Products::get_base_auth_conditions().
+    if (is_admin()) {
         return true;
     }
 
