@@ -876,12 +876,11 @@ function initProductTable(){
         // Ô chọn số item/trang cũng dùng select2 cho đồng bộ UI template
         const $len = $('.dt-length select');
         if ($len.length && !$len.hasClass('select2-hidden-accessible')) {
+            // Chiều rộng cố định: 'auto' làm dropdown rộng bằng cả trang,
+            // còn gắn dropdownParent vào .dt-length (~70px) thì số bị xuống dòng
             $len.select2({
                 minimumResultsForSearch: Infinity,
-                // Không gắn dropdownParent: .dt-length chỉ rộng ~70px khiến
-                // danh sách bị bó hẹp và số bị xuống dòng
-                dropdownAutoWidth: true,
-                width: 'auto'
+                width: '5.5rem'
             });
         }
     }, 100);
