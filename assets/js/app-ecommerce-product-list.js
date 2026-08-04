@@ -823,6 +823,7 @@ $(document).on('click', '.product-images-trigger', function () {
         // Khởi tạo swiper sau khi modal hiển thị để đo đúng kích thước
         $('#productImagesModal').one('shown.bs.modal', function () {
             productSwiper = new Swiper('#swiper-product-images', {
+                autoHeight: true, // co dãn chiều cao theo ảnh của slide đang xem
                 navigation: {
                     nextEl: '#swiper-product-images .swiper-button-next',
                     prevEl: '#swiper-product-images .swiper-button-prev'
@@ -830,6 +831,12 @@ $(document).on('click', '.product-images-trigger', function () {
                 pagination: {
                     clickable: true,
                     el: '#swiper-product-images .swiper-pagination'
+                }
+            });
+            // Ảnh load xong mới biết chiều cao thật → đo lại
+            $('#swiper-product-images img').on('load', function () {
+                if (productSwiper) {
+                    productSwiper.updateAutoHeight(300);
                 }
             });
         });
