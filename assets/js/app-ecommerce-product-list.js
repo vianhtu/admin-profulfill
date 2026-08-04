@@ -876,11 +876,12 @@ function initProductTable(){
         // Ô chọn số item/trang cũng dùng select2 cho đồng bộ UI template
         const $len = $('.dt-length select');
         if ($len.length && !$len.hasClass('select2-hidden-accessible')) {
-            // Chiều rộng cố định: 'auto' làm dropdown rộng bằng cả trang,
-            // còn gắn dropdownParent vào .dt-length (~70px) thì số bị xuống dòng
+            // .dt-length mặc định chỉ ~66px nên phải nới wrapper trước, nếu không
+            // width của select2 bị chặn lại và các số như "2,000" bị cắt/xuống dòng
+            $len.closest('.dt-length').css('min-width', '7rem');
             $len.select2({
                 minimumResultsForSearch: Infinity,
-                width: '5.5rem'
+                width: '100%'
             });
         }
     }, 100);
