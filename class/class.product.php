@@ -175,7 +175,7 @@ class Product
     // Category / Store phải thuộc phạm vi team (dùng chung cũng tính)
     $team = get_current_team_scope_id();
     if ($team > 0) {
-        $ok = $conn->query("SELECT 1 FROM type_teams WHERE type_id = $typeId AND team_id = $team LIMIT 1")->fetch_row();
+        $ok = $conn->query("SELECT 1 FROM `type` WHERE ID = $typeId AND team_id = $team LIMIT 1")->fetch_row();
         if (!$ok) {
             return ['status' => 'error', 'message' => 'Category is not available for your team.'];
         }

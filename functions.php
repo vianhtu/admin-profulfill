@@ -805,7 +805,7 @@ function check_account_team_scope(mysqli $conn, int $accountId): bool {
 }
 
 /**
- * Danh sách category theo phạm vi team (dùng chung qua bảng type_teams).
+ * Danh sách category theo phạm vi team (mỗi team có bộ category riêng).
  *
  * @return array<int,array{title:string}>
  */
@@ -814,10 +814,7 @@ function get_all_types(): array {
     if ($team <= 0) {
         return get_data_map('type', 'name');
     }
-    // type_teams: 1 category có thể thuộc nhiều team (hai team dùng chung cùng danh mục)
-    $rs = db()->query("SELECT t.ID, t.name FROM `type` t
-        WHERE EXISTS (SELECT 1 FROM type_teams tt WHERE tt.type_id = t.ID AND tt.team_id = $team)
-        ORDER BY t.name ASC");
+    $rs = db()->query("SELECT t.ID, t.name FROM `type` t WHERE t.team_id = $team ORDER BY t.name ASC");
     $data = [];
     while ($row = $rs->fetch_assoc()) {
         $data[$row['ID']] = ['title' => $row['name']];

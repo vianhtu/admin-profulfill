@@ -10,7 +10,7 @@ $defaultData = [
     'ID'          => '',
     'name'        => '',
     'user_prompt' => '',
-    'team_ids'    => [(int)($_SESSION['auth']['team'] ?? 0)],
+    'team_id'     => (int)($_SESSION['auth']['team'] ?? 0),
     'ui'          => ['title' => 'Add a new', 'button' => 'Add'],
 ];
 
@@ -75,20 +75,20 @@ $teamOptions = is_admin() ? get_all_teams() : [];
                     <div class="card-body">
                         <?php if (is_admin()): ?>
                             <div class="mb-2 form-control-validation category_team_box">
-                                <label class="form-label" for="category_teams">Used by teams</label>
-                                <select id="category_teams" name="category_teams" multiple>
+                                <label class="form-label" for="category_team">Team</label>
+                                <select id="category_team" name="category_team">
                                     <?php foreach ($teamOptions as $tid => $t): ?>
-                                        <option value="<?= (int)$tid ?>" <?= in_array((int)$tid, $d['team_ids'], true) ? 'selected' : '' ?>>
+                                        <option value="<?= (int)$tid ?>" <?= (int)$tid === (int)$d['team_id'] ? 'selected' : '' ?>>
                                             <?= htmlspecialchars($t['title']) ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
-                                <small class="text-body-secondary">A category can be shared by several teams.</small>
+                                <small class="text-body-secondary">Each team has its own categories.</small>
                             </div>
                         <?php else: ?>
                             <p class="mb-0">
                                 This category belongs to your team:
-                                <span class="fw-medium"><?= htmlspecialchars(get_field_by_id('team', 'name', (int)($_SESSION['auth']['team'] ?? 0)) ?? '') ?></span>
+                                <span class="fw-medium"><?= htmlspecialchars(get_field_by_id('team', 'name', (int)$d['team_id']) ?? '') ?></span>
                             </p>
                         <?php endif; ?>
                     </div>

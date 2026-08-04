@@ -10,18 +10,17 @@ function init() {
 }
 
 function initSelects() {
-    // Team: select2 multiple (chỉ admin mới có ô này)
-    const $teams = $('#category_teams');
-    if ($teams.length) {
-        $teams.wrap('<div class="position-relative"></div>').select2({
-            dropdownParent: $teams.parent(),
-            placeholder: 'Select teams...'
+    // Team: select2 đơn (chỉ admin mới có ô này — category không dùng chung giữa các team)
+    const $team = $('#category_team');
+    if ($team.length) {
+        $team.wrap('<div class="position-relative"></div>').select2({
+            dropdownParent: $team.parent()
         });
     }
 }
 
-function getTeamIds() {
-    return $('#category_teams').length ? ($('#category_teams').val() || []) : [];
+function getTeamId() {
+    return $('#category_team').length ? ($('#category_team').val() || '') : '';
 }
 
 function formValidate() {
@@ -53,11 +52,11 @@ function saveCategory(fv) {
     fv.on('core.form.valid', function () {
         const $btn = $('#form_submit');
         const $spinner = $('#loading_spinner');
-        const teamIds = getTeamIds();
+        const teamId = getTeamId();
 
-        // Admin có ô Team thì bắt buộc chọn ít nhất 1; user thường server tự gán team của họ
-        if ($('#category_teams').length && !teamIds.length) {
-            alert('Please select at least one team.');
+        // Admin có ô Team thì bắt buộc chọn; user thường server tự gán team của họ
+        if ($('#category_team').length && !teamId) {
+            alert('Please select a team.');
             return;
         }
 
@@ -72,7 +71,7 @@ function saveCategory(fv) {
                 id: $('#category_id').val() || 0,
                 name: $('#category_name').val(),
                 user_prompt: $('#category_prompt').val(),
-                team_ids: JSON.stringify(teamIds),
+                team_id: teamId,
                 csrf_token: window.csrfToken
             }
         }).done(function (res) {

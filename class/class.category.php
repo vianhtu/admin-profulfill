@@ -28,41 +28,26 @@ class Category
             return null;
         }
 
-        // Các team đang dùng chung category này
-        $res = $conn->query('SELECT team_id FROM type_teams WHERE type_id = ' . (int)$id);
-        $row['team_ids'] = [];
-        while ($t = $res->fetch_row()) {
-            $row['team_ids'][] = (int)$t[0];
-        }
         return $row;
     }
 
     /**
-     * Danh sách team được phép gán cho category.
-     * Admin chọn team nào cũng được; còn lại chỉ gán được team của chính mình.
-     *
-     * @param int[] $requested
-     * @return int[] Rỗng nghĩa là lựa chọn không hợp lệ
+     * Team được phép gán cho category.
+     * Admin gán cho team nào cũng được; còn lại luôn là team của chính mình.
+     * Trả 0 nếu lựa chọn không hợp lệ.
      */
-    private static function resolve_team_ids(array $requested): array
+    private static function resolve_team_id(int $requested): int
     {
         $ownTeam = (int)($_SESSION['auth']['team'] ?? 0);
-        $requested = array_values(array_unique(array_filter(array_map('intval', $requested), fn($v) => $v > 0)));
-
         if (!is_admin()) {
-            // Bỏ qua mọi team khác, luôn ép về team của user
-            return $ownTeam > 0 ? [$ownTeam] : [];
+            // Bỏ qua giá trị gửi lên, luôn ép về team của user
+            return $ownTeam;
         }
-        if (empty($requested)) {
-            return $ownTeam > 0 ? [$ownTeam] : [];
+        if ($requested <= 0) {
+            return $ownTeam;
         }
-        $ids = implode(',', $requested);
-        $res = db()->query("SELECT ID FROM team WHERE ID IN ($ids)");
-        $valid = [];
-        while ($r = $res->fetch_row()) {
-            $valid[] = (int)$r[0];
-        }
-        return $valid;
+        $res = db()->query('SELECT ID FROM team WHERE ID = ' . $requested . ' LIMIT 1');
+        return ($res && $res->fetch_row()) ? $requested : 0;
     }
 
     /**
@@ -93,42 +78,35 @@ class Category
             return ['status' => 'error', 'message' => 'Please enter the category name.'];
         }
 
-        $teamIds = self::resolve_team_ids((array)json_decode($_POST['team_ids'] ?? '[]', true));
-        if (empty($teamIds)) {
-            return ['status' => 'error', 'message' => 'Please select at least one valid team.'];
+        $teamId = self::resolve_team_id((int)($_POST['team_id'] ?? 0));
+        if ($teamId <= 0) {
+            return ['status' => 'error', 'message' => 'Please select a valid team.'];
         }
 
-        // name là UNIQUE — chặn trùng với category khác
-        $stmt = $conn->prepare('SELECT ID FROM `type` WHERE name = ? AND ID <> ? LIMIT 1');
-        $stmt->bind_param('si', $name, $id);
+        // Tên chỉ cần duy nhất TRONG TEAM (UNIQUE KEY uniq_team_name),
+        // hai team khác nhau được phép có category trùng tên.
+        $stmt = $conn->prepare('SELECT ID FROM `type` WHERE name = ? AND team_id = ? AND ID <> ? LIMIT 1');
+        $stmt->bind_param('sii', $name, $teamId, $id);
         $stmt->execute();
         if ($stmt->get_result()->fetch_row()) {
             $stmt->close();
-            return ['status' => 'error', 'message' => 'This category name already exists.'];
+            return ['status' => 'error', 'message' => 'This category name already exists in this team.'];
         }
         $stmt->close();
-
-        $ownerTeam = $teamIds[0];
         $conn->begin_transaction();
         try {
             if ($isEdit) {
-                $stmt = $conn->prepare('UPDATE `type` SET name = ?, user_prompt = ? WHERE ID = ?');
-                $stmt->bind_param('ssi', $name, $prompt, $id);
+                $stmt = $conn->prepare('UPDATE `type` SET name = ?, team_id = ?, user_prompt = ? WHERE ID = ?');
+                $stmt->bind_param('sisi', $name, $teamId, $prompt, $id);
             } else {
                 $stmt = $conn->prepare('INSERT INTO `type` (name, team_id, user_prompt) VALUES (?, ?, ?)');
-                $stmt->bind_param('sis', $name, $ownerTeam, $prompt);
+                $stmt->bind_param('sis', $name, $teamId, $prompt);
             }
             if (!$stmt->execute()) {
                 throw new Exception($conn->error);
             }
             $newId = $isEdit ? $id : (int)$conn->insert_id;
             $stmt->close();
-
-            // Đồng bộ team dùng chung
-            $conn->query('DELETE FROM type_teams WHERE type_id = ' . $newId);
-            foreach ($teamIds as $tid) {
-                $conn->query("INSERT IGNORE INTO type_teams (type_id, team_id) VALUES ($newId, $tid)");
-            }
 
             $conn->commit();
             return ['status' => $isEdit ? 'updated' : 'inserted', 'id' => $newId];

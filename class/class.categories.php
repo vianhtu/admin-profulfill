@@ -4,8 +4,9 @@
  * bảng danh sách, bộ lọc, xóa hàng loạt và phân quyền dữ liệu theo team.
  * Cùng khuôn với class.products.php / class.orders.php.
  *
- * Phạm vi dữ liệu: admin = mọi team; còn lại = category thuộc team của mình
- * (một category có thể dùng chung nhiều team qua bảng type_teams).
+ * Phạm vi dữ liệu: admin = mọi team; còn lại = category thuộc team của mình.
+ * Category KHÔNG dùng chung giữa các team — mỗi team có bộ category riêng
+ * (tên chỉ cần duy nhất trong phạm vi team, xem UNIQUE KEY uniq_team_name).
  */
 class Categories
 {
@@ -19,7 +20,7 @@ class Categories
         if ($team <= 0) {
             return '';
         }
-        return "EXISTS (SELECT 1 FROM type_teams tt WHERE tt.type_id = $alias.ID AND tt.team_id = $team)";
+        return "$alias.team_id = $team";
     }
 
     /**
@@ -75,7 +76,7 @@ class Categories
         // Lọc theo team — chỉ admin (người khác đã bị scope giới hạn sẵn)
         $filterTeam = (int)($_POST['team'] ?? 0);
         if ($filterTeam > 0 && is_admin()) {
-            $whereClauses[] = "EXISTS (SELECT 1 FROM type_teams tt2 WHERE tt2.type_id = t.ID AND tt2.team_id = $filterTeam)";
+            $whereClauses[] = "t.team_id = $filterTeam";
         }
 
         $totalRecords = (int)$conn->query('SELECT COUNT(*) FROM `type` t'
@@ -87,10 +88,9 @@ class Categories
         $orderCol = $params['orderColumn'] === 'products_count' ? 'products_count' : "t.{$params['orderColumn']}";
         $sql = "SELECT t.ID, t.name, t.user_prompt,
                        (SELECT COUNT(*) FROM posts p WHERE p.type_id = t.ID) AS products_count,
-                       (SELECT GROUP_CONCAT(tm.name ORDER BY tm.name SEPARATOR ', ')
-                          FROM type_teams tt3 JOIN team tm ON tm.ID = tt3.team_id
-                         WHERE tt3.type_id = t.ID) AS team_names
+                       tm.name AS team_names
                 FROM `type` t
+                LEFT JOIN team tm ON tm.ID = t.team_id
                 $where
                 ORDER BY $orderCol {$params['orderDir']}
                 LIMIT {$params['start']}, {$params['length']}";
@@ -170,7 +170,6 @@ class Categories
 
         $conn->begin_transaction();
         try {
-            $conn->query("DELETE FROM type_teams WHERE type_id IN ($idsStr)");
             $conn->query("DELETE FROM `type` WHERE ID IN ($idsStr)");
             $deleted = $conn->affected_rows;
             $conn->commit();
