@@ -853,6 +853,37 @@ function countActiveFilters() {
 function refreshFilterBadge() {
     const n = countActiveFilters();
     $('#activeFilterCount').text(n).toggleClass('d-none', n === 0);
+    // Nút Clear chỉ bật khi thực sự có gì để xóa (tính cả ô search của bảng)
+    const hasSearch = !!(dtProducts && dtProducts.search());
+    $('#clearFilters').prop('disabled', n === 0 && !hasSearch);
+}
+
+// Xóa toàn bộ filter: cập nhật UI không kích hoạt reload từng cái,
+// xóa URL param (3 filter chính đọc trực tiếp từ URL), rồi vẽ lại bảng 1 lần.
+function clearAllFilters() {
+    ['ProductStatus', 'ProductCategory', 'ProductAuthor'].forEach(function (id) {
+        $('#' + id).val('').trigger('change.select2');
+        deleteUrlParam(id, true);
+    });
+    $('#storeFilter, #accountsFilter').val(null).trigger('change.select2');
+    $('.product_sites input:checked').prop('checked', false);
+
+    ['#minDate', '#maxDate'].forEach(function (sel) {
+        const el = document.querySelector(sel);
+        if (el && el._flatpickr) {
+            el._flatpickr.clear(false);
+        }
+    });
+    // Bỏ giới hạn minDate của ô To sau khi xóa ngày bắt đầu
+    const maxEl = document.querySelector('#maxDate');
+    if (maxEl && maxEl._flatpickr) {
+        maxEl._flatpickr.set('minDate', '2025-01-01');
+    }
+
+    if (dtProducts) {
+        dtProducts.search('').draw();
+    }
+    refreshFilterBadge();
 }
 
 function setFilterCollapsed(collapsed, animate) {
@@ -876,6 +907,10 @@ function initFilterCollapse() {
     // Cập nhật badge mỗi khi filter đổi
     $(document).on('change', '#ProductStatus,#ProductCategory,#ProductAuthor,#storeFilter,#accountsFilter,.product_sites input', refreshFilterBadge);
     $('#minDate,#maxDate').on('change', refreshFilterBadge);
+
+    $('#clearFilters').on('click', clearAllFilters);
+    // Gõ vào ô search cũng ảnh hưởng trạng thái nút Clear
+    $(document).on('input', '.dt-search input', refreshFilterBadge);
 
     $('#filterExportCard .card-collapsible').on('click', function (e) {
         e.preventDefault();

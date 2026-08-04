@@ -89,7 +89,12 @@ $info = getAuthorsProductInfo();
             <span id="activeFilterCount" class="badge bg-label-primary ms-2 d-none">0</span>
         </h5>
         <div class="card-action-element">
-            <ul class="list-inline mb-0">
+            <ul class="list-inline mb-0 d-flex align-items-center gap-2">
+                <li class="list-inline-item me-0">
+                    <button type="button" class="btn btn-label-secondary btn-sm" id="clearFilters" disabled>
+                        <i class="icon-base ti tabler-filter-off icon-xs me-1"></i>Clear Filters
+                    </button>
+                </li>
                 <li class="list-inline-item">
                     <a href="javascript:void(0);" class="card-collapsible"><i class="icon-base ti tabler-chevron-up"></i></a>
                 </li>
