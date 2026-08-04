@@ -67,6 +67,7 @@ if (empty($_SESSION['csrf_token'])) {
     <link rel="stylesheet" href="../../assets/vendor/libs/dropzone/dropzone.css" />
     <link rel="stylesheet" href="../../assets/vendor/libs/flatpickr/flatpickr.css" />
     <link rel="stylesheet" href="../../assets/vendor/libs/tagify/tagify.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/swiper/swiper.css" />
 
     <!-- Page CSS -->
 
@@ -363,6 +364,7 @@ if (empty($_SESSION['csrf_token'])) {
     <script src="../../assets/vendor/libs/jquery-repeater/jquery-repeater.js"></script>
     <script src="../../assets/vendor/libs/flatpickr/flatpickr.js"></script>
     <script src="../../assets/vendor/libs/tagify/tagify.js"></script>
+    <script src="../../assets/vendor/libs/swiper/swiper.js"></script>
     <?php
     switch ($currentMenu) {
         case 'products': ?>

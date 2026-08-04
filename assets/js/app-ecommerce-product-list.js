@@ -146,7 +146,7 @@ function initProductTable(){
                         let rowOutput = `
               <div class="d-flex justify-content-start align-items-center product-name">
                 <div class="avatar-wrapper">
-                  <div class="avatar avatar me-2 me-sm-4 rounded-2 bg-label-secondary">${output}</div>
+                  <div class="avatar avatar me-2 me-sm-4 rounded-2 bg-label-secondary product-images-trigger cursor-pointer" data-id="${id}">${output}</div>
                 </div>
                 <div class="d-flex flex-column">
                   <h6 class="text-nowrap mb-0">${name}</h6>
@@ -790,6 +790,54 @@ function openBulkEditModal(dt) {
 
     bootstrap.Modal.getOrCreateInstance(document.getElementById('bulkEditModal')).show();
 }
+
+// Popup slide xem toàn bộ ảnh của sản phẩm khi click avatar
+let productSwiper = null;
+$(document).on('click', '.product-images-trigger', function () {
+    const id = $(this).data('id');
+    if (!id) {
+        return;
+    }
+    $.ajax({
+        url: '../../ajax.php?action=get-product-images',
+        type: 'POST',
+        data: { id: id }
+    }).done(function (res) {
+        if (res?.status !== 'success' || !res.images?.length) {
+            alert(res?.message || 'Sản phẩm không có ảnh.');
+            return;
+        }
+
+        $('#productImagesTitle').text(res.title);
+        const $wrapper = $('#swiper-product-images .swiper-wrapper');
+        $wrapper.empty();
+        res.images.forEach(function (url) {
+            $wrapper.append('<div class="swiper-slide"><img src="' + url + '" class="img-fluid w-100 rounded" alt="" loading="lazy"></div>');
+        });
+
+        if (productSwiper) {
+            productSwiper.destroy(true, true);
+            productSwiper = null;
+        }
+
+        // Khởi tạo swiper sau khi modal hiển thị để đo đúng kích thước
+        $('#productImagesModal').one('shown.bs.modal', function () {
+            productSwiper = new Swiper('#swiper-product-images', {
+                navigation: {
+                    nextEl: '#swiper-product-images .swiper-button-next',
+                    prevEl: '#swiper-product-images .swiper-button-prev'
+                },
+                pagination: {
+                    clickable: true,
+                    el: '#swiper-product-images .swiper-pagination'
+                }
+            });
+        });
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('productImagesModal')).show();
+    }).fail(function () {
+        alert('Lỗi kết nối server');
+    });
+});
 
 // Suspend 1 sản phẩm từ dropdown actions của dòng
 $(document).on('click', '.suspend-product', function () {

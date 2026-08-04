@@ -1235,6 +1235,45 @@ function getProductsTableFilters(): array {
     return $options;
 }
 
+function getProductImages(): array
+{
+    if (!checkRoles('view', 'products')) {
+        return ['status' => 'error', 'message' => 'Bạn không có quyền xem sản phẩm.'];
+    }
+
+    $id = (int)($_POST['id'] ?? 0);
+    if ($id <= 0) {
+        return ['status' => 'error', 'message' => 'Thiếu ID sản phẩm.'];
+    }
+
+    $conn = db();
+    $stmt = $conn->prepare('SELECT title, images FROM posts WHERE ID = ?');
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    if (!$row) {
+        return ['status' => 'error', 'message' => 'Không tìm thấy sản phẩm.'];
+    }
+
+    // images là JSON {main: url, images: [url...]}
+    $imgs = json_decode($row['images']);
+    $list = [];
+    if ($imgs) {
+        if (!empty($imgs->main)) {
+            $list[] = $imgs->main;
+        }
+        if (!empty($imgs->images) && is_array($imgs->images)) {
+            foreach ($imgs->images as $u) {
+                if ($u && !in_array($u, $list, true)) {
+                    $list[] = $u;
+                }
+            }
+        }
+    }
+
+    return ['status' => 'success', 'title' => $row['title'], 'images' => $list];
+}
+
 function updateProductsStatus(): array
 {
     if (!checkRoles('edit', 'products')) {
