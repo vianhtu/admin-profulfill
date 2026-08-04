@@ -11,7 +11,7 @@ function init() {
     initSelects();
     initTags();
     initDescriptionEditor();
-    bindImagePreview();
+    bindImagePreview(fv);
     saveProduct(fv);
 }
 
@@ -44,6 +44,10 @@ function initSelects() {
 
     // Store: select2 ajax (danh sách lớn, đã lọc theo team ở server)
     ajaxSelect2('product_store', 'filter-stores', false, null, 0);
+    // Manager: chỉ có với admin/manager, danh sách đã scope theo quyền ở server
+    if (document.getElementById('product_author')) {
+        ajaxSelect2('product_author', 'filter-authors', false, null, 0);
+    }
 }
 
 function initTags() {
@@ -53,8 +57,8 @@ function initTags() {
     }
 }
 
-// Hiện ảnh xem trước ngay khi dán URL
-function bindImagePreview() {
+// Hiện ảnh xem trước ngay khi dán URL + cập nhật trạng thái validate ảnh
+function bindImagePreview(fv) {
     $(document).on('input change', '.image_url', function () {
         const $img = $(this).closest('[data-repeater-item]').find('.img-preview');
         const url = ($(this).val() || '').trim();
@@ -63,7 +67,19 @@ function bindImagePreview() {
         } else {
             $img.addClass('d-none');
         }
+        syncImagesState(fv);
     });
+    // Thêm/xóa dòng ảnh cũng phải revalidate
+    $(document).on('click', '[data-repeater-create], [data-repeater-delete]', function () {
+        setTimeout(() => syncImagesState(fv), 300);
+    });
+}
+
+function syncImagesState(fv) {
+    $('#images_state').val(getImageUrls().length ? '1' : '');
+    if (fv) {
+        fv.revalidateField('images_state');
+    }
 }
 
 function repeaterOptions() {
@@ -134,6 +150,9 @@ function formValidate() {
             },
             product_status: {
                 validators: { notEmpty: { message: 'Please select a status.' } }
+            },
+            images_state: {
+                validators: { notEmpty: { message: 'Please add at least one image.' } }
             }
         },
         plugins: {
@@ -162,11 +181,6 @@ function saveProduct(fv) {
         const $spinner = $('#loading_spinner');
         const images = getImageUrls();
 
-        if (!images.length) {
-            alert('Please add at least one image.');
-            return;
-        }
-
         $spinner.removeClass('d-none');
         $btn.prop('disabled', true);
 
@@ -184,6 +198,7 @@ function saveProduct(fv) {
                 type_id: $('#product_type').val(),
                 site_id: $('#product_site').val(),
                 store_id: $('#product_store').val(),
+                author_id: $('#product_author').val() || '',
                 images: JSON.stringify(images),
                 tags: JSON.stringify(getTags()),
                 csrf_token: window.csrfToken

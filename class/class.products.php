@@ -452,6 +452,31 @@ class Products
     }
 
 /**
+ * Xác định author_id được phép gán cho sản phẩm.
+ * - Admin: gán cho bất kỳ author nào.
+ * - Manager: chỉ trong team của mình.
+ * - Còn lại: luôn là chính họ (bỏ qua giá trị gửi lên).
+ * Trả 0 nếu lựa chọn không hợp lệ.
+ */
+    private static function resolve_author_id(mysqli $conn, int $requested): int
+    {
+        $self = (int)($_SESSION['auth']['user_id'] ?? 0);
+        if ($requested <= 0 || $requested === $self) {
+            return $self;
+        }
+        if (is_admin()) {
+            $res = $conn->query("SELECT ID FROM authors WHERE ID = $requested LIMIT 1");
+            return $res && $res->fetch_row() ? $requested : 0;
+        }
+        if (is_manager()) {
+            $team = (int)($_SESSION['auth']['team'] ?? 0);
+            $res = $conn->query("SELECT ID FROM authors WHERE ID = $requested AND team_id = $team LIMIT 1");
+            return $res && $res->fetch_row() ? $requested : 0;
+        }
+        return $self;
+    }
+
+/**
  * Thêm mới / cập nhật 1 sản phẩm từ form Add-Edit.
  */
     public static function save(): array
@@ -516,14 +541,20 @@ class Products
     $metaJson   = json_encode(['tags' => $tags]);
     $badgeVal   = $badge !== '' ? $badge : null;
 
+    // Chủ sở hữu sản phẩm: chỉ admin/manager mới được gán cho người khác,
+    // và người được gán phải nằm trong phạm vi quyền của họ.
+    $authorId = self::resolve_author_id($conn, (int)($_POST['author_id'] ?? 0));
+    if ($authorId <= 0) {
+        return ['status' => 'error', 'message' => 'Selected manager is not in your team.'];
+    }
+
     if ($isEdit) {
         $stmt = $conn->prepare('UPDATE posts SET title = ?, description = ?, sku = ?, status = ?, badge = ?,
-            type_id = ?, site_id = ?, store_id = ?, images = ?, metadata = ?, updated_at = NOW() WHERE ID = ?');
-        // title,desc,sku,status,badge | type,site,store | images,metadata | id
-        $stmt->bind_param('sssssiiissi', $title, $desc, $sku, $status, $badgeVal,
-            $typeId, $siteId, $storeId, $imagesJson, $metaJson, $id);
+            type_id = ?, site_id = ?, store_id = ?, author_id = ?, images = ?, metadata = ?, updated_at = NOW() WHERE ID = ?');
+        // title,desc,sku,status,badge | type,site,store,author | images,metadata | id
+        $stmt->bind_param('sssssiiiissi', $title, $desc, $sku, $status, $badgeVal,
+            $typeId, $siteId, $storeId, $authorId, $imagesJson, $metaJson, $id);
     } else {
-        $authorId = (int)($_SESSION['auth']['user_id'] ?? 0);
         $stmt = $conn->prepare('INSERT INTO posts (author_id, date, title, description, status, sku, images,
             type_id, site_id, store_id, badge, metadata) VALUES (?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
         // author | title,desc,status,sku,images | type,site,store | badge,metadata

@@ -136,6 +136,10 @@ $options = Products::get_filters();
                         <small class="text-body-secondary">The first image is the main one</small>
                     </div>
                     <div class="card-body">
+                        <!-- Ô ẩn để FormValidation báo lỗi ngay trên form khi chưa có ảnh -->
+                        <div class="form-control-validation mb-0">
+                            <input type="hidden" id="images_state" name="images_state" value="<?= $d['image_list'][0] !== '' ? '1' : '' ?>">
+                        </div>
                         <div class="form-repeater" id="imageRepeater">
                             <div data-repeater-list="images">
                                 <?php foreach ($d['image_list'] as $url): ?>
@@ -205,7 +209,7 @@ $options = Products::get_filters();
                         <div class="mb-6 form-control-validation product_site_box">
                             <?php renderSelect('product_site', 'Site', $options['sites'], $d['site_id']); ?>
                         </div>
-                        <div class="mb-2 form-control-validation product_store_box">
+                        <div class="mb-6 form-control-validation product_store_box">
                             <label class="form-label" for="product_store">Store</label>
                             <select id="product_store" name="product_store">
                                 <?php if (!empty($d['store_id'])): ?>
@@ -215,6 +219,21 @@ $options = Products::get_filters();
                                 <?php endif; ?>
                             </select>
                         </div>
+                        <?php if (is_admin() || is_manager()):
+                            // Admin/Manager được gán sản phẩm cho thành viên khác;
+                            // user thường luôn là chính họ nên không hiện ô này.
+                            $curAuthorId = (int)($d['author_id'] ?? ($_SESSION['auth']['user_id'] ?? 0));
+                            $curAuthorName = getFieldByID('authors', 'username', $curAuthorId) ?? '';
+                            ?>
+                            <div class="mb-2 form-control-validation product_author_box">
+                                <label class="form-label" for="product_author">Manager</label>
+                                <select id="product_author" name="product_author">
+                                    <?php if ($curAuthorId): ?>
+                                        <option value="<?= $curAuthorId ?>" selected><?= htmlspecialchars($curAuthorName) ?></option>
+                                    <?php endif; ?>
+                                </select>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
