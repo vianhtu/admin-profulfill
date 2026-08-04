@@ -242,6 +242,9 @@ function initProductTable(){
                         const suspendItem = productPerms.edit
                             ? `<a href="javascript:void(0);" class="dropdown-item suspend-product" data-id="${full['id']}">Suspend</a>`
                             : '';
+                        const deleteItem = productPerms.delete
+                            ? `<a href="javascript:void(0);" class="dropdown-item text-danger delete-product" data-id="${full['id']}">Delete</a>`
+                            : '';
 
                         return `
               <div class="d-inline-block text-nowrap">
@@ -250,8 +253,8 @@ function initProductTable(){
                   <i class="icon-base ti tabler-dots-vertical icon-22px"></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-end m-0">
-                  <a href="javascript:void(0);" class="dropdown-item">View</a>
                   ${suspendItem}
+                  ${deleteItem}
                 </div>
               </div>
             `;
@@ -927,6 +930,29 @@ $(document).on('click', '.product-images-trigger', function () {
             });
         });
         bootstrap.Modal.getOrCreateInstance(document.getElementById('productImagesModal')).show();
+    }).fail(function () {
+        alert('Server connection error');
+    });
+});
+
+// Xóa 1 sản phẩm từ dropdown actions của dòng
+$(document).on('click', '.delete-product', function () {
+    const id = $(this).data('id');
+    if (!id || !confirm('Permanently delete product #' + id + '? This cannot be undone.')) {
+        return;
+    }
+    $.ajax({
+        url: '../../ajax.php?action=delete-products',
+        type: 'POST',
+        data: { ids: [id] }
+    }).done(function (res) {
+        if (res?.status === 'success') {
+            if (dtProducts) {
+                dtProducts.draw(false);
+            }
+        } else {
+            alert(res?.message || 'Delete failed');
+        }
     }).fail(function () {
         alert('Server connection error');
     });
