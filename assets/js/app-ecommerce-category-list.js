@@ -192,7 +192,9 @@ function initCategoryTable() {
         if ($len.length && !$len.hasClass('select2-hidden-accessible')) {
             $len.select2({
                 minimumResultsForSearch: Infinity,
-                dropdownParent: $len.closest('.dt-length'),
+                // Không gắn dropdownParent: .dt-length chỉ rộng ~70px khiến
+                // danh sách bị bó hẹp và số bị xuống dòng
+                dropdownAutoWidth: true,
                 width: 'auto'
             });
         }
