@@ -650,15 +650,31 @@ function initProductTable(){
 
                 // Adding date filter once table is initialized
                 const tableApi = this.api();
-                $('.product_from_date').html('<label class="form-label">From</label><input type="date" class="form-control" id="minDate" min="2025-01-01">');
-                $('.product_to_date').html('<label class="form-label">To</label><input type="date" class="form-control" id="maxDate" min="2025-01-01">');
-                $('#minDate').on('change', function () {
-                    // Lấy giá trị từ minDate
-                    const minVal = $(this).val();
-                    // Cập nhật minDate cho #maxDate
-                    $('#maxDate').attr('min', minVal || '');
-                    // Vẽ lại bảng
-                    tableApi.draw();
+                $('.product_from_date').html('<label class="form-label">From</label><input type="text" class="form-control" id="minDate" placeholder="YYYY-MM-DD">');
+                $('.product_to_date').html('<label class="form-label">To</label><input type="text" class="form-control" id="maxDate" placeholder="YYYY-MM-DD">');
+
+                // flatpickr của template: value giữ Y-m-d cho backend, hiển thị d/m/Y cho người dùng
+                const maxPicker = document.querySelector('#maxDate').flatpickr({
+                    monthSelectorType: 'static',
+                    dateFormat: 'Y-m-d',
+                    altInput: true,
+                    altFormat: 'd/m/Y',
+                    minDate: '2025-01-01',
+                    onChange: function () {
+                        tableApi.draw();
+                    }
+                });
+                document.querySelector('#minDate').flatpickr({
+                    monthSelectorType: 'static',
+                    dateFormat: 'Y-m-d',
+                    altInput: true,
+                    altFormat: 'd/m/Y',
+                    minDate: '2025-01-01',
+                    onChange: function (selectedDates, dateStr) {
+                        // Không cho chọn ngày kết thúc trước ngày bắt đầu
+                        maxPicker.set('minDate', dateStr || '2025-01-01');
+                        tableApi.draw();
+                    }
                 });
 
                 // For date range filter
@@ -757,7 +773,8 @@ function initProductTable(){
                 });
                 }
 
-                $('#maxDate,#storeFilter,#accountsFilter,.product_sites input').on('change', function () {
+                // Ngày đã có onChange riêng của flatpickr nên không đưa vào đây (tránh draw 2 lần)
+                $('#storeFilter,#accountsFilter,.product_sites input').on('change', function () {
                     tableApi.draw();
                 });
             }
