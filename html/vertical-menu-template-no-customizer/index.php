@@ -3,6 +3,7 @@
 declare(strict_types=1);
 require __DIR__ . '/../../config.php';
 require __DIR__ . '/../../functions.php';
+require_once __DIR__ . '/../../class/class.products.php';
 require_login();
 $user = $_SESSION['auth']['user'] ?? 'user';
 $currentMenu = $_GET['menu'] ?? '';
@@ -239,7 +240,11 @@ if (empty($_SESSION['csrf_token'])) {
               <?php
               switch ($currentMenu) {
                   case 'products':
-                      include 'app-ecommerce-product-list.php';
+                      if (isset($_GET['form']) && ($_GET['form'] === 'add' || $_GET['form'] === 'edit')) {
+                          include 'app-ecommerce-product-add.php';
+                      } else {
+                          include 'app-ecommerce-product-list.php';
+                      }
                       break;
                   case 'copyright':
                       include 'app-ecommerce-product-copyright.php';
@@ -367,9 +372,13 @@ if (empty($_SESSION['csrf_token'])) {
     <script src="../../assets/vendor/libs/swiper/swiper.js"></script>
     <?php
     switch ($currentMenu) {
-        case 'products': ?>
-            <script src="../../assets/js/app-ecommerce-product-list.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-ecommerce-product-list.js') ?>"></script>
-            <?php break;
+        case 'products':
+            if (isset($_GET['form']) && ($_GET['form'] === 'add' || $_GET['form'] === 'edit')) { ?>
+                <script src="../../assets/js/app-ecommerce-product-add.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-ecommerce-product-add.js') ?>"></script>
+            <?php } else { ?>
+                <script src="../../assets/js/app-ecommerce-product-list.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-ecommerce-product-list.js') ?>"></script>
+            <?php }
+            break;
         case 'copyright': ?>
             <script src="../../assets/js/app-ecommerce-product-copyright.js"></script>
         <?php break;

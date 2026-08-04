@@ -40,7 +40,7 @@ async function init() {
 function initProductTable(){
     // Variable declaration for table
     const dt_product_table = document.querySelector('.datatables-products'),
-        productAdd = 'app-ecommerce-product-add.html';
+        productAdd = 'index.php?menu=products&form=add';
     // E-commerce Products datatable
 
     if (dt_product_table) {
@@ -247,7 +247,7 @@ function initProductTable(){
                     render: function (data, type, full, meta) {
                         // Chỉ hiện nút sửa/suspend khi user có quyền edit
                         const editBtn = productPerms.edit
-                            ? `<button class="btn btn-text-secondary rounded-pill waves-effect btn-icon"><i class="icon-base ti tabler-edit icon-22px"></i></button>`
+                            ? `<a href="index.php?menu=products&form=edit&id=${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon"><i class="icon-base ti tabler-edit icon-22px"></i></a>`
                             : '';
                         const suspendItem = productPerms.edit
                             ? `<a href="javascript:void(0);" class="dropdown-item suspend-product" data-id="${full['id']}">Suspend</a>`
