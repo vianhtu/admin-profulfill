@@ -154,7 +154,14 @@ function initTable(){
                             name = store_name;
                         }
 
-                        output = '<img src="' + image + '" alt="' + sitesObj[store_site].title + '" class="rounded">';
+                        // Site chưa có logo thì hiện chữ cái đầu thay vì ảnh vỡ
+                        if (logo) {
+                            output = '<img src="' + image + '" alt="' + sitesObj[store_site].title + '" class="rounded">';
+                        } else {
+                            var initials = ((sitesObj[store_site].title || '').match(/\w/g) || [])
+                                .slice(0, 2).join('').toUpperCase();
+                            output = '<span class="avatar-initial rounded-2 bg-label-secondary">' + initials + '</span>';
+                        }
 
                         // Creates full output for row
                         var row_output =
