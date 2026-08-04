@@ -764,6 +764,18 @@ function getAllAuthors(): array {
     return getAllDataMap('authors', 'username');
 }
 
+/**
+ * Map author_id => tên team, dùng để hiện team name dưới tên tác giả.
+ */
+function getAuthorTeamNames(): array {
+    $rs = db()->query('SELECT a.ID, t.name FROM authors a LEFT JOIN team t ON t.ID = a.team_id');
+    $map = [];
+    while ($row = $rs->fetch_row()) {
+        $map[(int)$row[0]] = (string)($row[1] ?? '');
+    }
+    return $map;
+}
+
 function getAuthorsByTeam(): array
 {
     if(is_admin()){
@@ -1282,6 +1294,11 @@ function getProductsTableFilters(): array {
     $options['types'] = getAllTypes();
     // Non-admin chỉ thấy authors trong team của mình (getAuthorsByTeam tự xử lý admin/non-admin)
     $options['authors'] = is_admin() ? getAllAuthors() : getAuthorsByTeam();
+    // Gắn tên team để cột Author hiển thị team name dưới tên tác giả
+    $teamNames = getAuthorTeamNames();
+    foreach ($options['authors'] as $id => $info) {
+        $options['authors'][$id]['team'] = $teamNames[$id] ?? '';
+    }
     $options['sites'] = getAllSites();
     $options['teams'] = getAllTeams();
     // Frontend dùng để ẩn/hiện nút theo quyền (backend vẫn tự kiểm tra lại)

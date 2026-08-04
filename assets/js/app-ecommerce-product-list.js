@@ -187,8 +187,15 @@ function initProductTable(){
                         // Fallback khi author không có trong map (vd. author đã chuyển team)
                         const stock = full['author_id'];
                         const stockTitle = authorsObj[stock]?.title ?? stock;
+                        const teamName = authorsObj[stock]?.team ?? '';
 
-                        return '<span>' + stockTitle + '</span>';
+                        // Hai dòng giống cột product: tên tác giả + team bên dưới
+                        return `
+              <div class="d-flex flex-column">
+                <h6 class="text-nowrap mb-0">${stockTitle}</h6>
+                <small class="text-truncate d-none d-sm-block">${teamName}</small>
+              </div>
+            `;
                     }
                 },
                 {
