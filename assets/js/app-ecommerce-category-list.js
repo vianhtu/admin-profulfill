@@ -92,19 +92,14 @@ function initCategoryTable() {
                     const editBtn = categoryPerms.edit
                         ? `<a href="index.php?menu=categories&form=edit&id=${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon"><i class="icon-base ti tabler-edit icon-22px"></i></a>`
                         : '';
-                    const deleteItem = categoryPerms.delete
-                        ? `<a href="javascript:void(0);" class="dropdown-item text-danger delete-category" data-id="${full['id']}" data-count="${full['products_count']}">Delete</a>`
+                    // Nút xóa để thẳng ra ngoài dạng icon, không giấu trong dropdown
+                    const deleteBtn = categoryPerms.delete
+                        ? `<button type="button" class="btn btn-text-danger rounded-pill waves-effect btn-icon delete-category" data-id="${full['id']}" data-count="${full['products_count']}" title="Delete"><i class="icon-base ti tabler-trash icon-22px"></i></button>`
                         : '';
-                    if (!editBtn && !deleteItem) {
+                    if (!editBtn && !deleteBtn) {
                         return '';
                     }
-                    const menu = deleteItem
-                        ? `<button class="btn btn-text-secondary rounded-pill waves-effect btn-icon dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                             <i class="icon-base ti tabler-dots-vertical icon-22px"></i>
-                           </button>
-                           <div class="dropdown-menu dropdown-menu-end m-0">${deleteItem}</div>`
-                        : '';
-                    return `<div class="d-inline-block text-nowrap">${editBtn}${menu}</div>`;
+                    return `<div class="d-inline-block text-nowrap">${editBtn}${deleteBtn}</div>`;
                 }
             }
         ],
@@ -123,7 +118,7 @@ function initCategoryTable() {
                     buttons: [
                         ...(categoryPerms.delete ? [{
                             text: '<span class="d-flex align-items-center gap-1"><i class="icon-base ti tabler-trash icon-xs"></i> <span class="d-none d-sm-inline-block">Delete Selected</span></span>',
-                            className: 'btn btn-label-danger me-4',
+                            className: 'btn btn-text-danger me-4',
                             action: function (e, dtApi) {
                                 deleteCategories(getSelectedCategoryIds(dtApi), dtApi);
                             }

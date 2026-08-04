@@ -2,6 +2,8 @@
 if (!checkRoles('view', 'categories')) {
     return;
 }
+// Chỉ admin mới có gì để lọc (lọc chéo team) — người khác không render card Filter
+if (is_admin()):
 ?>
 <!-- Filter (collapsible) -->
 <div class="card card-action mb-6" id="filterCard">
@@ -32,6 +34,7 @@ if (!checkRoles('view', 'categories')) {
         </div>
     </div>
 </div>
+<?php endif; ?>
 
 <!-- Category List Table -->
 <div class="card">

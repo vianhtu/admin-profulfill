@@ -86,10 +86,14 @@ $teamOptions = is_admin() ? get_all_teams() : [];
                                 <small class="text-body-secondary">Each team has its own categories.</small>
                             </div>
                         <?php else: ?>
-                            <p class="mb-0">
-                                This category belongs to your team:
-                                <span class="fw-medium"><?= htmlspecialchars(get_field_by_id('team', 'name', (int)$d['team_id']) ?? '') ?></span>
-                            </p>
+                            <?php // Không phải admin: khóa ô chọn team (server cũng ép về team của user) ?>
+                            <div class="mb-2">
+                                <label class="form-label" for="category_team_locked">Team</label>
+                                <select id="category_team_locked" class="form-select" disabled>
+                                    <option selected><?= htmlspecialchars(get_field_by_id('team', 'name', (int)$d['team_id']) ?? '') ?></option>
+                                </select>
+                                <small class="text-body-secondary">Categories always belong to your own team.</small>
+                            </div>
                         <?php endif; ?>
                     </div>
                 </div>
