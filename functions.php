@@ -3035,7 +3035,7 @@ function saveExportQuery(): array
         return ['status' => 'error', 'message' => 'Account not found or not in your team.'];
     }
 
-    $products = Products::get_table();
+    $products = Products::get_products();
 
     if (empty($products['data'])) {
         return ['status' => 'error', 'message' => 'No products to process.'];

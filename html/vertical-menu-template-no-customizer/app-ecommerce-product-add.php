@@ -23,7 +23,7 @@ $defaultData = [
     'ui'          => ['title' => 'Add a new', 'button' => 'Add'],
 ];
 
-$edit_data = $isEdit ? Products::get_product($get_id) : [];
+$edit_data = $isEdit ? Product::get_product($get_id) : [];
 if ($isEdit && empty($edit_data)) {
     // Ngoài phạm vi dữ liệu hoặc không tồn tại
     return;
@@ -44,7 +44,7 @@ $statusOptions = [
     'inactive'  => ['title' => 'Inactive'],
     'trademark' => ['title' => 'Trademark'],
 ];
-$options = Products::get_filters();
+$options = Products::get_products_filters();
 ?>
 <div class="app-ecommerce">
     <form id="productForm" onsubmit="return false">

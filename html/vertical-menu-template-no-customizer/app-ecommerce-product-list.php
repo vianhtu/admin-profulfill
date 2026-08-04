@@ -2,7 +2,7 @@
 if(!checkRoles('view', 'products')){
     return;
 }
-$info = Products::get_stats();
+$info = Products::get_products_statistic();
 ?>
 <!-- Product List Widget -->
 <div class="card mb-6">

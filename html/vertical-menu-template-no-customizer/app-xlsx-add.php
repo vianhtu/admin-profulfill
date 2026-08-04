@@ -2,7 +2,7 @@
 if(!checkRoles(['add', 'edit'], 'exports_xlsx')){
     return;
 }
-$options = Products::get_filters();
+$options = Products::get_products_filters();
 $get_id = $_GET['id'] ?? '';
 $export_data = getXlsxByID($get_id);
 $export_id = '';

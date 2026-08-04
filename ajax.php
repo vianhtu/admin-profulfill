@@ -8,6 +8,7 @@ require __DIR__ . '/class/class.extension.php';
 require_once __DIR__ . '/class/class.orders.php';
 require __DIR__ . '/class/class.order.php';
 require_once __DIR__ . '/class/class.products.php';
+require_once __DIR__ . '/class/class.product.php';
 require __DIR__ . '/model/functions-gemini.php';
 require __DIR__ . '/model/functions-openai.php';
 require __DIR__ . '/tables/functions-teams.php';
@@ -96,25 +97,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 
 	switch ($_GET['action']) {
 		case 'get-products-table':
-			echo json_encode(Products::get_table());
+			echo json_encode(Products::get_products());
 			break;
 		case 'get-products-table-filter':
-			echo json_encode(Products::get_filters());
+			echo json_encode(Products::get_products_filters());
 			break;
 		case 'update-products-type':
-			echo json_encode(Products::update_type());
+			echo json_encode(Products::update_products_type());
 			break;
 		case 'update-products-status':
-			echo json_encode(Products::update_status());
+			echo json_encode(Products::update_products_status());
 			break;
 		case 'get-product-images':
-			echo json_encode(Products::get_images());
+			echo json_encode(Product::get_product_images());
 			break;
 		case 'delete-products':
-			echo json_encode(Products::delete());
+			echo json_encode(Products::delete_products());
 			break;
 		case 'save-product':
-			echo json_encode(Products::save());
+			echo json_encode(Product::save_product());
 			break;
         case 'get-product-copyright-warning':
             echo json_encode(getProductCopyrightWarning());

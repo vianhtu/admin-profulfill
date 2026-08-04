@@ -4,6 +4,7 @@ declare(strict_types=1);
 require __DIR__ . '/../../config.php';
 require __DIR__ . '/../../functions.php';
 require_once __DIR__ . '/../../class/class.products.php';
+require_once __DIR__ . '/../../class/class.product.php';
 require_login();
 $user = $_SESSION['auth']['user'] ?? 'user';
 $currentMenu = $_GET['menu'] ?? '';
