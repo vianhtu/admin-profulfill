@@ -91,9 +91,40 @@ $options = Products::get_filters();
                             </div>
                         </div>
                         <div class="mb-2">
-                            <label class="form-label" for="product_description">Description</label>
-                            <textarea class="form-control" id="product_description" name="product_description" rows="6"
-                                      placeholder="Product description..."><?= htmlspecialchars((string)$d['description']) ?></textarea>
+                            <label class="form-label">Description</label>
+                            <div id="snow-toolbar">
+                                <span class="ql-formats">
+                                    <select class="ql-font"></select>
+                                    <select class="ql-size"></select>
+                                </span>
+                                <span class="ql-formats">
+                                    <button class="ql-bold"></button>
+                                    <button class="ql-italic"></button>
+                                    <button class="ql-underline"></button>
+                                    <button class="ql-strike"></button>
+                                </span>
+                                <span class="ql-formats">
+                                    <select class="ql-color"></select>
+                                    <select class="ql-background"></select>
+                                </span>
+                                <span class="ql-formats">
+                                    <button class="ql-script" value="sub"></button>
+                                    <button class="ql-script" value="super"></button>
+                                </span>
+                                <span class="ql-formats">
+                                    <button class="ql-header" value="1"></button>
+                                    <button class="ql-header" value="2"></button>
+                                    <button class="ql-blockquote"></button>
+                                    <button class="ql-code-block"></button>
+                                </span>
+                                <span class="ql-formats">
+                                    <button class="ql-list" value="ordered"></button>
+                                    <button class="ql-list" value="bullet"></button>
+                                    <button class="ql-link"></button>
+                                    <button class="ql-clean"></button>
+                                </span>
+                            </div>
+                            <div id="snow-editor"><?= $d['description'] ?></div>
                         </div>
                     </div>
                 </div>

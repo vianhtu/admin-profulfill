@@ -3,13 +3,36 @@
  */
 'use strict';
 
+let descEditor = null;
+
 function init() {
     const fv = formValidate();
     repeaterOptions();
     initSelects();
     initTags();
+    initDescriptionEditor();
     bindImagePreview();
     saveProduct(fv);
+}
+
+// Quill Snow theme cho Description (toolbar #snow-toolbar trong fragment)
+function initDescriptionEditor() {
+    const el = document.getElementById('snow-editor');
+    if (el && typeof Quill !== 'undefined') {
+        descEditor = new Quill(el, {
+            bounds: '#snow-editor',
+            modules: { toolbar: '#snow-toolbar' },
+            theme: 'snow'
+        });
+    }
+}
+
+function getDescription() {
+    if (!descEditor) {
+        return '';
+    }
+    // Trống thì lưu chuỗi rỗng thay vì '<p><br></p>' của Quill
+    return descEditor.getText().trim() === '' ? '' : descEditor.root.innerHTML;
 }
 
 function initSelects() {
@@ -156,7 +179,7 @@ function saveProduct(fv) {
                 title: $('#product_title').val(),
                 sku: $('#product_sku').val(),
                 badge: $('#product_badge').val(),
-                description: $('#product_description').val(),
+                description: getDescription(),
                 status: $('#product_status').val(),
                 type_id: $('#product_type').val(),
                 site_id: $('#product_site').val(),

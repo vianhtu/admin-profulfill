@@ -438,6 +438,20 @@ class Products
 }
 
 /**
+ * Lọc HTML của trình soạn thảo: chỉ giữ thẻ định dạng, bỏ script/iframe và
+ * mọi thuộc tính sự kiện (onclick, onerror...) cùng javascript: URL.
+ */
+    private static function sanitize_html(string $html): string
+    {
+        $allowed = '<p><br><b><strong><i><em><u><s><a><ul><ol><li><h1><h2><h3><h4><h5><h6>'
+                 . '<blockquote><pre><code><span><div><sub><sup>';
+        $clean = strip_tags($html, $allowed);
+        $clean = preg_replace('/\son[a-z]+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $clean);
+        $clean = preg_replace('/(href|src)\s*=\s*("|\')?\s*javascript:[^"\'>]*("|\')?/i', '', $clean);
+        return trim((string)$clean);
+    }
+
+/**
  * Thêm mới / cập nhật 1 sản phẩm từ form Add-Edit.
  */
     public static function save(): array
@@ -459,7 +473,8 @@ class Products
 
     $title   = trim((string)($_POST['title'] ?? ''));
     $sku     = trim((string)($_POST['sku'] ?? ''));
-    $desc    = trim((string)($_POST['description'] ?? ''));
+    // Description là HTML từ Quill — lọc thẻ/thuộc tính nguy hiểm trước khi lưu
+    $desc    = self::sanitize_html((string)($_POST['description'] ?? ''));
     $status  = (string)($_POST['status'] ?? 'pending');
     $badge   = trim((string)($_POST['badge'] ?? ''));
     $typeId  = (int)($_POST['type_id'] ?? 0);
