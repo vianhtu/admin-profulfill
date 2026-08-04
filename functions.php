@@ -899,7 +899,33 @@ function getFieldByID(string $table, string $field, int $id): ?string
 }
 
 
+/**
+ * Chạy câu COUNT và cache kết quả trong session theo TTL.
+ * Dùng cho các COUNT nặng chạy lại liên tục theo mỗi lần draw DataTables.
+ */
+function cachedCount(mysqli $conn, string $sql, int $ttl = 60): int {
+    $key = md5($sql);
+    $c = $_SESSION['count_cache'][$key] ?? null;
+    if ($c !== null && (time() - $c['t']) < $ttl) {
+        return $c['v'];
+    }
+    $res = $conn->query($sql);
+    $v = $res ? (int)($res->fetch_assoc()['cnt'] ?? 0) : 0;
+    // Giữ cache gọn, tránh session phình to theo số tổ hợp filter
+    if (count($_SESSION['count_cache'] ?? []) > 50) {
+        $_SESSION['count_cache'] = array_slice($_SESSION['count_cache'], -25, null, true);
+    }
+    $_SESSION['count_cache'][$key] = ['t' => time(), 'v' => $v];
+    return $v;
+}
+
 function getAuthorsProductInfo(): ?array {
+	// Query này quét full bảng posts (~1s ở 1M dòng) — cache 5 phút theo user
+	$cacheKey = 'products_stats_' . ($_SESSION['auth']['user_id'] ?? 0);
+	$c = $_SESSION[$cacheKey] ?? null;
+	if ($c !== null && (time() - $c['t']) < 300) {
+		return $c['data'];
+	}
 	$sql = "SELECT
     -- Tổng số bài viết
     COUNT(*) AS total_items,
@@ -920,6 +946,7 @@ function getAuthorsProductInfo(): ?array {
 	$result = $stmt->get_result();
 	$data = $result->fetch_assoc();
 	$stmt->close();
+	$_SESSION[$cacheKey] = ['t' => time(), 'data' => $data];
 	return $data;
 }
 
@@ -1072,15 +1099,33 @@ function getProductsTable(): array {
 
     $conn = db();
 
-    // Tổng số bản ghi
-    $totalRecords = $conn->query("SELECT COUNT(*) AS cnt FROM posts")->fetch_assoc()['cnt'];
+    // Tổng số bản ghi (cache ngắn — COUNT(*) full bảng chạy lại mỗi lần draw rất tốn khi dữ liệu lớn)
+    $totalRecords = cachedCount($conn, "SELECT COUNT(*) AS cnt FROM posts", 60);
 
     $whereClauses = [];
 
     // Lọc theo search
     if ($params['searchValue'] !== '') {
-        $searchEsc = $conn->real_escape_string($params['searchValue']);
-        $whereClauses[] = "(posts.title LIKE '%$searchEsc%' OR posts.sku LIKE '%$searchEsc%' OR posts.badge LIKE '%$searchEsc%')";
+        $searchRaw = $params['searchValue'];
+        if (ctype_digit($searchRaw)) {
+            // Toàn số → tìm theo sku prefix (dùng được index sku, không quét full bảng)
+            $searchEsc = $conn->real_escape_string($searchRaw);
+            $whereClauses[] = "posts.sku LIKE '$searchEsc%'";
+        } else {
+            // FULLTEXT trên title; loại từ < 3 ký tự (dưới ngưỡng innodb_ft_min_token_size)
+            $words = preg_split('/\s+/', trim(preg_replace('/[+\-<>()~*"@]+/', ' ', $searchRaw)));
+            $words = array_filter($words, fn($w) => mb_strlen($w) >= 3);
+            if (!empty($words)) {
+                $boolean = implode(' ', array_map(fn($w) => '+' . $w . '*', $words));
+                $esc = $conn->real_escape_string($boolean);
+                $badgeEsc = $conn->real_escape_string($searchRaw);
+                $whereClauses[] = "(MATCH(posts.title) AGAINST('$esc' IN BOOLEAN MODE) OR posts.badge = '$badgeEsc')";
+            } else {
+                // Toàn từ ngắn → fallback LIKE (hiếm gặp)
+                $searchEsc = $conn->real_escape_string($searchRaw);
+                $whereClauses[] = "(posts.title LIKE '%$searchEsc%' OR posts.badge = '$searchEsc')";
+            }
+        }
     }
 
     // Lọc theo status (string)
@@ -1101,19 +1146,16 @@ function getProductsTable(): array {
         }
     }
 
-    // Lọc theo khoảng ngày
+    // Lọc theo khoảng ngày — so sánh range trực tiếp trên cột để index dùng được
     $minDate = $_POST['minDate'] ?? '';
     $maxDate = $_POST['maxDate'] ?? '';
-    if ($minDate !== '' && $maxDate !== '') {
+    if ($minDate !== '') {
         $escMin = $conn->real_escape_string($minDate);
+        $whereClauses[] = "posts.date >= '$escMin 00:00:00'";
+    }
+    if ($maxDate !== '') {
         $escMax = $conn->real_escape_string($maxDate);
-        $whereClauses[] = "DATE(`posts.date`) BETWEEN '$escMin' AND '$escMax'";
-    } elseif ($minDate !== '') {
-        $escMin = $conn->real_escape_string($minDate);
-        $whereClauses[] = "DATE(`posts.date`) >= '$escMin'";
-    } elseif ($maxDate !== '') {
-        $escMax = $conn->real_escape_string($maxDate);
-        $whereClauses[] = "DATE(`posts.date`) <= '$escMax'";
+        $whereClauses[] = "posts.date <= '$escMax 23:59:59'";
     }
 
     // Lọc theo stores
@@ -1138,16 +1180,20 @@ function getProductsTable(): array {
 
     $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
 
-    // Tổng số bản ghi sau khi lọc
-    $totalFiltered = $conn->query("SELECT COUNT(posts.ID) AS cnt FROM posts $joinAccounts $where")->fetch_assoc()['cnt'];
+    // Tổng số bản ghi sau khi lọc (cache ngắn theo bộ lọc — chuyển trang không phải đếm lại)
+    $totalFiltered = cachedCount($conn, "SELECT COUNT(posts.ID) AS cnt FROM posts $joinAccounts $where", 60);
 
-    // Lấy dữ liệu
+    // Lấy dữ liệu: lọc/sắp xếp/phân trang trên subquery chỉ chứa ID (đi bằng index,
+    // không phải đọc các cột longtext) rồi mới join lấy dữ liệu — offset sâu nhanh hơn nhiều
     $sql = "SELECT posts.ID, posts.title, posts.status, posts.sku, posts.images, posts.badge, posts.date, posts.type_id, posts.author_id
-            FROM posts
-            $joinAccounts
-            $where
-            ORDER BY posts.{$params['orderColumn']} {$params['orderDir']}
-            LIMIT {$params['start']}, {$params['length']}";
+            FROM (SELECT posts.ID AS pid
+                  FROM posts
+                  $joinAccounts
+                  $where
+                  ORDER BY posts.{$params['orderColumn']} {$params['orderDir']}
+                  LIMIT {$params['start']}, {$params['length']}) AS sel
+            JOIN posts ON posts.ID = sel.pid
+            ORDER BY posts.{$params['orderColumn']} {$params['orderDir']}";
     $rs = $conn->query($sql);
 
     // Chuẩn bị dữ liệu trả về
