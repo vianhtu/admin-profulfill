@@ -9,6 +9,13 @@ let authorsObj = {};
 let sitesObj = {};
 let lastPostData = {};
 let dtProducts = null;
+const statusObj = {
+    pending: { title: 'Pending', class: 'bg-label-primary' },
+    schedule: { title: 'Schedule', class: 'bg-label-secondary' },
+    listed: { title: 'Listed', class: 'bg-label-success' },
+    inactive: { title: 'Inactive', class: 'bg-label-danger' },
+    trademark: { title: 'Trademark', class: 'bg-label-warning' }
+};
 
 async function init() {
     try {
@@ -28,14 +35,7 @@ async function init() {
 function initProductTable(){
     // Variable declaration for table
     const dt_product_table = document.querySelector('.datatables-products'),
-        productAdd = 'app-ecommerce-product-add.html',
-        statusObj = {
-            pending: { title: 'Pending', class: 'bg-label-primary' },
-            schedule: { title: 'Schedule', class: 'bg-label-secondary' },
-            listed: { title: 'Listed', class: 'bg-label-success' },
-            inactive: { title: 'Inactive', class: 'bg-label-danger' },
-            trademark: { title: 'Trademark', class: 'bg-label-warning' }
-        }
+        productAdd = 'app-ecommerce-product-add.html';
     // E-commerce Products datatable
 
     if (dt_product_table) {
@@ -756,9 +756,16 @@ function openBulkEditModal(dt) {
 
     // Đổ danh sách type vào select
     const $select = $('#bulkTypeSelect');
-    $select.empty();
+    $select.empty().append($('<option>', { value: '', text: '— Không đổi —' }));
     $.each(categoryObj, function (id, item) {
         $select.append($('<option>', { value: id, text: item.title ?? item }));
+    });
+
+    // Đổ danh sách status vào select
+    const $status = $('#bulkStatusSelect');
+    $status.empty().append($('<option>', { value: '', text: '— Không đổi —' }));
+    $.each(statusObj, function (key, item) {
+        $status.append($('<option>', { value: key, text: item.title }));
     });
 
     $('#bulkEditCount').text(ids.length);
@@ -768,7 +775,7 @@ function openBulkEditModal(dt) {
     $('#bulkEditProgress').addClass('d-none');
     $('#bulkEditProgressBar').css('width', '0%').removeClass('bg-danger');
     $('#bulkEditProgressText').text('');
-    $('#bulkTypeSelect').prop('disabled', false);
+    $('#bulkTypeSelect, #bulkStatusSelect').prop('disabled', false);
 
     bootstrap.Modal.getOrCreateInstance(document.getElementById('bulkEditModal')).show();
 }
@@ -800,7 +807,12 @@ $(document).on('click', '#bulkEditApply', async function () {
     const $btn = $(this);
     const ids = $('#bulkEditModal').data('ids') || [];
     const typeId = $('#bulkTypeSelect').val();
-    if (!ids.length || !typeId) {
+    const statusVal = $('#bulkStatusSelect').val();
+    if (!ids.length) {
+        return;
+    }
+    if (!typeId && !statusVal) {
+        alert('Chọn Type hoặc Status để sửa.');
         return;
     }
 
@@ -809,33 +821,50 @@ $(document).on('click', '#bulkEditApply', async function () {
     const $text = $('#bulkEditProgressText');
 
     $btn.prop('disabled', true);
-    $('#bulkTypeSelect').prop('disabled', true);
+    $('#bulkTypeSelect, #bulkStatusSelect').prop('disabled', true);
     $('#bulkEditSpinner').removeClass('d-none');
     $('#bulkEditProgress').removeClass('d-none');
     $bar.css('width', '0%').removeClass('bg-danger');
     $text.text('Đang cập nhật 0/' + ids.length + '...');
 
-    let updated = 0;
+    let updatedType = 0;
+    let updatedStatus = 0;
     try {
         // Chia batch để hiện tiến trình thật khi chọn nhiều dòng
         for (let i = 0; i < ids.length; i += BATCH_SIZE) {
             const batch = ids.slice(i, i + BATCH_SIZE);
-            const res = await $.ajax({
-                url: '../../ajax.php?action=update-products-type',
-                type: 'POST',
-                data: { ids: batch, type_id: typeId }
-            });
-            if (res?.status !== 'success') {
-                throw new Error(res?.message || 'Cập nhật thất bại');
+            if (typeId) {
+                const res = await $.ajax({
+                    url: '../../ajax.php?action=update-products-type',
+                    type: 'POST',
+                    data: { ids: batch, type_id: typeId }
+                });
+                if (res?.status !== 'success') {
+                    throw new Error(res?.message || 'Cập nhật type thất bại');
+                }
+                updatedType += res.updated ?? 0;
             }
-            updated += res.updated ?? 0;
+            if (statusVal) {
+                const res = await $.ajax({
+                    url: '../../ajax.php?action=update-products-status',
+                    type: 'POST',
+                    data: { ids: batch, status: statusVal }
+                });
+                if (res?.status !== 'success') {
+                    throw new Error(res?.message || 'Cập nhật status thất bại');
+                }
+                updatedStatus += res.updated ?? 0;
+            }
             const done = Math.min(i + BATCH_SIZE, ids.length);
             $bar.css('width', Math.round((done / ids.length) * 100) + '%');
             $text.text('Đang cập nhật ' + done + '/' + ids.length + '...');
         }
 
         $bar.css('width', '100%');
-        $text.text('Hoàn tất: đã cập nhật ' + updated + '/' + ids.length + ' sản phẩm');
+        const parts = [];
+        if (typeId) parts.push('type: ' + updatedType);
+        if (statusVal) parts.push('status: ' + updatedStatus);
+        $text.text('Hoàn tất ' + ids.length + ' sản phẩm (' + parts.join(', ') + ')');
 
         // Cho user thấy kết quả rồi mới đóng popup
         setTimeout(function () {
@@ -851,7 +880,7 @@ $(document).on('click', '#bulkEditApply', async function () {
     } finally {
         $('#bulkEditSpinner').addClass('d-none');
         $btn.prop('disabled', false);
-        $('#bulkTypeSelect').prop('disabled', false);
+        $('#bulkTypeSelect, #bulkStatusSelect').prop('disabled', false);
     }
 });
 

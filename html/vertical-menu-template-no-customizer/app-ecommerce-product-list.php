@@ -139,6 +139,10 @@ $info = getAuthorsProductInfo();
                     <label class="form-label" for="bulkTypeSelect">Type</label>
                     <select id="bulkTypeSelect" class="form-select"></select>
                 </div>
+                <div class="mb-2">
+                    <label class="form-label" for="bulkStatusSelect">Status</label>
+                    <select id="bulkStatusSelect" class="form-select"></select>
+                </div>
                 <div id="bulkEditProgress" class="d-none mt-4">
                     <div class="progress mb-2" style="height: 8px;">
                         <div class="progress-bar progress-bar-striped progress-bar-animated" id="bulkEditProgressBar" style="width: 0%"></div>
