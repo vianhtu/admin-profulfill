@@ -9,6 +9,8 @@ require_once __DIR__ . '/class/class.orders.php';
 require __DIR__ . '/class/class.order.php';
 require_once __DIR__ . '/class/class.products.php';
 require_once __DIR__ . '/class/class.product.php';
+require_once __DIR__ . '/class/class.categories.php';
+require_once __DIR__ . '/class/class.category.php';
 require __DIR__ . '/model/functions-gemini.php';
 require __DIR__ . '/model/functions-openai.php';
 require __DIR__ . '/tables/functions-teams.php';
@@ -116,6 +118,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 			break;
 		case 'save-product':
 			echo json_encode(Product::save_product());
+			break;
+		case 'get-categories-table':
+			echo json_encode(Categories::get_categories());
+			break;
+		case 'get-categories-table-filter':
+			echo json_encode(Categories::get_categories_filters());
+			break;
+		case 'delete-categories':
+			echo json_encode(Categories::delete_categories());
+			break;
+		case 'save-category':
+			echo json_encode(Category::save_category());
 			break;
         case 'get-product-copyright-warning':
             echo json_encode(getProductCopyrightWarning());

@@ -5,6 +5,8 @@ require __DIR__ . '/../../config.php';
 require __DIR__ . '/../../functions.php';
 require_once __DIR__ . '/../../class/class.products.php';
 require_once __DIR__ . '/../../class/class.product.php';
+require_once __DIR__ . '/../../class/class.categories.php';
+require_once __DIR__ . '/../../class/class.category.php';
 require_login();
 $user = $_SESSION['auth']['user'] ?? 'user';
 $currentMenu = $_GET['menu'] ?? '';
@@ -247,6 +249,13 @@ if (empty($_SESSION['csrf_token'])) {
                           include 'app-ecommerce-product-list.php';
                       }
                       break;
+                  case 'categories':
+                      if (isset($_GET['form']) && ($_GET['form'] === 'add' || $_GET['form'] === 'edit')) {
+                          include 'app-ecommerce-category-add.php';
+                      } else {
+                          include 'app-ecommerce-category-list.php';
+                      }
+                      break;
                   case 'copyright':
                       include 'app-ecommerce-product-copyright.php';
                       break;
@@ -378,6 +387,13 @@ if (empty($_SESSION['csrf_token'])) {
                 <script src="../../assets/js/app-ecommerce-product-add.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-ecommerce-product-add.js') ?>"></script>
             <?php } else { ?>
                 <script src="../../assets/js/app-ecommerce-product-list.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-ecommerce-product-list.js') ?>"></script>
+            <?php }
+            break;
+        case 'categories':
+            if (isset($_GET['form']) && ($_GET['form'] === 'add' || $_GET['form'] === 'edit')) { ?>
+                <script src="../../assets/js/app-ecommerce-category-add.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-ecommerce-category-add.js') ?>"></script>
+            <?php } else { ?>
+                <script src="../../assets/js/app-ecommerce-category-list.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-ecommerce-category-list.js') ?>"></script>
             <?php }
             break;
         case 'copyright': ?>

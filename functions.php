@@ -26,6 +26,10 @@ function menuArgs():array
                     'label' => 'Products',
                     'roles' => ['view','add','edit','delete']
                 ],
+                'categories' => [
+                    'label' => 'Category',
+                    'roles' => ['view','add','edit','delete']
+                ],
                 'copyright' => [
                     'label' => 'Copyright Warning',
                     'roles' => ['view','edit']
