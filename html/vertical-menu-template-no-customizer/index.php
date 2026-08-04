@@ -84,7 +84,7 @@ if (empty($_SESSION['csrf_token'])) {
 
     <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
 
-    <script src="../../assets/js/config.js"></script>
+    <script src="../../assets/js/config.js?v=<?= filemtime(ROOT_DIR . '/assets/js/config.js') ?>"></script>
     <script>
       window.csrfToken = "<?= $_SESSION['csrf_token'] ?>";
     </script>
@@ -413,53 +413,53 @@ if (empty($_SESSION['csrf_token'])) {
             <?php }
             break;
         case 'copyright': ?>
-            <script src="../../assets/js/app-ecommerce-product-copyright.js"></script>
+            <script src="../../assets/js/app-ecommerce-product-copyright.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-ecommerce-product-copyright.js') ?>"></script>
         <?php break;
         case 'keywords': ?>
-            <script src="../../assets/js/app-ecommerce-keywords-list.js"></script>
+            <script src="../../assets/js/app-ecommerce-keywords-list.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-ecommerce-keywords-list.js') ?>"></script>
             <?php break;
         case 'orders': ?>
-            <script src="../../assets/js/app-ecommerce-order-list.js"></script>
+            <script src="../../assets/js/app-ecommerce-order-list.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-ecommerce-order-list.js') ?>"></script>
             <?php break;
         case 'stores': if( isset( $_GET['form'] ) && ($_GET['form'] == 'add' || $_GET['form'] == 'edit')){ ?>
-                <script src="../../assets/js/app-store-add.js"></script>
+                <script src="../../assets/js/app-store-add.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-store-add.js') ?>"></script>
             <?php } else { ?>
-                <script src="../../assets/js/app-store-list.js"></script>
+                <script src="../../assets/js/app-store-list.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-store-list.js') ?>"></script>
             <?php } ?>
             <?php break;
         case 'exports_download': ?>
-            <script src="../../assets/js/app-xlsx-download-list.js"></script>
+            <script src="../../assets/js/app-xlsx-download-list.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-xlsx-download-list.js') ?>"></script>
             <?php break;
         case 'exports_xlsx':
             if( isset( $_GET['form'] ) && $_GET['form'] == 'add') { ?>
-                <script src="../../assets/js/app-xlsx-add.js"></script>
+                <script src="../../assets/js/app-xlsx-add.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-xlsx-add.js') ?>"></script>
             <?php } else { ?>
-                <script src="../../assets/js/app-xlsx-list.js"></script>
+                <script src="../../assets/js/app-xlsx-list.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-xlsx-list.js') ?>"></script>
             <?php } ?>
             <?php break;
         case 'phones_numbers': ?>
-            <script src="../../assets/js/app-phones-list.js"></script>
+            <script src="../../assets/js/app-phones-list.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-phones-list.js') ?>"></script>
         <?php break;
         case 'teams':
             if( isset( $_GET['action'] ) && $_GET['action'] == 'edit') { ?>
-                <script src="../../assets/js/app-teams-list-edit.js"></script>
+                <script src="../../assets/js/app-teams-list-edit.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-teams-list-edit.js') ?>"></script>
             <?php } else { ?>
-                <script src="../../assets/js/app-teams-list.js"></script>
+                <script src="../../assets/js/app-teams-list.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-teams-list.js') ?>"></script>
             <?php } ?>
         <?php break;
         case 'users': ?>
-            <script src="../../assets/js/app-user-list.js"></script>
+            <script src="../../assets/js/app-user-list.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-user-list.js') ?>"></script>
         <?php break;
         case 'roles-permissions': ?>
-            <script src="../../assets/js/app-access-permission.js"></script>
-            <script src="../../assets/js/modal-add-permission.js"></script>
-            <script src="../../assets/js/modal-edit-permission.js"></script>
+            <script src="../../assets/js/app-access-permission.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-access-permission.js') ?>"></script>
+            <script src="../../assets/js/modal-add-permission.js?v=<?= filemtime(ROOT_DIR . '/assets/js/modal-add-permission.js') ?>"></script>
+            <script src="../../assets/js/modal-edit-permission.js?v=<?= filemtime(ROOT_DIR . '/assets/js/modal-edit-permission.js') ?>"></script>
             <?php break;
     }
     ?>
     <!-- Main JS -->
 
-    <script src="../../assets/js/main.js"></script>
+    <script src="../../assets/js/main.js?v=<?= filemtime(ROOT_DIR . '/assets/js/main.js') ?>"></script>
 
     <!-- Page JS -->
   </body>
