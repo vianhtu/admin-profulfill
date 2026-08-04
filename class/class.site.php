@@ -130,15 +130,21 @@ class Site
         $newH = max(1, (int)round($h * $scale));
 
         $canvas = imagecreatetruecolor($box, $box);
-        imagealphablending($canvas, false);
-        imagesavealpha($canvas, true);
-        imagefill($canvas, 0, 0, imagecolorallocatealpha($canvas, 0, 0, 0, 127));
-        imagealphablending($canvas, true);
+        if ($mime === 'image/png') {
+            // PNG: giữ nền trong suốt
+            imagealphablending($canvas, false);
+            imagesavealpha($canvas, true);
+            imagefill($canvas, 0, 0, imagecolorallocatealpha($canvas, 0, 0, 0, 127));
+            imagealphablending($canvas, true);
+        } else {
+            // JPG không có kênh alpha — nền trong suốt sẽ ra đen, nên tô trắng trước
+            imagefill($canvas, 0, 0, imagecolorallocate($canvas, 255, 255, 255));
+        }
         imagecopyresampled($canvas, $img, (int)(($box - $newW) / 2), (int)(($box - $newH) / 2),
             0, 0, $newW, $newH, $w, $h);
 
-        // Luôn ghi ra PNG để giữ nền trong suốt, kể cả ảnh gốc là JPG
-        $ok = imagepng($canvas, $path);
+        // Ghi lại đúng định dạng gốc để nội dung khớp với đuôi file
+        $ok = $mime === 'image/png' ? imagepng($canvas, $path) : imagejpeg($canvas, $path, 90);
         imagedestroy($img);
         imagedestroy($canvas);
         return $ok;
