@@ -77,7 +77,9 @@ class Site
         if ($mime !== $allowed[$ext] || $size === false) {
             return ['status' => 'error', 'message' => 'This file is not a valid image.'];
         }
-        if ($size[0] !== 96 || $size[1] !== 96) {
+        // Không có GD thì không co ảnh được -> bắt buộc đúng khung
+        $hasGd = function_exists('imagecreatetruecolor');
+        if (!$hasGd && ($size[0] !== 96 || $size[1] !== 96)) {
             return ['status' => 'error',
                 'message' => sprintf('The logo must be exactly 96x96 pixels (this one is %dx%d).', $size[0], $size[1])];
         }
@@ -89,11 +91,57 @@ class Site
         }
 
         // Lấy đường dẫn vừa lưu để ghi vào cột logo
-        $row = $conn->query('SELECT storage_path FROM files WHERE ID = ' . (int)$ids[0])->fetch_assoc();
+        $fileId = (int)$ids[0];
+        $row = $conn->query('SELECT storage_path FROM files WHERE ID = ' . $fileId)->fetch_assoc();
         if (!$row) {
             return ['status' => 'error', 'message' => 'Uploaded file not found.'];
         }
+
+        // Chuẩn hóa về khung 96x96 ngay tại chỗ, rồi cập nhật lại kích thước/checksum
+        // trong bảng files cho khớp với file thật
+        $path = ROOT_DIR . '/' . $row['storage_path'];
+        if ($hasGd && self::resize_logo($path, $mime)) {
+            $stmt = $conn->prepare('UPDATE files SET file_size = ?, checksum = ? WHERE ID = ?');
+            $newSize = (int)filesize($path);
+            $newSum  = hash_file('sha256', $path);
+            $stmt->bind_param('isi', $newSize, $newSum, $fileId);
+            $stmt->execute();
+            $stmt->close();
+        }
+
         return ['status' => 'success', 'logo' => $row['storage_path']];
+    }
+
+    /**
+     * Vẽ lại ảnh về đúng khung 96x96 (giữ tỉ lệ, canh giữa, nền trong suốt) và
+     * ghi đè lên chính file đó. Vẽ lại cũng loại bỏ dữ liệu lạ nhúng trong ảnh.
+     */
+    private static function resize_logo(string $path, string $mime): bool
+    {
+        $img = $mime === 'image/png' ? @imagecreatefrompng($path) : @imagecreatefromjpeg($path);
+        if (!$img) {
+            return false;
+        }
+        $box = 96;
+        $w = imagesx($img);
+        $h = imagesy($img);
+        $scale = min($box / $w, $box / $h);
+        $newW = max(1, (int)round($w * $scale));
+        $newH = max(1, (int)round($h * $scale));
+
+        $canvas = imagecreatetruecolor($box, $box);
+        imagealphablending($canvas, false);
+        imagesavealpha($canvas, true);
+        imagefill($canvas, 0, 0, imagecolorallocatealpha($canvas, 0, 0, 0, 127));
+        imagealphablending($canvas, true);
+        imagecopyresampled($canvas, $img, (int)(($box - $newW) / 2), (int)(($box - $newH) / 2),
+            0, 0, $newW, $newH, $w, $h);
+
+        // Luôn ghi ra PNG để giữ nền trong suốt, kể cả ảnh gốc là JPG
+        $ok = imagepng($canvas, $path);
+        imagedestroy($img);
+        imagedestroy($canvas);
+        return $ok;
     }
 
     /**

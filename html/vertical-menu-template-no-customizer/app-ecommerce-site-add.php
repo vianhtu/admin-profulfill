@@ -81,7 +81,7 @@ $fields = $d['fields'] ?: [['text' => '', 'value' => '']];
                             <div class="dropzone needsclick p-0" id="dropzone-logo">
                                 <div class="dz-message needsclick">
                                     <p class="h6 needsclick pt-3 mb-1">Drop the logo here or click to browse</p>
-                                    <p class="small text-body-secondary d-block mb-2">PNG or JPG, exactly 96x96px</p>
+                                    <p class="small text-body-secondary d-block mb-2">PNG or JPG — resized to 96x96px automatically</p>
                                     <span class="needsclick btn btn-sm btn-label-primary">Browse file</span>
                                 </div>
                                 <div class="fallback"><input name="file" type="file" accept=".png,.jpg,.jpeg"/></div>
