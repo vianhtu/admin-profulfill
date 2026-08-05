@@ -103,6 +103,19 @@ class Store
             return ['status' => 'error', 'message' => 'Please enter a valid slug.'];
         }
 
+        // Gán store cho 1 team trong khi sản phẩm của team khác vẫn đang dùng thì những
+        // sản phẩm đó trỏ tới store ngoài phạm vi của chúng (chủ sản phẩm không chọn lại
+        // được store khi sửa) -> chặn. Chuyển về dùng chung (team_id = 0) thì luôn an toàn.
+        if ($isEdit && $teamId > 0 && $teamId !== (int)$current['team_id']) {
+            $inUse = $conn->query("SELECT COUNT(*) FROM posts p
+                LEFT JOIN authors a ON a.ID = p.author_id
+                WHERE p.store_id = $id AND (a.team_id IS NULL OR a.team_id <> $teamId)")->fetch_row()[0];
+            if ((int)$inUse > 0) {
+                return ['status' => 'error', 'message' => 'This store is used by '
+                    . number_format((int)$inUse) . ' products of another team; it has to stay shared.'];
+            }
+        }
+
         // slug là UNIQUE toàn bảng — cùng một shop không bao giờ bị nhập 2 lần,
         // kể cả khi một bản là dùng chung còn bản kia là của riêng team.
         $stmt = $conn->prepare('SELECT s.ID, s.team_id, tm.name AS team_name

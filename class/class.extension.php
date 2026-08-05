@@ -287,8 +287,10 @@ class Extensions
         }
 
         try {
-            // 1. Loại sản phẩm phải khớp bảng `type` (dùng chung cache với check_products_exist).
-            $types = self::get_types_cached();
+            // 1. Loại sản phẩm phải là danh mục CỦA TEAM author (dùng chung cache với
+            //    check_products_exist) — category không dùng chung giữa các team.
+            $author_team = self::get_author_team($authors_id);
+            $types = self::get_types_cached($author_team);
             if (!isset($types[$type_id])) {
                 return ['success' => false, 'sku' => $sku, 'message' => 'Loại sản phẩm không hợp lệ.'];
             }
@@ -313,11 +315,8 @@ class Extensions
             if ($store_row) {
                 // Store riêng của team khác thì không được dùng
                 $store_team = (int) $store_row['team_id'];
-                if ($store_team > 0) {
-                    $author_row = $conn->execute_query('SELECT team_id FROM authors WHERE ID = ? LIMIT 1', [$authors_id])->fetch_assoc();
-                    if ($store_team !== (int) ($author_row['team_id'] ?? 0)) {
-                        return ['success' => false, 'sku' => $sku, 'message' => 'Store thuộc team khác.'];
-                    }
+                if ($store_team > 0 && $store_team !== $author_team) {
+                    return ['success' => false, 'sku' => $sku, 'message' => 'Store thuộc team khác.'];
                 }
                 $store_id = (int) $store_row['ID'];
             } else {
@@ -546,7 +545,7 @@ class Extensions
             // Extension tự quyết định khi nào cần đồng bộ lại types (bảng gần như
             // tĩnh) — chỉ tính/trả khi client chủ động xin qua need_types.
             if (!empty($request_data['need_types'])) {
-                $existing['types'] = self::get_types_cached();
+                $existing['types'] = self::get_types_cached(self::get_author_team($authors_id));
             }
 
             return ['success' => true, 'data' => $existing];
@@ -670,9 +669,29 @@ class Extensions
      * gần như không đổi, tránh query lại mỗi lần extension gọi check-listings.
      * Server không có extension apcu thì tự fallback về query DB bình thường.
      */
-    private static function get_types_cached(): array
+    /**
+     * Team của author đang gọi API — dùng để giới hạn danh mục theo team.
+     */
+    private static function get_author_team(int $authors_id): int
     {
-        $cache_key = 'pff_types_v1';
+        try {
+            $row = db()->execute_query('SELECT team_id FROM authors WHERE ID = ? LIMIT 1', [$authors_id])->fetch_assoc();
+            return (int) ($row['team_id'] ?? 0);
+        } catch (\mysqli_sql_exception) {
+            return 0;
+        }
+    }
+
+    /**
+     * Danh mục của MỘT team. Category không dùng chung giữa các team nên extension
+     * chỉ được thấy/dùng danh mục của team mình (cache riêng theo team).
+     */
+    private static function get_types_cached(int $team_id): array
+    {
+        if ($team_id <= 0) {
+            return [];
+        }
+        $cache_key = 'pff_types_v2_team_' . $team_id;
         $use_cache = function_exists('apcu_fetch');
 
         if ($use_cache) {
@@ -684,7 +703,7 @@ class Extensions
 
         $types = [];
         try {
-            $result = db()->execute_query('SELECT ID, name FROM type');
+            $result = db()->execute_query('SELECT ID, name FROM type WHERE team_id = ?', [$team_id]);
             foreach ($result->fetch_all(MYSQLI_ASSOC) as $row) {
                 $types[$row['ID']] = $row['name'];
             }

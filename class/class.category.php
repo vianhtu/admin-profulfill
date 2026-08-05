@@ -83,6 +83,19 @@ class Category
             return ['status' => 'error', 'message' => 'Please select a valid team.'];
         }
 
+        // Đổi category sang team khác trong khi sản phẩm của team cũ vẫn đang dùng thì
+        // những sản phẩm đó sẽ trỏ tới category ngoài phạm vi team của chúng (chủ sản phẩm
+        // không còn thấy/sửa được category) -> chặn lại.
+        if ($isEdit) {
+            $inUse = $conn->query("SELECT COUNT(*) FROM posts p
+                LEFT JOIN authors a ON a.ID = p.author_id
+                WHERE p.type_id = $id AND (a.team_id IS NULL OR a.team_id <> $teamId)")->fetch_row()[0];
+            if ((int)$inUse > 0) {
+                return ['status' => 'error', 'message' => 'This category is used by '
+                    . number_format((int)$inUse) . ' products of another team. Move those products first.'];
+            }
+        }
+
         // Tên chỉ cần duy nhất TRONG TEAM (UNIQUE KEY uniq_team_name),
         // hai team khác nhau được phép có category trùng tên.
         $stmt = $conn->prepare('SELECT ID FROM `type` WHERE name = ? AND team_id = ? AND ID <> ? LIMIT 1');

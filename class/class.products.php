@@ -435,12 +435,16 @@ class Products
         return ['status' => 'error', 'message' => 'No permitted products in selection.'];
     }
 
-    // Type phải tồn tại
-    $stmt = $conn->prepare('SELECT ID FROM `type` WHERE ID = ?');
+    // Category phải tồn tại VÀ thuộc team của user (mỗi team có bộ category riêng) —
+    // giống kiểm tra ở Product::save_product(), nếu không sẽ sửa hàng loạt sang
+    // category của team khác bằng cách giả mạo type_id.
+    $team = get_current_team_scope_id();
+    $teamCond = $team > 0 ? ' AND team_id = ' . $team : '';
+    $stmt = $conn->prepare('SELECT ID FROM `type` WHERE ID = ?' . $teamCond);
     $stmt->bind_param('i', $typeId);
     $stmt->execute();
     if (!$stmt->get_result()->fetch_row()) {
-        return ['status' => 'error', 'message' => 'Type does not exist.'];
+        return ['status' => 'error', 'message' => 'Category is not available for your team.'];
     }
 
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
