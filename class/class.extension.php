@@ -287,10 +287,9 @@ class Extensions
         }
 
         try {
-            // 1. Loại sản phẩm phải là danh mục CỦA TEAM author (dùng chung cache với
-            //    check_products_exist) — category không dùng chung giữa các team.
+            // 1. Loại sản phẩm phải khớp bảng `type` (dùng chung cache với check_products_exist).
             $author_team = self::get_author_team($authors_id);
-            $types = self::get_types_cached($author_team);
+            $types = self::get_types_cached();
             if (!isset($types[$type_id])) {
                 return ['success' => false, 'sku' => $sku, 'message' => 'Loại sản phẩm không hợp lệ.'];
             }
@@ -545,7 +544,7 @@ class Extensions
             // Extension tự quyết định khi nào cần đồng bộ lại types (bảng gần như
             // tĩnh) — chỉ tính/trả khi client chủ động xin qua need_types.
             if (!empty($request_data['need_types'])) {
-                $existing['types'] = self::get_types_cached(self::get_author_team($authors_id));
+                $existing['types'] = self::get_types_cached();
             }
 
             return ['success' => true, 'data' => $existing];
@@ -683,15 +682,12 @@ class Extensions
     }
 
     /**
-     * Danh mục của MỘT team. Category không dùng chung giữa các team nên extension
-     * chỉ được thấy/dùng danh mục của team mình (cache riêng theo team).
+     * Danh mục cho extension. Category DÙNG CHUNG toàn hệ thống nên mọi author đều
+     * nhận cùng một danh sách (xem ghi chú mô hình ở class.categories.php).
      */
-    private static function get_types_cached(int $team_id): array
+    private static function get_types_cached(): array
     {
-        if ($team_id <= 0) {
-            return [];
-        }
-        $cache_key = 'pff_types_v2_team_' . $team_id;
+        $cache_key = 'pff_types_v3';
         $use_cache = function_exists('apcu_fetch');
 
         if ($use_cache) {
@@ -703,7 +699,7 @@ class Extensions
 
         $types = [];
         try {
-            $result = db()->execute_query('SELECT ID, name FROM type WHERE team_id = ?', [$team_id]);
+            $result = db()->execute_query('SELECT ID, name FROM type');
             foreach ($result->fetch_all(MYSQLI_ASSOC) as $row) {
                 $types[$row['ID']] = $row['name'];
             }

@@ -4,14 +4,13 @@
 
 'use strict';
 
-let teamsObj = {};
 let dtCategories = null;
-let categoryPerms = { add: false, edit: false, delete: false, filter_team: false };
+// Quyền cấp trang; sửa/xóa từng dòng lấy theo can_edit/can_delete server trả về
+let categoryPerms = { add: false, delete: false, is_admin: false };
 
 async function init() {
     try {
         const options = await fetchTableFilter('get-categories-table-filter');
-        teamsObj = options['teams'] ?? {};
         categoryPerms = options['perms'] ?? categoryPerms;
         initCategoryTable();
     } catch (err) {
@@ -31,16 +30,12 @@ function initCategoryTable() {
         ajax: {
             url: '../../ajax.php?action=get-categories-table',
             type: 'POST',
-            data: function (d) {
-                d.team = $('#teamFilter').val() || '';
-            },
             dataSrc: json => json.data
         },
         columns: [
             { data: 'id' },
             { data: 'id', orderable: false, render: DataTable.render.select() },
             { data: 'name' },
-            { data: 'teams' },
             { data: 'products_count' },
             { data: 'prompt_preview' },
             { data: 'id' }
@@ -62,23 +57,12 @@ function initCategoryTable() {
             {
                 targets: 3,
                 render: function (data, type, full) {
-                    const teams = full['teams'] || '';
-                    if (!teams) {
-                        return '<span class="text-body-secondary">—</span>';
-                    }
-                    // Nhiều team = category dùng chung
-                    return teams.split(', ').map(t => `<span class="badge bg-label-secondary me-1">${t}</span>`).join('');
-                }
-            },
-            {
-                targets: 4,
-                render: function (data, type, full) {
                     const n = full['products_count'];
                     return `<span class="badge ${n > 0 ? 'bg-label-primary' : 'bg-label-secondary'}">${n.toLocaleString()}</span>`;
                 }
             },
             {
-                targets: 5, orderable: false,
+                targets: 4, orderable: false,
                 render: function (data, type, full) {
                     if (!full['has_prompt']) {
                         return '<span class="text-body-secondary">—</span>';
@@ -89,11 +73,12 @@ function initCategoryTable() {
             {
                 targets: -1, title: 'Actions', searchable: false, orderable: false,
                 render: function (data, type, full) {
-                    const editBtn = categoryPerms.edit
+                    // Sửa: admin, hoặc chính người đã thêm category này (can_edit theo dòng)
+                    const editBtn = full['can_edit']
                         ? `<a href="index.php?menu=categories&form=edit&id=${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon"><i class="icon-base ti tabler-edit icon-22px"></i></a>`
                         : '';
                     // Nút xóa để thẳng ra ngoài dạng icon, không giấu trong dropdown
-                    const deleteBtn = categoryPerms.delete
+                    const deleteBtn = full['can_delete']
                         ? `<button type="button" class="btn btn-text-danger rounded-pill waves-effect btn-icon delete-category" data-id="${full['id']}" data-count="${full['products_count']}" title="Delete"><i class="icon-base ti tabler-trash icon-22px"></i></button>`
                         : '';
                     if (!editBtn && !deleteBtn) {
@@ -143,22 +128,6 @@ function initCategoryTable() {
                 first: '<i class="icon-base ti tabler-chevrons-left scaleX-n1-rtl icon-18px"></i>',
                 last: '<i class="icon-base ti tabler-chevrons-right scaleX-n1-rtl icon-18px"></i>'
             }
-        },
-        initComplete: function () {
-            const api = this.api();
-            // Team: chỉ admin mới lọc chéo team
-            if (categoryPerms.filter_team) {
-                const $box = $('.category_team').removeClass('d-none');
-                $box.html('<label class="form-label" for="teamFilter">Team</label><select id="teamFilter" class="form-select"><option value="">All</option></select>');
-                $.each(teamsObj, function (id, item) {
-                    $('#teamFilter').append($('<option>', { value: id, text: item.title ?? item }));
-                });
-                $('#teamFilter').select2({ dropdownParent: $box }).on('change', function () {
-                    refreshFilterBadge();
-                    api.draw();
-                });
-            }
-            initFilterCollapse();
         }
     });
 
@@ -247,59 +216,6 @@ $(document).on('click', '.delete-category', function () {
         deleteCategories([id], dtCategories);
     }
 });
-
-// --- Filter card: thu gọn + badge + clear (giống trang Products) ---
-function countActiveFilters() {
-    return $('#teamFilter').val() ? 1 : 0;
-}
-
-function refreshFilterBadge() {
-    const n = countActiveFilters();
-    $('#activeFilterCount').text(n).toggleClass('d-none', n === 0);
-    const hasSearch = !!(dtCategories && dtCategories.search());
-    $('#clearFilters').prop('disabled', n === 0 && !hasSearch);
-}
-
-function setFilterCollapsed(collapsed, animate) {
-    const $header = $('#filterCard .card-header');
-    const $icon = $('#filterCard .card-collapsible i');
-    const body = document.getElementById('filterBody');
-    if (!body) {
-        return;
-    }
-    if (animate) {
-        bootstrap.Collapse.getOrCreateInstance(body, { toggle: false })[collapsed ? 'hide' : 'show']();
-    } else {
-        $(body).toggleClass('show', !collapsed);
-    }
-    $header.toggleClass('collapsed', collapsed);
-    $icon.toggleClass('tabler-chevron-up', !collapsed).toggleClass('tabler-chevron-down', collapsed);
-}
-
-function initFilterCollapse() {
-    refreshFilterBadge();
-    $(document).on('input', '.dt-search input', refreshFilterBadge);
-
-    $('#clearFilters').on('click', function () {
-        $('#teamFilter').val('').trigger('change.select2');
-        if (dtCategories) {
-            dtCategories.search('').draw();
-        }
-        refreshFilterBadge();
-    });
-
-    $('#filterCard .card-collapsible').on('click', function (e) {
-        e.preventDefault();
-        setFilterCollapsed(!$('#filterCard .card-header').hasClass('collapsed'), true);
-    });
-
-    // Chỉ admin mới có filter Team — người khác không có gì để lọc nên ẩn cả card
-    if (!categoryPerms.filter_team) {
-        $('#filterCard').addClass('d-none');
-    } else {
-        setFilterCollapsed(true, false);
-    }
-}
 
 document.addEventListener('DOMContentLoaded', function () {
     init();

@@ -838,21 +838,13 @@ function check_account_team_scope(mysqli $conn, int $accountId): bool {
 }
 
 /**
- * Danh sách category theo phạm vi team (mỗi team có bộ category riêng).
+ * Danh sách category. Category DÙNG CHUNG toàn hệ thống nên không lọc theo team,
+ * xem ghi chú mô hình ở class.categories.php.
  *
  * @return array<int,array{title:string}>
  */
 function get_all_types(): array {
-    $team = get_current_team_scope_id();
-    if ($team <= 0) {
-        return get_data_map('type', 'name');
-    }
-    $rs = db()->query("SELECT t.ID, t.name FROM `type` t WHERE t.team_id = $team ORDER BY t.name ASC");
-    $data = [];
-    while ($row = $rs->fetch_assoc()) {
-        $data[$row['ID']] = ['title' => $row['name']];
-    }
-    return $data;
+    return get_data_map('type', 'name');
 }
 
 /**

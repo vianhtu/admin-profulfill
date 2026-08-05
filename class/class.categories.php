@@ -1,66 +1,59 @@
 <?php
 /**
  * Categories — nghiệp vụ tập hợp cho bảng `type` (menu Category):
- * bảng danh sách, bộ lọc, xóa hàng loạt và phân quyền dữ liệu theo team.
- * Cùng khuôn với class.products.php / class.orders.php.
+ * bảng danh sách, xóa hàng loạt và phân quyền.
+ * Cùng khuôn với class.sites.php.
  *
- * Phạm vi dữ liệu: admin = mọi team; còn lại = category thuộc team của mình.
- * Category KHÔNG dùng chung giữa các team — mỗi team có bộ category riêng
- * (tên chỉ cần duy nhất trong phạm vi team, xem UNIQUE KEY uniq_team_name).
+ * Mô hình dữ liệu (đổi 2026-08-05): category DÙNG CHUNG toàn hệ thống, mọi team đều
+ * thấy và dùng được — không còn chia theo team nữa (cột `type`.team_id giữ lại và luôn
+ * = 0 để sau này muốn quay lại mô hình riêng/chung như store thì không phải đổi bảng).
+ * Quyền: thêm theo role add; sửa thì admin hoặc chính người đã thêm; xóa chỉ admin.
  */
 class Categories
 {
     /**
-     * Điều kiện phân quyền dữ liệu cho bảng `type`.
-     * Trả về chuỗi WHERE (rỗng nếu không giới hạn).
+     * Thêm category mới: ai có role add cũng làm được (thêm là bổ sung dữ liệu mới,
+     * không đụng tới category đang chạy của người khác).
      */
-    private static function get_base_auth_conditions(string $alias = 't'): string
+    public static function can_add(): bool
     {
-        $team = get_current_team_scope_id();
-        if ($team <= 0) {
-            return '';
-        }
-        return "$alias.team_id = $team";
+        return is_admin() || checkRoles('add', 'categories');
     }
 
     /**
-     * Lọc danh sách type ID về đúng phạm vi dữ liệu của user hiện tại.
-     *
-     * @param int[] $ids
-     * @return int[]
+     * Xóa category: CHỈ ADMIN — category dùng chung nên xóa là ảnh hưởng mọi team.
      */
-    public static function check_categories_ownership(mysqli $conn, array $ids): array
+    public static function can_manage(): bool
     {
-        $ids = array_values(array_unique(array_filter(array_map('intval', $ids), fn($v) => $v > 0)));
-        if (empty($ids) || is_admin()) {
-            return $ids;
-        }
-        $where = self::get_base_auth_conditions();
-        if ($where === '') {
-            return [];
-        }
-        $idsStr = implode(',', $ids);
-        $res = $conn->query("SELECT t.ID FROM `type` t WHERE t.ID IN ($idsStr) AND $where");
-        $allowed = [];
-        while ($row = $res->fetch_row()) {
-            $allowed[] = (int)$row[0];
-        }
-        return $allowed;
+        return is_admin();
     }
+
+    /**
+     * Sửa 1 category cụ thể: admin sửa mọi category; người khác chỉ sửa được category
+     * DO CHÍNH MÌNH THÊM (type.created_by) và vẫn phải có role edit.
+     * Category cũ (created_by = 0) chỉ admin sửa được.
+     */
+    public static function can_edit_row(int $createdBy): bool
+    {
+        if (is_admin()) {
+            return true;
+        }
+        $uid = (int)($_SESSION['auth']['user_id'] ?? 0);
+        return $createdBy > 0 && $uid > 0 && $createdBy === $uid && checkRoles('edit', 'categories');
+    }
+
+    /** Cột sắp xếp được của bảng Category (xem build_order_by()). */
+    private const SORT_MAP = [
+        'name'           => 't.name',
+        'products_count' => 'products_count',
+        'ID'             => 't.ID',
+    ];
 
     /**
      * Dữ liệu cho DataTables của trang Category.
      *
      * @return array{draw:int,recordsTotal:int,recordsFiltered:int,data:array}
      */
-    /** Cột sắp xếp được của bảng Category (xem build_order_by()). */
-    private const SORT_MAP = [
-        'name'           => 't.name',
-        'teams'          => 'tm.name',
-        'products_count' => 'products_count',
-        'ID'             => 't.ID',
-    ];
-
     public static function get_categories(): array
     {
         $params = get_datatable_params(array_keys(self::SORT_MAP), 'name');
@@ -69,35 +62,19 @@ class Categories
         }
 
         $conn = db();
-        $whereClauses = [];
-        $scopeWhere = self::get_base_auth_conditions();
-        if ($scopeWhere !== '') {
-            $whereClauses[] = $scopeWhere;
-        }
-
-        // Tìm kiếm theo tên
+        $where = '';
+        // Tìm kiếm theo tên (dùng chung nên không còn giới hạn phạm vi team)
         if ($params['searchValue'] !== '') {
             $esc = $conn->real_escape_string($params['searchValue']);
-            $whereClauses[] = "t.name LIKE '%$esc%'";
+            $where = " WHERE t.name LIKE '%$esc%'";
         }
 
-        // Lọc theo team — chỉ admin (người khác đã bị scope giới hạn sẵn)
-        $filterTeam = (int)($_POST['team'] ?? 0);
-        if ($filterTeam > 0 && is_admin()) {
-            $whereClauses[] = "t.team_id = $filterTeam";
-        }
-
-        $totalRecords = (int)$conn->query('SELECT COUNT(*) FROM `type` t'
-            . ($scopeWhere !== '' ? " WHERE $scopeWhere" : ''))->fetch_row()[0];
-
-        $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
+        $totalRecords  = (int)$conn->query('SELECT COUNT(*) FROM `type`')->fetch_row()[0];
         $totalFiltered = (int)$conn->query("SELECT COUNT(*) FROM `type` t $where")->fetch_row()[0];
 
-        $sql = "SELECT t.ID, t.name, t.user_prompt,
-                       (SELECT COUNT(*) FROM posts p WHERE p.type_id = t.ID) AS products_count,
-                       tm.name AS team_names
+        $sql = "SELECT t.ID, t.name, t.user_prompt, t.created_by,
+                       (SELECT COUNT(*) FROM posts p WHERE p.type_id = t.ID) AS products_count
                 FROM `type` t
-                LEFT JOIN team tm ON tm.ID = t.team_id
                 $where
                 ORDER BY " . build_order_by($params, self::SORT_MAP, 't.ID') . "
                 LIMIT {$params['start']}, {$params['length']}";
@@ -109,10 +86,12 @@ class Categories
             $data[] = [
                 'id'             => (int)$row['ID'],
                 'name'           => $row['name'],
-                'teams'          => $row['team_names'] ?? '',
                 'products_count' => (int)$row['products_count'],
                 'has_prompt'     => $prompt !== '',
                 'prompt_preview' => mb_substr($prompt, 0, 120),
+                // Quyền theo từng dòng: sửa được category do chính mình thêm, xóa chỉ admin
+                'can_edit'       => self::can_edit_row((int)$row['created_by']),
+                'can_delete'     => self::can_manage(),
             ];
         }
 
@@ -125,9 +104,10 @@ class Categories
     }
 
     /**
-     * Option cho bộ lọc + cờ quyền để frontend ẩn/hiện nút.
+     * Cờ quyền cấp trang (nút Add / Delete Selected). Category dùng chung nên không còn
+     * bộ lọc theo team. Quyền sửa/xóa từng dòng nằm ở can_edit/can_delete trong get_categories().
      *
-     * @return array{teams:array,perms:array{add:bool,edit:bool,delete:bool,filter_team:bool}}
+     * @return array{perms:array{add:bool,delete:bool,is_admin:bool}}
      */
     public static function get_categories_filters(): array
     {
@@ -135,36 +115,35 @@ class Categories
             return ['status' => 'error', 'message' => 'You do not have permission to view categories.'];
         }
         return [
-            'teams' => is_admin() ? get_all_teams() : [],
             'perms' => [
-                'add'         => checkRoles('add', 'categories'),
-                'edit'        => checkRoles('edit', 'categories'),
-                'delete'      => checkRoles('delete', 'categories'),
-                'filter_team' => is_admin(),
+                'add'      => self::can_add(),
+                'delete'   => self::can_manage(),
+                'is_admin' => is_admin(),
             ],
         ];
     }
 
     /**
-     * Xóa category. Chặn nếu còn sản phẩm đang dùng để không làm hỏng dữ liệu.
+     * Xóa category. Chỉ admin, và chặn nếu còn sản phẩm đang dùng để không làm hỏng dữ liệu.
      *
      * @return array{status:string,deleted?:int,message?:string}
      */
     public static function delete_categories(): array
     {
-        if (!checkRoles('delete', 'categories')) {
-            return ['status' => 'error', 'message' => 'You do not have permission to delete categories.'];
+        if (!self::can_manage()) {
+            return ['status' => 'error',
+                'message' => 'Categories are shared by every team; only an admin can delete them.'];
         }
         $ids = $_POST['ids'] ?? [];
         if (!is_array($ids) || empty($ids)) {
             return ['status' => 'error', 'message' => 'Missing category list.'];
         }
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids), fn($v) => $v > 0)));
+        if (empty($ids)) {
+            return ['status' => 'error', 'message' => 'Invalid category list.'];
+        }
 
         $conn = db();
-        $ids = self::check_categories_ownership($conn, $ids);
-        if (empty($ids)) {
-            return ['status' => 'error', 'message' => 'No permitted categories in selection.'];
-        }
         $idsStr = implode(',', $ids);
 
         // Còn sản phẩm dùng category thì không cho xóa

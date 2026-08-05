@@ -5,22 +5,7 @@
 
 function init() {
     const fv = formValidate();
-    initSelects();
     saveCategory(fv);
-}
-
-function initSelects() {
-    // Team: select2 đơn (chỉ admin mới có ô này — category không dùng chung giữa các team)
-    const $team = $('#category_team');
-    if ($team.length) {
-        $team.wrap('<div class="position-relative"></div>').select2({
-            dropdownParent: $team.parent()
-        });
-    }
-}
-
-function getTeamId() {
-    return $('#category_team').length ? ($('#category_team').val() || '') : '';
 }
 
 function formValidate() {
@@ -52,13 +37,6 @@ function saveCategory(fv) {
     fv.on('core.form.valid', function () {
         const $btn = $('#form_submit');
         const $spinner = $('#loading_spinner');
-        const teamId = getTeamId();
-
-        // Admin có ô Team thì bắt buộc chọn; user thường server tự gán team của họ
-        if ($('#category_team').length && !teamId) {
-            alert('Please select a team.');
-            return;
-        }
 
         $spinner.removeClass('d-none');
         $btn.prop('disabled', true);
@@ -71,7 +49,6 @@ function saveCategory(fv) {
                 id: $('#category_id').val() || 0,
                 name: $('#category_name').val(),
                 user_prompt: $('#category_prompt').val(),
-                team_id: teamId,
                 csrf_token: window.csrfToken
             }
         }).done(function (res) {

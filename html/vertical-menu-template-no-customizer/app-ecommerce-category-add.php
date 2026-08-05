@@ -2,7 +2,9 @@
 $get_id = (int)($_GET['id'] ?? 0);
 $isEdit = $get_id > 0;
 
-if (!checkRoles($isEdit ? 'edit' : 'add', 'categories')) {
+// Thêm mới: theo role add. Sửa: admin, hoặc chính người đã thêm category đó
+// (category dùng chung toàn hệ thống — xem class.categories.php).
+if (!$isEdit && !Categories::can_add()) {
     return;
 }
 
@@ -10,22 +12,18 @@ $defaultData = [
     'ID'          => '',
     'name'        => '',
     'user_prompt' => '',
-    'team_id'     => (int)($_SESSION['auth']['team'] ?? 0),
+    'created_by'  => 0,
     'ui'          => ['title' => 'Add a new', 'button' => 'Add'],
 ];
 
 $edit_data = $isEdit ? Category::get_category($get_id) : [];
-if ($isEdit && empty($edit_data)) {
-    // Không tồn tại hoặc ngoài phạm vi dữ liệu
+if ($isEdit && (empty($edit_data) || !Categories::can_edit_row((int)$edit_data['created_by']))) {
     return;
 }
 if (!empty($edit_data)) {
     $edit_data['ui'] = ['title' => 'Edit', 'button' => 'Update'];
 }
 $d = array_merge($defaultData, $edit_data ?: []);
-
-// Admin chọn được mọi team; còn lại bị khóa vào team của mình
-$teamOptions = is_admin() ? get_all_teams() : [];
 ?>
 <div class="app-ecommerce">
     <form id="categoryForm" onsubmit="return false">
@@ -34,7 +32,7 @@ $teamOptions = is_admin() ? get_all_teams() : [];
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-6 row-gap-4">
             <div class="d-flex flex-column justify-content-center">
                 <h4 class="mb-1"><?= htmlspecialchars($d['ui']['title']) ?> category</h4>
-                <p class="mb-0">Category information.</p>
+                <p class="mb-0">Categories are shared by every team.</p>
             </div>
             <div class="d-flex align-content-center flex-wrap gap-4">
                 <div class="d-flex gap-4">
@@ -47,7 +45,7 @@ $teamOptions = is_admin() ? get_all_teams() : [];
         </div>
 
         <div class="row">
-            <div class="col-12 col-lg-8">
+            <div class="col-12">
                 <div class="card mb-6">
                     <div class="card-header">
                         <h5 class="card-tile mb-0">Category information</h5>
@@ -67,37 +65,6 @@ $teamOptions = is_admin() ? get_all_teams() : [];
                 </div>
             </div>
 
-            <div class="col-12 col-lg-4">
-                <div class="card mb-6">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Teams</h5>
-                    </div>
-                    <div class="card-body">
-                        <?php if (is_admin()): ?>
-                            <div class="mb-2 form-control-validation category_team_box">
-                                <label class="form-label" for="category_team">Team</label>
-                                <select id="category_team" name="category_team">
-                                    <?php foreach ($teamOptions as $tid => $t): ?>
-                                        <option value="<?= (int)$tid ?>" <?= (int)$tid === (int)$d['team_id'] ? 'selected' : '' ?>>
-                                            <?= htmlspecialchars($t['title']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <small class="text-body-secondary">Each team has its own categories.</small>
-                            </div>
-                        <?php else: ?>
-                            <?php // Không phải admin: khóa ô chọn team (server cũng ép về team của user) ?>
-                            <div class="mb-2">
-                                <label class="form-label" for="category_team_locked">Team</label>
-                                <select id="category_team_locked" class="form-select" disabled>
-                                    <option selected><?= htmlspecialchars(get_field_by_id('team', 'name', (int)$d['team_id']) ?? '') ?></option>
-                                </select>
-                                <small class="text-body-secondary">Categories always belong to your own team.</small>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
         </div>
     </form>
 </div>

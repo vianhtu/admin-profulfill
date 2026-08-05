@@ -179,8 +179,8 @@ class Product
         return ['status' => 'error', 'message' => 'Selected manager is not in your team.'];
     }
 
-    // Category/Store hợp lệ tính theo team của CHỦ SỞ HỮU, không phải của người đang sửa:
-    // admin gán sản phẩm cho user team khác thì category/store cũng phải thuộc team đó,
+    // Store hợp lệ tính theo team của CHỦ SỞ HỮU, không phải của người đang sửa: admin
+    // gán sản phẩm cho user team khác thì store cũng phải thuộc phạm vi của team đó,
     // nếu không chủ mới sẽ giữ 1 sản phẩm trỏ tới dữ liệu họ không nhìn thấy.
     $ownerRow = $conn->query("SELECT team_id FROM authors WHERE ID = $authorId LIMIT 1")->fetch_row();
     $ownerTeam = (int)($ownerRow[0] ?? 0);
@@ -188,9 +188,10 @@ class Product
         return ['status' => 'error', 'message' => 'The selected owner is not assigned to a team.'];
     }
 
-    $ok = $conn->query("SELECT 1 FROM `type` WHERE ID = $typeId AND team_id = $ownerTeam LIMIT 1")->fetch_row();
+    // Category dùng chung toàn hệ thống -> chỉ cần tồn tại
+    $ok = $conn->query("SELECT 1 FROM `type` WHERE ID = $typeId LIMIT 1")->fetch_row();
     if (!$ok) {
-        return ['status' => 'error', 'message' => "This category does not belong to the owner's team."];
+        return ['status' => 'error', 'message' => 'Category does not exist.'];
     }
     // Store: dùng chung (team_id = 0) hoặc store riêng của chính team chủ sở hữu
     $ok = $conn->query("SELECT 1 FROM store WHERE ID = $storeId AND team_id IN (0, $ownerTeam) LIMIT 1")->fetch_row();
