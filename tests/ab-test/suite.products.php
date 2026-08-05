@@ -107,13 +107,21 @@ return function (AbRunner $r): void {
         return Product::save_product();
     })->allow('ADMIN', 'MGR_T1', 'USR_T1', 'MGR_T2', 'USR_T2', 'USR_T3');
 
+    // Chỉ tính là "được phép" khi CHỦ SỞ HỮU ĐỔI THẬT: với user thường, author_id giả mạo
+    // bị bỏ qua (ép về chính họ) nên lệnh lưu vẫn thành công — đó KHÔNG phải vượt quyền.
     $r->add('Product — form', 'Gán sản phẩm cho người TEAM KHÁC', function ($a, $fx) {
+        $target = $a->team === 2 ? AB_UID_T1 : AB_UID_T2;
         $id = $fx->new_post($a->uid);
-        // Chủ mới ở team 2 -> store phải là store dùng chung mới hợp lệ
-        $_POST = ab_product_post($fx, ['id' => $id, 'author_id' => AB_UID_T2,
+        // Chủ mới ở team khác -> phải dùng store dùng chung mới hợp lệ
+        $_POST = ab_product_post($fx, ['id' => $id, 'author_id' => $target,
             'store_id' => $fx->storeShared]);
-        return Product::save_product();
-    })->allow('ADMIN', 'MGR_T2', 'USR_T2');
+        $res = Product::save_product();
+        if (($res['status'] ?? '') === 'error') {
+            return false;
+        }
+        $now = (int)$fx->conn->query("SELECT author_id FROM posts WHERE ID = $id")->fetch_row()[0];
+        return $now === $target;
+    })->allow('ADMIN');
 
     $r->add('Product — form', 'Dùng store RIÊNG của team 2 cho sản phẩm team 1', function ($a, $fx) {
         $id = $fx->new_post(AB_UID_T1);
