@@ -36,43 +36,33 @@ function initLogoDropzone() {
     </div>
     </div>`;
 
+    // QUAN TRỌNG: bản Dropzone của Vuexy ghi đè uploadFiles() bằng animation tiến trình
+    // GIẢ (không POST lên server, tự emit success với res = chuỗi 'success'). Nếu để
+    // Dropzone tự upload thì logo không bao giờ lưu được. Vì vậy tắt autoProcessQueue và
+    // TỰ upload bằng fetch (đúng cách đã kiểm chứng chạy được).
     new Dropzone(el, {
         url: '../../ajax.php?action=upload-site-logo',
         previewTemplate: previewTemplate,
         paramName: 'file',
-        maxFiles: 1,
         maxFilesize: 2,
         acceptedFiles: '.png, .jpg, .jpeg',
         addRemoveLinks: true,
-        params: { csrf_token: window.csrfToken },
+        autoProcessQueue: false, // không dùng bộ upload (giả) của Dropzone
         init: function () {
             const dz = this;
 
-            // Đang sửa và đã có logo: hiện sẵn ảnh hiện tại trong dropzone
-            const current = $('#site_logo').val();
-            if (current) {
-                const mockFile = { name: current.split('/').pop(), size: 0, accepted: true };
-                dz.displayExistingFile(mockFile, siteLogoUrl(current));
-                dz.emit('complete', mockFile);
-                dz.files.push(mockFile);
-            }
-
-            // Chỉ giữ 1 logo: thêm ảnh mới thì bỏ ảnh cũ khỏi khung
-            this.on('addedfile', function () {
-                if (dz.files.length > 1) {
-                    dz.removeFile(dz.files[0]);
+            // Chỉ giữ 1 logo + tự upload file mới bằng fetch
+            this.on('addedfile', function (file) {
+                dz.files.filter(f => f !== file).forEach(f => dz.removeFile(f));
+                if (!file._mock) {
+                    uploadSiteLogo(dz, file);
                 }
             });
-            this.on('success', function (file, res) {
-                if (res && res.status === 'success') {
-                    $('#site_logo').val(res.logo);
-                } else {
-                    alert(res?.message || 'Upload failed');
-                    dz.removeFile(file);
-                }
-            });
+            // Lỗi phía client (sai định dạng / quá lớn) — Dropzone tự bắt trước khi upload
             this.on('error', function (file, msg) {
-                alert(typeof msg === 'string' ? msg : (msg?.message || 'Upload failed'));
+                if (!file._mock) {
+                    alert(typeof msg === 'string' ? msg : (msg?.message || 'Invalid file'));
+                }
                 dz.removeFile(file);
             });
             // Gỡ ảnh khỏi khung = bỏ logo của site
@@ -81,8 +71,41 @@ function initLogoDropzone() {
                     $('#site_logo').val('');
                 }
             });
+
+            // Đang sửa và đã có logo: hiện sẵn ảnh hiện tại (đánh dấu _mock để không upload lại)
+            const current = $('#site_logo').val();
+            if (current) {
+                const mockFile = { name: current.split('/').pop(), size: 0, accepted: true, _mock: true };
+                dz.displayExistingFile(mockFile, siteLogoUrl(current));
+                dz.files.push(mockFile);
+            }
         }
     });
+}
+
+// Tự POST logo lên server bằng fetch, rồi ghi đường dẫn vào hidden #site_logo.
+function uploadSiteLogo(dz, file) {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('csrf_token', window.csrfToken);
+    fetch('../../ajax.php?action=upload-site-logo', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(res => {
+            if (res && res.status === 'success') {
+                $('#site_logo').val(res.logo);
+                // Đánh dấu thành công trên khung ảnh (dấu tích xanh)
+                if (file.previewElement) {
+                    file.previewElement.classList.add('dz-success', 'dz-complete');
+                }
+            } else {
+                alert(res && res.message ? res.message : 'Upload failed');
+                dz.removeFile(file);
+            }
+        })
+        .catch(() => {
+            alert('Server connection error');
+            dz.removeFile(file);
+        });
 }
 
 // logo lưu 2 dạng: 'uploads/...' (user tải lên) hoặc tên file trong assets/img/icons/brands/
