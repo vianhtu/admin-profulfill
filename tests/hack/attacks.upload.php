@@ -230,18 +230,25 @@ return function (HackRunner $h): void {
     // name là free-text (tên sàn có dấu chấm, hoa...) nên KHÔNG cấm ký tự ở tầng lưu;
     // phòng thủ đúng là ESCAPE khi render danh sách. Đòn này kiểm chính nơi phòng thủ đó:
     // trang danh sách có escape name/logo/slug trước khi nhét vào HTML không.
-    $h->attack('Upload', "Stored XSS: render name/logo không escape", 'USR_OUT', function ($atk, $fx) {
-        $js = (string)@file_get_contents('/var/www/html/admin-profulfill/assets/js/app-ecommerce-site-list.js');
-        // Lọt nếu còn nhét THÔ ${full['name']} / ${full['logo']} / ${full['slug']} (không qua esc)
-        $rawInjection = [];
-        foreach (['name', 'logo', 'slug'] as $field) {
-            if (str_contains($js, '${full[\'' . $field . '\']}')) {
-                $rawInjection[] = $field;
+    $h->attack('Upload', "Stored XSS: render list không escape (4 trang)", 'USR_OUT', function ($atk, $fx) {
+        // Quét CẢ 4 trang danh sách: field free-text nhét THÔ ${full['...']} vào HTML là XSS.
+        $base = '/var/www/html/admin-profulfill/assets/js/';
+        $files = ['app-ecommerce-site-list.js', 'app-ecommerce-product-list.js',
+            'app-ecommerce-store-list.js', 'app-ecommerce-category-list.js'];
+        $fields = ['name', 'title', 'slug', 'sku', 'badge', 'site_name', 'team_name',
+            'author_name', 'prompt_preview', 'product_brand', 'logo'];
+        $raw = [];
+        foreach ($files as $f) {
+            $js = (string)@file_get_contents($base . $f);
+            foreach ($fields as $field) {
+                if (str_contains($js, '${full[\'' . $field . '\']}')) {
+                    $raw[] = basename($f, '.js') . ':' . $field;
+                }
             }
         }
-        return ['breach' => !empty($rawInjection), 'note' => empty($rawInjection)
-            ? 'name/logo/slug đều được escape (esc()) khi render.'
-            : 'Render THÔ (chưa escape): ' . implode(', ', $rawInjection)];
+        return ['breach' => !empty($raw), 'note' => empty($raw)
+            ? 'Cả 4 trang đều escape field người dùng khi render.'
+            : 'Render THÔ (XSS): ' . implode(', ', $raw)];
     }, 'CAO');
 
     // ===== 11. Pixel-flood: ảnh nhỏ, kích thước khổng lồ -> DoS bộ nhớ =====

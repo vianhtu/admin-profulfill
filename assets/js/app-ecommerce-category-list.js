@@ -3,6 +3,12 @@
  */
 
 'use strict';
+// Escape dữ liệu người dùng (title/name/sku...) trước khi nhét vào HTML -> chặn stored XSS
+function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 
 let dtCategories = null;
 // Quyền cấp trang; sửa/xóa từng dòng lấy theo can_edit/can_delete server trả về
@@ -52,7 +58,7 @@ function initCategoryTable() {
             },
             {
                 targets: 2, responsivePriority: 1,
-                render: (data, type, full) => `<h6 class="text-nowrap mb-0">${full['name']}</h6>`
+                render: (data, type, full) => `<h6 class="text-nowrap mb-0">${esc(full['name'])}</h6>`
             },
             {
                 targets: 3,
@@ -67,7 +73,7 @@ function initCategoryTable() {
                     if (!full['has_prompt']) {
                         return '<span class="text-body-secondary">—</span>';
                     }
-                    return `<small class="text-truncate d-inline-block" style="max-width:320px">${full['prompt_preview']}</small>`;
+                    return `<small class="text-truncate d-inline-block" style="max-width:320px">${esc(full['prompt_preview'])}</small>`;
                 }
             },
             {

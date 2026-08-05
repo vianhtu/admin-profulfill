@@ -3,6 +3,12 @@
  */
 
 'use strict';
+// Escape dữ liệu người dùng (title/name/sku...) trước khi nhét vào HTML -> chặn stored XSS
+function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 
 let categoryObj = {};
 let authorsObj = {};
@@ -137,7 +143,7 @@ function initProductTable(){
 
                         if (image) {
                             // For Product image
-                            output = `<img src="${image}" alt="Product-${id}" class="rounded">`;
+                            output = `<img src="${esc(image)}" alt="Product-${id}" class="rounded">`;
                         } else {
                             // For Product badge
                             let stateNum = Math.floor(Math.random() * 6);
@@ -145,7 +151,7 @@ function initProductTable(){
                             let state = states[stateNum];
                             let initials = (productBrand.match(/\b\w/g) || []).slice(0, 2).join('').toUpperCase();
 
-                            output = `<span class="avatar-initial rounded-2 bg-label-${state}">${initials}</span>`;
+                            output = `<span class="avatar-initial rounded-2 bg-label-${state}">${esc(initials)}</span>`;
                         }
 
                         // Creates full output for Product name and product_brand
@@ -155,8 +161,8 @@ function initProductTable(){
                   <div class="avatar avatar me-2 me-sm-4 rounded-2 bg-label-secondary product-images-trigger cursor-pointer" data-id="${id}">${output}</div>
                 </div>
                 <div class="d-flex flex-column">
-                  <h6 class="text-nowrap mb-0">${name}</h6>
-                  <small class="text-truncate d-none d-sm-block">${productBrand}</small>
+                  <h6 class="text-nowrap mb-0">${esc(name)}</h6>
+                  <small class="text-truncate d-none d-sm-block">${esc(productBrand)}</small>
                 </div>
               </div>
             `;
@@ -170,7 +176,7 @@ function initProductTable(){
                     render: function (data, type, full, meta) {
                         const sku = full['sku'];
 
-                        return '<span>' + sku + '</span>';
+                        return '<span>' + esc(sku) + '</span>';
                     }
                 },
                 {
@@ -183,7 +189,7 @@ function initProductTable(){
                         // Fallback khi type không có trong map (dữ liệu ngoài phạm vi/đã đổi)
                         const category = categoryObj[full['type_id']]?.title ?? full['type_id'];
 
-                        return '<span>' + category + '</span>';
+                        return '<span>' + esc(category) + '</span>';
                     }
                 },
                 {
@@ -198,8 +204,8 @@ function initProductTable(){
                         // Hai dòng giống cột product: tên tác giả + team bên dưới
                         return `
               <div class="d-flex flex-column">
-                <h6 class="text-nowrap mb-0">${stockTitle}</h6>
-                <small class="text-truncate d-none d-sm-block">${teamName}</small>
+                <h6 class="text-nowrap mb-0">${esc(stockTitle)}</h6>
+                <small class="text-truncate d-none d-sm-block">${esc(teamName)}</small>
               </div>
             `;
                     }
@@ -212,7 +218,7 @@ function initProductTable(){
                         if(badge === null || badge === ''){
                             return '<i class="icon-base ti tabler-shopping-cart-off"></i>';
                         }
-                        return '<span>' + badge + '</span>';
+                        return '<span>' + esc(badge) + '</span>';
                     }
                 },
                 {

@@ -3,6 +3,12 @@
  */
 
 'use strict';
+// Escape dữ liệu người dùng (title/name/sku...) trước khi nhét vào HTML -> chặn stored XSS
+function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 
 let sitesObj = {};
 let teamsObj = {};
@@ -65,9 +71,9 @@ function initStoreTable() {
             },
             {
                 targets: 2, responsivePriority: 1,
-                render: (d, t, full) => `<h6 class="text-nowrap mb-0">${full['name']}</h6>`
+                render: (d, t, full) => `<h6 class="text-nowrap mb-0">${esc(full['name'])}</h6>`
             },
-            { targets: 3, render: (d, t, full) => `<span class="text-body-secondary">${full['slug']}</span>` },
+            { targets: 3, render: (d, t, full) => `<span class="text-body-secondary">${esc(full['slug'])}</span>` },
             {
                 targets: 4,
                 render: function (d, t, full) {
@@ -77,14 +83,14 @@ function initStoreTable() {
                     const logo = full['site_logo']
                         ? `<div class="avatar avatar-sm me-2 rounded-2 bg-label-secondary"><img src="${siteLogoUrl(full['site_logo'])}" alt="" class="rounded"></div>`
                         : '';
-                    return `<div class="d-flex align-items-center">${logo}<span>${full['site_name']}</span></div>`;
+                    return `<div class="d-flex align-items-center">${logo}<span>${esc(full['site_name'])}</span></div>`;
                 }
             },
             {
                 // Owner: chưa gán team = dùng chung, ngược lại là store riêng của team
                 targets: 5,
                 render: (d, t, full) => full['team_id'] > 0
-                    ? `<span class="badge bg-label-info">${full['team_name'] || 'Team #' + full['team_id']}</span>`
+                    ? `<span class="badge bg-label-info">${esc(full['team_name'] || 'Team #' + full['team_id'])}</span>`
                     : '<span class="badge bg-label-secondary">Shared</span>'
             },
             {
