@@ -4,23 +4,34 @@
 
 'use strict';
 
-let categoryObj = {};
-let authorsObj = {};
+// Escape dữ liệu người dùng (tên/địa chỉ khách, title item từ sàn...) trước khi nhét vào HTML
+// -> chặn stored XSS. Bắt buộc với MỌI field free-text khi render.
+function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// Chỉ cho phép link http(s) — chặn javascript: URL chui vào href từ dữ liệu item
+function safeUrl(url) {
+    return /^https?:\/\//i.test(url || '') ? url : 'javascript:void(0);';
+}
+
 let sitesObj = {};
+let orderPerms = { edit: false, delete: false, is_admin: false };
+
+const ORDER_STATUSES = ['unshipped', 'cancel', 'refund', 'shipped', 'replace', 'delivered'];
 
 async function init() {
     try {
-        // 1️⃣ Gọi API trước
-        let options = await fetchTableFilter();
-        categoryObj = options['types'];
-        authorsObj = options['authors'];
-        sitesObj = options['sites'];
+        // Orders có endpoint filter riêng — role Orders độc lập với Products
+        const options = await fetchTableFilter('get-orders-table-filter');
+        sitesObj = options['sites'] ?? {};
+        orderPerms = options['perms'] ?? orderPerms;
 
-        // 2️⃣ Sau khi có dữ liệu → tạo bảng
         initTable();
         updateItemData();
     } catch (err) {
-        alert('Không thể tải danh mục');
+        alert('Failed to load order options');
     }
 }
 
@@ -31,7 +42,7 @@ function showImageModal(base64Str, order_id, order_price, item_index) {
         const jsonStr = decodeURIComponent(atob(base64Str).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
         item_data = JSON.parse(jsonStr);
     } catch (e) {
-        return console.error("Lỗi giải mã dữ liệu sản phẩm:", e);
+        return console.error('Failed to decode item data:', e);
     }
 
     // 1. Reset và đổ dữ liệu vào Form gọn gàng
@@ -59,10 +70,6 @@ function getFullSizeImage(url) {
         case url.includes('ebayimg.com'):
             return url.replace(/\/s-l\d+\.jpg$/, '/s-l2000.jpg');
 
-        // Trường hợp 2: Ví dụ sau này bạn muốn thêm quy tắc cho Amazon
-        // case url.includes('media-amazon.com'):
-        //     return url.replace('_SL160_', '_SL1500_');
-
         // Trường hợp mặc định: Không khớp quy tắc nào thì giữ nguyên URL
         default:
             return url;
@@ -79,7 +86,6 @@ function initTable(){
 
     // Variable declaration for table
     const dt_order_table = document.querySelector('.datatables-order')
-    // E-commerce Products datatable
 
     if (dt_order_table) {
         const dt_products = new DataTable(dt_order_table, {
@@ -89,7 +95,12 @@ function initTable(){
             ajax: {
                 url: '../../ajax.php?action=get-orders-table',
                 type: 'POST',
-                data: function (d) {},
+                data: function (d) {
+                    d.minDate = $('#minDate').val() || '';
+                    d.maxDate = $('#maxDate').val() || '';
+                    d.account = $('#accountFilter').val() || '';
+                    d.sites = $('#sitesFilter').val() || [];
+                },
                 dataSrc: function (json) {
                     return json.data;
                 }
@@ -133,11 +144,12 @@ function initTable(){
                     // Order ID
                     targets: 2,
                     render: function (data, type, full, meta) {
+                        const siteTitle = sitesObj[full['site_id']]?.title ?? '';
                         return '<div class="d-flex flex-column">' +
                             '<a href="javascript:void(0);">' +
-                                '<span class="text-nowrap">#' + full['host_id'] + '</span>' +
+                                '<span class="text-nowrap">#' + esc(full['host_id']) + '</span>' +
                             '</a>' +
-                            '<small>'+sitesObj[full['site_id']].title+' ('+full['account_name']+')</small>' +
+                            '<small>' + esc(siteTitle) + ' (' + esc(full['account_name']) + ')</small>' +
                             '</div>';
                     }
                 },
@@ -186,9 +198,9 @@ function initTable(){
                     responsivePriority: 1,
                     render: function (data, type, full, meta) {
                         return '<div class="d-flex flex-column">' +
-                            '<h6 class="text-nowrap mb-0">'+full['full_name']+'</h6>' +
-                            '<small>'+full['address']+'</small>' +
-                            '<small>'+full['phone']+'</small>' +
+                            '<h6 class="text-nowrap mb-0">' + esc(full['full_name']) + '</h6>' +
+                            '<small>' + esc(full['address']) + '</small>' +
+                            '<small>' + esc(full['phone']) + '</small>' +
                         '</div>';
                     }
                 },
@@ -198,20 +210,24 @@ function initTable(){
                     searchable: false,
                     orderable: false,
                     render: function (data, type, full, meta) {
+                        // Quyền theo từng dòng: không đủ quyền thì KHÔNG render control
+                        const statusItems = full['can_edit']
+                            ? ORDER_STATUSES.map(s =>
+                                `<a href="javascript:void(0);" class="dropdown-item update-status text-capitalize" data-status="${s}">${s}</a>`
+                              ).join('')
+                            : '';
+                        const deleteItem = full['can_delete']
+                            ? '<a href="javascript:void(0);" class="dropdown-item delete-record">Delete</a>'
+                            : '';
+                        if (!statusItems && !deleteItem) {
+                            return '';
+                        }
                         return `
                           <div class="d-flex justify-content-sm-start align-items-sm-center">
                             <button class="btn btn-text-secondary rounded-pill waves-effect btn-icon dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
                               <i class="icon-base ti tabler-dots-vertical"></i>
                             </button>
-                            <div class="dropdown-menu dropdown-menu-end m-0">
-                              <a href="javascript:void(0);" class="dropdown-item update-status" data-status="unshipped">Unshipped</a>
-                              <a href="javascript:void(0);" class="dropdown-item update-status" data-status="cancel">Cancel</a>
-                              <a href="javascript:void(0);" class="dropdown-item update-status" data-status="refund">Refund</a>
-                              <a href="javascript:void(0);" class="dropdown-item update-status" data-status="shipped">Shipped</a>
-                              <a href="javascript:void(0);" class="dropdown-item update-status" data-status="replace">Replace</a>
-                              <a href="javascript:void(0);" class="dropdown-item update-status" data-status="delivered">Delivered</a>
-                              <a href="javascript:void(0);" class="dropdown-item delete-record">Delete</a>
-                            </div>
+                            <div class="dropdown-menu dropdown-menu-end m-0">${statusItems}${deleteItem}</div>
                           </div>`;
                     }
                 }
@@ -251,19 +267,7 @@ function initTable(){
                                             exportOptions: {
                                                 columns: [3, 4, 5, 6, 7],
                                                 format: {
-                                                    body: function (inner, coldex, rowdex) {
-                                                        if (inner.length <= 0) return inner;
-                                                        const el = new DOMParser().parseFromString(inner, 'text/html').body.childNodes;
-                                                        let result = '';
-                                                        el.forEach(item => {
-                                                            if (item.classList && item.classList.contains('user-name')) {
-                                                                result += item.lastChild.firstChild.textContent;
-                                                            } else {
-                                                                result += item.textContent || item.innerText || '';
-                                                            }
-                                                        });
-                                                        return result;
-                                                    }
+                                                    body: exportBodyFormat
                                                 }
                                             },
                                             customize: function (win) {
@@ -284,19 +288,7 @@ function initTable(){
                                             exportOptions: {
                                                 columns: [3, 4, 5, 6, 7],
                                                 format: {
-                                                    body: function (inner, coldex, rowdex) {
-                                                        if (inner.length <= 0) return inner;
-                                                        const el = new DOMParser().parseFromString(inner, 'text/html').body.childNodes;
-                                                        let result = '';
-                                                        el.forEach(item => {
-                                                            if (item.classList && item.classList.contains('user-name')) {
-                                                                result += item.lastChild.firstChild.textContent;
-                                                            } else {
-                                                                result += item.textContent || item.innerText || '';
-                                                            }
-                                                        });
-                                                        return result;
-                                                    }
+                                                    body: exportBodyFormat
                                                 }
                                             }
                                         },
@@ -307,19 +299,7 @@ function initTable(){
                                             exportOptions: {
                                                 columns: [3, 4, 5, 6, 7],
                                                 format: {
-                                                    body: function (inner, coldex, rowdex) {
-                                                        if (inner.length <= 0) return inner;
-                                                        const el = new DOMParser().parseFromString(inner, 'text/html').body.childNodes;
-                                                        let result = '';
-                                                        el.forEach(item => {
-                                                            if (item.classList && item.classList.contains('user-name')) {
-                                                                result += item.lastChild.firstChild.textContent;
-                                                            } else {
-                                                                result += item.textContent || item.innerText || '';
-                                                            }
-                                                        });
-                                                        return result;
-                                                    }
+                                                    body: exportBodyFormat
                                                 }
                                             }
                                         },
@@ -330,19 +310,7 @@ function initTable(){
                                             exportOptions: {
                                                 columns: [3, 4, 5, 6, 7],
                                                 format: {
-                                                    body: function (inner, coldex, rowdex) {
-                                                        if (inner.length <= 0) return inner;
-                                                        const el = new DOMParser().parseFromString(inner, 'text/html').body.childNodes;
-                                                        let result = '';
-                                                        el.forEach(item => {
-                                                            if (item.classList && item.classList.contains('user-name')) {
-                                                                result += item.lastChild.firstChild.textContent;
-                                                            } else {
-                                                                result += item.textContent || item.innerText || '';
-                                                            }
-                                                        });
-                                                        return result;
-                                                    }
+                                                    body: exportBodyFormat
                                                 }
                                             }
                                         },
@@ -353,24 +321,17 @@ function initTable(){
                                             exportOptions: {
                                                 columns: [3, 4, 5, 6, 7],
                                                 format: {
-                                                    body: function (inner, coldex, rowdex) {
-                                                        if (inner.length <= 0) return inner;
-                                                        const el = new DOMParser().parseFromString(inner, 'text/html').body.childNodes;
-                                                        let result = '';
-                                                        el.forEach(item => {
-                                                            if (item.classList && item.classList.contains('user-name')) {
-                                                                result += item.lastChild.firstChild.textContent;
-                                                            } else {
-                                                                result += item.textContent || item.innerText || '';
-                                                            }
-                                                        });
-                                                        return result;
-                                                    }
+                                                    body: exportBodyFormat
                                                 }
                                             }
                                         }
                                     ]
-                                }
+                                },
+                                ...(orderPerms.delete ? [{
+                                    text: '<span class="d-flex align-items-center gap-1"><i class="icon-base ti tabler-trash icon-xs"></i> <span class="d-none d-sm-inline-block">Delete Selected</span></span>',
+                                    className: 'btn btn-text-danger',
+                                    action: (e, dtApi) => openDeleteOrderModal(getSelectedOrderIds(dtApi))
+                                }] : [])
                             ]
                         }
                     ]
@@ -395,7 +356,7 @@ function initTable(){
                     display: DataTable.Responsive.display.modal({
                         header: function (row) {
                             const data = row.data();
-                            return 'Details of ' + data['customer'];
+                            return 'Details of ' + esc(data['full_name']);
                         }
                     }),
                     type: 'column',
@@ -440,9 +401,9 @@ function initTable(){
                     url.searchParams.set('search', data.search.search || '');
                 }
 
-                // Luôn lưu và giữ chiều dài trang (URL + localStorage)
+                // Luôn lưu và giữ chiều dài trang (URL + localStorage) — key riêng của trang Orders
                 url.searchParams.set('length', data.length);
-                localStorage.setItem('dt_products_length', data.length);
+                localStorage.setItem('dt_orders_length', data.length);
 
                 // TÍCH HỢP ORDER BY: Lưu lên cả URL lẫn localStorage giống hệt length
                 if (data.order && data.order.length > 0) {
@@ -452,8 +413,8 @@ function initTable(){
                     url.searchParams.set('order_col', col);
                     url.searchParams.set('order_dir', dir);
 
-                    localStorage.setItem('dt_products_order_col', col);
-                    localStorage.setItem('dt_products_order_dir', dir);
+                    localStorage.setItem('dt_orders_order_col', col);
+                    localStorage.setItem('dt_orders_order_dir', dir);
                 } else {
                     url.searchParams.delete('order_col');
                     url.searchParams.delete('order_dir');
@@ -468,10 +429,10 @@ function initTable(){
                 const urlParams = new URLSearchParams(window.location.search);
 
                 // Đọc các giá trị dự phòng từ localStorage (nếu chưa từng lưu thì dùng mặc định của hệ thống)
-                const savedLength = parseInt(localStorage.getItem('dt_products_length'), 10) || settings._iDisplayLength || 10;
+                const savedLength = parseInt(localStorage.getItem('dt_orders_length'), 10) || settings._iDisplayLength || 10;
 
-                const localOrderCol = localStorage.getItem('dt_products_order_col');
-                const localOrderDir = localStorage.getItem('dt_products_order_dir');
+                const localOrderCol = localStorage.getItem('dt_orders_order_col');
+                const localOrderDir = localStorage.getItem('dt_orders_order_dir');
                 const defaultOrder = settings.aaSorting || [[0, 'asc']];
 
                 // Khởi tạo cấu hình order dự phòng từ bộ nhớ máy
@@ -522,7 +483,11 @@ function initTable(){
 
                     // Kiểm tra tránh lỗi nếu rowData.items đã là object/array hoặc bị null
                     if (typeof rowData.items === 'string') {
-                        items = JSON.parse(rowData.items);
+                        try {
+                            items = JSON.parse(rowData.items);
+                        } catch (e) {
+                            items = [];
+                        }
                     } else {
                         items = rowData.items || [];
                     }
@@ -541,52 +506,59 @@ function initTable(){
                           <div class="d-flex justify-content-start align-items-center product-name">
                             <div class="avatar-wrapper">
                               <div class="avatar avatar me-2 me-sm-4 rounded-2 bg-label-secondary" style="width:80px; height:80px;">
-                                <img src="${item.imageUrl}" 
-                                     class="rounded img-fluid" 
-                                     style="cursor:pointer;" 
-                                     onclick="showImageModal('${base64Str}', ${order_id} , ${order_price} , ${index})">
+                                <img src="${esc(item.imageUrl)}"
+                                     class="rounded img-fluid"
+                                     style="cursor:pointer;"
+                                     onclick="showImageModal('${base64Str}', ${Number(order_id)} , ${JSON.stringify(Number(order_price) || 0)} , ${index})">
                               </div>
                             </div>
                             <div class="d-flex flex-column">
-                              <a href="${item?.url || 'javascript:void(0);'}" target="_blank" class="text-heading">${item.title}</a>
-                              <small>ID: ${item.itemId}</small>
-                              <small>QLT: ${item.quantity}</small>
+                              <a href="${esc(safeUrl(item?.url))}" target="_blank" rel="noopener" class="text-heading">${esc(item.title)}</a>
+                              <small>ID: ${esc(item.itemId)}</small>
+                              <small>QLT: ${esc(item.quantity)}</small>
                             </div>
                           </div>`;
 
                             let row_custom = '<div class="d-flex flex-column">';
                             if(item?.sku){
-                                row_custom += `<small>SKU: ${item.sku}</small>`;
+                                row_custom += `<small>SKU: ${esc(item.sku)}</small>`;
                             }
-                            item.attributes.forEach(value => {
-                                row_custom += `<small>${value}</small>`;
+                            (item.attributes || []).forEach(value => {
+                                row_custom += `<small>${esc(value)}</small>`;
                             });
                             row_custom += '</div>';
 
                             const currentService = item.services ? item.services.trim() : '';
-                            const optionHtml = currentService
-                                ? `<option value="${currentService}" selected>${currentService}</option>`
-                                : `<option></option>`;
+
+                            // Ô tracking: chỉ user có quyền edit mới thấy input, còn lại chỉ đọc
+                            let trackingCell;
+                            if (rowData.can_edit) {
+                                const optionHtml = currentService
+                                    ? `<option value="${esc(currentService)}" selected>${esc(currentService)}</option>`
+                                    : `<option></option>`;
+                                trackingCell = `
+                                <div class="d-flex flex-column gap-2">
+                                    <select class="form-select form-select-sm shipping-service">${optionHtml}</select>
+                                    <input type="text" value="${esc(item?.track || '')}" class="form-control shipping-tracking" placeholder="Add track here...">
+                                </div>`;
+                            } else {
+                                trackingCell = `
+                                <div class="d-flex flex-column">
+                                    <small>${esc(currentService || '—')}</small>
+                                    <small>${esc(item?.track || '—')}</small>
+                                </div>`;
+                            }
 
                             html += `
-                          <tr class="order-item" data-id="${rowData.id}" data-item-index="${index}">
+                          <tr class="order-item" data-id="${Number(rowData.id)}" data-item-index="${index}">
                             <td style="display: none;"></td>
                             <td></td>
                             <td colspan="3">${row_image}</td>
                             <td colspan="3">${row_custom}</td>
-                            <td>
-                                <div class="d-flex flex-column gap-2">
-                                    <!-- Hộp chọn (Select) -->
-                                    <select class="form-select form-select-sm shipping-service">${optionHtml}</select>
-                                    <!-- Ô nhập liệu (Input text) -->
-                                    <input type="text" value="${item?.track || ''}" class="form-control shipping-tracking" placeholder="Add track here...">
-                                </div>
-                            </td>
+                            <td>${trackingCell}</td>
                             <td></td>
                           </tr>`;
                     });
-
-                    html += '';
 
                     // Chèn hàng con ngay sau hàng cha ở trang hiện tại
                     $(this.node()).after(html);
@@ -632,31 +604,58 @@ function initTable(){
             initComplete: function(settings, json) {
                 const api = this.api();
                 addTrackingNumber(api);
+
+                // --- Bộ lọc của trang: khoảng ngày mua + account + sites ---
+                $('.order_from_date').html('<label class="form-label">From</label><input type="text" class="form-control" id="minDate" placeholder="YYYY-MM-DD">');
+                $('.order_to_date').html('<label class="form-label">To</label><input type="text" class="form-control" id="maxDate" placeholder="YYYY-MM-DD">');
+
+                // flatpickr của template: value giữ Y-m-d cho backend, hiển thị d/m/Y cho người dùng
+                const maxPicker = document.querySelector('#maxDate').flatpickr({
+                    monthSelectorType: 'static',
+                    dateFormat: 'Y-m-d',
+                    altInput: true,
+                    altFormat: 'd/m/Y',
+                    onChange: function () {
+                        api.draw();
+                    }
+                });
+                document.querySelector('#minDate').flatpickr({
+                    monthSelectorType: 'static',
+                    dateFormat: 'Y-m-d',
+                    altInput: true,
+                    altFormat: 'd/m/Y',
+                    onChange: function (selectedDates, dateStr) {
+                        // Không cho chọn ngày kết thúc trước ngày bắt đầu
+                        maxPicker.set('minDate', dateStr || null);
+                        api.draw();
+                    }
+                });
+
+                // Account: select2 ajax (danh sách account đã được server giới hạn theo team)
+                getAjaxSelect2HTML('order_account', 'accountFilter', 'Account', 'filter-accounts', false, null, 0);
+                // Sites: select2 ajax multiple
+                getAjaxSelect2HTML('order_sites', 'sitesFilter', 'Sites', 'filter-sites', true, null, 0);
+                $('#accountFilter, #sitesFilter').on('change', function () {
+                    api.draw();
+                });
             }
         });
 
-        // 1. Xử lý sự kiện click vào nút xóa bản ghi (.delete-record)
-        let $rowToDelete = null;
+        // 1. Xóa: nút theo dòng (per-row can_delete) + Delete Selected — dùng chung modal
         $(document).on('click', '.delete-record', function (e) {
             e.preventDefault();
-
-            // Lưu lại chính xác dòng <tr> chứa nút vừa click
-            $rowToDelete = $(this).closest('tr');
-
-            // Khởi tạo và hiển thị Modal Xác Nhận
-            const deleteModal = new bootstrap.Modal($('#deleteConfirmModal'));
-            deleteModal.show();
-        });
-        $('#btn-confirm-delete').on('click', function () {
-            if ($rowToDelete) {
-                const orderId = $rowToDelete.attr('data-order-id');
-                deleteOrders([orderId], dt_products);
-                // B. Ẩn Modal xác nhận xóa
-                let deleteModalInstance = bootstrap.Modal.getInstance($('#deleteConfirmModal')[0]);
-                deleteModalInstance?.hide();
-                // D. Reset lại biến sau khi xử lý xong
-                $rowToDelete = null;
+            const orderId = parseInt($(this).closest('tr').attr('data-order-id'), 10);
+            if (orderId) {
+                openDeleteOrderModal([orderId]);
             }
+        });
+        $(document).on('click', '#btn-confirm-delete', function () {
+            const ids = $('#deleteConfirmModal').data('ids') || [];
+            if (ids.length) {
+                deleteOrders(ids, dt_products);
+            }
+            bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal'))?.hide();
+            $('#deleteConfirmModal').removeData('ids');
         });
 
         // 2. Xử lý sự kiện click vào nút cập nhật trạng thái (.update-status)
@@ -697,7 +696,6 @@ function initTable(){
             { selector: '.dt-layout-full', classToRemove: 'col-md col-12', classToAdd: 'table-responsive' }
         ];
 
-        // Delete record
         elementsToModify.forEach(({ selector, classToRemove, classToAdd }) => {
             document.querySelectorAll(selector).forEach(element => {
                 if (classToRemove) {
@@ -711,13 +709,55 @@ function initTable(){
     }, 100);
 }
 
+// Format dùng chung cho các nút export (print/csv/excel/pdf/copy)
+function exportBodyFormat(inner, coldex, rowdex) {
+    if (inner.length <= 0) return inner;
+    const el = new DOMParser().parseFromString(inner, 'text/html').body.childNodes;
+    let result = '';
+    el.forEach(item => {
+        if (item.classList && item.classList.contains('user-name')) {
+            result += item.lastChild.firstChild.textContent;
+        } else {
+            result += item.textContent || item.innerText || '';
+        }
+    });
+    return result;
+}
+
+// Gom ID các dòng đang chọn (API select + fallback checkbox)
+function getSelectedOrderIds(dt) {
+    const ids = new Set(dt.rows({ selected: true }).data().toArray().map(r => r.id));
+    $('.datatables-order tbody input.dt-checkboxes:checked').each(function () {
+        const row = dt.row($(this).closest('tr')).data();
+        if (row) {
+            ids.add(row.id);
+        }
+    });
+    return [...ids];
+}
+
+function openDeleteOrderModal(ids) {
+    if (!ids.length) {
+        alert('Select at least 1 order.');
+        return;
+    }
+    const modalEl = document.getElementById('deleteConfirmModal');
+    if (!modalEl) {
+        return; // không có role delete thì fragment không render modal
+    }
+    $('#deleteOrderCount').text(ids.length.toLocaleString());
+    $(modalEl).data('ids', ids);
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+}
+
 function updateOrdersStatus(orders) {
     // Gọi AJAX bằng jQuery
     $.ajax({
         url: '../../ajax.php?action=update-orders-status',
         method: 'POST',
         data: {
-            orders: orders
+            orders: orders,
+            csrf_token: window.csrfToken
         },
         success: function(response) {
             if (response?.status === 'success' && !$.isEmptyObject(response?.orders)) {
@@ -728,11 +768,11 @@ function updateOrdersStatus(orders) {
                     }
                 });
             } else {
-                console.log(response);
+                alert(response?.message || 'Failed to update order status.');
             }
         },
         error: function(xhr, status, error) {
-            console.error('Lỗi AJAX:', error);
+            alert('Server connection error.');
         }
     });
 }
@@ -743,7 +783,8 @@ function deleteOrders(orders, table) {
         url: '../../ajax.php?action=delete-orders',
         method: 'POST',
         data: {
-            order_ids: orders
+            order_ids: orders,
+            csrf_token: window.csrfToken
         },
         success: function(response) {
             if (response?.status === 'success' && !$.isEmptyObject(response?.orders)) {
@@ -765,11 +806,11 @@ function deleteOrders(orders, table) {
                     table.draw(false);
                 }
             } else {
-                console.log(response);
+                alert(response?.message || 'Failed to delete orders.');
             }
         },
         error: function(xhr, status, error) {
-            console.error('Lỗi AJAX:', error);
+            alert('Server connection error.');
         }
     });
 }
@@ -781,7 +822,8 @@ function updateItemData(){
             order_id: $('#order_id').val(),
             base_cost: $('#item-base-cost').val(),
             note: $('#item-note').val(),
-            order_price: $('#order_price').val()
+            order_price: $('#order_price').val(),
+            csrf_token: window.csrfToken
         };
 
         // Gọi AJAX bằng jQuery
@@ -790,12 +832,15 @@ function updateItemData(){
             method: 'POST',
             data: data,
             success: function(response) {
+                if (response?.status !== 'success') {
+                    alert(response?.message || 'Failed to save item data.');
+                    return;
+                }
                 const row = $('tr[data-order-id="'+data.order_id+'"]');
                 row.find('.order-price-column').html(renderPriceHtml(data.order_price, data.base_cost));
-                console.log('Cập nhật thành công:', response);
             },
             error: function(xhr, status, error) {
-                console.error('Lỗi AJAX:', error);
+                alert('Server connection error.');
             }
         });
     });
@@ -841,7 +886,8 @@ function addTrackingNumber(api) {
                     id: orderId,
                     itemIndex: itemIndex,
                     services: services,
-                    track: track
+                    track: track,
+                    csrf_token: window.csrfToken
                 },
                 success: function(response) {
                     if (response.status === 'success') {
@@ -859,13 +905,12 @@ function addTrackingNumber(api) {
                                 }
                             }
                         }
-                        console.log(response.message);
                     } else {
-                        alert('Lỗi: ' + response.message);
+                        alert('Error: ' + response.message);
                     }
                 },
                 error: function() {
-                    alert('Hệ thống gặp lỗi khi kết nối!');
+                    alert('Server connection error.');
                 },
                 complete: function() {
                     // Xóa trạng thái chờ và mở khóa input
@@ -885,10 +930,10 @@ function renderPriceHtml(total_price, base_cost){
         let _base_cost = parseFloat(base_cost) || 0;
         let profitValue = (_total_price - _base_cost).toFixed(2);
         let profitClass = parseFloat(profitValue) >= 0 ? 'text-success' : 'text-danger';
-        base_cost_html = '<small class="text-warning">$' + base_cost + '</small>';
+        base_cost_html = '<small class="text-warning">$' + esc(base_cost) + '</small>';
         profit_html ='<span class="'+profitClass+'"> ($' + profitValue + ')</span>';
     }
-    return '<div class="d-flex flex-column"><h6 class="text-nowrap mb-0">$' + total_price + profit_html +'</h6>' + base_cost_html + '</div>';
+    return '<div class="d-flex flex-column"><h6 class="text-nowrap mb-0">$' + esc(total_price) + profit_html +'</h6>' + base_cost_html + '</div>';
 }
 
 function renderStatusHtml(status){
@@ -905,6 +950,8 @@ function renderStatusHtml(status){
     if (statusInfo) {
         return `<span class="badge px-2 ${statusInfo.class} text-capitalized">${statusInfo.title}</span>`;
     }
+    // Trạng thái lạ (dữ liệu cũ/sai): hiển thị trung tính, đã escape
+    return `<span class="badge px-2 bg-label-secondary">${esc(status || '—')}</span>`;
 }
 
 /**

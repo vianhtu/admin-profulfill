@@ -1,46 +1,63 @@
 <?php
+/**
+ * Orders — nghiệp vụ tập hợp cho bảng `orders` (menu Orders): danh sách, thống kê,
+ * cập nhật trạng thái / xóa hàng loạt. Cùng khuôn với class.products.php.
+ *
+ * Phạm vi dữ liệu đi qua bảng `accounts` (đơn thuộc account, account thuộc team):
+ *   - admin   = mọi team;
+ *   - manager = account thuộc team mình (accounts.team_id);
+ *   - user    = chỉ account được gán cho mình (accounts_authors.author_id).
+ */
 class Orders
 {
     /**
-     * Kiểm tra quyền sở hữu và phân quyền chỉnh sửa đối với danh sách đơn hàng
-     * * @param mysqli $conn Đối tượng kết nối MySQLi
-     * @param int[] $orderIds Mảng chứa danh sách ID các đơn hàng cần kiểm tra
-     * @param array $action Quyền cần kiểm tra (mặc định là ['edit'])
-     * @return array Trả về mảng danh sách các đơn hàng hợp lệ (key là order_id để dễ truy xuất)
+     * Cột sắp xếp được của bảng Orders: tên cột DataTables => biểu thức SQL.
+     * Cột nào không có ở đây thì bên JS phải để orderable: false.
+     */
+    private const SORT_MAP = [
+        'host_id'       => 'orders.host_id',
+        'purchase_date' => 'orders.purchase_date',
+        'ship_date'     => 'orders.ship_date',
+        'delivery_date' => 'orders.delivery_date',
+        'total_price'   => 'orders.total_price',
+        'status'        => 'orders.status',
+        'ID'            => 'orders.ID',
+    ];
+
+    /** Trạng thái đơn hợp lệ — dùng chung cho update + thống kê. */
+    public const STATUSES = ['unshipped', 'cancel', 'shipped', 'replace', 'refund', 'delivered'];
+
+    /**
+     * Lọc danh sách order ID về đúng phạm vi dữ liệu + role của user hiện tại.
+     * Dùng trước mọi thao tác ghi/xóa — không tin danh sách ID gửi lên.
+     *
+     * @param int[] $orderIds
+     * @param string[] $action role cần có trên menu orders (edit/delete)
+     * @return array<int,array> các đơn hợp lệ, key = order ID để tra O(1)
      */
     public static function check_orders_ownership(mysqli $conn, array $orderIds, array $action = ['edit']): array {
-        // 1. Lọc và làm sạch mảng ID (ép kiểu int và chỉ lấy số dương)
-        $validIds = array_filter(array_map('intval', $orderIds), fn($id) => $id > 0);
-
-        // Nếu mảng rỗng sau khi lọc, trả về mảng rỗng ngay lập tức.
+        $validIds = array_values(array_unique(array_filter(array_map('intval', $orderIds), fn($id) => $id > 0)));
         if (empty($validIds)) {
             return [];
         }
 
-        // 2. Kiểm tra role cơ bản trên module orders
-        if (!is_admin() && !checkRoles($action, 'orders')) {
+        // Trục ROLE: chỉ admin bỏ qua (checkRoles đã tự xử lý admin)
+        if (!checkRoles($action, 'orders')) {
             return [];
         }
 
-        // 3. Xây dựng câu lệnh SQL phân quyền dựa trên cấu trúc table
+        // Trục PHẠM VI DỮ LIỆU: qua accounts (team) và accounts_authors (user)
         $sql = "SELECT o.* FROM orders o
             INNER JOIN accounts a ON o.account_id = a.ID";
 
-        // Tạo các dấu '?' tương ứng với số lượng ID hợp lệ cho mệnh đề IN
         $placeholders = implode(',', array_fill(0, count($validIds), '?'));
         $whereClauses = ["o.ID IN ($placeholders)"];
+        $bindParams = $validIds;
 
-        // Khởi tạo mảng bind tham số bằng chính danh sách ID đã lọc
-        // Hàm array_values đảm bảo key của mảng là tuần tự (0, 1, 2...)
-        $bindParams = array_values($validIds);
-
-        // Áp dụng phân quyền theo cấp bậc nếu không phải Admin
         if (!is_admin()) {
-            // Phân quyền cấp Team
             $whereClauses[] = "a.team_id = ?";
             $bindParams[] = (int)$_SESSION['auth']['team'];
 
-            // Phân quyền cấp User (Nhân viên) dựa trên bảng accounts_authors
             if (is_user()) {
                 $sql .= " INNER JOIN accounts_authors aa ON a.ID = aa.account_id";
                 $whereClauses[] = "aa.author_id = ?";
@@ -48,133 +65,110 @@ class Orders
             }
         }
 
-        // Nối các điều kiện WHERE lại với nhau
         $sql .= " WHERE " . implode(" AND ", $whereClauses);
 
-        // 4. Thực thi truy vấn an toàn bằng Prepared Statement
-        $stmt = $conn->prepare($sql);
-        if (!$stmt) {
-            // Log lỗi hoặc xử lý exception tại đây nếu cần
-            return [];
-        }
-
-        // Tận dụng tính năng của PHP 8+ truyền thẳng mảng vào execute()
-        $stmt->execute($bindParams);
-        $result = $stmt->get_result();
-
         $validOrders = [];
-        while ($row = $result->fetch_assoc()) {
-            // Sử dụng chính ID của đơn hàng làm Key của mảng
-            // Việc này giúp bạn dễ dàng tìm kiếm o(1) khi xử lý logic ở bên ngoài
+        foreach ($conn->execute_query($sql, $bindParams) as $row) {
             $validOrders[$row['ID']] = $row;
         }
-
-        $stmt->close();
-
         return $validOrders;
     }
 
+    /**
+     * Điều kiện phân quyền dữ liệu dùng chung cho danh sách + thống kê.
+     * Query gọi tới phải JOIN accounts (và accounts_authors với level user).
+     */
     private static function get_base_auth_conditions(): array {
         $whereClauses = [];
         $bindParams = [];
 
-        // 1. Kiểm tra phân quyền (Role)
         if (!is_admin()) {
-            if (!checkRoles('view', 'orders')) {
-                return [
-                    'has_permission' => false,
-                    'where' => [],
-                    'params' => []
-                ];
-            }
-
-            // Phân quyền theo Team
             $whereClauses[] = "accounts.team_id = ?";
             $bindParams[] = (int)$_SESSION['auth']['team'];
 
-            // Phân quyền theo Manager/User
             if (is_user()) {
                 $whereClauses[] = "accounts_authors.author_id = ?";
                 $bindParams[] = (int)$_SESSION['auth']['user_id'];
             }
         }
 
-        return [
-            'has_permission' => true,
-            'where' => $whereClauses,
-            'params' => $bindParams
-        ];
+        return ['where' => $whereClauses, 'params' => $bindParams];
     }
+
+    /**
+     * Dữ liệu cho DataTables của trang Orders (server-side).
+     *
+     * @return array{draw:int,recordsTotal:int,recordsFiltered:int,data:array}
+     */
     public static function get_orders(): array {
-        $allowedCols = ['ID', 'status', 'purchase_date', 'delivery_date', 'ship_date', 'total_price'];
-        $params = get_datatable_params($allowedCols);
-        $conn = db();
-
-        // Lấy điều kiện phân quyền cơ bản
-        $auth = self::get_base_auth_conditions();
-
-        // Trả về rỗng nếu không có quyền
-        if (!$auth['has_permission']) {
-            return [
-                "draw" => $params['draw'],
-                "recordsTotal" => 0,
-                "recordsFiltered" => 0,
-                "data" => []
-            ];
+        $params = get_datatable_params(array_keys(self::SORT_MAP), 'purchase_date');
+        if (!checkRoles('view', 'orders')) {
+            return ['draw' => $params['draw'], 'recordsTotal' => 0, 'recordsFiltered' => 0, 'data' => []];
         }
 
+        $conn = db();
+        $auth = self::get_base_auth_conditions();
         $whereClauses = $auth['where'];
         $bindParams = $auth['params'];
 
-        // 2. Tính tổng số bản ghi MÀ USER ĐƯỢC PHÉP THẤY (Trước khi tìm kiếm)
+        // Tổng số bản ghi trong phạm vi được phép thấy (trước khi lọc)
         $whereAuth = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
-        $countSql = "SELECT COUNT(DISTINCT orders.ID) AS cnt FROM orders 
+        $countSql = "SELECT COUNT(DISTINCT orders.ID) AS cnt FROM orders
                  INNER JOIN accounts ON accounts.ID = orders.account_id
-                 LEFT JOIN accounts_authors ON accounts_authors.account_id = accounts.ID 
+                 LEFT JOIN accounts_authors ON accounts_authors.account_id = accounts.ID
                  $whereAuth";
+        $totalRecords = (int)$conn->execute_query($countSql, $bindParams)->fetch_assoc()['cnt'];
 
-        // PHP 8.2+: Thực thi trực tiếp và lấy kết quả chỉ với 1 dòng
-        $totalRecords = $conn->execute_query($countSql, $bindParams)->fetch_assoc()['cnt'];
-
-        // 3. Xử lý ô tìm kiếm (Search Value)
+        // Ô tìm kiếm
         if ($params['searchValue'] !== '') {
-            $whereClauses[] = "(orders.host_id LIKE ? 
-            OR orders.full_name LIKE ? 
-            OR orders.phone LIKE ? 
+            $whereClauses[] = "(orders.host_id LIKE ?
+            OR orders.full_name LIKE ?
+            OR orders.phone LIKE ?
             OR orders.all_item_titles LIKE ?
             OR orders.all_item_ids LIKE ?
             OR orders.all_item_skus LIKE ?)";
-
             $searchParam = "%" . $params['searchValue'] . "%";
-            // Thêm 4 tham số tìm kiếm vào mảng
-            array_push(
-                $bindParams,
-                $searchParam,
-                $searchParam,
-                $searchParam,
-                $searchParam,
-                $searchParam,
-                $searchParam
-            );
+            array_push($bindParams, $searchParam, $searchParam, $searchParam, $searchParam, $searchParam, $searchParam);
         }
+
+        // Lọc theo khoảng ngày mua — so sánh range trực tiếp trên cột để index dùng được
+        $minDate = (string)($_POST['minDate'] ?? '');
+        $maxDate = (string)($_POST['maxDate'] ?? '');
+        if ($minDate !== '') {
+            $whereClauses[] = "orders.purchase_date >= ?";
+            $bindParams[] = $minDate . ' 00:00:00';
+        }
+        if ($maxDate !== '') {
+            $whereClauses[] = "orders.purchase_date <= ?";
+            $bindParams[] = $maxDate . ' 23:59:59';
+        }
+
+        // Lọc theo account (select2 ajax, single)
+        $filterAccount = (int)($_POST['account'] ?? 0);
+        if ($filterAccount > 0) {
+            $whereClauses[] = "orders.account_id = ?";
+            $bindParams[] = $filterAccount;
+        }
+
+        // Lọc theo sites (select2 multiple)
+        $filterSites = $_POST['sites'] ?? [];
+        if (!empty($filterSites) && is_array($filterSites)) {
+            $siteIds = array_values(array_filter(array_map('intval', $filterSites), fn($v) => $v > 0));
+            if (!empty($siteIds)) {
+                $whereClauses[] = 'accounts.site_id IN (' . implode(',', $siteIds) . ')';
+            }
+        }
+
         $whereAll = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
 
-        // 4. Tính tổng số bản ghi SAU KHI LỌC SEARCH
-        $filterSql = "SELECT COUNT(DISTINCT orders.ID) AS cnt FROM orders 
+        // Tổng số bản ghi sau khi lọc
+        $filterSql = "SELECT COUNT(DISTINCT orders.ID) AS cnt FROM orders
                   INNER JOIN accounts ON accounts.ID = orders.account_id
-                  LEFT JOIN accounts_authors ON accounts_authors.account_id = accounts.ID 
+                  LEFT JOIN accounts_authors ON accounts_authors.account_id = accounts.ID
                   $whereAll";
+        $totalFiltered = (int)$conn->execute_query($filterSql, $bindParams)->fetch_assoc()['cnt'];
 
-        $totalFiltered = $conn->execute_query($filterSql, $bindParams)->fetch_assoc()['cnt'];
-
-        // 5. Kiểm tra an toàn cho cấu trúc Sắp xếp và Phân trang (Giữ nguyên Whitelist)
-        $orderColumn = in_array($params['orderColumn'], $allowedCols) ? $params['orderColumn'] : 'ID';
-        $orderDir = strtoupper($params['orderDir']) === 'DESC' ? 'DESC' : 'ASC';
-
-        $start = filter_var($params['start'], FILTER_VALIDATE_INT) !== false ? (int)$params['start'] : 0;
-        $length = filter_var($params['length'], FILTER_VALIDATE_INT) !== false ? (int)$params['length'] : 10;
-
-        // 6. Lấy dữ liệu thực tế
+        // Lấy dữ liệu trang hiện tại — ORDER BY qua SORT_MAP + khóa phụ ID
         $sql = "SELECT orders.*, NOW() AS server_date,
             accounts.site_id, accounts.name AS account_name, accounts.email AS account_email
         FROM orders
@@ -182,36 +176,41 @@ class Orders
         LEFT JOIN accounts_authors ON accounts_authors.account_id = accounts.ID
         $whereAll
         GROUP BY orders.ID
-        ORDER BY orders.{$orderColumn} {$orderDir}
+        ORDER BY " . build_order_by($params, self::SORT_MAP, 'orders.ID') . "
         LIMIT ?, ?";
 
-        // Tạo mảng riêng cho câu lệnh lấy data vì có thêm 2 tham số LIMIT ở cuối
         $dataParams = $bindParams;
-        $dataParams[] = $start;
-        $dataParams[] = $length;
-
+        $dataParams[] = $params['start'];
+        $dataParams[] = $params['length'];
         $rs = $conn->execute_query($sql, $dataParams);
 
+        // Quyền hàng loạt tính 1 lần: phạm vi dữ liệu đã lọc sẵn ở WHERE nên mọi dòng
+        // trong trang có cùng quyền role; vẫn trả cờ theo TỪNG dòng đúng quy ước chung
+        // để JS dựng nút từ cờ đó.
+        $canEdit = checkRoles('edit', 'orders');
+        $canDelete = checkRoles('delete', 'orders');
+
         $data = [];
-        // PHP 8.0+: Bạn có thể dùng foreach trực tiếp trên mysqli_result rất mượt mà
         foreach ($rs as $row) {
             $data[] = [
-                "id"               => $row['ID'],
-                "host_id"          => $row['host_id'],
-                "purchase_date"    => $row['purchase_date'],
-                "delivery_date"    => $row['delivery_date'],
-                "ship_date"        => $row['ship_date'],
-                "fulfill_date"     => $row['fulfill_date'],
-                "full_name"        => $row['full_name'],
-                "address"          => $row['address'],
-                "phone"            => $row['phone'],
-                "total_price"      => $row['total_price'],
-                "base_cost"        => $row['base_cost'],
-                "items"            => $row['items'],
-                "status"           => $row['status'],
-                "site_id"          => $row['site_id'],
-                "account_name"     => $row['account_name'],
-                "server_date"      => $row['server_date'],
+                "id"            => (int)$row['ID'],
+                "host_id"       => $row['host_id'],
+                "purchase_date" => $row['purchase_date'],
+                "delivery_date" => $row['delivery_date'],
+                "ship_date"     => $row['ship_date'],
+                "fulfill_date"  => $row['fulfill_date'],
+                "full_name"     => $row['full_name'],
+                "address"       => $row['address'],
+                "phone"         => $row['phone'],
+                "total_price"   => $row['total_price'],
+                "base_cost"     => $row['base_cost'],
+                "items"         => $row['items'],
+                "status"        => $row['status'],
+                "site_id"       => (int)$row['site_id'],
+                "account_name"  => $row['account_name'],
+                "server_date"   => $row['server_date'],
+                "can_edit"      => $canEdit,
+                "can_delete"    => $canDelete,
             ];
         }
 
@@ -219,120 +218,105 @@ class Orders
             "draw"            => $params['draw'],
             "recordsTotal"    => $totalRecords,
             "recordsFiltered" => $totalFiltered,
-            "data"            => $data
+            "data"            => $data,
+        ];
+    }
+
+    /**
+     * Option bộ lọc + cờ quyền chung của trang Orders.
+     * Trang này KHÔNG dùng filter của Products — role Orders và Products độc lập.
+     *
+     * @return array{sites:array,perms:array{edit:bool,delete:bool,is_admin:bool}}
+     */
+    public static function get_orders_filters(): array {
+        if (!checkRoles('view', 'orders')) {
+            return ['status' => 'error', 'message' => 'You do not have permission to view orders.'];
+        }
+        return [
+            'sites' => get_all_sites(),
+            'perms' => [
+                'edit'     => checkRoles('edit', 'orders'),
+                'delete'   => checkRoles('delete', 'orders'),
+                'is_admin' => is_admin(),
+            ],
         ];
     }
 
     public static function get_orders_statistic(): array {
-        $conn = db();
-
-        // 1. Lấy điều kiện phân quyền dùng chung
-        $auth = self::get_base_auth_conditions();
-        if (!$auth['has_permission']) {
-            return []; // Trả về mảng rỗng nếu không có quyền
+        // Lớp code: tự kiểm role dù fragment đã gate — trả 0 hết, không chạy query
+        if (!checkRoles('view', 'orders')) {
+            return array_fill_keys(self::STATUSES, 0);
         }
+        $conn = db();
+        $auth = self::get_base_auth_conditions();
+        $whereSql = $auth['where'] ? ' WHERE ' . implode(' AND ', $auth['where']) : '';
 
-        $whereClauses = $auth['where'];
-        $bindParams = $auth['params'];
-
-        // 2. Thêm điều kiện 30 ngày gần nhất (dùng INTERVAL của MySQL)
-        // Giả sử lấy theo ngày tạo (purchase_date) hoặc ngày nào đó bạn muốn.
-        //$whereClauses[] = "orders.purchase_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
-
-        // 3. Xây dựng câu truy vấn WHERE
-        $whereSql = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
-
-        // 4. Query lấy thống kê
-        // Cần JOIN các bảng như ở trên vì điều kiện phân quyền (team_id, author_id) nằm ở bảng khác
+        // JOIN vì điều kiện phân quyền (team_id, author_id) nằm ở bảng khác
         $sql = "SELECT orders.status, COUNT(DISTINCT orders.ID) AS total_count
             FROM orders
             INNER JOIN accounts ON accounts.ID = orders.account_id
             LEFT JOIN accounts_authors ON accounts_authors.account_id = accounts.ID
             $whereSql
             GROUP BY orders.status";
+        $rs = $conn->execute_query($sql, $auth['params']);
 
-        $rs = $conn->execute_query($sql, $bindParams);
-
-        $statistics = [
-            'unshipped' => 0,
-            'cancel' => 0,
-            'shipped' => 0,
-            'replace' => 0,
-            'refund' => 0,
-            'delivered' => 0,
-        ];
+        $statistics = array_fill_keys(self::STATUSES, 0);
         foreach ($rs as $row) {
             $statistics[$row['status']] = (int)$row['total_count'];
         }
-
         return $statistics;
     }
 
     /**
-     * Engine lõi xử lý hàng loạt mọi thao tác (Update, Delete, v.v.)
+     * Engine lõi xử lý hàng loạt (update status / delete).
+     * ID ngoài phạm vi quyền bị loại và báo lại, không chặn cả lô.
      */
-    private static function process_orders(string $action, array $inputData, $role = ['edit']): array
+    private static function process_orders(string $action, array $inputData, array $role = ['edit']): array
     {
         $conn = db();
 
         if (empty($inputData)) {
-            return ['status' => 'error', 'message' => 'Không tìm thấy dữ liệu đơn hàng cần xử lý.'];
+            return ['status' => 'error', 'message' => 'No orders to process.'];
         }
 
-        // 1. Chuẩn hóa danh sách ID
-        // Nếu là Update ($inputData dạng [id => status]), nếu là Delete ($inputData dạng [id1, id2])
+        // Update gửi map [id => status], delete gửi mảng [id1, id2]
         $isAssoc = array_keys($inputData) !== range(0, count($inputData) - 1);
         $orderIds = $isAssoc ? array_keys($inputData) : array_values($inputData);
 
-        // 2. Kiểm tra quyền sở hữu hàng loạt (Bulk Check)
+        // Trục role + phạm vi dữ liệu — không tin danh sách ID gửi lên
         $validOrders = self::check_orders_ownership($conn, $orderIds, $role);
-
         if (empty($validOrders)) {
-            return ['status' => 'error', 'message' => 'Bạn không có quyền chỉnh sửa các đơn hàng này hoặc đơn hàng không tồn tại.'];
+            return ['status' => 'error', 'message' => 'You do not have permission to modify these orders, or they do not exist.'];
         }
 
         $successCount = 0;
         $errors = [];
         $processedOrders = [];
-        $allowedStatuses = ['unshipped', 'cancel', 'refund', 'shipped', 'replace', 'delivered'];
 
-        // 3. Khởi tạo Transaction
         $conn->begin_transaction();
-
         try {
-            // Sử dụng cú pháp match() của PHP 8+ để linh hoạt quyết định câu lệnh SQL
             $sql = match ($action) {
                 'update' => "UPDATE orders SET status = ? WHERE id = ?",
                 'delete' => "DELETE FROM orders WHERE id = ?",
-                default => throw new Exception("Hành động '{$action}' không được hệ thống hỗ trợ.")
+                default => throw new Exception("Unsupported action '{$action}'.")
             };
-
             $stmt = $conn->prepare($sql);
-            if (!$stmt) {
-                throw new Exception("Lỗi khởi tạo câu lệnh SQL.");
-            }
 
-            // 4. Lặp qua danh sách dữ liệu hợp lệ và thực thi
             foreach ($orderIds as $orderId) {
                 $orderId = (int)$orderId;
-
-                // Bỏ qua nếu user không có quyền trên ID này
                 if (!isset($validOrders[$orderId])) {
-                    $errors[] = "Đơn hàng #{$orderId}: Không có quyền truy cập.";
+                    $errors[] = "Order #{$orderId}: access denied.";
                     continue;
                 }
 
-                // Xử lý Logic riêng theo từng Action
                 if ($action === 'update') {
                     $status = trim((string)($inputData[$orderId] ?? ''));
-                    if (!in_array($status, $allowedStatuses, true)) {
-                        $errors[] = "Đơn hàng #{$orderId}: Trạng thái '{$status}' không hợp lệ.";
+                    if (!in_array($status, self::STATUSES, true)) {
+                        $errors[] = "Order #{$orderId}: invalid status '{$status}'.";
                         continue;
                     }
-                    // PHP 8.4 truyền mảng trực tiếp vào execute()
                     $stmt->execute([$status, $orderId]);
                     $processedOrders[$orderId] = $status;
-
                 } elseif ($action === 'delete') {
                     $stmt->execute([$orderId]);
                     $processedOrders[$orderId] = 'deleted';
@@ -343,61 +327,55 @@ class Orders
 
             $stmt->close();
             $conn->commit();
-
         } catch (Exception $e) {
             $conn->rollback();
-            return ['status' => 'error', 'message' => 'Hệ thống gặp sự cố: ' . $e->getMessage()];
+            return ['status' => 'error', 'message' => 'Processing failed: ' . $e->getMessage()];
         }
 
-        // 5. Trả về Response
         if ($successCount === 0) {
-            return [
-                'status' => 'error',
-                'message' => 'Không có đơn hàng nào được xử lý thành công.',
-                'errors' => $errors
-            ];
+            return ['status' => 'error', 'message' => 'No orders were processed.', 'errors' => $errors];
         }
 
+        $verb = $action === 'delete' ? 'Deleted' : 'Updated';
         return [
             'status' => 'success',
-            'message' => "Đã {$action} thành công {$successCount} đơn hàng.",
+            'message' => "{$verb} {$successCount} order(s).",
             'details' => [
                 'success_count' => $successCount,
                 'failed_count' => count($errors),
-                'errors' => $errors
+                'errors' => $errors,
             ],
-            'orders' => $processedOrders
+            'orders' => $processedOrders,
         ];
     }
 
     /**
-     * API: Cập nhật trạng thái
+     * API: cập nhật trạng thái (1 hoặc nhiều đơn). POST orders = [id => status].
      */
     public static function update_orders_status(): array
     {
-        $ordersData = $_POST['orders'] ?? [];
-
-        if (!is_array($ordersData) || empty($ordersData)) {
-            return ['status' => 'error', 'message' => 'Không tìm thấy dữ liệu đơn hàng cần cập nhật.'];
+        if (!check_csrf()) {
+            return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
         }
-
-        // Đẩy thẳng xuống hàm process_orders xử lý
+        $ordersData = $_POST['orders'] ?? [];
+        if (!is_array($ordersData) || empty($ordersData)) {
+            return ['status' => 'error', 'message' => 'Missing order list.'];
+        }
         return self::process_orders('update', $ordersData);
     }
 
     /**
-     * API: Xóa đơn hàng
+     * API: xóa đơn hàng (1 hoặc nhiều). POST order_ids = [id1, id2].
      */
     public static function delete_orders(): array
     {
-        // Cấu trúc POST thường gửi mảng ID cần xóa lên: $_POST['order_ids'] = [1, 5, 9]
-        $orderIds = $_POST['order_ids'] ?? [];
-
-        if (!is_array($orderIds) || empty($orderIds)) {
-            return ['status' => 'error', 'message' => 'Vui lòng chọn ít nhất một đơn hàng để xóa.'];
+        if (!check_csrf()) {
+            return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
         }
-
-        // Đẩy thẳng xuống hàm process_orders xử lý
+        $orderIds = $_POST['order_ids'] ?? [];
+        if (!is_array($orderIds) || empty($orderIds)) {
+            return ['status' => 'error', 'message' => 'Missing order list.'];
+        }
         return self::process_orders('delete', $orderIds, ['delete']);
     }
 }

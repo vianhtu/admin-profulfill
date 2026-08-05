@@ -77,8 +77,8 @@ $orders_statistic = Orders::get_orders_statistic();
         <div class="d-flex justify-content-between align-items-center row pt-4 gap-4 gap-md-0">
             <div class="col-md-2 order_from_date"></div>
             <div class="col-md-2 order_to_date"></div>
-            <div class="col-md-3 product_accounts"></div>
-            <div class="col-md-5 product_sites"></div>
+            <div class="col-md-3 order_account"></div>
+            <div class="col-md-5 order_sites"></div>
         </div>
     </div>
     <div class="card-datatable table-responsive">
@@ -101,7 +101,9 @@ $orders_statistic = Orders::get_orders_statistic();
     </div>
 </div>
 
-<!-- Modal -->
+<!-- Modal xem ảnh + sửa base cost/note của item. Ô nhập chỉ render khi có role edit
+     (lớp UI); server vẫn tự kiểm lại role + CSRF trong Order::update_item. -->
+<?php $can_edit_orders = checkRoles('edit', 'orders'); ?>
 <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
@@ -120,11 +122,11 @@ $orders_statistic = Orders::get_orders_statistic();
                             <input type="hidden" name="order_price" id="order_price" value="">
                             <div class="mb-3">
                                 <label for="item-base-cost" class="form-label font-weight-bold">Base Cost $</label>
-                                <input type="number" step="0.01" class="form-control" id="item-base-cost" placeholder="9.99">
+                                <input type="number" step="0.01" class="form-control" id="item-base-cost" placeholder="9.99"<?= $can_edit_orders ? '' : ' disabled' ?>>
                             </div>
                             <div class="mb-3">
                                 <label for="item-note" class="form-label">Note</label>
-                                <textarea class="form-control" id="item-note" rows="3"></textarea>
+                                <textarea class="form-control" id="item-note" rows="3"<?= $can_edit_orders ? '' : ' disabled' ?>></textarea>
                             </div>
                         </form>
                     </div>
@@ -133,6 +135,7 @@ $orders_statistic = Orders::get_orders_statistic();
         </div>
     </div>
 </div>
+<?php if (checkRoles('delete', 'orders')) : ?>
 <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true" role="dialog">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -141,7 +144,7 @@ $orders_statistic = Orders::get_orders_statistic();
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Are you sure you want to delete this record? This action cannot be undone.
+                Are you sure you want to delete <strong id="deleteOrderCount">1</strong> order(s)? This action cannot be undone.
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-label-secondary waves-effect" data-bs-dismiss="modal">Cancel</button>
@@ -150,3 +153,4 @@ $orders_statistic = Orders::get_orders_statistic();
         </div>
     </div>
 </div>
+<?php endif; ?>

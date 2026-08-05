@@ -5,31 +5,36 @@ class Order
     {
         $conn = db();
 
-        // 1. Validate dữ liệu cơ bản
-        if ($orderId <= 0 || $itemIndex < 0) {
-            return ['status' => 'error', 'message' => 'Dữ liệu không hợp lệ.'];
+        // 1. CSRF: mọi handler ghi đều phải kiểm — JS gửi kèm window.csrfToken
+        if (!check_csrf()) {
+            return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
         }
 
-        // 2. Kiểm tra quyền truy cập bản ghi
+        // 2. Validate dữ liệu cơ bản
+        if ($orderId <= 0 || $itemIndex < 0) {
+            return ['status' => 'error', 'message' => 'Invalid data.'];
+        }
+
+        // 3. Kiểm tra role edit + phạm vi dữ liệu trên bản ghi
         $validOrders = Orders::check_orders_ownership($conn, [$orderId]);
         if (empty($validOrders[$orderId])) {
-            return ['status' => 'error', 'message' => 'Đơn hàng không tồn tại hoặc bạn không có quyền chỉnh sửa.'];
+            return ['status' => 'error', 'message' => 'Order not found or you do not have permission to edit it.'];
         }
 
         $order = $validOrders[$orderId];
 
-        // 3. Giải mã JSON
+        // 4. Giải mã JSON
         $items = json_decode($order['items'], true);
         if (!is_array($items)) {
-            return ['status' => 'error', 'message' => 'Dữ liệu danh sách sản phẩm bị lỗi định dạng JSON.'];
+            return ['status' => 'error', 'message' => 'Order items data is malformed.'];
         }
 
-        // 4. Kiểm tra Index
+        // 5. Kiểm tra Index
         if (!isset($items[$itemIndex])) {
-            return ['status' => 'error', 'message' => 'Không tìm thấy sản phẩm tại vị trí yêu cầu.'];
+            return ['status' => 'error', 'message' => 'Item not found at the requested position.'];
         }
 
-        // 5. Thực thi logic riêng biệt được truyền vào thông qua Callback
+        // 6. Thực thi logic riêng biệt được truyền vào thông qua Callback
         // Callback sẽ thay đổi trực tiếp mảng $items (qua tham chiếu &$items) và trả về thông số SQL bổ sung
         $actionResult = $callback($items, $order);
 
@@ -37,7 +42,7 @@ class Order
             return ['status' => 'error', 'message' => $actionResult['error']];
         }
 
-        // 6. Chuẩn bị SQL update
+        // 7. Chuẩn bị SQL update
         $updatedJson = json_encode($items, JSON_UNESCAPED_UNICODE);
 
         // Lấy các câu lệnh SET bổ sung và tham số bind từ callback (nếu có)
@@ -49,10 +54,10 @@ class Order
         // Ghép các tham số lại theo đúng thứ tự: [ JSON, ...Các tham số SET bổ sung, OrderID ]
         $bindParams = array_merge([$updatedJson], $extraBinds, [$orderId]);
 
-        // 7. Thực thi truy vấn
+        // 8. Thực thi truy vấn
         $updateStmt = $conn->prepare($updateSql);
         if (!$updateStmt) {
-            return ['status' => 'error', 'message' => 'Lỗi chuẩn bị cập nhật dữ liệu.'];
+            return ['status' => 'error', 'message' => 'Failed to prepare the update statement.'];
         }
 
         $success = $updateStmt->execute($bindParams);
@@ -61,7 +66,7 @@ class Order
         if ($success) {
             $response = [
                 'status' => 'success',
-                'message' => $actionResult['success_message'] ?? 'Cập nhật thành công!'
+                'message' => $actionResult['success_message'] ?? 'Updated successfully!'
             ];
 
             if (isset($actionResult['response_data'])) {
@@ -71,7 +76,7 @@ class Order
             return $response;
         }
 
-        return ['status' => 'error', 'message' => 'Không thể lưu dữ liệu mới.'];
+        return ['status' => 'error', 'message' => 'Failed to save the changes.'];
     }
 
     public static function add_item_data(): array
@@ -138,8 +143,8 @@ class Order
                     'order_status' => $allShipped ? 'shipped' : $order['status']
                 ],
                 'success_message' => $allShipped
-                    ? 'Cập nhật thành công! Đơn hàng đã chuyển sang trạng thái Shipped.'
-                    : 'Cập nhật thông tin tracking thành công!'
+                    ? 'Tracking saved! The order has been marked as Shipped.'
+                    : 'Tracking information saved!'
             ];
 
             // Thêm câu lệnh cập nhật status nếu tất cả đã gửi
