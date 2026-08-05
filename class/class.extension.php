@@ -639,7 +639,8 @@ class Extensions
         }
 
         try {
-            $result = $conn->execute_query('SELECT ID FROM team WHERE `key` = ? LIMIT 1', [$key]);
+            // status = 1: team ngừng hoạt động thì key của nó hết hiệu lực với API
+            $result = $conn->execute_query('SELECT ID FROM team WHERE `key` = ? AND status = 1 LIMIT 1', [$key]);
             return (int) ($result->fetch_assoc()['ID'] ?? 0);
         } catch (\mysqli_sql_exception) {
             return 0;
@@ -656,7 +657,15 @@ class Extensions
         }
 
         try {
-            $result = $conn->execute_query('SELECT ID FROM authors WHERE `key` = ? AND `email` = ? LIMIT 1', [$key, $email]);
+            // Team của author ngừng hoạt động -> key của author cũng hết hiệu lực.
+            // team_id = 0 (chưa gán team) thì không có gì để khóa.
+            $result = $conn->execute_query(
+                'SELECT a.ID FROM authors a
+                 LEFT JOIN team t ON t.ID = a.team_id
+                 WHERE a.`key` = ? AND a.`email` = ? AND (a.team_id = 0 OR t.status = 1)
+                 LIMIT 1',
+                [$key, $email]
+            );
             return (int) ($result->fetch_assoc()['ID'] ?? 0);
         } catch (\mysqli_sql_exception) {
             return 0;

@@ -43,6 +43,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'login
 		exit;
 	}
 
+    // Team ngừng hoạt động -> chặn đăng nhập (admin không bị chặn để còn bật lại được)
+	if (($author['level'] ?? '') !== 'admin' && (int)($author['team_status'] ?? 1) !== 1) {
+		flash_set('error', TEAM_INACTIVE_MESSAGE);
+		header("Location: $loginPage");
+		exit;
+	}
+
     // Thực hiện đăng nhập (Ghi Session)
 	login_user($author);
 

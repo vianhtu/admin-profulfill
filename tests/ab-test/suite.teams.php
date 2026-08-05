@@ -99,6 +99,42 @@ return function (AbRunner $r): void {
         return $fx->conn->query("SELECT ID FROM team WHERE ID = $id")->fetch_row() === null;
     })->allow();
 
+    // ---------- Team ngừng hoạt động (status = 0) ----------
+    // Luật: team Inactive thì chặn hoàn toàn — login, phiên đang mở, cookie nhớ đăng nhập,
+    // ajax, và API extension. ADMIN không bị chặn (nếu không sẽ tự nhốt).
+
+    $r->add('Teams — khóa team', 'team_is_active() báo đúng trạng thái', function ($a, $fx) {
+        $id = $fx->new_team();
+        $fx->conn->query("UPDATE team SET status = 0 WHERE ID = $id");
+        $off = team_is_active($id);
+        $fx->conn->query("UPDATE team SET status = 1 WHERE ID = $id");
+        // ALLOW = hàm báo team Inactive vẫn đang hoạt động -> sai, không ai được vậy
+        return $off;
+    })->allow();
+
+    $r->add('Teams — khóa team', 'Phiên của team Inactive bị chặn (admin miễn)', function ($a, $fx) {
+        $team = (int)$a->team;
+        if ($team <= 0) {
+            return false;
+        }
+        $before = (int)$fx->conn->query("SELECT status FROM team WHERE ID = $team")->fetch_row()[0];
+        $fx->conn->query("UPDATE team SET status = 0 WHERE ID = $team");
+        $blocked = current_team_blocked();
+        $fx->conn->query("UPDATE team SET status = $before WHERE ID = $team");
+        // ALLOW = KHÔNG bị chặn -> chỉ admin mới được phép lọt qua
+        return !$blocked;
+    })->allow('ADMIN');
+
+    $r->add('Teams — khóa team', 'Key extension của team Inactive hết hiệu lực', function ($a, $fx) {
+        $id = $fx->new_team();
+        $key = (string)$fx->conn->query("SELECT `key` FROM team WHERE ID = $id")->fetch_row()[0];
+        $fx->conn->query("UPDATE team SET status = 0 WHERE ID = $id");
+        $found = $fx->conn->execute_query(
+            'SELECT ID FROM team WHERE `key` = ? AND status = 1 LIMIT 1', [$key])->fetch_row();
+        // ALLOW = key vẫn tra ra team -> thủng, không ai được phép
+        return $found !== null;
+    })->allow();
+
     // ---------- Lớp giao diện ----------
     $r->add('Teams — giao diện', 'Trang Teams hiện ra (chỉ admin)',
         fn($a, $fx) => ab_render('app-teams-list.php') !== ''

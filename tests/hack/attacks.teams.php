@@ -134,6 +134,77 @@ return function (HackRunner $h): void {
         return ['breach' => !$ok, 'note' => 'Thiếu check_csrf() ở handler ghi/xóa team'];
     });
 
+    // ---------- Team ngừng hoạt động ----------
+    // Team Inactive phải bị chặn HOÀN TOÀN. Kẻ tấn công ở đây là thành viên của team vừa
+    // bị khóa, cố tiếp tục dùng hệ thống bằng phiên/cookie/API key còn trong tay.
+
+    $h->attack('Team bị khóa', 'Thành viên team Inactive vẫn dùng được phiên đang mở', 'MGR_OUT',
+        function ($atk, $fx) {
+            $team = (int)$atk->team;
+            $before = (int)$fx->conn->query("SELECT status FROM team WHERE ID = $team")->fetch_row()[0];
+            $fx->conn->query("UPDATE team SET status = 0 WHERE ID = $team");
+            $blocked = current_team_blocked();
+            $fx->conn->query("UPDATE team SET status = $before WHERE ID = $team");
+            return ['breach' => !$blocked, 'note' => 'Phiên của team bị khóa vẫn chạy tiếp'];
+        });
+
+    $h->attack('Team bị khóa', 'Đăng nhập lại bằng tài khoản của team Inactive', 'MGR_OUT',
+        function ($atk, $fx) {
+            $team = (int)$atk->team;
+            $before = (int)$fx->conn->query("SELECT status FROM team WHERE ID = $team")->fetch_row()[0];
+            $fx->conn->query("UPDATE team SET status = 0 WHERE ID = $team");
+            $u = get_user_data((int)$atk->uid);
+            $fx->conn->query("UPDATE team SET status = $before WHERE ID = $team");
+            // auth.php chặn khi level != admin và team_status != 1
+            $wouldPass = ($u['level'] ?? '') === 'admin' || (int)($u['team_status'] ?? 1) === 1;
+            return ['breach' => $wouldPass, 'note' => 'team_status trả về: ' . var_export($u['team_status'] ?? null, true)];
+        });
+
+    $h->attack('Team bị khóa', 'API extension dùng key AUTHOR của team Inactive', 'MGR_OUT',
+        function ($atk, $fx) {
+            $team = (int)$atk->team;
+            $before = (int)$fx->conn->query("SELECT status FROM team WHERE ID = $team")->fetch_row()[0];
+            $fx->conn->query("UPDATE team SET status = 0 WHERE ID = $team");
+            // Mô phỏng đúng truy vấn của Extensions::check_authors_key()
+            $row = $fx->conn->execute_query(
+                'SELECT a.ID FROM authors a LEFT JOIN team t ON t.ID = a.team_id
+                 WHERE a.ID = ? AND (a.team_id = 0 OR t.status = 1) LIMIT 1', [$atk->uid])->fetch_row();
+            $fx->conn->query("UPDATE team SET status = $before WHERE ID = $team");
+            return ['breach' => $row !== null, 'note' => 'Key author của team bị khóa vẫn qua được'];
+        });
+
+    $h->attack('Team bị khóa', 'API extension dùng key TEAM của team Inactive', 'MGR_OUT',
+        function ($atk, $fx) {
+            $id = $fx->new_team();
+            $key = (string)$fx->conn->query("SELECT `key` FROM team WHERE ID = $id")->fetch_row()[0];
+            $fx->conn->query("UPDATE team SET status = 0 WHERE ID = $id");
+            $row = $fx->conn->execute_query(
+                'SELECT ID FROM team WHERE `key` = ? AND status = 1 LIMIT 1', [$key])->fetch_row();
+            return ['breach' => $row !== null, 'note' => 'Key team bị khóa vẫn tra ra team'];
+        });
+
+    $h->attack('Team bị khóa', 'Webhook Telnyx dùng key của team Inactive', 'MGR_OUT',
+        function ($atk, $fx) {
+            $tel = (string)file_get_contents(AB_ROOT . '/functions/functions-telnyx.php');
+            $ok = str_contains($tel, 'FROM team WHERE `key` = ? AND status = 1');
+            return ['breach' => !$ok, 'note' => 'Webhook telnyx chưa kiểm status của team'];
+        }, 'TRUNG BÌNH');
+
+    $h->attack('Team bị khóa', 'Cookie remember-me của team Inactive vẫn auto-login', 'MGR_OUT',
+        function ($atk, $fx) {
+            $cfg = (string)file_get_contents(AB_ROOT . '/config.php');
+            // attempt_cookie_login phải từ chối khi team_status != 1
+            $ok = str_contains($cfg, "(int)(\$user['team_status'] ?? 1) !== 1");
+            return ['breach' => !$ok, 'note' => 'attempt_cookie_login() chưa kiểm trạng thái team'];
+        });
+
+    $h->attack('Team bị khóa', 'Ajax nội bộ chưa có chốt chặn team Inactive', 'MGR_OUT',
+        function ($atk, $fx) {
+            $ajax = (string)file_get_contents(AB_ROOT . '/ajax.php');
+            return ['breach' => !str_contains($ajax, 'current_team_blocked()'),
+                'note' => 'ajax.php thiếu chốt current_team_blocked()'];
+        });
+
     // ---------- XSS ----------
     $h->attack('XSS (stored)', 'Tên team chứa <script> không được escape khi render', 'MGR_OUT',
         function ($atk, $fx) {

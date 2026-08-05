@@ -77,6 +77,47 @@ function login_user(array $username): void {
 function is_logged_in(): bool {
 	return !empty($_SESSION['auth']['user']) && hash_equals($_SESSION['auth']['ua'], user_agent_fingerprint());
 }
+
+// ===== Team ngừng hoạt động =====
+// Team có status = 0 (Inactive) thì MỌI hoạt động liên quan bị chặn: đăng nhập, phiên
+// đang mở, auto-login bằng cookie, ajax admin, và API extension (key team / key author).
+// ADMIN không bị chặn — nếu không, tắt chính team của admin sẽ tự nhốt luôn người duy
+// nhất bật lại được.
+
+/**
+ * Team này có đang hoạt động không. Chưa gán team (id <= 0) coi như không có gì để khóa.
+ * Team không tồn tại -> coi là KHÓA (dữ liệu mồ côi thì chặn cho an toàn).
+ */
+function team_is_active(int $teamId): bool {
+	if ($teamId <= 0) {
+		return true;
+	}
+	static $cache = [];   // cache theo REQUEST, không để lâu trong session (đổi là ăn ngay)
+	if (isset($cache[$teamId])) {
+		return $cache[$teamId];
+	}
+	try {
+		$row = db()->execute_query('SELECT status FROM team WHERE ID = ? LIMIT 1', [$teamId])->fetch_row();
+	} catch (mysqli_sql_exception) {
+		// DB hỏng thì cả app đã không chạy được; không tự khóa thêm người dùng ở đây.
+		return true;
+	}
+	return $cache[$teamId] = ($row !== null && (int)$row[0] === 1);
+}
+
+/**
+ * Phiên đăng nhập hiện tại có bị chặn vì team ngừng hoạt động không.
+ * Gọi ở require_login() (trang) và ajax.php (API nội bộ).
+ */
+function current_team_blocked(): bool {
+	if (empty($_SESSION['auth']) || is_admin()) {
+		return false;
+	}
+	return !team_is_active((int)($_SESSION['auth']['team'] ?? 0));
+}
+
+/** Thông báo dùng chung khi team bị khóa (app hiển thị tiếng Anh). */
+const TEAM_INACTIVE_MESSAGE = 'Your team has been deactivated. Please contact an administrator.';
 function require_login(): void {
 	if (!is_logged_in()) {
 		// Thử auto-login bằng cookie trước khi chuyển hướng
@@ -84,6 +125,13 @@ function require_login(): void {
 			header('Location: ./html/vertical-menu-template-no-customizer/auth-login-basic.php');
 			exit;
 		}
+	}
+	// Team bị tắt trong lúc đang đăng nhập -> đẩy ra ngay, không vào được trang nào
+	if (current_team_blocked()) {
+		logout_user();
+		flash_set('error', TEAM_INACTIVE_MESSAGE);
+		header('Location: ./html/vertical-menu-template-no-customizer/auth-login-basic.php');
+		exit;
 	}
 }
 function logout_user(): void {
@@ -129,15 +177,17 @@ function get_user_data(int|string $identifier): ?array {
     $column = is_int($identifier) ? "a.ID" : (filter_var($identifier, FILTER_VALIDATE_EMAIL) ? "a.email" : "a.username");
 
     $sql = "
-        SELECT 
-            a.ID as id, 
+        SELECT
+            a.ID as id,
             a.username,
             a.pass as hash,
-            a.team_id as team, 
-            rl.roles, 
-            rl.slug as level
+            a.team_id as team,
+            rl.roles,
+            rl.slug as level,
+            t.status as team_status
         FROM authors a
         LEFT JOIN roles_permissions rl ON rl.ID = a.level
+        LEFT JOIN team t ON t.ID = a.team_id
         WHERE {$column} = ?
         LIMIT 1
     ";
@@ -258,6 +308,13 @@ function attempt_cookie_login(): bool {
 	// Lấy username và đăng nhập
 	$user = get_user_data((int)$authorId);
 	if ($user === null) {
+		delete_remember_selector($selector);
+		clear_remember_cookie();
+		return false;
+	}
+
+	// Team ngừng hoạt động -> không auto-login, thu hồi luôn token nhớ đăng nhập
+	if (($user['level'] ?? '') !== 'admin' && (int)($user['team_status'] ?? 1) !== 1) {
 		delete_remember_selector($selector);
 		clear_remember_cookie();
 		return false;

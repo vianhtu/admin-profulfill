@@ -43,6 +43,11 @@ if (!is_admin()) {
                         <option value="1">Active</option>
                         <option value="0">Inactive</option>
                     </select>
+                    <div class="form-text text-warning">
+                        <i class="icon-base ti tabler-alert-triangle icon-14px me-1"></i>
+                        Setting a team to Inactive blocks everything for its members: they cannot
+                        sign in, active sessions are ended, and their extension API keys stop working.
+                    </div>
                 </div>
                 <button type="button" class="btn btn-primary me-3" id="teamSubmit">Save</button>
                 <button type="reset" class="btn btn-label-danger" data-bs-dismiss="offcanvas">Cancel</button>

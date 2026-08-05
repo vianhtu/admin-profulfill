@@ -95,6 +95,14 @@ if (!is_logged_in() && !attempt_cookie_login()) {
 	exit;
 }
 
+// Team ngừng hoạt động -> chặn TOÀN BỘ ajax của phiên này (admin không bị chặn).
+// Đặt ngay sau cửa đăng nhập để không handler nào phải tự nhớ kiểm.
+if (current_team_blocked()) {
+    http_response_code(403);
+    echo json_encode(['status' => 'error', 'message' => TEAM_INACTIVE_MESSAGE]);
+    exit;
+}
+
 // XỬ LÝ AJAX POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 	// TẮT hiển thị lỗi ra HTML (sai sót debug)

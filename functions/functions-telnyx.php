@@ -8,8 +8,8 @@ function hookTelnyx(): array
         return ['status' => 'error', 'message' => 'Missing key'];
     }
 
-    // Kiểm tra khóa và lấy author ID.
-    $stmt_a = $conn->prepare("SELECT ID FROM team WHERE `key` = ? LIMIT 1");
+    // Kiểm tra khóa và lấy author ID. status = 1: team ngừng hoạt động thì key hết hiệu lực.
+    $stmt_a = $conn->prepare("SELECT ID FROM team WHERE `key` = ? AND status = 1 LIMIT 1");
     $stmt_a->bind_param("s", $key);
     $stmt_a->execute();
     $result_a = $stmt_a->get_result();
