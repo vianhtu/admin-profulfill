@@ -5,13 +5,15 @@
 'use strict';
 
 let sitesObj = {};
+let teamsObj = {};
 let dtStores = null;
-let storePerms = { add: false, edit: false, delete: false };
+let storePerms = { add: false, delete: false, is_admin: false };
 
 async function init() {
     try {
         const options = await fetchTableFilter('get-store-table-filter');
         sitesObj = options['sites'] ?? {};
+        teamsObj = options['teams'] ?? {};
         storePerms = options['perms'] ?? storePerms;
         initStoreTable();
     } catch (err) {
@@ -39,6 +41,7 @@ function initStoreTable() {
             data: function (d) {
                 d.site = $('#siteFilter').val() || '';
                 d.status = $('#statusFilter').val() || '';
+                d.team = $('#teamFilter').val() ?? '';
             },
             dataSrc: json => json.data
         },
@@ -48,6 +51,7 @@ function initStoreTable() {
             { data: 'name' },
             { data: 'slug' },
             { data: 'site_name' },
+            { data: 'team_name' },
             { data: 'products_count' },
             { data: 'status' },
             { data: 'id' }
@@ -77,14 +81,21 @@ function initStoreTable() {
                 }
             },
             {
-                targets: 5,
+                // Owner: chưa gán team = dùng chung, ngược lại là store riêng của team
+                targets: 5, orderable: false,
+                render: (d, t, full) => full['team_id'] > 0
+                    ? `<span class="badge bg-label-info">${full['team_name'] || 'Team #' + full['team_id']}</span>`
+                    : '<span class="badge bg-label-secondary">Shared</span>'
+            },
+            {
+                targets: 6,
                 render: function (d, t, full) {
                     const n = full['products_count'];
                     return `<span class="badge ${n > 0 ? 'bg-label-primary' : 'bg-label-secondary'}">${n.toLocaleString()}</span>`;
                 }
             },
             {
-                targets: 6,
+                targets: 7,
                 render: (d, t, full) => full['status'] === 1
                     ? '<span class="badge bg-label-success">Active</span>'
                     : '<span class="badge bg-label-danger">Inactive</span>'
@@ -92,11 +103,11 @@ function initStoreTable() {
             {
                 targets: -1, title: 'Actions', searchable: false, orderable: false,
                 render: function (d, t, full) {
-                    // Store dùng chung -> chỉ admin thấy nút sửa/xóa
-                    const editBtn = storePerms.edit
+                    // Quyền theo từng dòng: store dùng chung -> chỉ admin, store riêng -> team sở hữu
+                    const editBtn = full['can_edit']
                         ? `<a href="index.php?menu=store&form=edit&id=${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon"><i class="icon-base ti tabler-edit icon-22px"></i></a>`
                         : '';
-                    const deleteBtn = storePerms.delete
+                    const deleteBtn = full['can_delete']
                         ? `<button type="button" class="btn btn-text-danger rounded-pill waves-effect btn-icon delete-store" data-id="${full['id']}" data-count="${full['products_count']}" title="Delete"><i class="icon-base ti tabler-trash icon-22px"></i></button>`
                         : '';
                     return `<div class="d-inline-block text-nowrap">${editBtn}${deleteBtn}</div>`;
@@ -151,6 +162,20 @@ function initStoreTable() {
 
             const $statusBox = $('.store_status');
             $statusBox.html('<label class="form-label" for="statusFilter">Status</label><select id="statusFilter" class="form-select"><option value="">All</option><option value="1">Active</option><option value="0">Inactive</option></select>');
+
+            // Lọc theo chủ sở hữu — chỉ admin có ô này (role khác chỉ thấy team mình)
+            const $teamBox = $('.store_team');
+            if ($teamBox.length) {
+                $teamBox.html('<label class="form-label" for="teamFilter">Owner</label><select id="teamFilter" class="form-select"><option value="">All</option><option value="0">Shared (all teams)</option></select>');
+                $.each(teamsObj, function (id, item) {
+                    $('#teamFilter').append($('<option>', { value: id, text: item.title ?? item }));
+                });
+                $('#teamFilter').select2({ dropdownParent: $teamBox });
+                $('#teamFilter').on('change', function () {
+                    refreshFilterBadge();
+                    api.draw();
+                });
+            }
 
             $('#siteFilter').select2({ dropdownParent: $siteBox });
             $('#statusFilter').select2({ dropdownParent: $statusBox, minimumResultsForSearch: Infinity });
@@ -240,6 +265,7 @@ function countActiveFilters() {
     let n = 0;
     if ($('#siteFilter').val()) n++;
     if ($('#statusFilter').val()) n++;
+    if ($('#teamFilter').val()) n++; // '' = All, '0' = Shared cũng tính là đang lọc
     return n;
 }
 
@@ -271,7 +297,7 @@ function initFilterCollapse() {
     $(document).on('input', '.dt-search input', refreshFilterBadge);
 
     $('#clearFilters').on('click', function () {
-        $('#siteFilter, #statusFilter').val('').trigger('change.select2');
+        $('#siteFilter, #statusFilter, #teamFilter').val('').trigger('change.select2');
         if (dtStores) {
             dtStores.search('').draw();
         }

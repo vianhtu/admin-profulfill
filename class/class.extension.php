@@ -307,14 +307,24 @@ class Extensions
             }
 
             // 4. Lấy hoặc tạo mới store theo slug (tên shop viết thường).
+            //    store.team_id = 0 là store dùng chung, > 0 là store riêng của 1 team.
             $store_slug = strtolower($shop_id);
-            $store_row = $conn->execute_query('SELECT ID FROM store WHERE slug = ? LIMIT 1', [$store_slug])->fetch_assoc();
+            $store_row = $conn->execute_query('SELECT ID, team_id FROM store WHERE slug = ? LIMIT 1', [$store_slug])->fetch_assoc();
             if ($store_row) {
+                // Store riêng của team khác thì không được dùng
+                $store_team = (int) $store_row['team_id'];
+                if ($store_team > 0) {
+                    $author_row = $conn->execute_query('SELECT team_id FROM authors WHERE ID = ? LIMIT 1', [$authors_id])->fetch_assoc();
+                    if ($store_team !== (int) ($author_row['team_id'] ?? 0)) {
+                        return ['success' => false, 'sku' => $sku, 'message' => 'Store thuộc team khác.'];
+                    }
+                }
                 $store_id = (int) $store_row['ID'];
             } else {
-                // Store dùng chung giữa các team nên không gắn team khi tạo
+                // Extension tạo store ở chế độ dùng chung (team_id = 0) để tránh lặp dữ liệu;
+                // admin có thể gán về 1 team trong menu Stores nếu muốn dùng riêng.
                 $conn->execute_query(
-                    'INSERT INTO store (name, slug, site_id) VALUES (?, ?, ?)',
+                    'INSERT INTO store (name, slug, site_id, team_id) VALUES (?, ?, ?, 0)',
                     [$shop_id, $store_slug, $site_id]
                 );
                 $store_id = (int) $conn->insert_id;

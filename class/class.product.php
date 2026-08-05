@@ -172,18 +172,19 @@ class Product
         return ['status' => 'error', 'message' => 'Invalid status.'];
     }
 
-    // Category / Store phải thuộc phạm vi team (dùng chung cũng tính)
+    // Category phải thuộc team (mỗi team có bộ category riêng)
     $team = get_current_team_scope_id();
     if ($team > 0) {
         $ok = $conn->query("SELECT 1 FROM `type` WHERE ID = $typeId AND team_id = $team LIMIT 1")->fetch_row();
         if (!$ok) {
             return ['status' => 'error', 'message' => 'Category is not available for your team.'];
         }
-        // Store dùng chung toàn hệ thống — chỉ cần tồn tại là hợp lệ
-        $ok = $conn->query("SELECT 1 FROM store WHERE ID = $storeId LIMIT 1")->fetch_row();
-        if (!$ok) {
-            return ['status' => 'error', 'message' => 'Store does not exist.'];
-        }
+    }
+    // Store phải là store dùng chung hoặc store riêng của team (admin thì store nào cũng được)
+    $storeScope = Stores::scope_condition('store');
+    $ok = $conn->query("SELECT 1 FROM store WHERE ID = $storeId" . ($storeScope ? " AND $storeScope" : '') . ' LIMIT 1')->fetch_row();
+    if (!$ok) {
+        return ['status' => 'error', 'message' => 'Store is not available for your team.'];
     }
 
     // SKU là UNIQUE — chặn trùng với sản phẩm khác

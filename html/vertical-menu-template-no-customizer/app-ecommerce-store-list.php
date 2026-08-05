@@ -28,6 +28,9 @@ if (!checkRoles('view', 'store')) {
             <div class="row g-4 pt-4">
                 <div class="col-md-3 store_site"></div>
                 <div class="col-md-3 store_status"></div>
+                <?php if (is_admin()): // lọc theo team chỉ dành cho admin ?>
+                    <div class="col-md-3 store_team"></div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -36,7 +39,7 @@ if (!checkRoles('view', 'store')) {
 <?php if (!is_admin()): ?>
     <div class="alert alert-info d-flex align-items-center mb-6" role="alert">
         <i class="icon-base ti tabler-info-circle icon-22px me-3"></i>
-        <span>Stores are shared by every team so the same shop is never entered twice. Only an admin can change them.</span>
+        <span><strong>Shared</strong> stores belong to every team so the same shop is never entered twice — only an admin can change those. Stores you add belong to your team, and only your team can see and change them.</span>
     </div>
 <?php endif; ?>
 
@@ -51,6 +54,7 @@ if (!checkRoles('view', 'store')) {
                 <th>store</th>
                 <th>slug</th>
                 <th>site</th>
+                <th>owner</th>
                 <th>products</th>
                 <th>status</th>
                 <th>actions</th>

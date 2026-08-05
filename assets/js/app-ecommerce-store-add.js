@@ -11,7 +11,8 @@ function init() {
 }
 
 function initSelects() {
-    $('#store_site, #store_status').each(function () {
+    // #store_team chỉ tồn tại với admin — role khác store luôn thuộc team của họ
+    $('#store_site, #store_status, #store_team').each(function () {
         const $this = $(this);
         $this.wrap('<div class="position-relative"></div>').select2({ dropdownParent: $this.parent() });
     });
@@ -88,6 +89,7 @@ function saveStore(fv) {
                 slug: $('#store_slug').val(),
                 site_id: $('#store_site').val(),
                 status: $('#store_status').val(),
+                team_id: $('#store_team').val() || 0,
                 csrf_token: window.csrfToken
             }
         }).done(function (res) {

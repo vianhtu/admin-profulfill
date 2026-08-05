@@ -1140,8 +1140,8 @@ function get_sites_select_options(): array {
 
 /**
  * Nguồn dữ liệu select2 ajax cho bộ lọc Store.
- * Store là dữ liệu DÙNG CHUNG toàn hệ thống (một shop có thể do nhiều team cùng làm)
- * nên không lọc theo team — chỉ admin mới được sửa, xem class.stores.php.
+ * Chỉ trả về store DÙNG CHUNG (team_id = 0) + store riêng của team hiện tại,
+ * xem Stores::scope_condition() trong class.stores.php.
  *
  * @return array{items:array<int,array{id:int,name:string}>,more:bool}
  */
@@ -1154,7 +1154,9 @@ function get_stores_select_options(): array {
 	$offset  = ($page - 1) * $perPage;
 
 // Chuẩn bị câu truy vấn (Prepared Statement để chống SQL injection)
-	$teamCond = '';
+	// Phạm vi: store dùng chung + store riêng của team đang xét ('' nếu admin xem tất cả)
+	$scope    = Stores::scope_condition('t');
+	$teamCond = $scope ? " AND $scope" : '';
 	$sql = "SELECT t.id, CONCAT(s.name, ' (', t.name, ')') AS name
         FROM store AS t
         JOIN site s ON t.site_id = s.id

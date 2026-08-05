@@ -2,8 +2,9 @@
 $get_id = (int)($_GET['id'] ?? 0);
 $isEdit = $get_id > 0;
 
-// Store dùng chung giữa các team -> chỉ admin mới vào được form thêm/sửa
-if (!is_admin() || !checkRoles($isEdit ? 'edit' : 'add', 'store')) {
+// Thêm mới: theo role. Sửa: theo chủ sở hữu của chính store đó
+// (store dùng chung -> chỉ admin; store riêng -> team sở hữu).
+if (!$isEdit && !Stores::can_add()) {
     return;
 }
 
@@ -13,11 +14,12 @@ $defaultData = [
     'slug'    => '',
     'site_id' => '',
     'status'  => 1,
+    'team_id' => is_admin() ? 0 : (int)($_SESSION['auth']['team'] ?? 0),
     'ui'      => ['title' => 'Add a new', 'button' => 'Add'],
 ];
 
 $edit_data = $isEdit ? Store::get_store($get_id) : [];
-if ($isEdit && empty($edit_data)) {
+if ($isEdit && (empty($edit_data) || !Stores::can_edit_row((int)$edit_data['team_id']))) {
     return;
 }
 if (!empty($edit_data)) {
@@ -27,6 +29,10 @@ $d = array_merge($defaultData, $edit_data ?: []);
 
 $statusOptions = [1 => ['title' => 'Active'], 0 => ['title' => 'Inactive']];
 $sites = get_all_sites();
+
+// Chủ sở hữu: 0 = dùng chung cho mọi team. Chỉ admin được chọn.
+$teamOptions = [0 => ['title' => 'Shared (all teams)']] + get_data_map('team', 'name');
+$ownTeamName = is_admin() ? '' : (string)get_field_by_id('team', 'name', (int)$d['team_id']);
 ?>
 <div class="app-ecommerce">
     <form id="storeForm" onsubmit="return false">
@@ -35,7 +41,7 @@ $sites = get_all_sites();
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-6 row-gap-4">
             <div class="d-flex flex-column justify-content-center">
                 <h4 class="mb-1"><?= htmlspecialchars($d['ui']['title']) ?> store</h4>
-                <p class="mb-0">Shop on a marketplace, shared by every team.</p>
+                <p class="mb-0">A shop on a marketplace — shared by every team, or private to one team.</p>
             </div>
             <div class="d-flex align-content-center flex-wrap gap-4">
                 <div class="d-flex gap-4">
@@ -81,8 +87,21 @@ $sites = get_all_sites();
                         <div class="mb-6 form-control-validation store_site_box">
                             <?php render_select('store_site', 'Site', $sites, $d['site_id']); ?>
                         </div>
-                        <div class="mb-2 form-control-validation store_status_box">
+                        <div class="mb-6 form-control-validation store_status_box">
                             <?php render_select('store_status', 'Status', $statusOptions, (int)$d['status']); ?>
+                        </div>
+                        <div class="mb-2">
+                            <?php if (is_admin()): ?>
+                                <?php render_select('store_team', 'Owner', $teamOptions, (int)$d['team_id']); ?>
+                                <small class="text-body-secondary">
+                                    Shared stores can be used by every team but only an admin can change them.
+                                    Pick a team to make this store private to that team.
+                                </small>
+                            <?php else: ?>
+                                <label class="form-label mb-1">Owner</label>
+                                <input type="text" class="form-control" value="<?= htmlspecialchars($ownTeamName) ?>" disabled>
+                                <small class="text-body-secondary">This store belongs to your team; only your team can see and change it.</small>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
