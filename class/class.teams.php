@@ -4,9 +4,21 @@
  * Cùng khuôn với class.stores.php / class.orders.php.
  *
  * Mô hình sở hữu (chốt với người dùng 05/08/2026): menu ADMIN-ONLY — không đi qua
- * roles_permissions; mọi endpoint tự kiểm is_admin(). Team là bản ghi cha bị
- * authors/accounts/store/store_teams tham chiếu -> CHẶN xóa khi còn tham chiếu
- * (giống Category/Site), không gỡ liên kết tự động.
+ * roles_permissions; mọi endpoint tự kiểm is_admin().
+ *
+ * XÓA TEAM = XÓA DÂY CHUYỀN (chốt 05/08/2026, thay luật "chặn khi còn tham chiếu"):
+ * xóa sạch mọi thứ DÙNG RIÊNG của team, GIỮ NGUYÊN mọi thứ dùng chung.
+ *
+ *   XÓA  : users của team + token đăng nhập; accounts của team + toàn bộ bảng con của
+ *          account (finance/seller/links/proxy/files/authors) + đơn hàng của account đó;
+ *          sản phẩm của các user đó + bảng con của sản phẩm; store RIÊNG của team.
+ *   GIỮ  : site, category (`type`), store DÙNG CHUNG (team_id = 0), roles_permissions,
+ *          và các bảng tra cứu toàn hệ thống. Cột `created_by` trỏ tới user vừa xóa
+ *          được đưa về 0 (bản ghi thành "chỉ admin sửa") thay vì xóa bản ghi dùng chung.
+ *
+ * Khối lượng có thể rất lớn (một team có thể có hàng trăm nghìn sản phẩm) nên tiến trình
+ * chạy THEO LÔ, mỗi request làm một phần rồi trả tiến độ cho client gọi tiếp — không bọc
+ * một transaction khổng lồ, và đứt giữa chừng thì gọi lại vẫn chạy tiếp được.
  */
 class Teams
 {
@@ -21,34 +33,62 @@ class Teams
         'ID'      => 't.ID',
     ];
 
+    /** Số dòng xóa mỗi câu lệnh (giữ transaction ngắn, không khóa bảng lâu). */
+    private const PURGE_CHUNK = 1000;
+    /** Trần số dòng xử lý trong 1 request — vượt thì trả 'partial' để client gọi tiếp. */
+    private const PURGE_BUDGET = 20000;
+
     /**
-     * Các bảng còn tham chiếu team thì chặn xóa: nhãn => [bảng, cột team id].
-     * Bảng nào không tồn tại trên schema hiện tại sẽ được BỎ QUA (xem ref_tables())
-     * — dự án còn các bảng phụ đã đổi tên/khai tử (vd store_teams -> *_bak_*), không
-     * được để chúng làm văng cả chức năng xóa.
+     * Bảng con của ACCOUNT — xóa theo account_id. Bảng/cột không tồn tại sẽ bị bỏ qua
+     * (xem col_exists), nên thêm bảng mới vào đây là an toàn kể cả khi chưa có trên DB.
      */
-    private const REF_TABLES = [
-        'members'       => ['authors', 'team_id'],
-        'accounts'      => ['accounts', 'team_id'],
-        'stores'        => ['store', 'team_id'],
-        'shared stores' => ['store_teams', 'team_id'],
+    private const ACCOUNT_CHILDREN = [
+        'accounts_finance', 'accounts_seller', 'accounts_links', 'accounts_proxy',
+        'accounts_files', 'accounts_authors', 'accounts_relationships',
     ];
 
-    /** Lọc REF_TABLES về những bảng THẬT SỰ có trong DB. */
-    private static function ref_tables(mysqli $conn): array
+    /** Bảng con của SẢN PHẨM — xóa theo post_id. */
+    private const POST_CHILDREN = [
+        'accounts_relationships', 'download_relationships', 'amazon_listings',
+    ];
+
+    /** Bảng con của ĐƠN HÀNG — xóa theo order_id. */
+    private const ORDER_CHILDREN = ['order_relationships'];
+
+    /** Bảng con của USER — xóa theo author_id. */
+    private const AUTHOR_CHILDREN = [
+        'author_remember_tokens', 'accounts_authors', 'salary',
+    ];
+
+    /**
+     * Bảng DÙNG CHUNG có cột người tạo: không xóa bản ghi, chỉ gỡ liên kết về 0
+     * (bản ghi trở thành "chỉ admin sửa" theo đúng luật sở hữu sẵn có).
+     */
+    private const SHARED_CREATED_BY = ['site', 'type'];
+
+    /** Bảng có tồn tại trong DB không. */
+    private static function table_exists(mysqli $conn, string $table): bool
     {
-        // SHOW TABLES không dùng được prepared statement trên MariaDB -> tra information_schema
-        $out = [];
-        foreach (self::REF_TABLES as $label => [$table, $col]) {
-            $exists = $conn->execute_query(
-                'SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? LIMIT 1',
-                [$table]
-            )->fetch_row();
-            if ($exists) {
-                $out[$label] = [$table, $col];
-            }
-        }
-        return $out;
+        static $cache = [];
+        return $cache[$table] ??= (bool)$conn->execute_query(
+            'SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? LIMIT 1',
+            [$table]
+        )->fetch_row();
+    }
+
+    /**
+     * Cặp bảng.cột có tồn tại không — dùng trước MỌI câu xóa để tiến trình không văng
+     * khi schema thiếu bảng phụ (đã dính vụ store_teams bị khai tử).
+     */
+    private static function col_exists(mysqli $conn, string $table, string $col): bool
+    {
+        static $cache = [];
+        $k = "$table.$col";
+        return $cache[$k] ??= (bool)$conn->execute_query(
+            'SELECT 1 FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1',
+            [$table, $col]
+        )->fetch_row();
     }
 
     /**
@@ -108,68 +148,255 @@ class Teams
         ];
     }
 
-    /**
-     * Xóa MỘT team. Chặn khi team còn được tham chiếu ở bất kỳ bảng nào
-     * (members/accounts/stores) — người dùng phải dời dữ liệu sang team khác trước.
-     *
-     * KHÔNG hỗ trợ xóa hàng loạt (chốt 05/08/2026): xóa team kéo theo cả nhánh dữ liệu
-     * nên phải cân nhắc từng cái. UI không có Delete Selected, và tầng code ở đây cũng
-     * từ chối luôn khi nhận nhiều hơn 1 ID để không tin vào lớp UI.
-     *
-     * @return array{status:string,deleted?:int,message?:string}
-     */
-    public static function delete_teams(): array
+    /** Đọc team_id từ request, kèm kiểm quyền + CSRF. Trả lỗi hoặc id hợp lệ. */
+    private static function purge_input(): array
     {
         if (!check_csrf()) {
-            return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
+            return ['error' => 'Invalid CSRF token.'];
         }
         if (!is_admin()) {
-            return ['status' => 'error', 'message' => 'Only an admin can delete teams.'];
+            return ['error' => 'Only an admin can delete teams.'];
         }
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id <= 0) {
+            return ['error' => 'Missing team.'];
+        }
+        if ($id === (int)($_SESSION['auth']['team'] ?? 0)) {
+            // Tự xóa team của chính mình sẽ xóa luôn tài khoản đang đăng nhập
+            return ['error' => 'You cannot delete the team you belong to.'];
+        }
+        if (!db()->execute_query('SELECT ID FROM team WHERE ID = ? LIMIT 1', [$id])->fetch_row()) {
+            return ['error' => 'Team not found.'];
+        }
+        return ['id' => $id];
+    }
 
-        $ids = $_POST['ids'] ?? [];
-        if (!is_array($ids) || empty($ids)) {
-            return ['status' => 'error', 'message' => 'Missing team list.'];
+    /**
+     * Đếm trước những gì sẽ bị xóa — dùng để hiện bảng xác nhận và tính tổng cho thanh
+     * tiến trình. Chỉ ĐỌC, không đụng dữ liệu.
+     *
+     * @return array{status:string,counts?:array,total?:int,name?:string,message?:string}
+     */
+    public static function get_purge_preview(): array
+    {
+        $in = self::purge_input();
+        if (isset($in['error'])) {
+            return ['status' => 'error', 'message' => $in['error']];
         }
-        $ids = array_values(array_unique(array_filter(array_map('intval', $ids), fn($v) => $v > 0)));
-        if (empty($ids)) {
-            return ['status' => 'error', 'message' => 'Invalid team list.'];
-        }
-        if (count($ids) > 1) {
-            return ['status' => 'error', 'message' => 'Teams can only be deleted one at a time.'];
-        }
-
+        $id = $in['id'];
         $conn = db();
-        $idsStr = implode(',', $ids);
 
-        // Lớp dữ liệu: team còn tham chiếu thì từ chối xóa, báo rõ vướng ở đâu
-        $blocked = [];
-        foreach (self::ref_tables($conn) as $label => [$table, $col]) {
-            $rs = $conn->query("SELECT $col AS tid, COUNT(*) AS cnt FROM `$table` WHERE $col IN ($idsStr) GROUP BY $col");
-            while ($row = $rs->fetch_assoc()) {
-                $blocked[(int)$row['tid']][] = $row['cnt'] . ' ' . $label;
-            }
+        $name = (string)$conn->execute_query('SELECT name FROM team WHERE ID = ?', [$id])->fetch_row()[0];
+        $one = fn(string $sql) => (int)$conn->execute_query($sql, [$id])->fetch_row()[0];
+
+        $counts = [
+            'members'  => $one('SELECT COUNT(*) FROM authors WHERE team_id = ?'),
+            'accounts' => $one('SELECT COUNT(*) FROM accounts WHERE team_id = ?'),
+            'products' => $one('SELECT COUNT(*) FROM posts p INNER JOIN authors a ON a.ID = p.author_id WHERE a.team_id = ?'),
+            'orders'   => $one('SELECT COUNT(*) FROM orders o INNER JOIN accounts ac ON ac.ID = o.account_id WHERE ac.team_id = ?'),
+            'stores'   => $one('SELECT COUNT(*) FROM store WHERE team_id = ?'),
+            // Tệp đính kèm của account (ảnh/tài liệu) — logo site KHÔNG nằm trong nhóm này
+            'files'    => self::col_exists($conn, 'accounts_files', 'file_id')
+                ? $one('SELECT COUNT(DISTINCT af.file_id) FROM accounts_files af
+                        INNER JOIN accounts ac ON ac.ID = af.account_id WHERE ac.team_id = ?')
+                : 0,
+        ];
+
+        return [
+            'status' => 'success',
+            'name'   => $name,
+            'counts' => $counts,
+            'total'  => array_sum($counts),
+        ];
+    }
+
+    /**
+     * Chạy MỘT chặng của tiến trình xóa dây chuyền (tối đa PURGE_BUDGET dòng).
+     *
+     * Client gọi lặp lại tới khi nhận `finished` = true. Thứ tự cố định con -> cha để
+     * đứt giữa chừng vẫn gọi lại được: sản phẩm -> đơn hàng -> tệp của account ->
+     * bảng con account -> account -> bảng con user -> user -> store riêng ->
+     * gỡ created_by -> xóa team.
+     *
+     * @return array{status:string,finished?:bool,stage?:string,deleted?:int,message?:string}
+     */
+    public static function purge_team(): array
+    {
+        $in = self::purge_input();
+        if (isset($in['error'])) {
+            return ['status' => 'error', 'message' => $in['error']];
         }
-        if (!empty($blocked)) {
-            $names = [];
-            $rs = $conn->query('SELECT ID, name FROM team WHERE ID IN (' . implode(',', array_keys($blocked)) . ')');
-            while ($row = $rs->fetch_assoc()) {
-                $names[] = $row['name'] . ' (' . implode(', ', $blocked[(int)$row['ID']]) . ')';
-            }
-            return ['status' => 'error',
-                'message' => 'Cannot delete: ' . implode('; ', $names) . '. Move or unlink them first.'];
-        }
+        $id = $in['id'];
+        $conn = db();
+        $budget = self::PURGE_BUDGET;
+        $deleted = 0;
 
         try {
-            $conn->query("DELETE FROM team WHERE ID IN ($idsStr)");
-            $deleted = $conn->affected_rows;
+            // --- 1. Sản phẩm của các user trong team (kèm bảng con của sản phẩm) ---
+            while ($budget > 0) {
+                $ids = [];
+                $rs = $conn->execute_query(
+                    'SELECT p.ID FROM posts p INNER JOIN authors a ON a.ID = p.author_id
+                     WHERE a.team_id = ? LIMIT ' . self::PURGE_CHUNK, [$id]);
+                while ($row = $rs->fetch_row()) {
+                    $ids[] = (int)$row[0];
+                }
+                if (!$ids) {
+                    break;
+                }
+                $idsStr = implode(',', $ids);
+                foreach (self::POST_CHILDREN as $child) {
+                    if (self::col_exists($conn, $child, 'post_id')) {
+                        $conn->query("DELETE FROM `$child` WHERE post_id IN ($idsStr)");
+                    }
+                }
+                $conn->query("DELETE FROM posts WHERE ID IN ($idsStr)");
+                $n = $conn->affected_rows;
+                $deleted += $n;
+                $budget -= max($n, 1);
+            }
+            if ($budget <= 0) {
+                return ['status' => 'partial', 'stage' => 'Products', 'deleted' => $deleted];
+            }
+
+            // --- 2. Đơn hàng của các account trong team ---
+            // MariaDB KHÔNG cho LIMIT trong DELETE nhiều bảng -> lấy ID theo lô rồi xóa theo ID
+            while ($budget > 0) {
+                $ids = [];
+                $rs = $conn->execute_query(
+                    'SELECT o.ID FROM orders o INNER JOIN accounts ac ON ac.ID = o.account_id
+                     WHERE ac.team_id = ? LIMIT ' . self::PURGE_CHUNK, [$id]);
+                while ($row = $rs->fetch_row()) {
+                    $ids[] = (int)$row[0];
+                }
+                if (!$ids) {
+                    break;
+                }
+                $idsStr = implode(',', $ids);
+                foreach (self::ORDER_CHILDREN as $child) {
+                    if (self::col_exists($conn, $child, 'order_id')) {
+                        $conn->query("DELETE FROM `$child` WHERE order_id IN ($idsStr)");
+                    }
+                }
+                $conn->query("DELETE FROM orders WHERE ID IN ($idsStr)");
+                $n = $conn->affected_rows;
+                $deleted += $n;
+                $budget -= max($n, 1);
+            }
+            if ($budget <= 0) {
+                return ['status' => 'partial', 'stage' => 'Orders', 'deleted' => $deleted];
+            }
+
+            // --- 3. Tệp riêng của account (bản ghi `files` + file vật lý trên đĩa) ---
+            // LƯU Ý: bảng `files` dùng chung cho cả logo site (type = 'sites'), nên CHỈ
+            // được xóa file có liên kết trong accounts_files tới account của team này.
+            // Gỡ liên kết tới đâu xóa file tới đó -> đứt giữa chừng gọi lại vẫn tìm được
+            // phần còn sót (nếu xóa hết liên kết trước thì mất dấu, thành file mồ côi).
+            if (self::col_exists($conn, 'accounts_files', 'file_id')) {
+                while ($budget > 0) {
+                    $fileIds = [];
+                    $rs = $conn->execute_query(
+                        'SELECT DISTINCT af.file_id FROM accounts_files af
+                         INNER JOIN accounts ac ON ac.ID = af.account_id
+                         WHERE ac.team_id = ? LIMIT ' . self::PURGE_CHUNK, [$id]);
+                    while ($row = $rs->fetch_row()) {
+                        $fileIds[] = (int)$row[0];
+                    }
+                    if (!$fileIds) {
+                        break;
+                    }
+                    foreach ($fileIds as $fid) {
+                        // Gỡ liên kết của riêng team này trước
+                        $conn->execute_query(
+                            'DELETE af FROM accounts_files af
+                             INNER JOIN accounts ac ON ac.ID = af.account_id
+                             WHERE af.file_id = ? AND ac.team_id = ?', [$fid, $id]);
+                        // Còn account khác dùng file này thì giữ lại bản ghi files
+                        $stillUsed = $conn->execute_query(
+                            'SELECT 1 FROM accounts_files WHERE file_id = ? LIMIT 1', [$fid])->fetch_row();
+                        if ($stillUsed) {
+                            continue;
+                        }
+                        // Dùng lại helper sẵn có: xóa bản ghi + file trên đĩa
+                        if (function_exists('deletePhysicalFile')) {
+                            deletePhysicalFile($conn, $fid);
+                        } else {
+                            $conn->execute_query('DELETE FROM files WHERE ID = ?', [$fid]);
+                        }
+                        $deleted++;
+                        $budget--;
+                    }
+                }
+                if ($budget <= 0) {
+                    return ['status' => 'partial', 'stage' => 'Files', 'deleted' => $deleted];
+                }
+            }
+
+            // --- 4. Bảng con của account, rồi account ---
+            foreach (self::ACCOUNT_CHILDREN as $child) {
+                if (!self::col_exists($conn, $child, 'account_id')) {
+                    continue;
+                }
+                $conn->execute_query(
+                    "DELETE c FROM `$child` c INNER JOIN accounts ac ON ac.ID = c.account_id
+                     WHERE ac.team_id = ?", [$id]);
+                $deleted += $conn->affected_rows;
+            }
+            $conn->execute_query('DELETE FROM accounts WHERE team_id = ?', [$id]);
+            $deleted += $conn->affected_rows;
+
+            // --- 5. Bảng con của user, rồi user ---
+            foreach (self::AUTHOR_CHILDREN as $child) {
+                if (!self::col_exists($conn, $child, 'author_id')) {
+                    continue;
+                }
+                $conn->execute_query(
+                    "DELETE c FROM `$child` c INNER JOIN authors a ON a.ID = c.author_id
+                     WHERE a.team_id = ?", [$id]);
+                $deleted += $conn->affected_rows;
+            }
+            $conn->execute_query('DELETE FROM authors WHERE team_id = ?', [$id]);
+            $deleted += $conn->affected_rows;
+
+            // --- 6. Store RIÊNG của team (store dùng chung team_id = 0 giữ nguyên) ---
+            // Sản phẩm của team KHÁC còn trỏ tới store này -> chuyển Inactive + gỡ liên kết,
+            // giống luật đã chốt ở trang Stores, thay vì để trỏ vào bản ghi không còn tồn tại.
+            $storeIds = [];
+            $rs = $conn->execute_query('SELECT ID FROM store WHERE team_id = ?', [$id]);
+            while ($row = $rs->fetch_row()) {
+                $storeIds[] = (int)$row[0];
+            }
+            if ($storeIds) {
+                $storeStr = implode(',', $storeIds);
+                do {
+                    $conn->query("UPDATE posts SET status = 'inactive', store_id = 0
+                                  WHERE store_id IN ($storeStr) LIMIT " . self::PURGE_CHUNK);
+                    $n = $conn->affected_rows;
+                    $budget -= max($n, 1);
+                } while ($n === self::PURGE_CHUNK && $budget > 0);
+                if ($budget <= 0) {
+                    return ['status' => 'partial', 'stage' => 'Stores', 'deleted' => $deleted];
+                }
+                $conn->query("DELETE FROM store WHERE ID IN ($storeStr)");
+                $deleted += $conn->affected_rows;
+            }
+
+            // --- 7. Dữ liệu DÙNG CHUNG: giữ bản ghi, chỉ gỡ người tạo về 0 ---
+            // (bản ghi trở thành "chỉ admin sửa" — không xóa vì team khác đang dùng)
+            foreach (self::SHARED_CREATED_BY as $table) {
+                if (self::table_exists($conn, $table) && self::col_exists($conn, $table, 'created_by')) {
+                    $conn->query("UPDATE `$table` SET created_by = 0
+                                  WHERE created_by NOT IN (SELECT ID FROM authors)");
+                }
+            }
+
+            // --- 8. Xóa team ở bước cuối: đứt giữa chừng thì gọi lại vẫn dọn tiếp được ---
+            $conn->execute_query('DELETE FROM team WHERE ID = ?', [$id]);
+            $deleted += $conn->affected_rows;
         } catch (\mysqli_sql_exception $e) {
-            return ['status' => 'error', 'message' => 'Delete failed: ' . $e->getMessage()];
+            return ['status' => 'error', 'message' => 'Purge failed: ' . $e->getMessage()];
         }
 
-        if ($deleted === 0) {
-            return ['status' => 'error', 'message' => 'Team not found.'];
-        }
-        return ['status' => 'success', 'deleted' => $deleted];
+        return ['status' => 'success', 'finished' => true, 'stage' => 'Done', 'deleted' => $deleted];
     }
 }

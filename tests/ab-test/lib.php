@@ -20,6 +20,8 @@ const AB_ROOT = __DIR__ . '/../..';
 
 require_once AB_ROOT . '/config.php';
 require_once AB_ROOT . '/functions.php';
+// deletePhysicalFile() — Teams::purge_team() dùng để xóa tệp riêng của account
+require_once AB_ROOT . '/functions/functions-upload-files.php';
 foreach (['products', 'product', 'categories', 'category', 'sites', 'site', 'stores', 'store',
           'orders', 'order', 'teams', 'team', 'extension'] as $abClass) {
     require_once AB_ROOT . "/class/class.$abClass.php";
@@ -179,6 +181,48 @@ final class AbFixtures
         return (int)$this->conn->insert_id;
     }
 
+    /**
+     * Tạo 1 team ZZAB kèm đủ nhánh dữ liệu riêng (user + account + đơn + sản phẩm)
+     * để kiểm tra xóa dây chuyền có quét sạch không.
+     *
+     * @return array{0:int,1:int,2:int,3:int,4:int} [teamId, authorId, accountId, orderId, postId]
+     */
+    public function new_team_with_data(): array
+    {
+        $teamId = $this->new_team();
+        $c = $this->conn;
+
+        $uname = 'ZZABU' . bin2hex(random_bytes(4));
+        $c->execute_query(
+            'INSERT INTO authors (team_id, email, status, username, pass, level, date)
+             VALUES (?, ?, 2, ?, ?, 0, NOW())',
+            [$teamId, $uname . '@zzab.test', $uname, password_hash('zzab', PASSWORD_DEFAULT)]
+        );
+        $authorId = (int)$c->insert_id;
+
+        $accountId = $this->new_account($teamId, $authorId);
+        $orderId   = $this->new_order($accountId, 'ZZAB-ORD-PURGE');
+        $postId    = $this->new_post($authorId, 'ZZAB-P-PURGE');
+
+        return [$teamId, $authorId, $accountId, $orderId, $postId];
+    }
+
+    /**
+     * Tạo 1 bản ghi `files` giả (không có file thật trên đĩa — deletePhysicalFile tự bỏ
+     * qua khi không tìm thấy). $type = 'accounts' hoặc 'sites'.
+     */
+    public function new_file(string $type): int
+    {
+        $uuid = bin2hex(random_bytes(16));
+        $this->conn->execute_query(
+            'INSERT INTO files (file_uuid, user_id, file_name, storage_path, file_size,
+                                mime_type, extension, checksum, status, type, created_at)
+             VALUES (?, 0, ?, ?, 1, ?, ?, ?, 1, ?, NOW())',
+            [$uuid, 'ZZAB.png', 'uploads/zzab/' . $uuid . '.png', 'image/png', 'png', $uuid, $type]
+        );
+        return (int)$this->conn->insert_id;
+    }
+
     /** Tạo 1 team ZZAB rỗng (không thành viên) để test sửa/xóa. */
     public function new_team(): int
     {
@@ -246,10 +290,18 @@ final class AbFixtures
         $c->query("DELETE FROM `type` WHERE name LIKE 'ZZAB%'");
         $c->query("DELETE FROM store WHERE name LIKE 'ZZAB%' OR slug LIKE 'zzab-%'");
         $c->query("DELETE FROM site WHERE slug LIKE 'zzab-%'");
+        // Tệp ZZAB (bản ghi giả, không có file thật trên đĩa)
+        $c->query("DELETE FROM accounts_files
+                   WHERE file_id IN (SELECT ID FROM files WHERE file_name = 'ZZAB.png')");
+        $c->query("DELETE FROM files WHERE file_name = 'ZZAB.png'");
         // Orders trước, rồi account (đơn tham chiếu account)
         $c->query("DELETE FROM orders WHERE host_id LIKE 'ZZAB-ORD%'");
         $c->query("DELETE FROM accounts_authors WHERE account_id IN (SELECT ID FROM accounts WHERE name LIKE 'ZZAB%')");
         $c->query("DELETE FROM accounts WHERE name LIKE 'ZZAB%'");
+        // User ZZAB do phép thử xóa-dây-chuyền tạo ra (username có tiền tố ZZABU)
+        $c->query("DELETE FROM author_remember_tokens
+                   WHERE author_id IN (SELECT ID FROM authors WHERE username LIKE 'ZZABU%')");
+        $c->query("DELETE FROM authors WHERE username LIKE 'ZZABU%'");
         // Team ZZAB xóa cuối: chỉ xóa team KHÔNG có thành viên thật để không đụng dữ liệu sống
         $c->query("DELETE FROM team WHERE name LIKE 'ZZAB%'
                    AND ID NOT IN (SELECT DISTINCT team_id FROM authors)");

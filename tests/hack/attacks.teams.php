@@ -48,12 +48,19 @@ return function (HackRunner $h): void {
         return ['breach' => $after !== $before, 'note' => 'Tên team sau đòn: ' . $after];
     });
 
-    $h->attack('Leo thang quyền', 'USER đủ 4 role xóa team', 'USR_OUT', function ($atk, $fx) {
+    $h->attack('Leo thang quyền', 'USER đủ 4 role xóa team (dây chuyền)', 'USR_OUT', function ($atk, $fx) {
         $id = $fx->new_team();
-        $_POST = ['csrf_token' => 'VICTIM_SECRET', 'ids' => [$id]];
-        Teams::delete_teams();
+        $_POST = ['csrf_token' => 'VICTIM_SECRET', 'id' => $id];
+        Teams::purge_team();
         $gone = hack_count($fx->conn, "SELECT COUNT(*) FROM team WHERE ID = $id") === 0;
-        return ['breach' => $gone, 'note' => 'Non-admin xóa được team'];
+        return ['breach' => $gone, 'note' => 'Non-admin kích hoạt được xóa dây chuyền'];
+    });
+
+    $h->attack('Leo thang quyền', 'Non-admin xem trước dữ liệu team khác', 'MGR_OUT', function ($atk, $fx) {
+        $_POST = ['csrf_token' => 'VICTIM_SECRET', 'id' => $fx->teamEmpty];
+        $res = Teams::get_purge_preview();
+        return ['breach' => ($res['status'] ?? '') === 'success',
+            'note' => 'Đếm được dữ liệu nội bộ của team khác'];
     });
 
     $h->attack('Leo thang quyền', 'Fragment Teams render cho non-admin', 'MGR_OUT', function ($atk, $fx) {
@@ -92,13 +99,34 @@ return function (HackRunner $h): void {
     });
 
     // ---------- Toàn vẹn dữ liệu ----------
-    $h->attack('Toàn vẹn dữ liệu', 'Xóa team ĐANG có thành viên (tạo user mồ côi)', 'MGR_OUT',
+    // AN TOÀN: đánh vào team ZZAB có dữ liệu thay vì team thật — guard hỏng thì chỉ mất
+    // bản ghi nháp. Tuyệt đối KHÔNG trỏ đòn xóa dây chuyền vào team đang dùng.
+    $h->attack('Toàn vẹn dữ liệu', 'Non-admin xóa dây chuyền team của người khác', 'MGR_OUT',
         function ($atk, $fx) {
-            $_POST = ['csrf_token' => 'VICTIM_SECRET', 'ids' => [1]];
-            Teams::delete_teams();
-            $gone = hack_count($fx->conn, 'SELECT COUNT(*) FROM team WHERE ID = 1') === 0;
-            return ['breach' => $gone, 'note' => 'Team 1 (có thành viên thật) bị xóa'];
-        });
+            [$teamId, $authorId] = $fx->new_team_with_data();
+            $_POST = ['csrf_token' => 'VICTIM_SECRET', 'id' => $teamId];
+            Teams::purge_team();
+            $gone = hack_count($fx->conn, "SELECT COUNT(*) FROM authors WHERE ID = $authorId") === 0;
+            return ['breach' => $gone, 'note' => 'Non-admin xóa được user của team khác'];
+        }, 'NGHIÊM TRỌNG');
+
+    $h->attack('Toàn vẹn dữ liệu', 'Xóa dây chuyền có đụng dữ liệu DÙNG CHUNG không', 'MGR_OUT',
+        function ($atk, $fx) {
+            // Chạy dưới quyền admin để đo đúng phạm vi xóa, không phải đo lớp quyền
+            $save = $_SESSION['auth'];
+            $_SESSION['auth']['level'] = 'admin';
+            $sitesBefore = hack_count($fx->conn, 'SELECT COUNT(*) FROM site');
+            $typesBefore = hack_count($fx->conn, 'SELECT COUNT(*) FROM `type`');
+            $sharedBefore = hack_count($fx->conn, 'SELECT COUNT(*) FROM store WHERE team_id = 0');
+            [$teamId] = $fx->new_team_with_data();
+            $_POST = ['csrf_token' => 'VICTIM_SECRET', 'id' => $teamId];
+            Teams::purge_team();
+            $_SESSION['auth'] = $save;
+            $lost = ($sitesBefore - hack_count($fx->conn, 'SELECT COUNT(*) FROM site'))
+                + ($typesBefore - hack_count($fx->conn, 'SELECT COUNT(*) FROM `type`'))
+                + ($sharedBefore - hack_count($fx->conn, 'SELECT COUNT(*) FROM store WHERE team_id = 0'));
+            return ['breach' => $lost > 0, 'note' => "Bản ghi dùng chung bị xóa nhầm: $lost"];
+        }, 'NGHIÊM TRỌNG');
 
     // ---------- SQL injection ----------
     $h->attack('SQL injection', 'Payload trong ô tìm kiếm team', 'MGR_OUT', function ($atk, $fx) {
@@ -107,12 +135,15 @@ return function (HackRunner $h): void {
         return ['breach' => !empty($res['data']), 'note' => 'filtered = ' . ($res['recordsFiltered'] ?? 0)];
     });
 
-    $h->attack('SQL injection', 'Payload trong ID khi xóa team', 'MGR_OUT', function ($atk, $fx) {
+    $h->attack('SQL injection', 'Payload trong ID khi xóa dây chuyền', 'MGR_OUT', function ($atk, $fx) {
+        // Payload bám vào ID team nháp: (int) phải cắt phần đuôi. Nếu injection lọt thì
+        // số team tụt hơn 1 -> phát hiện được mà không nhắm vào team thật.
+        $id = $fx->new_team();
         $before = hack_count($fx->conn, 'SELECT COUNT(*) FROM team');
-        $_POST = ['csrf_token' => 'VICTIM_SECRET', 'ids' => ['1 OR 1=1', '1); DELETE FROM team;--']];
-        Teams::delete_teams();
+        $_POST = ['csrf_token' => 'VICTIM_SECRET', 'id' => $id . ' OR 1=1; DELETE FROM team;--'];
+        Teams::purge_team();
         $after = hack_count($fx->conn, 'SELECT COUNT(*) FROM team');
-        return ['breach' => $after < $before, 'note' => "Số team: $before -> $after"];
+        return ['breach' => $after < $before - 1, 'note' => "Số team: $before -> $after"];
     });
 
     $h->attack('SQL injection', 'Payload trong tên team khi lưu', 'MGR_OUT', function ($atk, $fx) {

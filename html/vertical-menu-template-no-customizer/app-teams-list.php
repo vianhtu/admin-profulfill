@@ -74,21 +74,54 @@ if (!is_admin()) {
     </div>
 </div>
 
-<!-- Modal xác nhận xóa MỘT team (không có xóa hàng loạt) -->
-<div class="modal fade" id="deleteTeamModal" tabindex="-1" aria-hidden="true" role="dialog">
+<!-- Modal xóa MỘT team: liệt kê thứ sẽ mất, thứ được giữ, rồi chạy tiến trình theo lô -->
+<div class="modal fade" id="deleteTeamModal" tabindex="-1" aria-hidden="true" role="dialog"
+     data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Confirm delete!</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title text-danger">Delete team permanently</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="deleteTeamClose"></button>
             </div>
             <div class="modal-body">
-                Are you sure you want to delete <strong id="deleteTeamName"></strong>?
-                Teams that still have members, accounts or stores cannot be deleted.
+                <p class="mb-4">
+                    Deleting <strong id="deleteTeamName"></strong> also removes everything that
+                    belongs only to this team. This cannot be undone.
+                </p>
+
+                <div id="deleteTeamLoading" class="text-center py-4">
+                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>Checking data...
+                </div>
+
+                <div id="deleteTeamSummary" class="d-none">
+                    <table class="table table-sm mb-4">
+                        <tbody>
+                        <tr><td>Members</td><td class="text-end fw-medium" id="cntMembers">0</td></tr>
+                        <tr><td>Accounts</td><td class="text-end fw-medium" id="cntAccounts">0</td></tr>
+                        <tr><td>Products</td><td class="text-end fw-medium" id="cntProducts">0</td></tr>
+                        <tr><td>Orders</td><td class="text-end fw-medium" id="cntOrders">0</td></tr>
+                        <tr><td>Private stores</td><td class="text-end fw-medium" id="cntStores">0</td></tr>
+                        <tr><td>Account files</td><td class="text-end fw-medium" id="cntFiles">0</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="alert alert-info d-flex mb-0" role="alert">
+                        <i class="icon-base ti tabler-info-circle me-2"></i>
+                        <span>Shared data is kept: sites, categories and shared stores stay in place.</span>
+                    </div>
+                </div>
+
+                <div id="deleteTeamProgress" class="d-none mt-4">
+                    <div class="progress mb-2" style="height: 8px;">
+                        <div class="progress-bar bg-danger" id="deleteTeamBar" style="width: 0%"></div>
+                    </div>
+                    <small class="text-body-secondary" id="deleteTeamProgressText"></small>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-label-secondary waves-effect" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary waves-effect waves-light" id="deleteTeamConfirm">Delete</button>
+                <button type="button" class="btn btn-label-secondary waves-effect" data-bs-dismiss="modal" id="deleteTeamCancel">Cancel</button>
+                <button type="button" class="btn btn-danger waves-effect waves-light" id="deleteTeamConfirm" disabled>
+                    <span class="spinner-border spinner-border-sm me-2 d-none" id="deleteTeamSpinner" role="status"></span>Delete everything
+                </button>
             </div>
         </div>
     </div>

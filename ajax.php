@@ -220,8 +220,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         case 'save-team':
             echo json_encode(Team::save_team());
             break;
-        case 'delete-teams':
-            echo json_encode(Teams::delete_teams());
+        case 'get-team-purge-preview':
+            echo json_encode(Teams::get_purge_preview());
+            break;
+        case 'purge-team':
+            echo json_encode(Teams::purge_team());
             break;
         case 'get-authors-table':
             echo json_encode(getAuthorsTable());

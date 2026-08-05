@@ -274,44 +274,134 @@ $(document).on('click', '#teamSubmit', function () {
     });
 });
 
-// --- Xóa: chỉ TỪNG DÒNG một, không có thao tác hàng loạt ---
+// --- Xóa team: xóa dây chuyền theo lô, có thanh tiến trình ---
+// Chỉ TỪNG DÒNG một (không có thao tác hàng loạt). Mỗi request server xử lý một phần rồi
+// trả 'partial'; client gọi tiếp tới khi finished để không request nào chạy quá lâu.
+const PURGE_MAX_ROUNDS = 2000;   // chặn vòng lặp vô hạn nếu server cứ trả 'partial'
+
 function openDeleteTeamModal(id, name) {
     const modalEl = document.getElementById('deleteTeamModal');
     $('#deleteTeamName').text(name || ('#' + id));
     $(modalEl).data('id', id);
+
+    // Reset trạng thái modal cho lần mở mới
+    $('#deleteTeamLoading').removeClass('d-none');
+    $('#deleteTeamSummary').addClass('d-none');
+    $('#deleteTeamProgress').addClass('d-none');
+    $('#deleteTeamBar').css('width', '0%');
+    $('#deleteTeamProgressText').text('');
+    $('#deleteTeamConfirm').prop('disabled', true).show();
+    $('#deleteTeamSpinner').addClass('d-none');
+    $('#deleteTeamCancel').text('Cancel').prop('disabled', false);
+    $('#deleteTeamClose').prop('disabled', false);
+
     bootstrap.Modal.getOrCreateInstance(modalEl).show();
+
+    // Đếm trước những gì sẽ mất để admin quyết định có tay trong tay
+    $.ajax({
+        url: '../../ajax.php?action=get-team-purge-preview',
+        type: 'POST',
+        data: { id: id, csrf_token: window.csrfToken }
+    }).done(function (res) {
+        $('#deleteTeamLoading').addClass('d-none');
+        if (res?.status !== 'success') {
+            $('#deleteTeamProgressText').text(res?.message || 'Failed to load team data.');
+            $('#deleteTeamProgress').removeClass('d-none');
+            return;
+        }
+        const c = res.counts || {};
+        $('#cntMembers').text((c.members || 0).toLocaleString());
+        $('#cntAccounts').text((c.accounts || 0).toLocaleString());
+        $('#cntProducts').text((c.products || 0).toLocaleString());
+        $('#cntOrders').text((c.orders || 0).toLocaleString());
+        $('#cntStores').text((c.stores || 0).toLocaleString());
+        $('#cntFiles').text((c.files || 0).toLocaleString());
+        $(modalEl).data('total', res.total || 0);
+        $('#deleteTeamSummary').removeClass('d-none');
+        $('#deleteTeamConfirm').prop('disabled', false);
+    }).fail(function () {
+        $('#deleteTeamLoading').addClass('d-none');
+        $('#deleteTeamProgress').removeClass('d-none');
+        $('#deleteTeamProgressText').text('Server connection error.');
+    });
 }
 
 $(document).on('click', '.delete-team', function () {
     openDeleteTeamModal(parseInt($(this).data('id'), 10), String($(this).data('name') ?? ''));
 });
 
-$(document).on('click', '#deleteTeamConfirm', function () {
+$(document).on('click', '#deleteTeamConfirm', async function () {
     const modalEl = document.getElementById('deleteTeamModal');
     const id = $(modalEl).data('id');
+    const total = $(modalEl).data('total') || 0;
     if (!id) {
         return;
     }
-    $.ajax({
-        url: '../../ajax.php?action=delete-teams',
-        type: 'POST',
-        data: { ids: [id], csrf_token: window.csrfToken },
-        success: function (res) {
-            if (res?.status === 'success') {
-                bootstrap.Modal.getInstance(modalEl)?.hide();
-                $(modalEl).removeData('id');
-                if (dtTeams) {
-                    dtTeams.draw(false);
-                }
-            } else {
-                // Giữ modal mở để đọc lý do (vd còn members/stores tham chiếu)
-                alert(res?.message || 'Failed to delete team.');
+
+    const $bar = $('#deleteTeamBar');
+    const $text = $('#deleteTeamProgressText');
+
+    // Khóa mọi đường thoát trong lúc chạy: đứt giữa chừng để lại dữ liệu dở dang
+    $(this).prop('disabled', true);
+    $('#deleteTeamSpinner').removeClass('d-none');
+    $('#deleteTeamCancel').prop('disabled', true);
+    $('#deleteTeamClose').prop('disabled', true);
+    $('#deleteTeamSummary').addClass('d-none');
+    $('#deleteTeamProgress').removeClass('d-none');
+    $text.text('Starting...');
+
+    let done = 0;
+    let rounds = 0;
+    try {
+        for (;;) {
+            const res = await $.ajax({
+                url: '../../ajax.php?action=purge-team',
+                type: 'POST',
+                data: { id: id, csrf_token: window.csrfToken }
+            });
+            if (res?.status === 'error') {
+                throw new Error(res.message || 'Purge failed');
             }
-        },
-        error: function () {
-            alert('Server connection error.');
+            done += res?.deleted ?? 0;
+            const stage = res?.stage || '';
+            // total chỉ là ước lượng (không đếm bảng con) -> chặn trần 99% khi chưa xong
+            const pct = total > 0 ? Math.min(99, Math.round((done / total) * 100)) : 50;
+
+            if (res?.status === 'partial') {
+                $bar.css('width', pct + '%');
+                $text.text(stage + ': removed ' + done.toLocaleString() + ' records...');
+                if (++rounds > PURGE_MAX_ROUNDS) {
+                    throw new Error('Too much data to process in one go. Please run the delete again.');
+                }
+                continue;
+            }
+            // finished
+            $bar.css('width', '100%');
+            $text.text('Done — removed ' + done.toLocaleString() + ' records.');
+            break;
         }
-    });
+
+        // Cho admin nhìn thấy kết quả rồi mới đóng
+        setTimeout(function () {
+            bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+            $(modalEl).removeData('id').removeData('total');
+            if (dtTeams) {
+                dtTeams.draw(false);
+            }
+        }, 1200);
+    } catch (err) {
+        // Giữ modal mở để đọc lỗi; phần đã xóa vẫn giữ nguyên, chạy lại sẽ dọn tiếp
+        $bar.addClass('bg-warning');
+        $text.text(err?.message || 'Server connection error.');
+        $('#deleteTeamConfirm').hide();
+        $('#deleteTeamCancel').text('Close').prop('disabled', false);
+        $('#deleteTeamClose').prop('disabled', false);
+        if (dtTeams) {
+            dtTeams.draw(false);
+        }
+    } finally {
+        $('#deleteTeamSpinner').addClass('d-none');
+    }
 });
 
 document.addEventListener('DOMContentLoaded', function () {
