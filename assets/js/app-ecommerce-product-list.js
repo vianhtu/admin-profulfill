@@ -538,7 +538,7 @@ function initProductTable(){
                                                         return $.ajax({
                                                             url: '../../ajax.php?action=update-products-status',
                                                             type: 'POST',
-                                                            data: { ids: batch, status: 'inactive' }
+                                                            data: { ids: batch, status: 'inactive', csrf_token: window.csrfToken }
                                                         });
                                                     });
                                                     alert('Suspended ' + n + ' products.');
@@ -566,7 +566,7 @@ function initProductTable(){
                                                         return $.ajax({
                                                             url: '../../ajax.php?action=delete-products',
                                                             type: 'POST',
-                                                            data: { ids: batch }
+                                                            data: { ids: batch, csrf_token: window.csrfToken }
                                                         });
                                                     });
                                                     alert('Deleted ' + n + ' products.');
@@ -1144,7 +1144,7 @@ $(document).on('click', '.delete-product', function () {
     $.ajax({
         url: '../../ajax.php?action=delete-products',
         type: 'POST',
-        data: { ids: [id] }
+        data: { ids: [id], csrf_token: window.csrfToken }
     }).done(function (res) {
         if (res?.status === 'success') {
             if (dtProducts) {
@@ -1167,7 +1167,7 @@ $(document).on('click', '.suspend-product', function () {
     $.ajax({
         url: '../../ajax.php?action=update-products-status',
         type: 'POST',
-        data: { ids: [id], status: 'inactive' }
+        data: { ids: [id], status: 'inactive', csrf_token: window.csrfToken }
     }).done(function (res) {
         if (res?.status === 'success') {
             if (dtProducts) {
@@ -1215,7 +1215,7 @@ $(document).on('click', '#bulkEditApply', async function () {
                 const res = await $.ajax({
                     url: '../../ajax.php?action=update-products-type',
                     type: 'POST',
-                    data: { ids: batch, type_id: typeId }
+                    data: { ids: batch, type_id: typeId, csrf_token: window.csrfToken }
                 });
                 if (res?.status !== 'success') {
                     throw new Error(res?.message || 'Type update failed');
@@ -1226,7 +1226,7 @@ $(document).on('click', '#bulkEditApply', async function () {
                 const res = await $.ajax({
                     url: '../../ajax.php?action=update-products-status',
                     type: 'POST',
-                    data: { ids: batch, status: statusVal }
+                    data: { ids: batch, status: statusVal, csrf_token: window.csrfToken }
                 });
                 if (res?.status !== 'success') {
                     throw new Error(res?.message || 'Status update failed');

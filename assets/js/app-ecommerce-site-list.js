@@ -190,7 +190,7 @@ function deleteSites(ids, dt) {
     if (!confirm('Delete ' + ids.length + ' selected sites? Sites still in use cannot be deleted.')) {
         return;
     }
-    $.ajax({ url: '../../ajax.php?action=delete-sites', type: 'POST', data: { ids: ids } })
+    $.ajax({ url: '../../ajax.php?action=delete-sites', type: 'POST', data: { ids: ids, csrf_token: window.csrfToken } })
         .done(function (res) {
             if (res?.status === 'success') {
                 dt.rows().deselect?.();

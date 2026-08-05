@@ -325,6 +325,9 @@ class Products
 }
     public static function update_products_status(): array
 {
+    if (!check_csrf()) {
+        return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
+    }
     if (!checkRoles('edit', 'products')) {
         return ['status' => 'error', 'message' => 'You do not have permission to edit products.'];
     }
@@ -370,6 +373,9 @@ class Products
 
     public static function delete_products(): array
 {
+    if (!check_csrf()) {
+        return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
+    }
     if (!checkRoles('delete', 'products')) {
         return ['status' => 'error', 'message' => 'You do not have permission to delete products.'];
     }
@@ -410,6 +416,9 @@ class Products
 
     public static function update_products_type(): array
 {
+    if (!check_csrf()) {
+        return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
+    }
     if (!checkRoles('edit', 'products')) {
         return ['status' => 'error', 'message' => 'You do not have permission to edit products.'];
     }

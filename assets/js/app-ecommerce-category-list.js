@@ -191,7 +191,7 @@ function deleteCategories(ids, dt) {
     $.ajax({
         url: '../../ajax.php?action=delete-categories',
         type: 'POST',
-        data: { ids: ids }
+        data: { ids: ids, csrf_token: window.csrfToken }
     }).done(function (res) {
         if (res?.status === 'success') {
             dt.rows().deselect?.();

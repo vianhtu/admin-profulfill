@@ -308,6 +308,15 @@ function check_level(string $target): bool {
     return strtolower((string)($_SESSION['auth']['level'] ?? '')) === strtolower($target);
 }
 
+/**
+ * So khớp csrf_token trong POST với token của session (chống CSRF).
+ * Dùng cho MỌI hành động ghi/xóa, kể cả xóa/sửa hàng loạt — không chỉ form save.
+ */
+function check_csrf(): bool {
+    return isset($_POST['csrf_token'], $_SESSION['csrf_token'])
+        && hash_equals((string)$_SESSION['csrf_token'], (string)$_POST['csrf_token']);
+}
+
 function is_admin(): bool { return check_level('admin'); }
 function is_manager(): bool { return check_level('manager'); }
 function is_user(): bool { return check_level('user'); }

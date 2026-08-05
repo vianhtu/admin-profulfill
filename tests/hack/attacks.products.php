@@ -4,6 +4,20 @@
  * kẻ tấn công cố đọc/sửa/xóa sản phẩm của team khác và giả mạo chủ sở hữu.
  */
 
+// $_POST đầy đủ cho form sản phẩm (dùng riêng cho HACK để không phụ thuộc suite AB TEST).
+if (!function_exists('hack_product_post')) {
+    function hack_product_post(AbFixtures $fx, array $over = []): array
+    {
+        $siteId = (int)$fx->conn->query('SELECT ID FROM site ORDER BY ID LIMIT 1')->fetch_row()[0];
+        return array_merge([
+            'csrf_token' => 'VICTIM_SECRET', 'id' => 0, 'title' => 'ZZAB product',
+            'sku' => 'ZZAB-' . bin2hex(random_bytes(4)), 'description' => '', 'status' => 'pending',
+            'badge' => '', 'type_id' => $fx->catShared, 'site_id' => $siteId,
+            'store_id' => $fx->storeShared, 'images' => json_encode(['http://x/a.jpg']), 'tags' => '[]',
+        ], $over);
+    }
+}
+
 return function (HackRunner $h): void {
 
     // ===== Auth bypass =====
@@ -51,7 +65,7 @@ return function (HackRunner $h): void {
     // ===== Giả mạo chủ sở hữu =====
     $h->attack('Giả mạo tham số', 'USER gán sản phẩm mình cho người team khác', 'USR_OUT', function ($atk, $fx) {
         $id = $fx->new_post($atk->uid);
-        $_POST = ab_product_post($fx, ['id' => $id, 'author_id' => AB_UID_T1, 'store_id' => $fx->storeShared]);
+        $_POST = hack_product_post($fx, ['id' => $id, 'author_id' => AB_UID_T1, 'store_id' => $fx->storeShared]);
         Product::save_product();
         $owner = (int)$fx->conn->query("SELECT author_id FROM posts WHERE ID = $id")->fetch_row()[0];
         return ['breach' => $owner === AB_UID_T1, 'note' => 'author_id sau đòn đánh = ' . $owner];
@@ -85,7 +99,8 @@ return function (HackRunner $h): void {
 
     $h->attack('SQL injection', 'Payload trong danh sách ID khi xóa', 'USR_OUT', function ($atk, $fx) {
         $before = hack_count($fx->conn, 'SELECT COUNT(*) FROM posts');
-        $_POST = ['ids' => ['1 OR 1=1', '1); DELETE FROM posts;--']];
+        // Kèm token hợp lệ để đòn đánh chạm tới SQL thật (không bị CSRF chặn trước)
+        $_POST = ['ids' => ['1 OR 1=1', '1); DELETE FROM posts;--'], 'csrf_token' => 'VICTIM_SECRET'];
         Products::delete_products();
         $after = hack_count($fx->conn, 'SELECT COUNT(*) FROM posts');
         return ['breach' => $after < $before - 1, 'note' => "Số sản phẩm: $before -> $after"];

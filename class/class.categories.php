@@ -130,6 +130,9 @@ class Categories
      */
     public static function delete_categories(): array
     {
+        if (!check_csrf()) {
+            return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
+        }
         if (!self::can_manage()) {
             return ['status' => 'error',
                 'message' => 'Categories are shared by every team; only an admin can delete them.'];

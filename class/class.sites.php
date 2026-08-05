@@ -144,6 +144,9 @@ class Sites
      */
     public static function delete_sites(): array
     {
+        if (!check_csrf()) {
+            return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
+        }
         if (!self::can_manage()) {
             return ['status' => 'error',
                 'message' => 'Sites are shared by the whole system; only an admin can delete them.'];

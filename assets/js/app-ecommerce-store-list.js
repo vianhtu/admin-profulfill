@@ -283,7 +283,7 @@ $(document).on('click', '#deleteStoreConfirm', async function () {
                 const res = await $.ajax({
                     url: '../../ajax.php?action=delete-stores',
                     type: 'POST',
-                    data: { ids: batch }
+                    data: { ids: batch, csrf_token: window.csrfToken }
                 });
                 if (res?.status === 'partial') {
                     deactivated += res.deactivated ?? 0;

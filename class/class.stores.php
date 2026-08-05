@@ -234,6 +234,9 @@ class Stores
      */
     public static function delete_stores(): array
     {
+        if (!check_csrf()) {
+            return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
+        }
         $ids = $_POST['ids'] ?? [];
         if (!is_array($ids) || empty($ids)) {
             return ['status' => 'error', 'message' => 'Missing store list.'];
