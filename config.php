@@ -106,18 +106,49 @@ function team_is_active(int $teamId): bool {
 }
 
 /**
- * Phiên đăng nhập hiện tại có bị chặn vì team ngừng hoạt động không.
- * Gọi ở require_login() (trang) và ajax.php (API nội bộ).
+ * Tài khoản này có đang hoạt động không (authors.status = 2).
+ * Trạng thái Pending/Inactive -> không cho đăng nhập và không cho dùng tiếp phiên đang mở.
+ */
+function user_is_active(int $userId): bool {
+	if ($userId <= 0) {
+		return false;
+	}
+	static $cache = [];
+	if (isset($cache[$userId])) {
+		return $cache[$userId];
+	}
+	try {
+		$row = db()->execute_query('SELECT status FROM authors WHERE ID = ? LIMIT 1', [$userId])->fetch_row();
+	} catch (mysqli_sql_exception) {
+		return true;   // DB hỏng thì cả app đã không chạy được; không tự khóa thêm ở đây
+	}
+	return $cache[$userId] = ($row !== null && (int)$row[0] === 2);
+}
+
+/**
+ * Phiên đăng nhập hiện tại có bị chặn không — vì team ngừng hoạt động HOẶC vì chính tài
+ * khoản bị khóa. Gọi ở require_login() (trang) và ajax.php (API nội bộ).
+ *
+ * Admin được miễn phần TEAM (tránh tự nhốt khi tắt team của mình) nhưng KHÔNG được miễn
+ * phần tài khoản: admin bị khóa tài khoản thì cũng phải dừng.
  */
 function current_team_blocked(): bool {
-	if (empty($_SESSION['auth']) || is_admin()) {
+	if (empty($_SESSION['auth'])) {
+		return false;
+	}
+	if (!user_is_active((int)($_SESSION['auth']['user_id'] ?? 0))) {
+		return true;
+	}
+	if (is_admin()) {
 		return false;
 	}
 	return !team_is_active((int)($_SESSION['auth']['team'] ?? 0));
 }
 
-/** Thông báo dùng chung khi team bị khóa (app hiển thị tiếng Anh). */
+/** Thông báo dùng chung khi bị khóa (app hiển thị tiếng Anh). */
 const TEAM_INACTIVE_MESSAGE = 'Your team has been deactivated. Please contact an administrator.';
+/** Tài khoản chưa duyệt / đã khóa. */
+const USER_INACTIVE_MESSAGE = 'Your account is not active. Please contact an administrator.';
 /**
  * URL trang đăng nhập, tính theo vị trí script đang chạy.
  *
@@ -203,6 +234,7 @@ function get_user_data(int|string $identifier): ?array {
             a.team_id as team,
             rl.roles,
             rl.slug as level,
+            a.status as user_status,
             t.status as team_status
         FROM authors a
         LEFT JOIN roles_permissions rl ON rl.ID = a.level
@@ -332,6 +364,12 @@ function attempt_cookie_login(): bool {
 		return false;
 	}
 
+	// Tài khoản bị khóa/chưa duyệt -> không auto-login, thu hồi token
+	if ((int)($user['user_status'] ?? 2) !== 2) {
+		delete_remember_selector($selector);
+		clear_remember_cookie();
+		return false;
+	}
 	// Team ngừng hoạt động -> không auto-login, thu hồi luôn token nhớ đăng nhập
 	if (($user['level'] ?? '') !== 'admin' && (int)($user['team_status'] ?? 1) !== 1) {
 		delete_remember_selector($selector);

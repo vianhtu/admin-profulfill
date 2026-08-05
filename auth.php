@@ -43,6 +43,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'login
 		exit;
 	}
 
+    // Tài khoản chưa duyệt (Pending) hoặc đã khóa (Inactive) -> chặn đăng nhập
+	if ((int)($author['user_status'] ?? 2) !== 2) {
+		flash_set('error', USER_INACTIVE_MESSAGE);
+		header("Location: $loginPage");
+		exit;
+	}
+
     // Team ngừng hoạt động -> chặn đăng nhập (admin không bị chặn để còn bật lại được)
 	if (($author['level'] ?? '') !== 'admin' && (int)($author['team_status'] ?? 1) !== 1) {
 		flash_set('error', TEAM_INACTIVE_MESSAGE);

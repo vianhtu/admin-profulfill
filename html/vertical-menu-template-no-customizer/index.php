@@ -11,6 +11,8 @@ require_once __DIR__ . '/../../class/class.sites.php';
 require_once __DIR__ . '/../../class/class.site.php';
 require_once __DIR__ . '/../../class/class.stores.php';
 require_once __DIR__ . '/../../class/class.store.php';
+// Fragment app-user-list.php dùng Users::can_add() / can_see_salary() để gate lớp UI
+require_once __DIR__ . '/../../class/class.users.php';
 require_login();
 $user = $_SESSION['auth']['user'] ?? 'user';
 $currentMenu = $_GET['menu'] ?? '';

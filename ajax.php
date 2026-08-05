@@ -18,6 +18,8 @@ require_once __DIR__ . '/class/class.stores.php';
 require_once __DIR__ . '/class/class.store.php';
 require_once __DIR__ . '/class/class.teams.php';
 require_once __DIR__ . '/class/class.team.php';
+require_once __DIR__ . '/class/class.users.php';
+require_once __DIR__ . '/class/class.user.php';
 require __DIR__ . '/model/functions-gemini.php';
 require __DIR__ . '/model/functions-openai.php';
 header('Content-Type: application/json; charset=utf-8');
@@ -227,10 +229,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             echo json_encode(Teams::purge_team());
             break;
         case 'get-authors-table':
-            echo json_encode(getAuthorsTable());
+            echo json_encode(Users::get_users());
             break;
         case 'get-authors-table-filter':
-            echo json_encode(get_authors_filters());
+            echo json_encode(Users::get_users_filters());
+            break;
+        case 'save-user':
+            echo json_encode(User::save_user());
+            break;
+        case 'delete-users':
+            echo json_encode(Users::delete_users());
             break;
         case 'get-authors-by-team':
             echo json_encode(get_authors_by_team());

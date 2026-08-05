@@ -1,23 +1,33 @@
+<?php
+// Lớp UI: không đủ quyền xem thì không render gì; endpoint vẫn tự kiểm lại.
+if (!checkRoles('view', 'users')) {
+    return;
+}
+$can_add_user  = Users::can_add();
+$can_see_wage  = Users::can_see_salary();
+?>
 <!-- Users List Table -->
 <div class="card">
     <div class="card-header border-bottom">
         <h5 class="card-title mb-0">Filters</h5>
         <div class="d-flex justify-content-between align-items-center row pt-4 gap-4 gap-md-0">
             <div class="col-md-4 user_role"></div>
-            <div class="col-md-4 user_team"></div>
+            <?php if (is_admin()) : ?>
+                <div class="col-md-4 user_team"></div>
+            <?php endif; ?>
             <div class="col-md-4 user_status"></div>
         </div>
     </div>
     <div class="card-datatable">
+        <!-- Không có cột checkbox: Users chỉ xóa từng dòng, không có thao tác hàng loạt -->
         <table class="datatables-users table">
             <thead class="border-top">
             <tr>
                 <th></th>
-                <th></th>
                 <th>User</th>
                 <th>Role</th>
                 <th>Team</th>
-                <th>Salary</th>
+                <?php if ($can_see_wage) : ?><th>Salary</th><?php endif; ?>
                 <th>Status</th>
                 <th>Date</th>
                 <th>Actions</th>
@@ -25,114 +35,87 @@
             </thead>
         </table>
     </div>
-    <!-- Offcanvas to add new user -->
-    <div
-            class="offcanvas offcanvas-end"
-            tabindex="-1"
-            id="offcanvasAddUser"
-            aria-labelledby="offcanvasAddUserLabel">
+
+    <!-- Offcanvas Add/Edit user. data-bs-scroll: giữ scrollbar body -> không xô bảng -->
+    <div class="offcanvas offcanvas-end" data-bs-scroll="true" tabindex="-1"
+         id="offcanvasUser" aria-labelledby="offcanvasUserLabel">
         <div class="offcanvas-header border-bottom">
-            <h5 id="offcanvasAddUserLabel" class="offcanvas-title">Add User</h5>
-            <button
-                    type="button"
-                    class="btn-close text-reset"
-                    data-bs-dismiss="offcanvas"
-                    aria-label="Close"></button>
+            <h5 id="offcanvasUserLabel" class="offcanvas-title">Add User</h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body mx-0 flex-grow-0 p-6 h-100">
-            <form class="add-new-user pt-0" id="addNewUserForm" onsubmit="return false">
-                <div class="mb-6 form-control-validation">
-                    <label class="form-label" for="add-user-fullname">Full Name</label>
-                    <input
-                            type="text"
-                            class="form-control"
-                            id="add-user-fullname"
-                            placeholder="John Doe"
-                            name="userFullname"
-                            aria-label="John Doe" />
-                </div>
-                <div class="mb-6 form-control-validation">
-                    <label class="form-label" for="add-user-email">Email</label>
-                    <input
-                            type="text"
-                            id="add-user-email"
-                            class="form-control"
-                            placeholder="john.doe@example.com"
-                            aria-label="john.doe@example.com"
-                            name="userEmail" />
+            <form class="pt-0" id="userForm" onsubmit="return false">
+                <input type="hidden" id="user-id" value="0">
+                <div class="mb-6">
+                    <label class="form-label" for="user-username">Username</label>
+                    <input type="text" class="form-control" id="user-username" placeholder="username" maxlength="100">
+                    <div class="invalid-feedback">Please enter a username.</div>
                 </div>
                 <div class="mb-6">
-                    <label class="form-label" for="add-user-contact">Contact</label>
-                    <input
-                            type="text"
-                            id="add-user-contact"
-                            class="form-control phone-mask"
-                            placeholder="+1 (609) 988-44-11"
-                            aria-label="john.doe@example.com"
-                            name="userContact" />
+                    <label class="form-label" for="user-email">Email</label>
+                    <input type="email" class="form-control" id="user-email" placeholder="user@example.com" maxlength="100">
+                    <div class="invalid-feedback">Please enter a valid email.</div>
                 </div>
                 <div class="mb-6">
-                    <label class="form-label" for="add-user-company">Company</label>
-                    <input
-                            type="text"
-                            id="add-user-company"
-                            class="form-control"
-                            placeholder="Web Developer"
-                            aria-label="jdoe1"
-                            name="companyName" />
+                    <label class="form-label" for="user-password">Password</label>
+                    <input type="password" class="form-control" id="user-password" placeholder="At least 8 characters" autocomplete="new-password">
+                    <div class="form-text" id="user-password-hint">Leave blank to keep the current password.</div>
+                    <div class="invalid-feedback">Password must be at least 8 characters.</div>
                 </div>
                 <div class="mb-6">
-                    <label class="form-label" for="country">Country</label>
-                    <select id="country" class="select2 form-select">
-                        <option value="">Select</option>
-                        <option value="Australia">Australia</option>
-                        <option value="Bangladesh">Bangladesh</option>
-                        <option value="Belarus">Belarus</option>
-                        <option value="Brazil">Brazil</option>
-                        <option value="Canada">Canada</option>
-                        <option value="China">China</option>
-                        <option value="France">France</option>
-                        <option value="Germany">Germany</option>
-                        <option value="India">India</option>
-                        <option value="Indonesia">Indonesia</option>
-                        <option value="Israel">Israel</option>
-                        <option value="Italy">Italy</option>
-                        <option value="Japan">Japan</option>
-                        <option value="Korea">Korea, Republic of</option>
-                        <option value="Mexico">Mexico</option>
-                        <option value="Philippines">Philippines</option>
-                        <option value="Russia">Russian Federation</option>
-                        <option value="South Africa">South Africa</option>
-                        <option value="Thailand">Thailand</option>
-                        <option value="Turkey">Turkey</option>
-                        <option value="Ukraine">Ukraine</option>
-                        <option value="United Arab Emirates">United Arab Emirates</option>
-                        <option value="United Kingdom">United Kingdom</option>
-                        <option value="United States">United States</option>
-                    </select>
+                    <label class="form-label" for="user-level">Role</label>
+                    <select id="user-level" class="form-select"></select>
                 </div>
                 <div class="mb-6">
-                    <label class="form-label" for="user-role">User Role</label>
-                    <select id="user-role" class="form-select">
-                        <option value="subscriber">Subscriber</option>
-                        <option value="editor">Editor</option>
-                        <option value="maintainer">Maintainer</option>
-                        <option value="author">Author</option>
-                        <option value="admin">Admin</option>
-                    </select>
+                    <label class="form-label" for="user-team">Team</label>
+                    <select id="user-team" class="form-select"<?= is_admin() ? '' : ' disabled' ?>></select>
+                    <?php if (!is_admin()) : ?>
+                        <div class="form-text">New users are always added to your own team.</div>
+                    <?php endif; ?>
                 </div>
                 <div class="mb-6">
-                    <label class="form-label" for="user-plan">Select Plan</label>
-                    <select id="user-plan" class="form-select">
-                        <option value="basic">Basic</option>
-                        <option value="enterprise">Enterprise</option>
-                        <option value="company">Company</option>
-                        <option value="team">Team</option>
-                    </select>
+                    <label class="form-label" for="user-status">Status</label>
+                    <select id="user-status" class="form-select"></select>
+                    <div class="form-text text-warning">
+                        <i class="icon-base ti tabler-alert-triangle icon-14px me-1"></i>
+                        Only Active users can sign in; other states end their access.
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-primary me-3 data-submit">Submit</button>
+                <?php if ($can_see_wage) : ?>
+                <div class="mb-6">
+                    <label class="form-label" for="user-wage">Salary (VND)</label>
+                    <input type="number" class="form-control" id="user-wage" min="0" step="1000" value="0">
+                </div>
+                <div class="mb-6">
+                    <label class="form-label" for="user-insurance">Insurance (VND)</label>
+                    <input type="number" class="form-control" id="user-insurance" min="0" step="1000" value="0">
+                </div>
+                <?php endif; ?>
+                <button type="button" class="btn btn-primary me-3" id="userSubmit">Save</button>
                 <button type="reset" class="btn btn-label-danger" data-bs-dismiss="offcanvas">Cancel</button>
             </form>
         </div>
     </div>
 </div>
+
+<?php if (is_admin()) : ?>
+<!-- Modal xác nhận xóa MỘT user (không có xóa hàng loạt) -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm delete!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete <strong id="deleteUserName"></strong>?
+                Users who still own products or accounts cannot be deleted — reassign their data first.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-label-secondary waves-effect" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger waves-effect waves-light" id="deleteUserConfirm">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
