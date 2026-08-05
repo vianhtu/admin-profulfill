@@ -198,6 +198,56 @@ return function (HackRunner $h): void {
         return ['breach' => !$ok, 'note' => 'JS render username/email KHÔNG bọc esc()'];
     });
 
+    // ---------- Avatar ----------
+    // Ảnh do người dùng tải lên: đường dẫn phải bị whitelist khi LƯU, nếu không kẻ tấn
+    // công trỏ avatar vào file bất kỳ (config.php) hoặc URL ngoài để nhúng nội dung lạ.
+    $h->attack('Avatar', 'Nhét đường dẫn tùy ý vào cột avatar', 'MGR_OUT', function ($atk, $fx) {
+        $id = $fx->new_user((int)$atk->team);
+        $row = $fx->conn->query("SELECT username, email, level FROM authors WHERE ID = $id")->fetch_assoc();
+        $bad = 0;
+        foreach (['uploads/avatars/../../config.php', '../../config.php', 'http://evil.test/x.png',
+                  '/etc/passwd', "uploads/avatars/x.png\0.php"] as $payload) {
+            $_POST = ['csrf_token' => 'VICTIM_SECRET', 'id' => $id, 'username' => $row['username'],
+                'email' => $row['email'], 'password' => '', 'level' => (int)$row['level'],
+                'team_id' => (int)$atk->team, 'status' => 2, 'avatar' => $payload];
+            User::save_user();
+            $now = (string)($fx->conn->query("SELECT IFNULL(avatar,'') FROM authors WHERE ID = $id")->fetch_row()[0] ?? '');
+            if ($now === $payload) {
+                $bad++;
+            }
+        }
+        return ['breach' => $bad > 0, 'note' => "$bad/5 payload ghi được vào cột avatar"];
+    }, 'NGHIÊM TRỌNG');
+
+    $h->attack('Avatar', 'valid_avatar() nhận đường dẫn ngoài uploads/avatars', 'MGR_OUT',
+        function ($atk, $fx) {
+            $bad = [];
+            foreach (['uploads/sites/a.png', 'uploads/avatars/../x.png', 'avatars/a.png',
+                      'uploads/avatars/a.php', 'uploads/avatars/a.png.php'] as $p) {
+                if (User::valid_avatar($p)) {
+                    $bad[] = $p;
+                }
+            }
+            return ['breach' => !empty($bad), 'note' => 'Chấp nhận nhầm: ' . implode(', ', $bad)];
+        });
+
+    $h->attack('Avatar', 'Upload avatar cho user ngoài phạm vi', 'MGR_OUT', function ($atk, $fx) {
+        $id = $fx->new_user(1);   // team 1, attacker manager team 2
+        $_POST = ['csrf_token' => 'VICTIM_SECRET', 'id' => $id];
+        $_FILES = [];
+        $res = User::upload_avatar();
+        // Không có file nên không thể 'success'; đo đúng thứ tự chặn: quyền phải bị từ
+        // chối TRƯỚC khi tới bước đọc file
+        return ['breach' => ($res['message'] ?? '') !== 'You do not have permission to edit this user.',
+            'note' => 'Thông báo: ' . ($res['message'] ?? '?')];
+    });
+
+    $h->attack('Avatar', 'Ảnh render trong bảng không bọc esc()', 'MGR_OUT', function ($atk, $fx) {
+        $js = (string)file_get_contents(AB_ROOT . '/assets/js/app-user-list.js');
+        return ['breach' => !str_contains($js, 'esc(avatarUrl(full[\'avatar\']))'),
+            'note' => 'src ảnh chưa escape -> thoát được thuộc tính HTML'];
+    });
+
     // ---------- Tài khoản bị khóa ----------
     $h->attack('Tài khoản bị khóa', 'User status Inactive vẫn dùng được phiên đang mở', 'MGR_OUT',
         function ($atk, $fx) {
