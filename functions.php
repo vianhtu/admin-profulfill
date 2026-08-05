@@ -3139,6 +3139,9 @@ function insertAmazonListingFromAI($conn, $downloadId, string $post_id, array $a
 
 function saveExportQuery(): array
 {
+    if (!check_csrf()) {
+        return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
+    }
     if(!checkRoles('add', 'exports_download')){
         return ['status' => 'error', 'message' => 'You do not have permission to create exports.'];
     }

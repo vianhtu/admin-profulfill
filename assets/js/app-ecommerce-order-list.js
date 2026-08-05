@@ -249,7 +249,7 @@ function initTable(){
                     features: [
                         {
                             pageLength: {
-                                menu: [7, 10, 25, 50, 100],
+                                menu: [10, 25, 50, 100],
                                 text: '_MENU_'
                             }
                         },
@@ -693,7 +693,9 @@ function initTable(){
                 classToAdd: 'mx-auto'
             },
             { selector: '.dt-layout-start', classToAdd: 'px-3 mt-0' },
-            { selector: '.dt-layout-full', classToRemove: 'col-md col-12', classToAdd: 'table-responsive' }
+            { selector: '.dt-layout-full', classToRemove: 'col-md col-12', classToAdd: 'table-responsive' },
+            // Bỏ .btn-group do DataTables Buttons thêm vào: nó cắt bo góc các nút rời nhau
+            { selector: '.dt-buttons', classToRemove: 'btn-group' }
         ];
 
         elementsToModify.forEach(({ selector, classToRemove, classToAdd }) => {
@@ -706,6 +708,13 @@ function initTable(){
                 }
             });
         });
+
+        // Ô chọn số item/trang cũng dùng select2 cho đồng bộ với 4 trang chuẩn
+        const $len = $('.dt-length select');
+        if ($len.length && !$len.hasClass('select2-hidden-accessible')) {
+            $len.closest('.dt-length').css('min-width', '7rem');
+            $len.select2({ minimumResultsForSearch: Infinity, width: '100%' });
+        }
     }, 100);
 }
 

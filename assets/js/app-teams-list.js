@@ -189,7 +189,9 @@ function initTable() {
             },
             { selector: '.dt-buttons', classToAdd: 'd-flex gap-4 mb-md-0 mb-4' },
             { selector: '.dt-layout-table', classToRemove: 'row mt-2' },
-            { selector: '.dt-layout-full', classToRemove: 'col-md col-12', classToAdd: 'table-responsive' }
+            { selector: '.dt-layout-full', classToRemove: 'col-md col-12', classToAdd: 'table-responsive' },
+            // Bỏ .btn-group do DataTables Buttons thêm vào: nó cắt bo góc các nút rời nhau
+            { selector: '.dt-buttons', classToRemove: 'btn-group' }
         ];
         tweaks.forEach(({ selector, classToRemove, classToAdd }) => {
             document.querySelectorAll(selector).forEach(element => {

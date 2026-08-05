@@ -39,7 +39,7 @@ async function init() {
         // 2️⃣ Sau khi có dữ liệu → tạo bảng
         initProductTable();
     } catch (err) {
-        alert('Không thể tải danh mục');
+        alert('Failed to load product options');
     }
 }
 
@@ -826,6 +826,7 @@ function initProductTable(){
                     lastPostData.length = parseInt($('#exportLimited').val());
                     lastPostData.start = parseInt($('#exportOffset').val());
                     lastPostData.file = $('#exportFile').val();
+                    lastPostData.csrf_token = window.csrfToken;
                     $.ajax({
                         url: '../../ajax.php?action=save-export-query',
                         type: 'POST',
