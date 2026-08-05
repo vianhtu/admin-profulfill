@@ -61,32 +61,32 @@ return function (AbRunner $r): void {
 
     // ---------- Products: ghi hàng loạt ----------
     $r->add('Products — ghi hàng loạt', 'Đổi status sản phẩm TEAM 1', function ($a, $fx) {
-        $_POST = ['ids' => [$fx->new_post(AB_UID_T1)], 'status' => 'inactive'];
+        $_POST = ['ids' => [$fx->new_post(AB_UID_T1)], 'status' => 'inactive', 'csrf_token' => 'ABTEST'];
         return Products::update_products_status();
     })->allow('ADMIN', 'MGR_T1', 'USR_T1');
 
     $r->add('Products — ghi hàng loạt', 'Đổi status sản phẩm TEAM 2', function ($a, $fx) {
-        $_POST = ['ids' => [$fx->new_post(AB_UID_T2)], 'status' => 'inactive'];
+        $_POST = ['ids' => [$fx->new_post(AB_UID_T2)], 'status' => 'inactive', 'csrf_token' => 'ABTEST'];
         return Products::update_products_status();
     })->allow('ADMIN', 'MGR_T2', 'USR_T2');
 
     $r->add('Products — ghi hàng loạt', 'Đổi category sản phẩm TEAM 1', function ($a, $fx) {
-        $_POST = ['ids' => [$fx->new_post(AB_UID_T1)], 'type_id' => $fx->catMine];
+        $_POST = ['ids' => [$fx->new_post(AB_UID_T1)], 'type_id' => $fx->catMine, 'csrf_token' => 'ABTEST'];
         return Products::update_products_type();
     })->allow('ADMIN', 'MGR_T1', 'USR_T1');
 
     $r->add('Products — ghi hàng loạt', 'Đổi sang category không tồn tại (giả mạo)', function ($a, $fx) {
-        $_POST = ['ids' => [$fx->new_post($a->uid)], 'type_id' => 999999];
+        $_POST = ['ids' => [$fx->new_post($a->uid)], 'type_id' => 999999, 'csrf_token' => 'ABTEST'];
         return Products::update_products_type();
     })->allow(/* không ai được phép */);
 
     $r->add('Products — ghi hàng loạt', 'Xóa sản phẩm TEAM 1', function ($a, $fx) {
-        $_POST = ['ids' => [$fx->new_post(AB_UID_T1)]];
+        $_POST = ['ids' => [$fx->new_post(AB_UID_T1)], 'csrf_token' => 'ABTEST'];
         return Products::delete_products();
     })->allow('ADMIN', 'MGR_T1', 'USR_T1');
 
     $r->add('Products — ghi hàng loạt', 'Xóa sản phẩm TEAM 2', function ($a, $fx) {
-        $_POST = ['ids' => [$fx->new_post(AB_UID_T2)]];
+        $_POST = ['ids' => [$fx->new_post(AB_UID_T2)], 'csrf_token' => 'ABTEST'];
         return Products::delete_products();
     })->allow('ADMIN', 'MGR_T2', 'USR_T2');
 
