@@ -409,8 +409,12 @@ function openUserForm(row) {
     $('#user-email').val(row?.email ?? '').removeClass('is-invalid');
     $('#user-password').val('').removeClass('is-invalid');
     $('#user-password-hint').text(row ? 'Leave blank to keep the current password.' : 'At least 8 characters.');
-    $('#user-level').val(String(row?.level ?? '')).trigger('change.select2');
-    $('#user-team').val(String(row?.team_id ?? '')).trigger('change.select2');
+    // Thêm mới: chọn sẵn giá trị đầu tiên (và team của chính mình) — để trống thì
+    // select2 hiện ô rỗng và lưu sẽ báo "Invalid role".
+    const firstLevel = $('#user-level option').first().val() ?? '';
+    const firstTeam = String(userPerms.own_team || '') || ($('#user-team option').first().val() ?? '');
+    $('#user-level').val(String(row?.level ?? firstLevel)).trigger('change.select2');
+    $('#user-team').val(String(row?.team_id ?? firstTeam)).trigger('change.select2');
     $('#user-status').val(String(row?.status ?? 2)).trigger('change.select2');
     if (userPerms.see_salary) {
         // wage trả về đã format tiền tệ -> lấy lại phần số để đưa vào ô nhập

@@ -257,23 +257,36 @@ class Users
             return ['status' => 'error', 'message' => 'You do not have permission to view users.'];
         }
         $conn = db();
-        // Manager không được cấp quyền admin cho ai -> không đưa nhóm quyền admin vào select
-        $roles = get_all_roles();
+        // Dùng thẳng bảng roles_permissions, KHÔNG dùng get_all_roles(): hàm đó chèn thêm
+        // mục giả `0 => Admin` (di sản cũ) — chọn phải mục đó thì lưu luôn báo "Invalid role".
+        $roles = get_data_map('roles_permissions', 'name');
         if (!is_admin()) {
+            // Manager không được cấp quyền admin cho ai -> không đưa nhóm quyền admin vào select
             foreach (self::admin_level_ids($conn) as $adminId) {
                 unset($roles[$adminId]);
             }
         }
+
+        // Admin chọn được mọi team; người khác chỉ có đúng team của mình (select bị khóa,
+        // nhưng vẫn cần option để hiển thị đúng tên thay vì ô trống).
+        if (is_admin()) {
+            $teams = get_data_map('team', 'name');
+        } else {
+            $own = self::own_team();
+            $name = $own > 0 ? get_field_by_id('team', 'name', $own) : '';
+            $teams = $own > 0 ? [$own => ['title' => (string)$name]] : [];
+        }
+
         return [
             'roles'    => $roles,
-            // Chọn team chỉ dành cho admin — role khác vốn chỉ thấy team mình
-            'teams'    => is_admin() ? get_data_map('team', 'name') : [],
+            'teams'    => $teams,
             'statuses' => self::STATUSES,
             'perms'    => [
                 'add'         => self::can_add(),
                 'is_admin'    => is_admin(),
                 'see_salary'  => self::can_see_salary(),
                 'filter_team' => is_admin(),
+                'own_team'    => self::own_team(),
             ],
         ];
     }
