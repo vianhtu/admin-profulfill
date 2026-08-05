@@ -34,11 +34,14 @@ $suites = [
     'categories' => ['file' => 'suite.categories.php', 'menu' => 'categories', 'title' => 'Categories / Category'],
     'sites'      => ['file' => 'suite.sites.php',      'menu' => 'sites',      'title' => 'Sites / Site'],
     'stores'     => ['file' => 'suite.stores.php',     'menu' => 'store',      'title' => 'Stores / Store'],
+    'orders'     => ['file' => 'suite.orders.php',     'menu' => 'orders',     'title' => 'Orders / Order'],
+    'teams'      => ['file' => 'suite.teams.php',      'menu' => 'teams',      'title' => 'Teams / Team (admin-only)'],
 ];
 // Tên gọi tắt: số ít, tiếng Việt, tên menu
 $alias = [
     'product' => 'products', 'category' => 'categories', 'danhmuc' => 'categories',
     'site' => 'sites', 'store' => 'stores', 'shop' => 'stores', 'sanpham' => 'products',
+    'order' => 'orders', 'donhang' => 'orders', 'team' => 'teams', 'nhom' => 'teams',
 ];
 
 $arg = strtolower(trim($argv[1] ?? 'all'));

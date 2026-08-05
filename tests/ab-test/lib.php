@@ -20,7 +20,8 @@ const AB_ROOT = __DIR__ . '/../..';
 
 require_once AB_ROOT . '/config.php';
 require_once AB_ROOT . '/functions.php';
-foreach (['products', 'product', 'categories', 'category', 'sites', 'site', 'stores', 'store', 'extension'] as $abClass) {
+foreach (['products', 'product', 'categories', 'category', 'sites', 'site', 'stores', 'store',
+          'orders', 'order', 'teams', 'team', 'extension'] as $abClass) {
     require_once AB_ROOT . "/class/class.$abClass.php";
 }
 
@@ -53,9 +54,11 @@ final class AbActor
             'user_id' => $this->uid,
             'team'    => $this->team,
             'level'   => $this->level,
-            // Cấp role cho MỌI menu để chỉ còn 1 biến thay đổi là phạm vi dữ liệu
+            // Cấp role cho MỌI menu để chỉ còn 1 biến thay đổi là phạm vi dữ liệu.
+            // `teams` cũng được cấp đủ role — dùng để chứng minh menu admin-only KHÔNG
+            // mở ra chỉ vì có role (xem suite.teams.php).
             'roles'   => $roles ? array_fill_keys(
-                ['products', 'categories', 'sites', 'store', 'orders'], $roles
+                ['products', 'categories', 'sites', 'store', 'orders', 'teams'], $roles
             ) : [],
         ];
         $_SESSION['csrf_token'] = 'ABTEST';
@@ -101,6 +104,11 @@ final class AbFixtures
     public int $site      = 0;
     public int $postT1    = 0;
     public int $postT2    = 0;
+    public int $accountT1 = 0;   // account thuộc team 1, có gán cho AB_UID_T1
+    public int $accountT2 = 0;   // account thuộc team 2, có gán cho AB_UID_T2
+    public int $orderT1   = 0;
+    public int $orderT2   = 0;
+    public int $teamEmpty = 0;   // team ZZAB không có thành viên -> xóa được
     private array $temp = [];
 
     public function __construct()
@@ -125,6 +133,61 @@ final class AbFixtures
 
         $this->postT1 = $this->new_post(AB_UID_T1, 'ZZAB-P-T1');
         $this->postT2 = $this->new_post(AB_UID_T2, 'ZZAB-P-T2');
+
+        // --- Orders: account theo team + gán cho author để test scope cấp user ---
+        $this->accountT1 = $this->new_account(1, AB_UID_T1);
+        $this->accountT2 = $this->new_account(2, AB_UID_T2);
+        $this->orderT1 = $this->new_order($this->accountT1, 'ZZAB-ORD-T1');
+        $this->orderT2 = $this->new_order($this->accountT2, 'ZZAB-ORD-T2');
+
+        // --- Teams: 1 team rỗng để test xóa được ---
+        $this->teamEmpty = $this->new_team();
+    }
+
+    /** Tạo account ZZAB thuộc team, đồng thời gán cho 1 author (scope cấp user). */
+    public function new_account(int $teamId, int $authorId): int
+    {
+        $siteId = (int)$this->conn->query('SELECT ID FROM site ORDER BY ID LIMIT 1')->fetch_row()[0];
+        $name = 'ZZAB Acc ' . bin2hex(random_bytes(4));
+        $this->conn->execute_query(
+            'INSERT INTO accounts (site_id, team_id, name, email, status, created_date)
+             VALUES (?, ?, ?, ?, 1, CURDATE())',
+            [$siteId, $teamId, $name, strtolower(str_replace(' ', '', $name)) . '@zzab.test']
+        );
+        $accId = (int)$this->conn->insert_id;
+        $this->conn->execute_query(
+            'INSERT IGNORE INTO accounts_authors (account_id, author_id) VALUES (?, ?)',
+            [$accId, $authorId]
+        );
+        return $accId;
+    }
+
+    /** Tạo 1 đơn hàng ZZAB cho account chỉ định (items có sẵn 1 dòng để test tracking). */
+    public function new_order(int $accountId, string $hostPrefix = 'ZZAB-ORD'): int
+    {
+        $host = $hostPrefix . '-' . bin2hex(random_bytes(4));
+        $items = json_encode([[
+            'itemId' => 'ZZABITEM', 'title' => 'ZZAB item', 'quantity' => 1,
+            'imageUrl' => 'http://x/a.jpg', 'attributes' => [], 'sku' => 'ZZABSKU',
+        ]], JSON_UNESCAPED_UNICODE);
+        $this->conn->execute_query(
+            "INSERT INTO orders (account_id, host_id, items, status, purchase_date, delivery_date,
+                                 ship_date, total_price, full_name, address)
+             VALUES (?, ?, ?, 'unshipped', NOW(), NOW(), NOW(), 10, 'ZZAB Buyer', 'ZZAB address')",
+            [$accountId, $host, $items]
+        );
+        return (int)$this->conn->insert_id;
+    }
+
+    /** Tạo 1 team ZZAB rỗng (không thành viên) để test sửa/xóa. */
+    public function new_team(): int
+    {
+        $name = 'ZZAB Team ' . bin2hex(random_bytes(4));
+        $this->conn->execute_query(
+            'INSERT INTO team (name, `key`, status) VALUES (?, ?, 1)',
+            [$name, 'zzab' . bin2hex(random_bytes(12))]
+        );
+        return (int)$this->conn->insert_id;
     }
 
     /** Tạo 1 sản phẩm mới cho chủ sở hữu chỉ định (dùng cho các test ghi/xóa). */
@@ -183,6 +246,13 @@ final class AbFixtures
         $c->query("DELETE FROM `type` WHERE name LIKE 'ZZAB%'");
         $c->query("DELETE FROM store WHERE name LIKE 'ZZAB%' OR slug LIKE 'zzab-%'");
         $c->query("DELETE FROM site WHERE slug LIKE 'zzab-%'");
+        // Orders trước, rồi account (đơn tham chiếu account)
+        $c->query("DELETE FROM orders WHERE host_id LIKE 'ZZAB-ORD%'");
+        $c->query("DELETE FROM accounts_authors WHERE account_id IN (SELECT ID FROM accounts WHERE name LIKE 'ZZAB%')");
+        $c->query("DELETE FROM accounts WHERE name LIKE 'ZZAB%'");
+        // Team ZZAB xóa cuối: chỉ xóa team KHÔNG có thành viên thật để không đụng dữ liệu sống
+        $c->query("DELETE FROM team WHERE name LIKE 'ZZAB%'
+                   AND ID NOT IN (SELECT DISTINCT team_id FROM authors)");
     }
 }
 
