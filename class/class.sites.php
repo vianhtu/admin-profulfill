@@ -47,7 +47,7 @@ class Sites
         $totalRecords  = (int)$conn->query('SELECT COUNT(*) FROM site')->fetch_row()[0];
         $totalFiltered = (int)$conn->query("SELECT COUNT(*) FROM site s $where")->fetch_row()[0];
 
-        $sql = "SELECT s.ID, s.name, s.slug, s.logo, s.system_prompt, s.developer_prompt, s.custom_fields,
+        $sql = "SELECT s.ID, s.name, s.slug, s.logo, s.system_prompt, s.developer_prompt, s.custom_fields, s.created_by,
                        (SELECT COUNT(*) FROM posts p WHERE p.site_id = s.ID)     AS products_count,
                        (SELECT COUNT(*) FROM accounts a WHERE a.site_id = s.ID)  AS accounts_count,
                        (SELECT COUNT(*) FROM store st WHERE st.site_id = s.ID)   AS stores_count
@@ -71,6 +71,9 @@ class Sites
                 'fields_count'   => is_array($fields) ? count($fields) : 0,
                 'has_prompt'     => trim((string)($row['system_prompt'] ?? '')) !== ''
                                     || trim((string)($row['developer_prompt'] ?? '')) !== '',
+                // Quyền tính theo từng dòng: sửa được site do chính mình thêm, xóa thì chỉ admin
+                'can_edit'       => self::can_edit_row((int)$row['created_by']),
+                'can_delete'     => self::can_manage(),
             ];
         }
 
@@ -92,8 +95,8 @@ class Sites
     }
 
     /**
-     * Sửa/xóa site: CHỈ ADMIN. Site dùng chung toàn hệ thống, không có cột team —
-     * đổi tên/slug/logo hay xóa 1 site là ảnh hưởng sản phẩm, account, store của mọi team.
+     * Xóa site: CHỈ ADMIN. Site dùng chung toàn hệ thống, không có cột team —
+     * xóa 1 site là ảnh hưởng sản phẩm, account, store của mọi team.
      */
     public static function can_manage(): bool
     {
@@ -101,9 +104,24 @@ class Sites
     }
 
     /**
-     * Cờ quyền để frontend dựng nút. Site không thuộc team nên không có filter team.
+     * Sửa 1 site cụ thể: admin sửa mọi site; người khác chỉ sửa được SITE DO CHÍNH MÌNH
+     * THÊM (site.created_by), và vẫn phải có role edit. Site cũ (created_by = 0) hoặc do
+     * người khác tạo thì chỉ admin đụng vào được.
+     */
+    public static function can_edit_row(int $createdBy): bool
+    {
+        if (is_admin()) {
+            return true;
+        }
+        $uid = (int)($_SESSION['auth']['user_id'] ?? 0);
+        return $createdBy > 0 && $uid > 0 && $createdBy === $uid && checkRoles('edit', 'sites');
+    }
+
+    /**
+     * Cờ quyền cấp trang (nút Add / Delete Selected). Site không thuộc team nên không có
+     * filter team. Quyền sửa/xóa từng dòng nằm ở can_edit/can_delete trong get_sites().
      *
-     * @return array{perms:array{add:bool,edit:bool,delete:bool}}
+     * @return array{perms:array{add:bool,delete:bool,is_admin:bool}}
      */
     public static function get_sites_filters(): array
     {
@@ -112,9 +130,9 @@ class Sites
         }
         return [
             'perms' => [
-                'add'    => self::can_add(),
-                'edit'   => self::can_manage(),
-                'delete' => self::can_manage(),
+                'add'      => self::can_add(),
+                'delete'   => self::can_manage(),
+                'is_admin' => is_admin(),
             ],
         ];
     }

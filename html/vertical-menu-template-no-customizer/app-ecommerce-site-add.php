@@ -2,8 +2,9 @@
 $get_id = (int)($_GET['id'] ?? 0);
 $isEdit = $get_id > 0;
 
-// Thêm mới: theo role add. Sửa: chỉ admin, vì site là dữ liệu dùng chung toàn hệ thống
-if (!($isEdit ? Sites::can_manage() : Sites::can_add())) {
+// Thêm mới: theo role add. Sửa: admin, hoặc chính người đã thêm site đó (kiểm tra
+// created_by sau khi đọc dữ liệu bên dưới) — site là dữ liệu dùng chung toàn hệ thống.
+if (!$isEdit && !Sites::can_add()) {
     return;
 }
 
@@ -19,7 +20,7 @@ $defaultData = [
 ];
 
 $edit_data = $isEdit ? Site::get_site($get_id) : [];
-if ($isEdit && empty($edit_data)) {
+if ($isEdit && (empty($edit_data) || !Sites::can_edit_row((int)$edit_data['created_by']))) {
     return;
 }
 if (!empty($edit_data)) {

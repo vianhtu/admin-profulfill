@@ -14,7 +14,7 @@ class Site
             return null;
         }
         $conn = db();
-        $stmt = $conn->prepare('SELECT ID, name, slug, logo, system_prompt, developer_prompt, custom_fields
+        $stmt = $conn->prepare('SELECT ID, name, slug, logo, system_prompt, developer_prompt, custom_fields, created_by
             FROM site WHERE ID = ? LIMIT 1');
         $stmt->bind_param('i', $id);
         $stmt->execute();
@@ -174,19 +174,21 @@ class Site
         $id = (int)($_POST['id'] ?? 0);
         $isEdit = $id > 0;
 
-        // Thêm mới: theo role add. Sửa: chỉ admin (site dùng chung toàn hệ thống)
-        if ($isEdit && !Sites::can_manage()) {
-            return ['status' => 'error',
-                'message' => 'Sites are shared by the whole system; only an admin can change them.'];
-        }
-        if (!$isEdit && !Sites::can_add()) {
-            return ['status' => 'error', 'message' => 'You do not have permission to add sites.'];
-        }
         if (($_POST['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
             return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
         }
-        if ($isEdit && !$conn->query('SELECT ID FROM site WHERE ID = ' . $id . ' LIMIT 1')->fetch_row()) {
-            return ['status' => 'error', 'message' => 'Site not found.'];
+        // Thêm mới: theo role add. Sửa: admin, hoặc chính người đã thêm site đó.
+        if ($isEdit) {
+            $current = $conn->query('SELECT ID, created_by FROM site WHERE ID = ' . $id . ' LIMIT 1')->fetch_assoc();
+            if (!$current) {
+                return ['status' => 'error', 'message' => 'Site not found.'];
+            }
+            if (!Sites::can_edit_row((int)$current['created_by'])) {
+                return ['status' => 'error',
+                    'message' => 'Sites are shared by the whole system; you can only change a site you added yourself.'];
+            }
+        } elseif (!Sites::can_add()) {
+            return ['status' => 'error', 'message' => 'You do not have permission to add sites.'];
         }
 
         $name = trim((string)($_POST['name'] ?? ''));
@@ -229,9 +231,11 @@ class Site
                 developer_prompt = ?, custom_fields = ? WHERE ID = ?');
             $stmt->bind_param('ssssssi', $name, $slug, $logo, $sysP, $devP, $fieldsJson, $id);
         } else {
-            $stmt = $conn->prepare('INSERT INTO site (name, slug, logo, system_prompt, developer_prompt, custom_fields)
-                VALUES (?, ?, ?, ?, ?, ?)');
-            $stmt->bind_param('ssssss', $name, $slug, $logo, $sysP, $devP, $fieldsJson);
+            // Ghi lại người thêm để sau này chính họ sửa được site đó
+            $uid = (int)($_SESSION['auth']['user_id'] ?? 0);
+            $stmt = $conn->prepare('INSERT INTO site (name, slug, logo, system_prompt, developer_prompt, custom_fields, created_by)
+                VALUES (?, ?, ?, ?, ?, ?, ?)');
+            $stmt->bind_param('ssssssi', $name, $slug, $logo, $sysP, $devP, $fieldsJson, $uid);
         }
         if (!$stmt->execute()) {
             return ['status' => 'error', 'message' => 'Save failed: ' . $conn->error];

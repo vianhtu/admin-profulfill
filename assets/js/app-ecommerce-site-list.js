@@ -5,7 +5,8 @@
 'use strict';
 
 let dtSites = null;
-let sitePerms = { add: false, edit: false, delete: false };
+// Quyền cấp trang; sửa/xóa từng dòng lấy theo can_edit/can_delete server trả về
+let sitePerms = { add: false, delete: false, is_admin: false };
 
 async function init() {
     try {
@@ -79,11 +80,12 @@ function initSiteTable() {
             {
                 targets: -1, title: 'Actions', searchable: false, orderable: false,
                 render: function (data, type, full) {
-                    const editBtn = sitePerms.edit
+                    // Sửa: admin, hoặc chính người đã thêm site này (can_edit theo từng dòng)
+                    const editBtn = full['can_edit']
                         ? `<a href="index.php?menu=sites&form=edit&id=${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon"><i class="icon-base ti tabler-edit icon-22px"></i></a>`
                         : '';
                     const inUse = full['products_count'] + full['accounts_count'] + full['stores_count'];
-                    const deleteBtn = sitePerms.delete
+                    const deleteBtn = full['can_delete']
                         ? `<button type="button" class="btn btn-text-danger rounded-pill waves-effect btn-icon delete-site" data-id="${full['id']}" data-inuse="${inUse}" title="Delete"><i class="icon-base ti tabler-trash icon-22px"></i></button>`
                         : '';
                     return `<div class="d-inline-block text-nowrap">${editBtn}${deleteBtn}</div>`;
