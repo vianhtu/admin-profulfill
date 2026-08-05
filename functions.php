@@ -88,7 +88,8 @@ function menuArgs():array
                 ],
             ]
         ],
-        'Teams' => ['icon' => 'tabler-brand-asana', 'link' => 'teams', 'roles' => ['view','add','edit','delete']],
+        // Teams admin-only (chốt 05/08/2026): không đi qua roles_permissions
+        'Teams' => ['icon' => 'tabler-brand-asana', 'link' => 'teams', 'admin_only' => true],
         'Users' => ['icon' => 'tabler-users', 'link' => 'users', 'roles' => ['view','add','edit','delete']],
         'Roles & Permissions' => ['icon' => 'tabler-lock', 'link' => 'roles-permissions', 'roles' => ['view','add','edit','delete']]
     ];
@@ -141,6 +142,10 @@ function renderMenu($currentMenu): void
             $activeClass = ($currentMenu === $link) ? 'active' : '';
             $href = $link === '' ? 'index.php' : "index.php?menu={$link}";
 
+            // Menu admin-only: không phải admin thì không render
+            if (!is_admin() && !empty($mainData['admin_only'])) {
+                continue;
+            }
             // Nếu có roles => kiểm tra quyền
             if (!is_admin() && isset($mainData['roles']) && !checkRoles('', $link)) {
                 continue;

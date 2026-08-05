@@ -307,11 +307,7 @@ if (empty($_SESSION['csrf_token'])) {
                       include 'app-phones-sms.php';
                       break;
                   case 'teams':
-                      if( isset( $_GET['action'] ) && $_GET['action'] == 'edit') {
-                          include 'app-teams-list-edit.php';
-                      } else {
-                          include 'app-teams-list.php';
-                      }
+                      include 'app-teams-list.php';
                       break;
                   case 'users':
                       include 'app-user-list.php';
@@ -456,12 +452,8 @@ if (empty($_SESSION['csrf_token'])) {
         case 'phones_numbers': ?>
             <script src="../../assets/js/app-phones-list.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-phones-list.js') ?>"></script>
         <?php break;
-        case 'teams':
-            if( isset( $_GET['action'] ) && $_GET['action'] == 'edit') { ?>
-                <script src="../../assets/js/app-teams-list-edit.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-teams-list-edit.js') ?>"></script>
-            <?php } else { ?>
-                <script src="../../assets/js/app-teams-list.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-teams-list.js') ?>"></script>
-            <?php } ?>
+        case 'teams': ?>
+            <script src="../../assets/js/app-teams-list.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-teams-list.js') ?>"></script>
         <?php break;
         case 'users': ?>
             <script src="../../assets/js/app-user-list.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-user-list.js') ?>"></script>

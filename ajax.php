@@ -16,9 +16,10 @@ require_once __DIR__ . '/class/class.sites.php';
 require_once __DIR__ . '/class/class.site.php';
 require_once __DIR__ . '/class/class.stores.php';
 require_once __DIR__ . '/class/class.store.php';
+require_once __DIR__ . '/class/class.teams.php';
+require_once __DIR__ . '/class/class.team.php';
 require __DIR__ . '/model/functions-gemini.php';
 require __DIR__ . '/model/functions-openai.php';
-require __DIR__ . '/tables/functions-teams.php';
 header('Content-Type: application/json; charset=utf-8');
 
 // Xử lý các action extension-* độc lập với trạng thái đăng nhập session,
@@ -206,7 +207,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             echo json_encode(getPhonesTable());
             break;
         case 'get-teams-table':
-            echo json_encode(getTeamsTable());
+            echo json_encode(Teams::get_teams());
+            break;
+        case 'save-team':
+            echo json_encode(Team::save_team());
+            break;
+        case 'delete-teams':
+            echo json_encode(Teams::delete_teams());
             break;
         case 'get-authors-table':
             echo json_encode(getAuthorsTable());
