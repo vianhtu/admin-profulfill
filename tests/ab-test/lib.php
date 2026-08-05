@@ -238,6 +238,58 @@ function ab_sees(array $table, int $id): bool
     return false;
 }
 
+/**
+ * LỚP GIAO DIỆN — render 1 fragment dưới danh nghĩa actor hiện tại, trả về HTML.
+ *
+ * Đây là cách kiểm tra lớp chặn thứ nhất (UI): fragment nào không đủ quyền sẽ `return`
+ * sớm nên HTML rỗng. Không cần trình duyệt và không cần đăng nhập thật từng vai.
+ *
+ * @param array $get tham số querystring giả lập (vd. ['id' => 5] cho form Edit)
+ */
+function ab_render(string $fragment, array $get = []): string
+{
+    $_GET = $get;
+    foreach ($get as $k => $v) {
+        $_REQUEST[$k] = $v;   // giữ nguyên $_REQUEST['menu'] mà actor đã đặt
+    }
+    ob_start();
+    try {
+        // Bọc trong closure để biến của fragment không rò ra ngoài
+        (static function (string $__abFile) { include $__abFile; })(
+            AB_ROOT . '/html/vertical-menu-template-no-customizer/' . $fragment
+        );
+    } catch (\Throwable $e) {
+        ob_end_clean();
+        throw $e;
+    }
+    return trim((string)ob_get_clean());
+}
+
+/** HTML có chứa TẤT CẢ các chuỗi này không. */
+function ab_has(string $html, string ...$needles): bool
+{
+    if ($html === '') {
+        return false;
+    }
+    foreach ($needles as $n) {
+        if (!str_contains($html, $n)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/** HTML KHÔNG chứa chuỗi nào trong số này (dùng để soi rò rỉ dữ liệu). */
+function ab_lacks(string $html, string ...$needles): bool
+{
+    foreach ($needles as $n) {
+        if (str_contains($html, $n)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 /** Tham số DataTables tối thiểu cho các hàm get_*_table. */
 function ab_dt(array $extra = []): array
 {

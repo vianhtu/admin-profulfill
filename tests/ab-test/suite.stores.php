@@ -98,6 +98,36 @@ return function (AbRunner $r): void {
         return $res;
     })->allow('ADMIN', 'MGR_T2', 'USR_T2');
 
+    // ---------- Lớp giao diện ----------
+    $r->add('Store — giao diện', 'Form THÊM hiện ra',
+        fn($a, $fx) => ab_render('app-ecommerce-store-add.php') !== ''
+    )->allow('ADMIN', 'MGR_T1', 'USR_T1', 'MGR_T2', 'USR_T2', 'USR_T3');
+
+    $r->add('Store — giao diện', 'Form SỬA store DÙNG CHUNG hiện ra',
+        fn($a, $fx) => ab_render('app-ecommerce-store-add.php', ['id' => $fx->storeShared]) !== ''
+    )->allow('ADMIN');
+
+    $r->add('Store — giao diện', 'Form SỬA store riêng TEAM 2 hiện ra',
+        fn($a, $fx) => ab_render('app-ecommerce-store-add.php', ['id' => $fx->storeT2]) !== ''
+    )->allow('ADMIN', 'MGR_T2', 'USR_T2');
+
+    $r->add('Store — giao diện', 'Có ô CHỌN Owner (chỉ admin được đổi)',
+        fn($a, $fx) => ab_has(ab_render('app-ecommerce-store-add.php'), "id='store_team'")
+    )->allow('ADMIN');
+
+    $r->add('Store — giao diện', 'Non-admin thấy ô Owner bị KHÓA', function ($a, $fx) {
+        $html = ab_render('app-ecommerce-store-add.php');
+        return ab_has($html, 'disabled') && ab_lacks($html, "id='store_team'");
+    })->allow('MGR_T1', 'USR_T1', 'MGR_T2', 'USR_T2', 'USR_T3');
+
+    $r->add('Store — giao diện', 'Bảng có ô lọc Owner (chỉ admin)',
+        fn($a, $fx) => ab_has(ab_render('app-ecommerce-store-list.php'), 'store_team')
+    )->allow('ADMIN');
+
+    $r->add('Store — giao diện', 'Non-admin thấy thông báo "dùng chung"',
+        fn($a, $fx) => ab_has(ab_render('app-ecommerce-store-list.php'), 'Stores you add belong to your team')
+    )->allow('MGR_T1', 'MGR_T1_V', 'USR_T1', 'USR_T1_V', 'MGR_T2', 'USR_T2', 'USR_T3');
+
     $r->add('Store — quyền UI', 'Cờ quyền trả về đúng (add/delete)', function ($a, $fx) {
         $res = Stores::get_stores_filters();
         if (($res['status'] ?? '') === 'error') {

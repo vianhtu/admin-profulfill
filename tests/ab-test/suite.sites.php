@@ -71,6 +71,27 @@ return function (AbRunner $r): void {
         return Sites::delete_sites();
     })->allow(/* không ai — kể cả admin */);
 
+    // ---------- Lớp giao diện ----------
+    $r->add('Site — giao diện', 'Form THÊM hiện ra',
+        fn($a, $fx) => ab_render('app-ecommerce-site-add.php') !== ''
+    )->allow('ADMIN', 'MGR_T1', 'USR_T1', 'MGR_T2', 'USR_T2', 'USR_T3');
+
+    $r->add('Site — giao diện', 'Form SỬA site cũ (created_by = 0)',
+        fn($a, $fx) => ab_render('app-ecommerce-site-add.php', ['id' => $fx->site]) !== ''
+    )->allow('ADMIN');
+
+    $r->add('Site — giao diện', 'Form THÊM có khung upload logo',
+        fn($a, $fx) => ab_has(ab_render('app-ecommerce-site-add.php'), 'dropzone-logo')
+    )->allow('ADMIN', 'MGR_T1', 'USR_T1', 'MGR_T2', 'USR_T2', 'USR_T3');
+
+    $r->add('Site — giao diện', 'Non-admin thấy thông báo "dùng chung"',
+        fn($a, $fx) => ab_has(ab_render('app-ecommerce-site-list.php'), 'shared by the whole system')
+    )->allow('MGR_T1', 'MGR_T1_V', 'USR_T1', 'USR_T1_V', 'MGR_T2', 'USR_T2', 'USR_T3');
+
+    $r->add('Site — giao diện', 'Bảng danh sách render được',
+        fn($a, $fx) => ab_has(ab_render('app-ecommerce-site-list.php'), 'datatables-sites')
+    )->allow('ADMIN', 'MGR_T1', 'MGR_T1_V', 'USR_T1', 'USR_T1_V', 'MGR_T2', 'USR_T2', 'USR_T3');
+
     $r->add('Site — quyền UI', 'Cờ quyền trả về đúng (add/delete)', function ($a, $fx) {
         $res = Sites::get_sites_filters();
         if (($res['status'] ?? '') === 'error') {

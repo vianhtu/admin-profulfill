@@ -62,6 +62,27 @@ return function (AbRunner $r): void {
         return Categories::delete_categories();
     })->allow(/* không ai — kể cả admin */);
 
+    // ---------- Lớp giao diện ----------
+    $r->add('Category — giao diện', 'Form THÊM hiện ra',
+        fn($a, $fx) => ab_render('app-ecommerce-category-add.php') !== ''
+    )->allow('ADMIN', 'MGR_T1', 'USR_T1', 'MGR_T2', 'USR_T2', 'USR_T3');
+
+    $r->add('Category — giao diện', 'Form SỬA category do NGƯỜI KHÁC tạo', function ($a, $fx) {
+        return ab_render('app-ecommerce-category-add.php', ['id' => $fx->catMine]) !== '';
+    })->allow('ADMIN', 'USR_T3'); // catMine do USR_T3 tạo
+
+    $r->add('Category — giao diện', 'Form SỬA category cũ (created_by = 0)',
+        fn($a, $fx) => ab_render('app-ecommerce-category-add.php', ['id' => $fx->catShared]) !== ''
+    )->allow('ADMIN');
+
+    $r->add('Category — giao diện', 'Form KHÔNG còn ô chọn Team (đã dùng chung)',
+        fn($a, $fx) => ab_lacks(ab_render('app-ecommerce-category-add.php'), 'category_team')
+    )->allow('ADMIN', 'MGR_T1', 'MGR_T1_V', 'USR_T1', 'USR_T1_V', 'MGR_T2', 'USR_T2', 'USR_T3', 'NOROLE');
+
+    $r->add('Category — giao diện', 'Non-admin thấy thông báo "dùng chung"',
+        fn($a, $fx) => ab_has(ab_render('app-ecommerce-category-list.php'), 'shared by every team')
+    )->allow('MGR_T1', 'MGR_T1_V', 'USR_T1', 'USR_T1_V', 'MGR_T2', 'USR_T2', 'USR_T3');
+
     $r->add('Category — quyền UI', 'Cờ quyền trả về đúng (add/delete)', function ($a, $fx) {
         $res = Categories::get_categories_filters();
         if (($res['status'] ?? '') === 'error') {

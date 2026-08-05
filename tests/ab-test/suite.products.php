@@ -135,6 +135,42 @@ return function (AbRunner $r): void {
         return Product::save_product();
     })->allow(/* không ai — kể cả admin: store riêng team 2 không hợp lệ cho chủ team 1 */);
 
+    // ---------- Lớp giao diện: fragment có render ra control hay không ----------
+    $r->add('Products — giao diện', 'Form THÊM sản phẩm hiện ra',
+        fn($a, $fx) => ab_render('app-ecommerce-product-add.php') !== ''
+    )->allow('ADMIN', 'MGR_T1', 'USR_T1', 'MGR_T2', 'USR_T2', 'USR_T3');
+
+    $r->add('Products — giao diện', 'Form SỬA sản phẩm TEAM 1 hiện ra',
+        fn($a, $fx) => ab_render('app-ecommerce-product-add.php', ['id' => $fx->postT1]) !== ''
+    )->allow('ADMIN', 'MGR_T1', 'USR_T1');
+
+    $r->add('Products — giao diện', 'Form SỬA sản phẩm TEAM 2 hiện ra',
+        fn($a, $fx) => ab_render('app-ecommerce-product-add.php', ['id' => $fx->postT2]) !== ''
+    )->allow('ADMIN', 'MGR_T2', 'USR_T2');
+
+    $r->add('Products — giao diện', 'Có ô chọn Manager (gán chủ sở hữu)',
+        fn($a, $fx) => ab_has(ab_render('app-ecommerce-product-add.php'), 'id="product_author"')
+    )->allow('ADMIN', 'MGR_T1', 'MGR_T2');
+
+    $r->add('Products — giao diện', 'HTML form không lộ username của team khác', function ($a, $fx) {
+        $html = ab_render('app-ecommerce-product-add.php');
+        if ($html === '' || $a->level === 'admin') {
+            return true;  // không mở được form, hoặc admin vốn được thấy tất cả
+        }
+        $rs = $fx->conn->query('SELECT username FROM authors WHERE team_id <> ' . $a->team);
+        $foreign = [];
+        while ($row = $rs->fetch_row()) {
+            if (trim((string)$row[0]) !== '') {
+                $foreign[] = $row[0];
+            }
+        }
+        return $foreign ? ab_lacks($html, ...$foreign) : true;
+    })->allow('ADMIN', 'MGR_T1', 'MGR_T1_V', 'USR_T1', 'USR_T1_V', 'MGR_T2', 'USR_T2', 'USR_T3', 'NOROLE');
+
+    $r->add('Products — giao diện', 'Bảng danh sách render được',
+        fn($a, $fx) => ab_has(ab_render('app-ecommerce-product-list.php'), 'datatables-products')
+    )->allow('ADMIN', 'MGR_T1', 'MGR_T1_V', 'USR_T1', 'USR_T1_V', 'MGR_T2', 'USR_T2', 'USR_T3');
+
     $r->add('Product — form', 'Dùng category dùng chung (phải được)', function ($a, $fx) {
         $id = $fx->new_post($a->uid);
         $_POST = ab_product_post($fx, ['id' => $id, 'author_id' => $a->uid,
