@@ -21,13 +21,31 @@ class Teams
         'ID'      => 't.ID',
     ];
 
-    /** Các bảng còn tham chiếu team thì chặn xóa: bảng => cột team id. */
+    /**
+     * Các bảng còn tham chiếu team thì chặn xóa: nhãn => [bảng, cột team id].
+     * Bảng nào không tồn tại trên schema hiện tại sẽ được BỎ QUA (xem ref_tables())
+     * — dự án còn các bảng phụ đã đổi tên/khai tử (vd store_teams -> *_bak_*), không
+     * được để chúng làm văng cả chức năng xóa.
+     */
     private const REF_TABLES = [
-        'members'  => ['authors', 'team_id'],
-        'accounts' => ['accounts', 'team_id'],
-        'stores'   => ['store', 'team_id'],
+        'members'       => ['authors', 'team_id'],
+        'accounts'      => ['accounts', 'team_id'],
+        'stores'        => ['store', 'team_id'],
         'shared stores' => ['store_teams', 'team_id'],
     ];
+
+    /** Lọc REF_TABLES về những bảng THẬT SỰ có trong DB. */
+    private static function ref_tables(mysqli $conn): array
+    {
+        $out = [];
+        foreach (self::REF_TABLES as $label => [$table, $col]) {
+            $exists = $conn->execute_query('SHOW TABLES LIKE ?', [$table])->fetch_row();
+            if ($exists) {
+                $out[$label] = [$table, $col];
+            }
+        }
+        return $out;
+    }
 
     /**
      * Dữ liệu cho DataTables của trang Teams (server-side).
@@ -115,7 +133,7 @@ class Teams
 
         // Lớp dữ liệu: team còn tham chiếu thì từ chối xóa, báo rõ vướng ở đâu
         $blocked = [];
-        foreach (self::REF_TABLES as $label => [$table, $col]) {
+        foreach (self::ref_tables($conn) as $label => [$table, $col]) {
             $rs = $conn->query("SELECT $col AS tid, COUNT(*) AS cnt FROM `$table` WHERE $col IN ($idsStr) GROUP BY $col");
             while ($row = $rs->fetch_assoc()) {
                 $blocked[(int)$row['tid']][] = $row['cnt'] . ' ' . $label;
