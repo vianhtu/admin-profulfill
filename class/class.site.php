@@ -58,7 +58,7 @@ class Site
         // Phải nhận biết TRƯỚC khi kiểm CSRF, nếu không sẽ báo nhầm "Invalid CSRF token"
         // cho một file chỉ đơn giản là quá lớn.
         $contentLen = (int)($_SERVER['CONTENT_LENGTH'] ?? 0);
-        $postMax    = self::ini_bytes((string)ini_get('post_max_size'));
+        $postMax    = ini_bytes((string)ini_get('post_max_size'));
         if (empty($_POST) && $contentLen > 0 && $postMax > 0 && $contentLen > $postMax) {
             return ['status' => 'error', 'message' => 'The logo must be 2 MB or smaller.'];
         }
@@ -124,7 +124,7 @@ class Site
         // Chuẩn hóa về khung 96x96 ngay tại chỗ, rồi cập nhật lại kích thước/checksum
         // trong bảng files cho khớp với file thật
         $path = ROOT_DIR . '/' . $row['storage_path'];
-        if ($hasGd && self::resize_logo($path, $mime)) {
+        if ($hasGd && resize_image_square($path, $mime, 96)) {
             $stmt = $conn->prepare('UPDATE files SET file_size = ?, checksum = ? WHERE ID = ?');
             $newSize = (int)filesize($path);
             $newSum  = hash_file('sha256', $path);
@@ -143,59 +143,8 @@ class Site
         return ['status' => 'success', 'logo' => $row['storage_path']];
     }
 
-    /**
-     * Vẽ lại ảnh về đúng khung 96x96 (giữ tỉ lệ, canh giữa, nền trong suốt) và
-     * ghi đè lên chính file đó. Vẽ lại cũng loại bỏ dữ liệu lạ nhúng trong ảnh.
-     */
-    /** Đổi giá trị ini kiểu "8M"/"2K"/"1G" thành số byte. */
-    private static function ini_bytes(string $val): int
-    {
-        $val = trim($val);
-        if ($val === '') {
-            return 0;
-        }
-        $num = (int)$val;
-        return match (strtolower(substr($val, -1))) {
-            'g'     => $num * 1024 * 1024 * 1024,
-            'm'     => $num * 1024 * 1024,
-            'k'     => $num * 1024,
-            default => $num,
-        };
-    }
-
-    private static function resize_logo(string $path, string $mime): bool
-    {
-        $img = $mime === 'image/png' ? @imagecreatefrompng($path) : @imagecreatefromjpeg($path);
-        if (!$img) {
-            return false;
-        }
-        $box = 96;
-        $w = imagesx($img);
-        $h = imagesy($img);
-        $scale = min($box / $w, $box / $h);
-        $newW = max(1, (int)round($w * $scale));
-        $newH = max(1, (int)round($h * $scale));
-
-        $canvas = imagecreatetruecolor($box, $box);
-        if ($mime === 'image/png') {
-            // PNG: giữ nền trong suốt
-            imagealphablending($canvas, false);
-            imagesavealpha($canvas, true);
-            imagefill($canvas, 0, 0, imagecolorallocatealpha($canvas, 0, 0, 0, 127));
-            imagealphablending($canvas, true);
-        } else {
-            // JPG không có kênh alpha — nền trong suốt sẽ ra đen, nên tô trắng trước
-            imagefill($canvas, 0, 0, imagecolorallocate($canvas, 255, 255, 255));
-        }
-        imagecopyresampled($canvas, $img, (int)(($box - $newW) / 2), (int)(($box - $newH) / 2),
-            0, 0, $newW, $newH, $w, $h);
-
-        // Ghi lại đúng định dạng gốc để nội dung khớp với đuôi file
-        $ok = $mime === 'image/png' ? imagepng($canvas, $path) : imagejpeg($canvas, $path, 90);
-        imagedestroy($img);
-        imagedestroy($canvas);
-        return $ok;
-    }
+    // ini_bytes() và resize_logo() đã chuyển thành helper dùng chung trong functions.php
+    // (ini_bytes / resize_image_square) để avatar user dùng lại cùng một lớp phòng thủ.
 
     /**
      * Chuẩn hóa slug: chữ thường, chỉ giữ chữ/số, ngăn cách bằng dấu gạch ngang.

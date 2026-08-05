@@ -19,6 +19,11 @@ let dtUsers = null;
 const STATUS_CLASS = { 1: 'bg-label-warning', 2: 'bg-label-success', 3: 'bg-label-secondary' };
 const AVATAR_STATES = ['success', 'danger', 'warning', 'info', 'dark', 'primary', 'secondary'];
 
+// avatar lưu dạng đường dẫn tương đối gốc app (uploads/avatars/...) — trang nằm sâu 2 cấp
+function avatarUrl(path) {
+    return '../../' + String(path ?? '').replace(/^\/+/, '');
+}
+
 async function init() {
     try {
         const options = await fetchTableFilter('get-authors-table-filter');
@@ -61,14 +66,16 @@ function initTable() {
             responsivePriority: 1,
             render: function (d, t, full) {
                 const name = String(full['username'] ?? '');
-                // Màu avatar ổn định theo id (không random để không nhấp nháy mỗi lần draw)
+                // Có ảnh thì hiện ảnh, không thì rơi về chữ cái đầu.
+                // Màu chữ cái ổn định theo id (không random để không nhấp nháy mỗi lần draw)
                 const state = AVATAR_STATES[full['id'] % AVATAR_STATES.length];
                 let initials = (name.match(/\b\w/g) || []).map(ch => ch.toUpperCase());
                 initials = ((initials.shift() || '') + (initials.pop() || '')).toUpperCase();
+                const face = full['avatar']
+                    ? '<img src="' + esc(avatarUrl(full['avatar'])) + '" alt="" class="rounded-circle" style="object-fit:cover;width:100%;height:100%;">'
+                    : '<span class="avatar-initial rounded-circle bg-label-' + state + '">' + esc(initials) + '</span>';
                 return '<div class="d-flex justify-content-start align-items-center user-name">' +
-                    '<div class="avatar-wrapper"><div class="avatar avatar-sm me-4">' +
-                    '<span class="avatar-initial rounded-circle bg-label-' + state + '">' + esc(initials) + '</span>' +
-                    '</div></div>' +
+                    '<div class="avatar-wrapper"><div class="avatar avatar-sm me-4">' + face + '</div></div>' +
                     '<div class="d-flex flex-column">' +
                     '<span class="text-heading fw-medium">' + esc(name) + '</span>' +
                     '<small>' + esc(full['email']) + '</small>' +
@@ -343,9 +350,61 @@ function buildFormSelects() {
     });
 }
 
+// --- Avatar trong form ---
+function setAvatarPreview(path, username) {
+    const $img = $('#user-avatar-preview');
+    const $ini = $('#user-avatar-initial');
+    $('#user-avatar').val(path || '');
+    if (path) {
+        $img.attr('src', avatarUrl(path)).removeClass('d-none');
+        $ini.addClass('d-none');
+        $('#user-avatar-reset').removeClass('d-none');
+    } else {
+        $img.attr('src', '').addClass('d-none');
+        let initials = (String(username ?? '').match(/\b\w/g) || []).map(c => c.toUpperCase());
+        $ini.text(((initials.shift() || '') + (initials.pop() || '')).toUpperCase() || '?').removeClass('d-none');
+        $('#user-avatar-reset').addClass('d-none');
+    }
+}
+
+$(document).on('change', '#user-avatar-file', function () {
+    const file = this.files && this.files[0];
+    if (!file) {
+        return;
+    }
+    const $hint = $('#user-avatar-hint');
+    $hint.removeClass('text-danger').text('Uploading...');
+
+    // Vuexy Dropzone là bản GIẢ (không POST) -> tự gửi bằng fetch
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('id', $('#user-id').val() || 0);
+    fd.append('csrf_token', window.csrfToken);
+
+    fetch('../../ajax.php?action=upload-user-avatar', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(res => {
+            if (res?.status === 'success') {
+                setAvatarPreview(res.avatar, $('#user-username').val());
+                $hint.text('Uploaded. Save the form to apply.');
+            } else {
+                $hint.addClass('text-danger').text(res?.message || 'Upload failed.');
+            }
+        })
+        .catch(() => $hint.addClass('text-danger').text('Server connection error.'))
+        .finally(() => { this.value = ''; });   // cho phép chọn lại đúng file vừa rồi
+});
+
+$(document).on('click', '#user-avatar-reset', function () {
+    setAvatarPreview('', $('#user-username').val());
+    $('#user-avatar-hint').removeClass('text-danger').text('Avatar removed. Save the form to apply.');
+});
+
 function openUserForm(row) {
     $('#offcanvasUserLabel').text(row ? 'Edit User' : 'Add User');
     $('#user-id').val(row?.id ?? 0);
+    setAvatarPreview(row?.avatar ?? '', row?.username ?? '');
+    $('#user-avatar-hint').removeClass('text-danger').text('PNG or JPG, max 2 MB. Resized to 96×96.');
     $('#user-username').val(row?.username ?? '').removeClass('is-invalid');
     $('#user-email').val(row?.email ?? '').removeClass('is-invalid');
     $('#user-password').val('').removeClass('is-invalid');
@@ -394,6 +453,7 @@ $(document).on('click', '#userSubmit', function () {
         level: $('#user-level').val(),
         team_id: $('#user-team').val(),
         status: $('#user-status').val(),
+        avatar: $('#user-avatar').val() || '',
         csrf_token: window.csrfToken
     };
     if (userPerms.see_salary) {

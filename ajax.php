@@ -237,6 +237,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         case 'save-user':
             echo json_encode(User::save_user());
             break;
+        case 'upload-user-avatar':
+            echo json_encode(User::upload_avatar());
+            break;
         case 'delete-users':
             echo json_encode(Users::delete_users());
             break;

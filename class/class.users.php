@@ -36,6 +36,27 @@ class Users
     /** Chỉ user ở trạng thái này mới đăng nhập được. */
     public const STATUS_ACTIVE = 2;
 
+    /**
+     * Cột `avatar` đã có trên DB chưa. Quy ước triển khai của dự án là deploy CODE
+     * trước, đổi DB sau — nên code phải chạy được với cả schema cũ lẫn mới.
+     */
+    public static function has_avatar_column(): bool
+    {
+        static $has = null;
+        if ($has !== null) {
+            return $has;
+        }
+        try {
+            $has = (bool)db()->query(
+                "SELECT 1 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'authors'
+                   AND COLUMN_NAME = 'avatar' LIMIT 1")->fetch_row();
+        } catch (\mysqli_sql_exception) {
+            $has = false;
+        }
+        return $has;
+    }
+
     private static function own_team(): int
     {
         return (int)($_SESSION['auth']['team'] ?? 0);
@@ -179,8 +200,9 @@ class Users
         $totalRecords  = (int)$conn->query("SELECT COUNT(*) FROM authors $scopeWhere")->fetch_row()[0];
         $totalFiltered = (int)$conn->query("SELECT COUNT(*) FROM authors $join $where")->fetch_row()[0];
 
+        $avatarCol = self::has_avatar_column() ? 'authors.avatar,' : "'' AS avatar,";
         $sql = "SELECT authors.ID, authors.username, authors.email, authors.status, authors.date,
-                       authors.team_id, authors.level, authors.wage, authors.insurance,
+                       authors.team_id, authors.level, authors.wage, authors.insurance, $avatarCol
                        r.name AS role_name, tm.name AS team_name
                 FROM authors
                 $join
@@ -204,6 +226,7 @@ class Users
                 'team_name'  => (string)($row['team_name'] ?? ''),
                 'level'      => $level,
                 'role_name'  => (string)($row['role_name'] ?? ''),
+                'avatar'     => (string)($row['avatar'] ?? ''),
                 'can_edit'   => self::can_edit_row($teamId, $level, $conn),
                 'can_delete' => self::can_delete_row((int)$row['ID'], $teamId, $level, $conn),
             ];

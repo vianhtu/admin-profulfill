@@ -69,6 +69,24 @@ $can_see_wage  = Users::can_see_salary();
         <div class="offcanvas-body mx-0 flex-grow-0 p-6 h-100">
             <form class="pt-0" id="userForm" onsubmit="return false">
                 <input type="hidden" id="user-id" value="0">
+                <input type="hidden" id="user-avatar" value="">
+                <!-- Avatar: input file thường + fetch (Dropzone của Vuexy là bản GIẢ, không POST) -->
+                <div class="mb-6 d-flex align-items-center gap-4">
+                    <div class="avatar avatar-lg">
+                        <!-- Chưa có ảnh thì hiện chữ cái đầu, giống cách bảng render -->
+                        <span class="avatar-initial rounded-circle bg-label-secondary" id="user-avatar-initial">?</span>
+                        <img id="user-avatar-preview" src="" alt="Avatar" class="rounded-circle d-none"
+                             style="object-fit:cover;width:100%;height:100%;">
+                    </div>
+                    <div class="flex-grow-1">
+                        <label class="btn btn-label-primary btn-sm mb-1" for="user-avatar-file">
+                            <i class="icon-base ti tabler-upload icon-xs me-1"></i>Upload avatar
+                            <input type="file" id="user-avatar-file" accept="image/png,image/jpeg" hidden>
+                        </label>
+                        <button type="button" class="btn btn-label-secondary btn-sm mb-1 d-none" id="user-avatar-reset">Remove</button>
+                        <div class="form-text" id="user-avatar-hint">PNG or JPG, max 2 MB. Resized to 96×96.</div>
+                    </div>
+                </div>
                 <div class="mb-6">
                     <label class="form-label" for="user-username">Username</label>
                     <input type="text" class="form-control" id="user-username" placeholder="username" maxlength="100">

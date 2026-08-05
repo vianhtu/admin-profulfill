@@ -772,6 +772,60 @@ function actionDownloadTableModel(): array
  * @param array<string,string> $map ['<cột DataTables>' => '<biểu thức SQL>']
  * @param string $tieBreaker biểu thức khóa phụ, '' nếu không cần
  */
+/**
+ * Đổi giá trị ini kiểu "8M"/"2K"/"1G" thành số byte.
+ * Dùng để nhận biết body POST vượt post_max_size TRƯỚC khi kiểm CSRF.
+ */
+function ini_bytes(string $val): int {
+    $val = trim($val);
+    if ($val === '') {
+        return 0;
+    }
+    $num = (int)$val;
+    return match (strtolower(substr($val, -1))) {
+        'g'     => $num * 1024 * 1024 * 1024,
+        'm'     => $num * 1024 * 1024,
+        'k'     => $num * 1024,
+        default => $num,
+    };
+}
+
+/**
+ * Vẽ lại ảnh về đúng khung vuông $box (giữ tỉ lệ, canh giữa, PNG giữ nền trong suốt)
+ * và ghi đè lên chính file đó. Vẽ lại cũng LOẠI BỎ dữ liệu lạ nhúng trong ảnh —
+ * đây là lớp phòng thủ chính với ảnh do người dùng tải lên (logo site, avatar user).
+ */
+function resize_image_square(string $path, string $mime, int $box = 96): bool {
+    $img = $mime === 'image/png' ? @imagecreatefrompng($path) : @imagecreatefromjpeg($path);
+    if (!$img) {
+        return false;
+    }
+    $w = imagesx($img);
+    $h = imagesy($img);
+    $scale = min($box / $w, $box / $h);
+    $newW = max(1, (int)round($w * $scale));
+    $newH = max(1, (int)round($h * $scale));
+
+    $canvas = imagecreatetruecolor($box, $box);
+    if ($mime === 'image/png') {
+        imagealphablending($canvas, false);
+        imagesavealpha($canvas, true);
+        imagefill($canvas, 0, 0, imagecolorallocatealpha($canvas, 0, 0, 0, 127));
+        imagealphablending($canvas, true);
+    } else {
+        // JPG không có kênh alpha — nền trong suốt sẽ ra đen, nên tô trắng trước
+        imagefill($canvas, 0, 0, imagecolorallocate($canvas, 255, 255, 255));
+    }
+    imagecopyresampled($canvas, $img, (int)(($box - $newW) / 2), (int)(($box - $newH) / 2),
+        0, 0, $newW, $newH, $w, $h);
+
+    // Ghi lại đúng định dạng gốc để nội dung khớp với đuôi file
+    $ok = $mime === 'image/png' ? imagepng($canvas, $path) : imagejpeg($canvas, $path, 90);
+    imagedestroy($img);
+    imagedestroy($canvas);
+    return (bool)$ok;
+}
+
 function build_order_by(array $params, array $map, string $tieBreaker = ''): string {
     $col = $map[$params['orderColumn']] ?? reset($map);
     $dir = $params['orderDir'];
