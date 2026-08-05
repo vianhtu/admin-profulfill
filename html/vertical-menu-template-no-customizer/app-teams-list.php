@@ -23,7 +23,8 @@ if (!is_admin()) {
     </div>
 
     <!-- Offcanvas Add/Edit team: form chỉ gồm Name + Status; cột `key` server tự sinh, không hiển thị -->
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasTeam" aria-labelledby="offcanvasTeamLabel">
+    <!-- data-bs-scroll: giữ scrollbar của body khi mở -> bảng không bị xô ngang -->
+    <div class="offcanvas offcanvas-end" data-bs-scroll="true" tabindex="-1" id="offcanvasTeam" aria-labelledby="offcanvasTeamLabel">
         <div class="offcanvas-header border-bottom">
             <h5 id="offcanvasTeamLabel" class="offcanvas-title">Add New Team</h5>
             <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
