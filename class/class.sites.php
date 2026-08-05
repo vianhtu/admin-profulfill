@@ -83,6 +83,24 @@ class Sites
     }
 
     /**
+     * Thêm site mới: ai có role add cũng làm được. Site chưa tồn tại thì thêm vào là
+     * bổ sung dữ liệu, không đụng tới cái đang chạy của team khác.
+     */
+    public static function can_add(): bool
+    {
+        return is_admin() || checkRoles('add', 'sites');
+    }
+
+    /**
+     * Sửa/xóa site: CHỈ ADMIN. Site dùng chung toàn hệ thống, không có cột team —
+     * đổi tên/slug/logo hay xóa 1 site là ảnh hưởng sản phẩm, account, store của mọi team.
+     */
+    public static function can_manage(): bool
+    {
+        return is_admin();
+    }
+
+    /**
      * Cờ quyền để frontend dựng nút. Site không thuộc team nên không có filter team.
      *
      * @return array{perms:array{add:bool,edit:bool,delete:bool}}
@@ -94,9 +112,9 @@ class Sites
         }
         return [
             'perms' => [
-                'add'    => checkRoles('add', 'sites'),
-                'edit'   => checkRoles('edit', 'sites'),
-                'delete' => checkRoles('delete', 'sites'),
+                'add'    => self::can_add(),
+                'edit'   => self::can_manage(),
+                'delete' => self::can_manage(),
             ],
         ];
     }
@@ -108,8 +126,9 @@ class Sites
      */
     public static function delete_sites(): array
     {
-        if (!checkRoles('delete', 'sites')) {
-            return ['status' => 'error', 'message' => 'You do not have permission to delete sites.'];
+        if (!self::can_manage()) {
+            return ['status' => 'error',
+                'message' => 'Sites are shared by the whole system; only an admin can delete them.'];
         }
         $ids = $_POST['ids'] ?? [];
         if (!is_array($ids) || empty($ids)) {

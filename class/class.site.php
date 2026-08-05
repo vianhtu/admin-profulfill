@@ -48,7 +48,9 @@ class Site
      */
     public static function upload_logo(): array
     {
-        if (!checkRoles(['add', 'edit'], 'sites')) {
+        // Đủ quyền thêm là upload được logo cho site mình đang tạo; sửa logo site cũ
+        // thì chỉ admin (can_manage), nhưng non-admin vốn không mở được form Edit.
+        if (!Sites::can_add() && !Sites::can_manage()) {
             return ['status' => 'error', 'message' => 'You do not have permission to upload site logos.'];
         }
         if (($_POST['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
@@ -172,9 +174,13 @@ class Site
         $id = (int)($_POST['id'] ?? 0);
         $isEdit = $id > 0;
 
-        if (!checkRoles($isEdit ? 'edit' : 'add', 'sites')) {
+        // Thêm mới: theo role add. Sửa: chỉ admin (site dùng chung toàn hệ thống)
+        if ($isEdit && !Sites::can_manage()) {
             return ['status' => 'error',
-                'message' => 'You do not have permission to ' . ($isEdit ? 'edit' : 'add') . ' sites.'];
+                'message' => 'Sites are shared by the whole system; only an admin can change them.'];
+        }
+        if (!$isEdit && !Sites::can_add()) {
+            return ['status' => 'error', 'message' => 'You do not have permission to add sites.'];
         }
         if (($_POST['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
             return ['status' => 'error', 'message' => 'Invalid CSRF token.'];

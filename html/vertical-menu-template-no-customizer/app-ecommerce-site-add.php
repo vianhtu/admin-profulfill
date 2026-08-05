@@ -2,7 +2,8 @@
 $get_id = (int)($_GET['id'] ?? 0);
 $isEdit = $get_id > 0;
 
-if (!checkRoles($isEdit ? 'edit' : 'add', 'sites')) {
+// Thêm mới: theo role add. Sửa: chỉ admin, vì site là dữ liệu dùng chung toàn hệ thống
+if (!($isEdit ? Sites::can_manage() : Sites::can_add())) {
     return;
 }
 
