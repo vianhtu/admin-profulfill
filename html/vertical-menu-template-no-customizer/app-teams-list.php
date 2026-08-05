@@ -50,6 +50,24 @@ if (!is_admin()) {
     </div>
 </div>
 
+<!-- Modal xem key của team (credential extension — chỉ admin thấy trang này) -->
+<div class="modal fade" id="viewKeyModal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Team Key — <span id="viewKeyTeamName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <input type="text" class="form-control font-monospace" id="viewKeyValue" readonly>
+                    <button type="button" class="btn btn-label-primary" id="copyKeyBtn">Copy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal xác nhận xóa (dùng chung cho xóa 1 dòng và Delete Selected) -->
 <div class="modal fade" id="deleteTeamModal" tabindex="-1" aria-hidden="true" role="dialog">
     <div class="modal-dialog modal-dialog-centered" role="document">

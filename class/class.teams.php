@@ -53,7 +53,7 @@ class Teams
         $totalRecords  = (int)$conn->query('SELECT COUNT(*) FROM team t')->fetch_row()[0];
         $totalFiltered = (int)$conn->query("SELECT COUNT(*) FROM team t $where")->fetch_row()[0];
 
-        $sql = "SELECT t.ID, t.name, t.status,
+        $sql = "SELECT t.ID, t.name, t.`key`, t.status,
                        (SELECT COUNT(*) FROM authors a WHERE a.team_id = t.ID) AS members
                 FROM team t
                 $where
@@ -66,6 +66,9 @@ class Teams
             $data[] = [
                 'id'         => (int)$row['ID'],
                 'name'       => $row['name'],
+                // Key là credential extension — chỉ trả ở đây vì trang admin-only,
+                // hiển thị qua nút View Key chứ không in thẳng ra bảng
+                'key'        => $row['key'],
                 'status'     => (int)$row['status'],
                 'members'    => (int)$row['members'],
                 // Trang admin-only nên quyền mọi dòng như nhau — vẫn trả cờ theo

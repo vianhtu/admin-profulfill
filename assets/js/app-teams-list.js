@@ -66,7 +66,9 @@ function initTable() {
                 targets: 3,
                 render: function (data, type, full) {
                     const n = full['members'];
-                    return `<span class="badge ${n > 0 ? 'bg-label-primary' : 'bg-label-secondary'}"><i class="icon-base ti tabler-users icon-14px me-1"></i>${n.toLocaleString()}</span>`;
+                    // Bấm vào số member -> trang Users lọc theo team
+                    return `<a href="index.php?menu=users&UserTeam=${full['id']}" title="View members">` +
+                        `<span class="badge ${n > 0 ? 'bg-label-primary' : 'bg-label-secondary'}"><i class="icon-base ti tabler-users icon-14px me-1"></i>${n.toLocaleString()}</span></a>`;
                 }
             },
             {
@@ -79,7 +81,7 @@ function initTable() {
                 targets: -1, title: 'Actions', searchable: false, orderable: false,
                 render: function (d, t, full) {
                     // Quyền theo từng dòng đúng quy ước chung (trang này admin-only nên luôn true)
-                    const viewBtn = `<a href="index.php?menu=users&UserTeam=${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon" title="View members"><i class="icon-base ti tabler-eye icon-22px"></i></a>`;
+                    const viewBtn = `<button type="button" class="btn btn-text-secondary rounded-pill waves-effect btn-icon view-key" data-name="${esc(full['name'])}" data-key="${esc(full['key'])}" title="View key"><i class="icon-base ti tabler-key icon-22px"></i></button>`;
                     const editBtn = full['can_edit']
                         ? `<button type="button" class="btn btn-text-secondary rounded-pill waves-effect btn-icon edit-team" data-id="${full['id']}" data-name="${esc(full['name'])}" data-status="${full['status']}" title="Edit"><i class="icon-base ti tabler-edit icon-22px"></i></button>`
                         : '';
@@ -195,8 +197,34 @@ function initTable() {
                 if (classToAdd) classToAdd.split(' ').forEach(c => element.classList.add(c));
             });
         });
+
+        // Select số dòng/trang cũng là select2 theo chuẩn template (giống trang Stores)
+        const $len = $('.dt-length select');
+        if ($len.length && !$len.hasClass('select2-hidden-accessible')) {
+            $len.closest('.dt-length').css('min-width', '7rem');
+            $len.select2({ minimumResultsForSearch: Infinity, width: '100%' });
+        }
     }, 100);
 }
+
+// --- Xem key của team (credential extension) ---
+$(document).on('click', '.view-key', function () {
+    $('#viewKeyTeamName').text(String($(this).data('name') ?? ''));
+    $('#viewKeyValue').val(String($(this).data('key') ?? ''));
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('viewKeyModal')).show();
+});
+
+$(document).on('click', '#copyKeyBtn', function () {
+    const $btn = $(this);
+    const key = $('#viewKeyValue').val();
+    navigator.clipboard?.writeText(key).then(() => {
+        $btn.text('Copied!');
+        setTimeout(() => $btn.text('Copy'), 1500);
+    }).catch(() => {
+        // Fallback: bôi đen sẵn cho user tự Ctrl+C (clipboard API cần HTTPS)
+        $('#viewKeyValue').trigger('select');
+    });
+});
 
 // --- Add/Edit qua offcanvas ---
 function openTeamForm(team) {
