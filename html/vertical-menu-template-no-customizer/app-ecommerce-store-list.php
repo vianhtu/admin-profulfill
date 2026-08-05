@@ -43,6 +43,37 @@ if (!checkRoles('view', 'store')) {
     </div>
 <?php endif; ?>
 
+<!-- Delete Store Modal: xóa nhiều store / store nhiều sản phẩm nên phải chạy theo lô có tiến trình -->
+<div class="modal fade" id="deleteStoreModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete stores</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2">Delete <span id="deleteStoreCount" class="fw-bold">0</span> store(s)?</p>
+                <div id="deleteStoreWarning" class="alert alert-warning mb-0 d-none" role="alert">
+                    <span id="deleteStoreProducts" class="fw-bold">0</span> products still use them. They will be set to
+                    <strong>Inactive</strong> and unlinked from the store. This cannot be undone.
+                </div>
+                <div id="deleteStoreProgress" class="d-none mt-4">
+                    <div class="progress mb-2" style="height: 8px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" id="deleteStoreProgressBar" style="width: 0%"></div>
+                    </div>
+                    <small id="deleteStoreProgressText" class="text-body-secondary"></small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal" id="deleteStoreCancel">Cancel</button>
+                <button type="button" class="btn btn-danger" id="deleteStoreConfirm">
+                    <span class="spinner-border spinner-border-sm me-2 d-none" id="deleteStoreSpinner" role="status"></span>Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Store List Table -->
 <div class="card">
     <div class="card-datatable">

@@ -130,7 +130,7 @@ function initStoreTable() {
                         ...(storePerms.delete ? [{
                             text: '<span class="d-flex align-items-center gap-1"><i class="icon-base ti tabler-trash icon-xs"></i> <span class="d-none d-sm-inline-block">Delete Selected</span></span>',
                             className: 'btn btn-text-danger me-4',
-                            action: (e, dtApi) => deleteStores(getSelectedStoreIds(dtApi), dtApi)
+                            action: (e, dtApi) => openDeleteStoreModal(getSelectedStoreRows(dtApi))
                         }] : []),
                         ...(storePerms.add ? [{
                             text: '<i class="icon-base ti tabler-plus me-0 me-sm-1 icon-16px"></i><span class="d-none d-sm-inline-block">Add Store</span>',
@@ -217,47 +217,128 @@ function initStoreTable() {
     }, 100);
 }
 
-function getSelectedStoreIds(dt) {
-    const ids = dt.rows({ selected: true }).data().toArray().map(r => r.id);
+function getSelectedStoreRows(dt) {
+    const rows = dt.rows({ selected: true }).data().toArray();
+    const seen = new Set(rows.map(r => r.id));
     $('.datatables-stores tbody input.dt-checkboxes:checked').each(function () {
         const row = dt.row($(this).closest('tr')).data();
-        if (row && !ids.includes(row.id)) {
-            ids.push(row.id);
+        if (row && !seen.has(row.id)) {
+            seen.add(row.id);
+            rows.push(row);
         }
     });
-    return ids;
+    return rows;
 }
 
-function deleteStores(ids, dt) {
-    if (!ids.length) {
+// --- Xóa store ---
+// Chọn nhiều store, mỗi store có thể hàng nghìn sản phẩm -> gửi theo lô và hiện tiến trình,
+// popup chỉ đóng khi chạy xong. Server trả 'partial' khi chưa xử lý hết -> gửi lại đúng lô đó.
+const DELETE_BATCH_SIZE = 20;
+const DELETE_MAX_ROUNDS = 500; // chặn vòng lặp vô hạn nếu server cứ trả 'partial'
+
+function openDeleteStoreModal(rows) {
+    if (!rows.length) {
         alert('Select at least 1 store.');
         return;
     }
-    if (!confirm('Delete ' + ids.length + ' selected stores? Stores still used by products cannot be deleted.')) {
-        return;
-    }
-    $.ajax({ url: '../../ajax.php?action=delete-stores', type: 'POST', data: { ids: ids } })
-        .done(function (res) {
-            if (res?.status === 'success') {
-                dt.rows().deselect?.();
-                dt.draw(false);
-            } else {
-                alert(res?.message || 'Delete failed');
-            }
-        })
-        .fail(() => alert('Server connection error'));
+    const products = rows.reduce((n, r) => n + (r.products_count || 0), 0);
+    const $modal = $('#deleteStoreModal');
+
+    $modal.data('ids', rows.map(r => r.id));
+    $('#deleteStoreCount').text(rows.length.toLocaleString());
+    $('#deleteStoreProducts').text(products.toLocaleString());
+    $('#deleteStoreWarning').toggleClass('d-none', products === 0);
+    $('#deleteStoreProgress').addClass('d-none');
+    $('#deleteStoreProgressBar').css('width', '0%').removeClass('bg-danger');
+    $('#deleteStoreProgressText').text('');
+    $('#deleteStoreConfirm').prop('disabled', false).show();
+    $('#deleteStoreCancel').text('Cancel');
+
+    bootstrap.Modal.getOrCreateInstance($modal[0]).show();
 }
 
-$(document).on('click', '.delete-store', function () {
-    const id = $(this).data('id');
-    const count = parseInt($(this).data('count'), 10) || 0;
-    if (count > 0) {
-        alert('This store is used by ' + count.toLocaleString() + ' products and cannot be deleted.');
+$(document).on('click', '#deleteStoreConfirm', async function () {
+    const $btn = $(this);
+    const ids = $('#deleteStoreModal').data('ids') || [];
+    if (!ids.length) {
         return;
     }
-    if (dtStores) {
-        deleteStores([id], dtStores);
+    const $bar = $('#deleteStoreProgressBar');
+    const $text = $('#deleteStoreProgressText');
+
+    $btn.prop('disabled', true);
+    $('#deleteStoreSpinner').removeClass('d-none');
+    $('#deleteStoreProgress').removeClass('d-none');
+    $bar.css('width', '0%').removeClass('bg-danger');
+    $text.text('Deleting 0/' + ids.length + ' stores...');
+
+    let deleted = 0;
+    let deactivated = 0;
+    try {
+        for (let i = 0; i < ids.length; i += DELETE_BATCH_SIZE) {
+            const batch = ids.slice(i, i + DELETE_BATCH_SIZE);
+            let rounds = 0;
+            // Lặp cùng 1 lô tới khi server xử lý hết sản phẩm của lô đó
+            for (;;) {
+                const res = await $.ajax({
+                    url: '../../ajax.php?action=delete-stores',
+                    type: 'POST',
+                    data: { ids: batch }
+                });
+                if (res?.status === 'partial') {
+                    deactivated += res.deactivated ?? 0;
+                    $text.text('Deleting ' + i + '/' + ids.length + ' stores — '
+                        + deactivated.toLocaleString() + ' products set to Inactive...');
+                    if (++rounds > DELETE_MAX_ROUNDS) {
+                        throw new Error('Too many products to process in one go. Please try again.');
+                    }
+                    continue;
+                }
+                if (res?.status !== 'success') {
+                    throw new Error(res?.message || 'Delete failed');
+                }
+                deleted += res.deleted ?? 0;
+                deactivated += res.deactivated ?? 0;
+                break;
+            }
+            const done = Math.min(i + DELETE_BATCH_SIZE, ids.length);
+            $bar.css('width', Math.round((done / ids.length) * 100) + '%');
+            $text.text('Deleting ' + done + '/' + ids.length + ' stores — '
+                + deactivated.toLocaleString() + ' products set to Inactive...');
+        }
+
+        $bar.css('width', '100%');
+        $text.text('Done: ' + deleted.toLocaleString() + ' stores deleted, '
+            + deactivated.toLocaleString() + ' products set to Inactive.');
+
+        // Cho user thấy kết quả rồi mới đóng popup
+        setTimeout(function () {
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteStoreModal')).hide();
+            if (dtStores) {
+                dtStores.rows().deselect?.();
+                dtStores.draw(false);
+            }
+        }, 1200);
+    } catch (err) {
+        // Dừng lại, giữ popup để user đọc lỗi — phần đã xóa vẫn giữ nguyên
+        $bar.addClass('bg-danger');
+        $text.text(err?.message || 'Server connection error');
+        $btn.hide();
+        $('#deleteStoreCancel').text('Close');
+        if (dtStores) {
+            dtStores.draw(false);
+        }
+    } finally {
+        $('#deleteStoreSpinner').addClass('d-none');
     }
+});
+
+$(document).on('click', '.delete-store', function () {
+    // Lấy từ data-* thay vì DataTables row: nút có thể nằm trong child row khi bảng thu gọn
+    openDeleteStoreModal([{
+        id: parseInt($(this).data('id'), 10),
+        products_count: parseInt($(this).data('count'), 10) || 0
+    }]);
 });
 
 // --- Filter card ---

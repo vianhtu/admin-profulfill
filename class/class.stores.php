@@ -199,10 +199,23 @@ class Stores
         ];
     }
 
+    /** Số dòng posts xử lý mỗi vòng UPDATE (giữ transaction ngắn, không khóa bảng lâu). */
+    private const DEACTIVATE_CHUNK = 2000;
+    /** Trần số dòng posts xử lý trong 1 request — vượt thì trả 'partial' để client gọi tiếp. */
+    private const DEACTIVATE_BUDGET = 50000;
+
     /**
-     * Xóa store. Chặn nếu không đủ quyền với dòng đó, hoặc còn sản phẩm đang dùng.
+     * Xóa store. Chặn nếu không đủ quyền với dòng đó.
+     * Sản phẩm đang dùng store bị xóa sẽ chuyển sang Inactive và gỡ liên kết store
+     * (store_id = 0) thay vì trỏ tới bản ghi không còn tồn tại.
      *
-     * @return array{status:string,deleted?:int,message?:string}
+     * Xóa nhiều store, mỗi store hàng nghìn sản phẩm => KHÔNG chạy 1 câu UPDATE khổng lồ:
+     * cập nhật theo lô DEACTIVATE_CHUNK dòng, hết ngân sách 1 request thì trả
+     * status='partial' để client gọi lại cùng danh sách ID. Vì điều kiện lọc là
+     * store_id (dòng đã xử lý tự rơi khỏi tập) và store chỉ bị xóa ở bước cuối,
+     * thao tác an toàn khi lặp lại / bị đứt giữa chừng.
+     *
+     * @return array{status:string,deleted?:int,deactivated?:int,message?:string}
      */
     public static function delete_stores(): array
     {
@@ -240,16 +253,45 @@ class Stores
         }
         $idsStr = implode(',', $allowed);
 
-        $inUse = $conn->query("SELECT t.name, COUNT(p.ID) AS c FROM store t
-            JOIN posts p ON p.store_id = t.ID WHERE t.ID IN ($idsStr) GROUP BY t.ID LIMIT 1")->fetch_assoc();
-        if ($inUse) {
-            return ['status' => 'error',
-                'message' => 'Store "' . $inUse['name'] . '" is used by ' . number_format((int)$inUse['c']) . ' products.'];
+        // Store từng dùng chung có thể còn sản phẩm của team khác — chỉ admin mới
+        // được phép vô hiệu hóa những sản phẩm đó. Dùng EXISTS (LIMIT 1) thay vì COUNT
+        // để không phải quét hết hàng nghìn dòng.
+        if (!is_admin()) {
+            $team = self::own_team();
+            $foreign = $conn->query("SELECT 1 FROM posts p
+                LEFT JOIN authors a ON a.ID = p.author_id
+                WHERE p.store_id IN ($idsStr) AND (a.team_id IS NULL OR a.team_id <> $team) LIMIT 1")->fetch_row();
+            if ($foreign) {
+                return ['status' => 'error',
+                    'message' => 'These stores still have products from other teams. Only an admin can delete them.'];
+            }
         }
 
-        if (!$conn->query("DELETE FROM store WHERE ID IN ($idsStr)")) {
-            return ['status' => 'error', 'message' => 'Delete failed: ' . $conn->error];
+        // Sản phẩm của store bị xóa -> Inactive + gỡ liên kết store, cập nhật theo lô
+        $deactivated = 0;
+        $completed = false;
+        try {
+            while ($deactivated < self::DEACTIVATE_BUDGET) {
+                $conn->query('UPDATE posts SET status = \'inactive\', store_id = 0
+                    WHERE store_id IN (' . $idsStr . ') LIMIT ' . self::DEACTIVATE_CHUNK);
+                $n = $conn->affected_rows;
+                $deactivated += $n;
+                if ($n < self::DEACTIVATE_CHUNK) {
+                    $completed = true;
+                    break;
+                }
+            }
+            // Còn sản phẩm chưa xử lý -> giữ nguyên store, báo client gọi tiếp
+            if (!$completed) {
+                return ['status' => 'partial', 'deactivated' => $deactivated];
+            }
+            // Xóa store ở bước cuối: đứt giữa chừng thì gọi lại vẫn tìm được sản phẩm còn sót
+            $conn->query("DELETE FROM store WHERE ID IN ($idsStr)");
+            $deleted = $conn->affected_rows;
+        } catch (\mysqli_sql_exception $e) {
+            return ['status' => 'error', 'message' => 'Delete failed: ' . $e->getMessage()];
         }
-        return ['status' => 'success', 'deleted' => $conn->affected_rows];
+
+        return ['status' => 'success', 'deleted' => $deleted, 'deactivated' => $deactivated];
     }
 }
