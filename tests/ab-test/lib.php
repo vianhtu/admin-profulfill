@@ -192,7 +192,9 @@ final class AbFixtures
         $teamId = $this->new_team();
         $c = $this->conn;
 
-        $uname = 'ZZABU' . bin2hex(random_bytes(4));
+        // Tiền tố ZZABFIX (không phải ZZABU): 'ZZABU%' khớp luôn tài khoản ZZABUSER của
+        // skill ui-test và cleanup sẽ xóa nhầm nó.
+        $uname = 'ZZABFIX' . bin2hex(random_bytes(4));
         $c->execute_query(
             'INSERT INTO authors (team_id, email, status, username, pass, level, date)
              VALUES (?, ?, 2, ?, ?, 0, NOW())',
@@ -298,10 +300,11 @@ final class AbFixtures
         $c->query("DELETE FROM orders WHERE host_id LIKE 'ZZAB-ORD%'");
         $c->query("DELETE FROM accounts_authors WHERE account_id IN (SELECT ID FROM accounts WHERE name LIKE 'ZZAB%')");
         $c->query("DELETE FROM accounts WHERE name LIKE 'ZZAB%'");
-        // User ZZAB do phép thử xóa-dây-chuyền tạo ra (username có tiền tố ZZABU)
+        // User do phép thử xóa-dây-chuyền tạo ra. CHỈ xóa tiền tố ZZABFIX — KHÔNG dùng
+        // 'ZZABU%' vì nó khớp cả ZZABUSER (tài khoản thường trực của skill ui-test).
         $c->query("DELETE FROM author_remember_tokens
-                   WHERE author_id IN (SELECT ID FROM authors WHERE username LIKE 'ZZABU%')");
-        $c->query("DELETE FROM authors WHERE username LIKE 'ZZABU%'");
+                   WHERE author_id IN (SELECT ID FROM authors WHERE username LIKE 'ZZABFIX%')");
+        $c->query("DELETE FROM authors WHERE username LIKE 'ZZABFIX%'");
         // Team ZZAB xóa cuối: chỉ xóa team KHÔNG có thành viên thật để không đụng dữ liệu sống
         $c->query("DELETE FROM team WHERE name LIKE 'ZZAB%'
                    AND ID NOT IN (SELECT DISTINCT team_id FROM authors)");
