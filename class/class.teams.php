@@ -37,9 +37,13 @@ class Teams
     /** Lọc REF_TABLES về những bảng THẬT SỰ có trong DB. */
     private static function ref_tables(mysqli $conn): array
     {
+        // SHOW TABLES không dùng được prepared statement trên MariaDB -> tra information_schema
         $out = [];
         foreach (self::REF_TABLES as $label => [$table, $col]) {
-            $exists = $conn->execute_query('SHOW TABLES LIKE ?', [$table])->fetch_row();
+            $exists = $conn->execute_query(
+                'SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? LIMIT 1',
+                [$table]
+            )->fetch_row();
             if ($exists) {
                 $out[$label] = [$table, $col];
             }
