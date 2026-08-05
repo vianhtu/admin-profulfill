@@ -109,8 +109,12 @@ class Teams
     }
 
     /**
-     * Xóa team (1 hoặc nhiều). Chặn khi team còn được tham chiếu ở bất kỳ bảng nào
+     * Xóa MỘT team. Chặn khi team còn được tham chiếu ở bất kỳ bảng nào
      * (members/accounts/stores) — người dùng phải dời dữ liệu sang team khác trước.
+     *
+     * KHÔNG hỗ trợ xóa hàng loạt (chốt 05/08/2026): xóa team kéo theo cả nhánh dữ liệu
+     * nên phải cân nhắc từng cái. UI không có Delete Selected, và tầng code ở đây cũng
+     * từ chối luôn khi nhận nhiều hơn 1 ID để không tin vào lớp UI.
      *
      * @return array{status:string,deleted?:int,message?:string}
      */
@@ -130,6 +134,9 @@ class Teams
         $ids = array_values(array_unique(array_filter(array_map('intval', $ids), fn($v) => $v > 0)));
         if (empty($ids)) {
             return ['status' => 'error', 'message' => 'Invalid team list.'];
+        }
+        if (count($ids) > 1) {
+            return ['status' => 'error', 'message' => 'Teams can only be deleted one at a time.'];
         }
 
         $conn = db();

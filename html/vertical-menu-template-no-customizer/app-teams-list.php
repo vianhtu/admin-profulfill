@@ -8,10 +8,10 @@ if (!is_admin()) {
 <!-- Teams List Table -->
 <div class="card">
     <div class="card-datatable">
+        <!-- Không có cột checkbox: Teams chỉ xóa từng dòng, không có thao tác hàng loạt -->
         <table class="datatables-teams table">
             <thead class="border-top">
             <tr>
-                <th></th>
                 <th></th>
                 <th>Team</th>
                 <th>Members</th>
@@ -69,7 +69,7 @@ if (!is_admin()) {
     </div>
 </div>
 
-<!-- Modal xác nhận xóa (dùng chung cho xóa 1 dòng và Delete Selected) -->
+<!-- Modal xác nhận xóa MỘT team (không có xóa hàng loạt) -->
 <div class="modal fade" id="deleteTeamModal" tabindex="-1" aria-hidden="true" role="dialog">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -78,7 +78,7 @@ if (!is_admin()) {
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Are you sure you want to delete <strong id="deleteTeamCount">1</strong> team(s)?
+                Are you sure you want to delete <strong id="deleteTeamName"></strong>?
                 Teams that still have members, accounts or stores cannot be deleted.
             </div>
             <div class="modal-footer">

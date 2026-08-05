@@ -29,9 +29,9 @@ function initTable() {
             data: function (d) {},
             dataSrc: json => json.data
         },
+        // Không có thao tác hàng loạt -> KHÔNG có cột checkbox chọn dòng
         columns: [
             { data: 'id' },
-            { data: 'id', orderable: false, render: DataTable.render.select() },
             { data: 'name' },
             { data: 'members' },
             { data: 'status' },
@@ -40,12 +40,7 @@ function initTable() {
         columnDefs: [
             { className: 'control', searchable: false, orderable: false, responsivePriority: 2, targets: 0, render: () => '' },
             {
-                targets: 1, orderable: false, searchable: false, responsivePriority: 4,
-                checkboxes: { selectAllRender: '<input type="checkbox" class="form-check-input">' },
-                render: () => '<input type="checkbox" class="dt-checkboxes form-check-input">'
-            },
-            {
-                targets: 2,
+                targets: 1,
                 responsivePriority: 3,
                 render: function (data, type, full) {
                     const name = String(full['name'] ?? '');
@@ -63,7 +58,7 @@ function initTable() {
                 }
             },
             {
-                targets: 3,
+                targets: 2,
                 render: function (data, type, full) {
                     const n = full['members'];
                     // Bấm vào số member -> trang Users lọc theo team
@@ -72,7 +67,7 @@ function initTable() {
                 }
             },
             {
-                targets: 4,
+                targets: 3,
                 render: (d, t, full) => full['status'] === 1
                     ? '<span class="badge bg-label-success">Active</span>'
                     : '<span class="badge bg-label-secondary">Inactive</span>'
@@ -86,14 +81,13 @@ function initTable() {
                         ? `<button type="button" class="btn btn-text-secondary rounded-pill waves-effect btn-icon edit-team" data-id="${full['id']}" data-name="${esc(full['name'])}" data-status="${full['status']}" title="Edit"><i class="icon-base ti tabler-edit icon-22px"></i></button>`
                         : '';
                     const deleteBtn = full['can_delete']
-                        ? `<button type="button" class="btn btn-text-danger rounded-pill waves-effect btn-icon delete-team" data-id="${full['id']}" title="Delete"><i class="icon-base ti tabler-trash icon-22px"></i></button>`
+                        ? `<button type="button" class="btn btn-text-danger rounded-pill waves-effect btn-icon delete-team" data-id="${full['id']}" data-name="${esc(full['name'])}" title="Delete"><i class="icon-base ti tabler-trash icon-22px"></i></button>`
                         : '';
                     return `<div class="d-inline-block text-nowrap">${viewBtn}${editBtn}${deleteBtn}</div>`;
                 }
             }
         ],
-        select: { style: 'multi', selector: 'td:nth-child(2)' },
-        order: [[2, 'asc']],
+        order: [[1, 'asc']],
         layout: {
             topStart: {
                 rowClass: 'row m-3 my-0 justify-content-between',
@@ -104,11 +98,8 @@ function initTable() {
                     { search: { placeholder: 'Search Team', text: '_INPUT_' } },
                     {
                         buttons: [
-                            {
-                                text: '<span class="d-flex align-items-center gap-1"><i class="icon-base ti tabler-trash icon-xs"></i> <span class="d-none d-sm-inline-block">Delete Selected</span></span>',
-                                className: 'btn btn-text-danger',
-                                action: (e, dtApi) => openDeleteTeamModal(getSelectedTeamIds(dtApi))
-                            },
+                            // Teams KHÔNG có Delete Selected: xóa team là thao tác nặng
+                            // (kéo theo members/accounts/stores) nên chỉ cho xóa từng dòng.
                             {
                                 text: '<span class="d-flex align-items-center gap-1"><i class="icon-base ti tabler-plus icon-xs"></i> <span class="d-none d-sm-inline-block">Add New Team</span></span>',
                                 className: 'add-new btn btn-primary',
@@ -283,54 +274,38 @@ $(document).on('click', '#teamSubmit', function () {
     });
 });
 
-// --- Xóa (per-row + Delete Selected, dùng chung modal) ---
-function getSelectedTeamIds(dt) {
-    const ids = new Set(dt.rows({ selected: true }).data().toArray().map(r => r.id));
-    $('.datatables-teams tbody input.dt-checkboxes:checked').each(function () {
-        const row = dt.row($(this).closest('tr')).data();
-        if (row) {
-            ids.add(row.id);
-        }
-    });
-    return [...ids];
-}
-
-function openDeleteTeamModal(ids) {
-    if (!ids.length) {
-        alert('Select at least 1 team.');
-        return;
-    }
+// --- Xóa: chỉ TỪNG DÒNG một, không có thao tác hàng loạt ---
+function openDeleteTeamModal(id, name) {
     const modalEl = document.getElementById('deleteTeamModal');
-    $('#deleteTeamCount').text(ids.length.toLocaleString());
-    $(modalEl).data('ids', ids);
+    $('#deleteTeamName').text(name || ('#' + id));
+    $(modalEl).data('id', id);
     bootstrap.Modal.getOrCreateInstance(modalEl).show();
 }
 
 $(document).on('click', '.delete-team', function () {
-    openDeleteTeamModal([parseInt($(this).data('id'), 10)]);
+    openDeleteTeamModal(parseInt($(this).data('id'), 10), String($(this).data('name') ?? ''));
 });
 
 $(document).on('click', '#deleteTeamConfirm', function () {
     const modalEl = document.getElementById('deleteTeamModal');
-    const ids = $(modalEl).data('ids') || [];
-    if (!ids.length) {
+    const id = $(modalEl).data('id');
+    if (!id) {
         return;
     }
     $.ajax({
         url: '../../ajax.php?action=delete-teams',
         type: 'POST',
-        data: { ids: ids, csrf_token: window.csrfToken },
+        data: { ids: [id], csrf_token: window.csrfToken },
         success: function (res) {
             if (res?.status === 'success') {
                 bootstrap.Modal.getInstance(modalEl)?.hide();
-                $(modalEl).removeData('ids');
+                $(modalEl).removeData('id');
                 if (dtTeams) {
-                    dtTeams.rows().deselect?.();
                     dtTeams.draw(false);
                 }
             } else {
                 // Giữ modal mở để đọc lý do (vd còn members/stores tham chiếu)
-                alert(res?.message || 'Failed to delete teams.');
+                alert(res?.message || 'Failed to delete team.');
             }
         },
         error: function () {
