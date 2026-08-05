@@ -53,12 +53,27 @@ class Site
         if (!Sites::can_add() && !Sites::can_manage()) {
             return ['status' => 'error', 'message' => 'You do not have permission to upload site logos.'];
         }
+
+        // Body POST vượt post_max_size -> PHP xóa sạch $_POST (kể cả csrf_token) và $_FILES.
+        // Phải nhận biết TRƯỚC khi kiểm CSRF, nếu không sẽ báo nhầm "Invalid CSRF token"
+        // cho một file chỉ đơn giản là quá lớn.
+        $contentLen = (int)($_SERVER['CONTENT_LENGTH'] ?? 0);
+        $postMax    = self::ini_bytes((string)ini_get('post_max_size'));
+        if (empty($_POST) && $contentLen > 0 && $postMax > 0 && $contentLen > $postMax) {
+            return ['status' => 'error', 'message' => 'The logo must be 2 MB or smaller.'];
+        }
+
         if (($_POST['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
             return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
         }
 
         $file = $_FILES['file'] ?? null;
-        if (!$file || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+        $err  = $file['error'] ?? UPLOAD_ERR_NO_FILE;
+        // File > upload_max_filesize (2M) -> PHP đặt lỗi INI_SIZE, $_FILES rỗng phần dữ liệu
+        if ($err === UPLOAD_ERR_INI_SIZE || $err === UPLOAD_ERR_FORM_SIZE) {
+            return ['status' => 'error', 'message' => 'The logo must be 2 MB or smaller.'];
+        }
+        if (!$file || $err !== UPLOAD_ERR_OK) {
             return ['status' => 'error', 'message' => 'No file uploaded.'];
         }
         if ($file['size'] > 2 * 1024 * 1024) {
@@ -119,6 +134,22 @@ class Site
      * Vẽ lại ảnh về đúng khung 96x96 (giữ tỉ lệ, canh giữa, nền trong suốt) và
      * ghi đè lên chính file đó. Vẽ lại cũng loại bỏ dữ liệu lạ nhúng trong ảnh.
      */
+    /** Đổi giá trị ini kiểu "8M"/"2K"/"1G" thành số byte. */
+    private static function ini_bytes(string $val): int
+    {
+        $val = trim($val);
+        if ($val === '') {
+            return 0;
+        }
+        $num = (int)$val;
+        return match (strtolower(substr($val, -1))) {
+            'g'     => $num * 1024 * 1024 * 1024,
+            'm'     => $num * 1024 * 1024,
+            'k'     => $num * 1024,
+            default => $num,
+        };
+    }
+
     private static function resize_logo(string $path, string $mime): bool
     {
         $img = $mime === 'image/png' ? @imagecreatefrompng($path) : @imagecreatefromjpeg($path);
