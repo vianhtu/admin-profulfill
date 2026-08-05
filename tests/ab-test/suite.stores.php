@@ -66,10 +66,14 @@ return function (AbRunner $r): void {
         return Store::save_store();
     })->allow('ADMIN', 'MGR_T1', 'USR_T1', 'MGR_T2', 'USR_T2', 'USR_T3');
 
-    $r->add('Store — ghi', 'Sửa store riêng của TEAM KHÁC', function ($a, $fx) {
-        $row = $fx->conn->query("SELECT name, slug, site_id FROM store WHERE ID = {$fx->storeT2}")->fetch_assoc();
-        $_POST = ['csrf_token' => 'ABTEST', 'id' => $fx->storeT2, 'name' => $row['name'],
-            'slug' => $row['slug'], 'site_id' => (int)$row['site_id'], 'status' => 0];
+    // Store mới cho từng actor: nếu dùng chung 1 bản ghi thì actor chạy trước (ADMIN) sửa
+    // xong sẽ làm sai điều kiện của actor chạy sau. Phải gửi kèm team_id vì với admin,
+    // thiếu team_id nghĩa là chuyển store về dùng chung.
+    $r->add('Store — ghi', 'Sửa store riêng của TEAM 2', function ($a, $fx) {
+        $id = $fx->new_store(2);
+        $row = $fx->conn->query("SELECT name, slug, site_id FROM store WHERE ID = $id")->fetch_assoc();
+        $_POST = ['csrf_token' => 'ABTEST', 'id' => $id, 'name' => $row['name'],
+            'slug' => $row['slug'], 'site_id' => (int)$row['site_id'], 'status' => 0, 'team_id' => 2];
         return Store::save_store();
     })->allow('ADMIN', 'MGR_T2', 'USR_T2');
 
