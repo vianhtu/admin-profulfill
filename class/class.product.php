@@ -179,9 +179,10 @@ class Product
         if (!$ok) {
             return ['status' => 'error', 'message' => 'Category is not available for your team.'];
         }
-        $ok = $conn->query("SELECT 1 FROM store_teams WHERE store_id = $storeId AND team_id = $team LIMIT 1")->fetch_row();
+        // Store dùng chung toàn hệ thống — chỉ cần tồn tại là hợp lệ
+        $ok = $conn->query("SELECT 1 FROM store WHERE ID = $storeId LIMIT 1")->fetch_row();
         if (!$ok) {
-            return ['status' => 'error', 'message' => 'Store is not available for your team.'];
+            return ['status' => 'error', 'message' => 'Store does not exist.'];
         }
     }
 

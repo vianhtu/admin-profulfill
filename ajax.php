@@ -14,6 +14,8 @@ require_once __DIR__ . '/class/class.categories.php';
 require_once __DIR__ . '/class/class.category.php';
 require_once __DIR__ . '/class/class.sites.php';
 require_once __DIR__ . '/class/class.site.php';
+require_once __DIR__ . '/class/class.stores.php';
+require_once __DIR__ . '/class/class.store.php';
 require __DIR__ . '/model/functions-gemini.php';
 require __DIR__ . '/model/functions-openai.php';
 require __DIR__ . '/tables/functions-teams.php';
@@ -148,6 +150,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 			break;
 		case 'upload-site-logo':
 			echo json_encode(Site::upload_logo());
+			break;
+		case 'get-store-table':
+			echo json_encode(Stores::get_stores());
+			break;
+		case 'get-store-table-filter':
+			echo json_encode(Stores::get_stores_filters());
+			break;
+		case 'delete-stores':
+			echo json_encode(Stores::delete_stores());
+			break;
+		case 'save-store':
+			echo json_encode(Store::save_store());
 			break;
         case 'get-product-copyright-warning':
             echo json_encode(getProductCopyrightWarning());

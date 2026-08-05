@@ -34,6 +34,10 @@ function menuArgs():array
                     'label' => 'Sites',
                     'roles' => ['view','add','edit','delete']
                 ],
+                'store' => [
+                    'label' => 'Stores',
+                    'roles' => ['view','add','edit','delete']
+                ],
                 'copyright' => [
                     'label' => 'Copyright Warning',
                     'roles' => ['view','edit']
@@ -1135,7 +1139,9 @@ function get_sites_select_options(): array {
 }
 
 /**
- * Nguồn dữ liệu select2 ajax cho bộ lọc Store (đã lọc theo team, store dùng chung tính qua store_teams).
+ * Nguồn dữ liệu select2 ajax cho bộ lọc Store.
+ * Store là dữ liệu DÙNG CHUNG toàn hệ thống (một shop có thể do nhiều team cùng làm)
+ * nên không lọc theo team — chỉ admin mới được sửa, xem class.stores.php.
  *
  * @return array{items:array<int,array{id:int,name:string}>,more:bool}
  */
@@ -1148,11 +1154,7 @@ function get_stores_select_options(): array {
 	$offset  = ($page - 1) * $perPage;
 
 // Chuẩn bị câu truy vấn (Prepared Statement để chống SQL injection)
-	// store_teams: 1 store có thể dùng chung cho nhiều team
-	$teamScope = get_current_team_scope_id();
-	$teamCond  = $teamScope > 0
-		? " AND EXISTS (SELECT 1 FROM store_teams st WHERE st.store_id = t.ID AND st.team_id = $teamScope)"
-		: '';
+	$teamCond = '';
 	$sql = "SELECT t.id, CONCAT(s.name, ' (', t.name, ')') AS name
         FROM store AS t
         JOIN site s ON t.site_id = s.id
