@@ -130,12 +130,17 @@ return function (AbRunner $r): void {
     $r->add('Teams — xóa', 'GIỮ dữ liệu dùng chung (site/category/store chung)', function ($a, $fx) {
         [$teamId] = $fx->new_team_with_data();
         $_POST = ['csrf_token' => 'ABTEST', 'id' => $teamId];
-        Teams::purge_team();
+        $res = Teams::purge_team();
+        // Bị chặn -> trả nguyên lỗi để chấm DENY; nếu không, actor không có quyền sẽ
+        // "đạt" một cách giả tạo chỉ vì purge không hề chạy.
+        if (($res['status'] ?? '') === 'error') {
+            return $res;
+        }
         // 3 bản ghi dùng chung của fixture phải còn nguyên sau khi xóa team
         $kept = (int)$fx->conn->query("SELECT COUNT(*) FROM site WHERE ID = {$fx->site}")->fetch_row()[0]
             + (int)$fx->conn->query("SELECT COUNT(*) FROM `type` WHERE ID = {$fx->catShared}")->fetch_row()[0]
             + (int)$fx->conn->query("SELECT COUNT(*) FROM store WHERE ID = {$fx->storeShared}")->fetch_row()[0];
-        return $kept === 3;
+        return $kept === 3 ? $res : ['status' => 'error', 'message' => "Dữ liệu dùng chung chỉ còn $kept/3"];
     })->allow('ADMIN');
 
     // AN TOÀN: dùng team ZZAB nháp làm "team của tôi" thay vì team thật — nếu guard hỏng
