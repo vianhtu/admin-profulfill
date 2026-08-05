@@ -90,7 +90,7 @@ if (!is_logged_in() && !attempt_cookie_login()) {
         }
     } else {
         http_response_code(401); // Unauthorized
-        echo json_encode(['error' => 'Bạn chưa đăng nhập']);
+        echo json_encode(['status' => 'error', 'message' => 'You are not signed in.']);
     }
 	exit;
 }

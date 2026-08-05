@@ -118,11 +118,30 @@ function current_team_blocked(): bool {
 
 /** Thông báo dùng chung khi team bị khóa (app hiển thị tiếng Anh). */
 const TEAM_INACTIVE_MESSAGE = 'Your team has been deactivated. Please contact an administrator.';
+/**
+ * URL trang đăng nhập, tính theo vị trí script đang chạy.
+ *
+ * KHÔNG dùng đường dẫn tương đối './html/...': require_login() được gọi từ chính
+ * thư mục đó (html/vertical-menu-template-no-customizer/index.php) nên trình duyệt
+ * ghép thành .../html/vertical-menu-template-no-customizer/html/vertical-menu-.../
+ * và ra 404. Trả về đường dẫn tính từ gốc site để đúng ở mọi nơi gọi.
+ */
+function login_url(): string {
+	$script = $_SERVER['SCRIPT_NAME'] ?? '';
+	$marker = '/html/vertical-menu-template-no-customizer/';
+	$pos = strpos($script, $marker);
+	// Script nằm trong thư mục template -> cắt lấy phần gốc app; ngược lại script ở gốc app
+	$base = $pos !== false
+		? substr($script, 0, $pos)
+		: rtrim(str_replace('\\', '/', dirname($script)), '/');
+	return $base . $marker . 'auth-login-basic.php';
+}
+
 function require_login(): void {
 	if (!is_logged_in()) {
 		// Thử auto-login bằng cookie trước khi chuyển hướng
 		if (!attempt_cookie_login()) {
-			header('Location: ./html/vertical-menu-template-no-customizer/auth-login-basic.php');
+			header('Location: ' . login_url());
 			exit;
 		}
 	}
@@ -130,7 +149,7 @@ function require_login(): void {
 	if (current_team_blocked()) {
 		logout_user();
 		flash_set('error', TEAM_INACTIVE_MESSAGE);
-		header('Location: ./html/vertical-menu-template-no-customizer/auth-login-basic.php');
+		header('Location: ' . login_url());
 		exit;
 	}
 }
