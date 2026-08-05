@@ -19,21 +19,26 @@ return function (AbRunner $r): void {
         return ab_sees(Products::get_products(), $fx->postT2);
     })->allow('ADMIN', 'MGR_T2', 'USR_T2');
 
+    // Oracle độc lập: đếm lại bằng SQL viết riêng trong test. Extension vẫn đang import
+    // liên tục nên đếm TRƯỚC và SAU rồi chấp nhận nếu kết quả nằm trong khoảng đó.
     $r->add('Products — đọc', 'Thống kê không đếm sản phẩm ngoài phạm vi', function ($a, $fx) {
-        $stat = Products::get_products_statistic();
-        $conn = $fx->conn;
-        // Oracle độc lập: đếm lại bằng SQL viết riêng trong test
-        if ($a->roles === []) {
-            $expected = 0;
-        } elseif ($a->level === 'admin') {
-            $expected = (int)$conn->query('SELECT COUNT(*) FROM posts')->fetch_row()[0];
-        } elseif ($a->level === 'manager') {
-            $expected = (int)$conn->query('SELECT COUNT(*) FROM posts p JOIN authors au ON au.ID = p.author_id
-                WHERE au.team_id = ' . $a->team)->fetch_row()[0];
-        } else {
-            $expected = (int)$conn->query('SELECT COUNT(*) FROM posts WHERE author_id = ' . $a->uid)->fetch_row()[0];
-        }
-        return (int)$stat['total_items'] === $expected;
+        $oracle = function () use ($a, $fx): int {
+            if ($a->roles === []) {
+                return 0;
+            }
+            if ($a->level === 'admin') {
+                return (int)$fx->conn->query('SELECT COUNT(*) FROM posts')->fetch_row()[0];
+            }
+            if ($a->level === 'manager') {
+                return (int)$fx->conn->query('SELECT COUNT(*) FROM posts p JOIN authors au ON au.ID = p.author_id
+                    WHERE au.team_id = ' . $a->team)->fetch_row()[0];
+            }
+            return (int)$fx->conn->query('SELECT COUNT(*) FROM posts WHERE author_id = ' . $a->uid)->fetch_row()[0];
+        };
+        $before = $oracle();
+        $actual = (int)Products::get_products_statistic()['total_items'];
+        $after  = $oracle();
+        return $actual >= min($before, $after) && $actual <= max($before, $after);
     })->allow('ADMIN', 'MGR_T1', 'MGR_T1_V', 'USR_T1', 'USR_T1_V', 'MGR_T2', 'USR_T2', 'USR_T3', 'NOROLE');
 
     $r->add('Products — đọc', 'Bộ lọc không lộ user của team khác', function ($a, $fx) {
