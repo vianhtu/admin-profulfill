@@ -27,11 +27,13 @@ $suites = [
     'stores'     => ['file' => 'attacks.stores.php',     'menu' => 'store',      'title' => 'Stores / Store'],
     'orders'     => ['file' => 'attacks.orders.php',     'menu' => 'orders',     'title' => 'Orders / Order'],
     'teams'      => ['file' => 'attacks.teams.php',      'menu' => 'teams',      'title' => 'Teams / Team (admin-only)'],
+    'users'      => ['file' => 'attacks.users.php',     'menu' => 'users',      'title' => 'Users / User'],
     'upload'     => ['file' => 'attacks.upload.php',     'menu' => 'sites',      'title' => 'Upload file (logo site)'],
 ];
 $alias = ['product' => 'products', 'category' => 'categories', 'danhmuc' => 'categories',
     'site' => 'sites', 'store' => 'stores', 'shop' => 'stores', 'sanpham' => 'products',
     'order' => 'orders', 'donhang' => 'orders', 'team' => 'teams', 'nhom' => 'teams',
+    'user' => 'users', 'nguoidung' => 'users', 'author' => 'users', 'authors' => 'users',
     'uploadfile' => 'upload', 'file' => 'upload', 'logo' => 'upload'];
 
 $arg = strtolower(trim($argv[1] ?? 'all'));

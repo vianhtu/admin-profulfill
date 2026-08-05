@@ -210,6 +210,34 @@ final class AbFixtures
     }
 
     /**
+     * Tạo 1 user ZZAB thuộc team chỉ định, dùng cho các phép thử sửa/xóa của trang Users.
+     * KHÔNG bao giờ được sửa/xóa user thật trong test — luôn tạo bản ghi mới bằng hàm này.
+     *
+     * @param int $level ID nhóm quyền; 0 = lấy nhóm KHÔNG phải admin đầu tiên
+     */
+    public function new_user(int $teamId, int $level = 0): int
+    {
+        if ($level <= 0) {
+            $level = (int)$this->conn->query(
+                "SELECT ID FROM roles_permissions WHERE slug <> 'admin' ORDER BY ID LIMIT 1")->fetch_row()[0];
+        }
+        $uname = 'ZZABFIX' . bin2hex(random_bytes(4));
+        $this->conn->execute_query(
+            'INSERT INTO authors (team_id, email, status, username, pass, `key`, level, wage, insurance, date)
+             VALUES (?, ?, 2, ?, ?, ?, ?, 0, 0, NOW())',
+            [$teamId, $uname . '@zzab.test', $uname, password_hash('zzabzzab', PASSWORD_DEFAULT),
+             bin2hex(random_bytes(16)), $level]
+        );
+        return (int)$this->conn->insert_id;
+    }
+
+    /** ID nhóm quyền cấp admin đầu tiên — dùng cho phép thử chống leo thang quyền. */
+    public function admin_level(): int
+    {
+        return (int)$this->conn->query("SELECT ID FROM roles_permissions WHERE slug = 'admin' LIMIT 1")->fetch_row()[0];
+    }
+
+    /**
      * Tạo 1 bản ghi `files` giả (không có file thật trên đĩa — deletePhysicalFile tự bỏ
      * qua khi không tìm thấy). $type = 'accounts' hoặc 'sites'.
      */
