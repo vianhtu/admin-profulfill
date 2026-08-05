@@ -8,6 +8,12 @@ let dtSites = null;
 // Quyền cấp trang; sửa/xóa từng dòng lấy theo can_edit/can_delete server trả về
 let sitePerms = { add: false, delete: false, is_admin: false };
 
+// Escape trước khi nhét dữ liệu người dùng (name/logo) vào HTML -> chặn stored XSS
+function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 async function init() {
     try {
         const options = await fetchTableFilter('get-sites-table-filter');
@@ -52,21 +58,21 @@ function initSiteTable() {
                 render: function (data, type, full) {
                     // Cột logo chỉ lưu TÊN FILE, ảnh nằm trong assets/img/icons/brands/
                     // (cùng quy ước với trang Stores). File thiếu thì rơi về chữ cái đầu.
-                    const initials = (full['name'].match(/\b\w/g) || []).slice(0, 2).join('').toUpperCase();
+                    const initials = esc((full['name'].match(/\b\w/g) || []).slice(0, 2).join('').toUpperCase());
                     const fallback = `<span class="avatar-initial rounded-2 bg-label-secondary">${initials}</span>`;
                     const avatar = full['logo']
-                        ? `<img src="${siteLogoUrl(full['logo'])}" alt="" class="rounded" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'avatar-initial rounded-2 bg-label-secondary',textContent:'${initials}'}))">`
+                        ? `<img src="${esc(siteLogoUrl(full['logo']))}" alt="" class="rounded" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'avatar-initial rounded-2 bg-label-secondary',textContent:'${initials}'}))">`
                         : fallback;
                     return `
               <div class="d-flex justify-content-start align-items-center">
                 <div class="avatar-wrapper">
                   <div class="avatar me-2 me-sm-4 rounded-2 bg-label-secondary">${avatar}</div>
                 </div>
-                <h6 class="text-nowrap mb-0">${full['name']}</h6>
+                <h6 class="text-nowrap mb-0">${esc(full['name'])}</h6>
               </div>`;
                 }
             },
-            { targets: 3, render: (d, t, full) => `<span class="text-body-secondary">${full['slug']}</span>` },
+            { targets: 3, render: (d, t, full) => `<span class="text-body-secondary">${esc(full['slug'])}</span>` },
             { targets: 4, render: (d, t, full) => countBadge(full['products_count']) },
             { targets: 5, render: (d, t, full) => countBadge(full['accounts_count']) },
             { targets: 6, render: (d, t, full) => countBadge(full['stores_count']) },

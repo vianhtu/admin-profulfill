@@ -95,6 +95,12 @@ class Site
         if ($mime !== $allowed[$ext] || $size === false) {
             return ['status' => 'error', 'message' => 'This file is not a valid image.'];
         }
+        // Chặn "pixel flood": ảnh nhỏ trên đĩa nhưng khai kích thước khổng lồ -> imagecreatefrompng
+        // cấp phát w*h*4 byte làm cạn RAM (DoS). Logo nguồn 96px nên 4000px là quá dư.
+        if ($size[0] > 4000 || $size[1] > 4000) {
+            return ['status' => 'error',
+                'message' => sprintf('Image dimensions are too large (%dx%d, max 4000x4000).', $size[0], $size[1])];
+        }
         // Không có GD thì không co ảnh được -> bắt buộc đúng khung
         $hasGd = function_exists('imagecreatetruecolor');
         if (!$hasGd && ($size[0] !== 96 || $size[1] !== 96)) {
@@ -239,7 +245,14 @@ class Site
             return ['status' => 'error', 'message' => 'Please enter a valid slug.'];
         }
 
-        $logo   = trim((string)($_POST['logo'] ?? ''));
+        // Logo CHỈ được là đường dẫn upload (uploads/sites/...png|jpg) hoặc tên icon dựng sẵn.
+        // Lưu thô sẽ bị stored XSS vì trang danh sách nhét thẳng logo vào thuộc tính <img>.
+        $logo = trim((string)($_POST['logo'] ?? ''));
+        if ($logo !== ''
+            && !preg_match('#^uploads/sites/[A-Za-z0-9/_.-]+\.(?:png|jpe?g)$#', $logo)
+            && !preg_match('#^[A-Za-z0-9_.-]+\.(?:png|jpe?g|svg)$#', $logo)) {
+            return ['status' => 'error', 'message' => 'Invalid logo path.'];
+        }
         $sysP   = trim((string)($_POST['system_prompt'] ?? ''));
         $devP   = trim((string)($_POST['developer_prompt'] ?? ''));
 

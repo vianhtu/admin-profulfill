@@ -208,7 +208,97 @@ return function (HackRunner $h): void {
         return ['breach' => $deleted, 'note' => $deleted ? 'File tuyệt đối BỊ XÓA!' : 'Bị chặn đúng.'];
     }, 'NGHIÊM TRỌNG');
 
-    // ===== 9. Polyglot ảnh-hợp-lệ + PHP (thông tin: đã giảm thiểu nhiều lớp) =====
+    // ===== 9. Stored XSS qua trường logo (lưu thô -> nhét vào <img> ở danh sách) =====
+    $h->attack('Upload', "Stored XSS: logo = payload onerror", 'USR_OUT', function ($atk, $fx) {
+        $payload = 'x" onerror="alert(document.cookie)';
+        $_POST = ['csrf_token' => 'VICTIM_SECRET', 'id' => 0,
+            'name' => 'zzab-xss-' . bin2hex(random_bytes(3)) . '.com',
+            'slug' => 'zzab-xss-' . bin2hex(random_bytes(3)),
+            'logo' => $payload, 'system_prompt' => '', 'developer_prompt' => '', 'fields' => '[]'];
+        $res = Site::save_site();
+        $stored = '';
+        if (($res['status'] ?? '') !== 'error' && !empty($res['id'])) {
+            $stored = (string)$fx->conn->query('SELECT logo FROM site WHERE ID=' . (int)$res['id'])->fetch_row()[0];
+            $fx->conn->query('DELETE FROM site WHERE ID=' . (int)$res['id']);
+        }
+        // Lọt nếu lưu được payload chứa dấu " hoặc < (thoát khỏi thuộc tính/thẻ)
+        $breach = $stored !== '' && (str_contains($stored, '"') || str_contains($stored, '<'));
+        return ['breach' => $breach, 'note' => 'logo lưu: ' . json_encode($stored) . ' | ' . json_encode($res, JSON_UNESCAPED_UNICODE)];
+    }, 'NGHIÊM TRỌNG');
+
+    // ===== 10. Stored XSS qua trường name =====
+    $h->attack('Upload', "Stored XSS: name chứa <img onerror>", 'USR_OUT', function ($atk, $fx) {
+        $payload = '<img src=x onerror=alert(1)>';
+        $slug = 'zzab-xssn-' . bin2hex(random_bytes(3));
+        $_POST = ['csrf_token' => 'VICTIM_SECRET', 'id' => 0, 'name' => $payload,
+            'slug' => $slug, 'logo' => '', 'system_prompt' => '', 'developer_prompt' => '', 'fields' => '[]'];
+        $res = Site::save_site();
+        $storedName = '';
+        if (!empty($res['id'])) {
+            $storedName = (string)$fx->conn->query('SELECT name FROM site WHERE ID=' . (int)$res['id'])->fetch_row()[0];
+            $fx->conn->query('DELETE FROM site WHERE ID=' . (int)$res['id']);
+        }
+        // Tên là free-text (không cấm được ký tự) -> phòng thủ nằm ở ESCAPE khi render.
+        // "Lọt" ở tầng dữ liệu: name thô còn nguyên payload; đánh dấu để nhắc kiểm escape JS.
+        $breach = str_contains($storedName, '<img');
+        return ['breach' => $breach, 'note' => 'name lưu thô: ' . json_encode($storedName)
+            . ' — phải escape khi render (đã thêm esc() ở app-ecommerce-site-list.js)'];
+    }, 'CAO');
+
+    // ===== 11. Pixel-flood: ảnh nhỏ, kích thước khổng lồ -> DoS bộ nhớ =====
+    $h->attack('Upload', 'Pixel-flood 30000x30000 (DoS cấp phát RAM)', 'USR_OUT', function ($atk, $fx) {
+        // PNG hợp lệ tối thiểu nhưng IHDR khai 30000x30000. getimagesize đọc header -> dims lớn.
+        $ihdr = pack('N', 30000) . pack('N', 30000) . chr(8) . chr(6) . chr(0) . chr(0) . chr(0);
+        $chunk = function ($type, $data) {
+            return pack('N', strlen($data)) . $type . $data . pack('N', crc32($type . $data));
+        };
+        $png = "\x89PNG\r\n\x1a\n" . $chunk('IHDR', $ihdr) . $chunk('IEND', '');
+        $t = tempnam(sys_get_temp_dir(), 'zzabbomb');
+        file_put_contents($t, $png);
+        $_POST = ['csrf_token' => 'VICTIM_SECRET'];
+        $_FILES = ['file' => ['name' => 'bomb.png', 'type' => 'image/png', 'tmp_name' => $t,
+            'error' => 0, 'size' => filesize($t)]];
+        $res = Site::upload_logo();
+        @unlink($t);
+        $m = (string)($res['message'] ?? '');
+        // Chặn đúng nếu bị từ chối vì kích thước; lọt nếu qua được để tới bước cấp phát RAM
+        $blocked = str_contains($m, 'too large') || str_contains($m, 'not a valid image');
+        return ['breach' => !$blocked, 'note' => json_encode($res, JSON_UNESCAPED_UNICODE)];
+    }, 'CAO');
+
+    // ===== 12. Null byte trong tên file =====
+    $h->attack('Upload', "Null byte shell.php\\0.png", 'USR_OUT', function ($atk, $fx) use ($tmp, $php, $passedValidation, $CSRF) {
+        $t = $tmp($php);
+        $_POST = ['csrf_token' => $CSRF];
+        $_FILES = ['file' => ['name' => "shell.php\0.png", 'type' => 'image/png', 'tmp_name' => $t,
+            'error' => 0, 'size' => filesize($t)]];
+        $res = Site::upload_logo();
+        @unlink($t);
+        return ['breach' => $passedValidation($res), 'note' => json_encode($res, JSON_UNESCAPED_UNICODE)];
+    }, 'CAO');
+
+    // ===== 13. nginx CÓ thực thi PHP trong uploads/sites không? (HTTP thật) =====
+    // Đây là lớp phòng thủ CUỐI: dù ghi được file .php vào uploads, nginx phải phục vụ tĩnh
+    // hoặc từ chối, KHÔNG đưa qua php-fpm. Kiểm qua HTTP thật vì CLI không dựng được nginx.
+    $h->attack('Upload', 'nginx thực thi .php trong uploads/sites (HTTP)', 'USR_OUT', function ($atk, $fx) {
+        $root = '/var/www/html/admin-profulfill';
+        $dir  = $root . '/uploads/sites/2026/08/05';
+        @mkdir($dir, 0755, true);
+        $marker = 'ZZABEXEC' . bin2hex(random_bytes(3));
+        $fname = 'zzab_exec_' . bin2hex(random_bytes(3)) . '.php';
+        file_put_contents("$dir/$fname", "<?php echo '$marker'; ?>");
+        $url = "https://profulfill.io/admin-profulfill/uploads/sites/2026/08/05/$fname";
+        $ctx = stream_context_create(['http' => ['timeout' => 8, 'ignore_errors' => true]]);
+        $body = @file_get_contents($url, false, $ctx);
+        $code = 0;
+        foreach (($http_response_header ?? []) as $hh) { if (preg_match('#HTTP/\S+ (\d+)#', $hh, $mm)) { $code = (int)$mm[1]; } }
+        @unlink("$dir/$fname");
+        // Lọt nếu PHP CHẠY (trả marker mà không còn thẻ <?php) và HTTP 200
+        $executed = $body !== false && str_contains((string)$body, $marker) && !str_contains((string)$body, '<?php');
+        return ['breach' => $executed, 'note' => "HTTP $code | executed=" . ($executed ? 'CÓ' : 'không')];
+    }, 'NGHIÊM TRỌNG');
+
+    // ===== 14. Polyglot ảnh-hợp-lệ + PHP (thông tin: đã giảm thiểu nhiều lớp) =====
     $h->attack('Upload', 'Polyglot: PNG hợp lệ + PHP nối đuôi, .png', 'USR_OUT', function ($atk, $fx) use ($tmp, $files, $validPng, $php, $passedValidation, $CSRF) {
         $t = $tmp($validPng . $php); // ảnh hợp lệ, có payload PHP ở đuôi
         $_POST = ['csrf_token' => $CSRF];
