@@ -15,9 +15,24 @@ class Sites
      *
      * @return array{draw:int,recordsTotal:int,recordsFiltered:int,data:array}
      */
+    /**
+     * Cột sắp xếp được của bảng Sites (xem build_order_by()). Các cột đếm sắp xếp theo
+     * số thật, Prompt/Fields theo biểu thức tương ứng với giá trị đang hiển thị.
+     */
+    private const SORT_MAP = [
+        'name'           => 's.name',
+        'slug'           => 's.slug',
+        'products_count' => 'products_count',
+        'accounts_count' => 'accounts_count',
+        'stores_count'   => 'stores_count',
+        'has_prompt'     => "(TRIM(COALESCE(s.system_prompt, '')) <> '' OR TRIM(COALESCE(s.developer_prompt, '')) <> '')",
+        'fields_count'   => "COALESCE(JSON_LENGTH(NULLIF(s.custom_fields, '')), 0)",
+        'ID'             => 's.ID',
+    ];
+
     public static function get_sites(): array
     {
-        $params = get_datatable_params(['ID', 'name', 'slug']);
+        $params = get_datatable_params(array_keys(self::SORT_MAP), 'name');
         if (!checkRoles('view', 'sites')) {
             return ['draw' => $params['draw'], 'recordsTotal' => 0, 'recordsFiltered' => 0, 'data' => []];
         }
@@ -38,7 +53,7 @@ class Sites
                        (SELECT COUNT(*) FROM store st WHERE st.site_id = s.ID)   AS stores_count
                 FROM site s
                 $where
-                ORDER BY s.{$params['orderColumn']} {$params['orderDir']}
+                ORDER BY " . build_order_by($params, self::SORT_MAP, 's.ID') . "
                 LIMIT {$params['start']}, {$params['length']}";
         $rs = $conn->query($sql);
 

@@ -66,16 +66,16 @@ function initSiteTable() {
                 }
             },
             { targets: 3, render: (d, t, full) => `<span class="text-body-secondary">${full['slug']}</span>` },
-            { targets: 4, orderable: false, render: (d, t, full) => countBadge(full['products_count']) },
-            { targets: 5, orderable: false, render: (d, t, full) => countBadge(full['accounts_count']) },
-            { targets: 6, orderable: false, render: (d, t, full) => countBadge(full['stores_count']) },
+            { targets: 4, render: (d, t, full) => countBadge(full['products_count']) },
+            { targets: 5, render: (d, t, full) => countBadge(full['accounts_count']) },
+            { targets: 6, render: (d, t, full) => countBadge(full['stores_count']) },
             {
-                targets: 7, orderable: false,
+                targets: 7,
                 render: (d, t, full) => full['has_prompt']
                     ? '<span class="badge bg-label-success">Yes</span>'
                     : '<span class="text-body-secondary">—</span>'
             },
-            { targets: 8, orderable: false, render: (d, t, full) => countBadge(full['fields_count']) },
+            { targets: 8, render: (d, t, full) => countBadge(full['fields_count']) },
             {
                 targets: -1, title: 'Actions', searchable: false, orderable: false,
                 render: function (data, type, full) {

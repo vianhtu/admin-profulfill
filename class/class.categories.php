@@ -53,9 +53,17 @@ class Categories
      *
      * @return array{draw:int,recordsTotal:int,recordsFiltered:int,data:array}
      */
+    /** Cột sắp xếp được của bảng Category (xem build_order_by()). */
+    private const SORT_MAP = [
+        'name'           => 't.name',
+        'teams'          => 'tm.name',
+        'products_count' => 'products_count',
+        'ID'             => 't.ID',
+    ];
+
     public static function get_categories(): array
     {
-        $params = get_datatable_params(['ID', 'name', 'products_count']);
+        $params = get_datatable_params(array_keys(self::SORT_MAP), 'name');
         if (!checkRoles('view', 'categories')) {
             return ['draw' => $params['draw'], 'recordsTotal' => 0, 'recordsFiltered' => 0, 'data' => []];
         }
@@ -85,14 +93,13 @@ class Categories
         $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
         $totalFiltered = (int)$conn->query("SELECT COUNT(*) FROM `type` t $where")->fetch_row()[0];
 
-        $orderCol = $params['orderColumn'] === 'products_count' ? 'products_count' : "t.{$params['orderColumn']}";
         $sql = "SELECT t.ID, t.name, t.user_prompt,
                        (SELECT COUNT(*) FROM posts p WHERE p.type_id = t.ID) AS products_count,
                        tm.name AS team_names
                 FROM `type` t
                 LEFT JOIN team tm ON tm.ID = t.team_id
                 $where
-                ORDER BY $orderCol {$params['orderDir']}
+                ORDER BY " . build_order_by($params, self::SORT_MAP, 't.ID') . "
                 LIMIT {$params['start']}, {$params['length']}";
         $rs = $conn->query($sql);
 

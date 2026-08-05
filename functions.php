@@ -753,6 +753,31 @@ function actionDownloadTableModel(): array
 }
 
 /**
+ * Dựng mệnh đề ORDER BY cho bảng DataTables server-side.
+ *
+ * $map ánh xạ tên cột DataTables gửi lên (key `data` trong cấu hình columns) sang biểu thức
+ * SQL thật, nên cột hiển thị tên (site, team...) hoặc cột tính toán (products_count) cũng
+ * sắp xếp đúng thay vì âm thầm rơi về ID. Cột nào không có trong $map thì phải đặt
+ * `orderable: false` bên JS, nếu không người dùng bấm sẽ ra kết quả không như họ nghĩ.
+ *
+ * Luôn kèm khóa phụ (thường là ID) vì phân trang server-side với giá trị trùng nhau
+ * (cùng status, cùng số sản phẩm...) sẽ cho thứ tự không ổn định giữa các trang.
+ *
+ * @param array{orderColumn:string,orderDir:string} $params kết quả get_datatable_params()
+ * @param array<string,string> $map ['<cột DataTables>' => '<biểu thức SQL>']
+ * @param string $tieBreaker biểu thức khóa phụ, '' nếu không cần
+ */
+function build_order_by(array $params, array $map, string $tieBreaker = ''): string {
+    $col = $map[$params['orderColumn']] ?? reset($map);
+    $dir = $params['orderDir'];
+    $order = "$col $dir";
+    if ($tieBreaker !== '' && $col !== $tieBreaker) {
+        $order .= ", $tieBreaker $dir";
+    }
+    return $order;
+}
+
+/**
  * Đọc và làm sạch tham số DataTables gửi lên (draw/start/length/order/search).
  *
  * @param string[] $allowedCols Whitelist cột được phép sắp xếp — chặn SQL injection qua order

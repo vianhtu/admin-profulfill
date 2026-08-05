@@ -60,7 +60,7 @@ function initCategoryTable() {
                 render: (data, type, full) => `<h6 class="text-nowrap mb-0">${full['name']}</h6>`
             },
             {
-                targets: 3, orderable: false,
+                targets: 3,
                 render: function (data, type, full) {
                     const teams = full['teams'] || '';
                     if (!teams) {

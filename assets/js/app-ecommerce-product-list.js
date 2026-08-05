@@ -174,7 +174,10 @@ function initProductTable(){
                     }
                 },
                 {
+                    // Không cho sort: cột hiện TÊN category nhưng bảng chỉ sắp xếp được theo
+                    // type_id (phân trang chạy trên subquery chỉ có posts) -> thứ tự sẽ khó hiểu
                     targets: 4,
+                    orderable: false,
                     responsivePriority: 5,
                     render: function (data, type, full, meta) {
                         // Fallback khi type không có trong map (dữ liệu ngoài phạm vi/đã đổi)

@@ -105,9 +105,22 @@ class Products
 }
 
     public static function get_products(): array {
-    $allowedCols = ['ID', 'title', 'status', 'date', 'type_id', 'author_id', 'badge'];
+    // Chỉ sắp xếp theo cột của chính bảng posts: phần phân trang chạy trên subquery chỉ có
+    // posts (deferred join) nên đưa cột của bảng join vào đây sẽ mất tối ưu. Cột hiển thị
+    // tên (Category, Author) vì thế để orderable: false bên JS.
+    $sortMap = [
+        'title'     => 'posts.title',
+        'sku'       => 'posts.sku',
+        'badge'     => 'posts.badge',
+        'date'      => 'posts.date',
+        'status'    => 'posts.status',
+        'type_id'   => 'posts.type_id',
+        'author_id' => 'posts.author_id',
+        'ID'        => 'posts.ID',
+    ];
     // Lấy tham số từ DataTables
-    $params = get_datatable_params($allowedCols);
+    $params = get_datatable_params(array_keys($sortMap), 'date');
+    $orderBy = build_order_by($params, $sortMap, 'posts.ID');
     if(!checkRoles('view', 'products')){
         return [
             "draw"            => $params['draw'],
@@ -229,12 +242,12 @@ class Products
                   $scopeJoin
                   $joinAccounts
                   $where
-                  ORDER BY posts.{$params['orderColumn']} {$params['orderDir']}
+                  ORDER BY $orderBy
                   LIMIT {$params['start']}, {$params['length']}) AS sel
             JOIN posts ON posts.ID = sel.pid
             LEFT JOIN authors au ON au.ID = posts.author_id
             LEFT JOIN team tm ON tm.ID = au.team_id
-            ORDER BY posts.{$params['orderColumn']} {$params['orderDir']}";
+            ORDER BY $orderBy";
     $rs = $conn->query($sql);
 
     // Chuẩn bị dữ liệu trả về

@@ -69,7 +69,7 @@ function initStoreTable() {
             },
             { targets: 3, render: (d, t, full) => `<span class="text-body-secondary">${full['slug']}</span>` },
             {
-                targets: 4, orderable: false,
+                targets: 4,
                 render: function (d, t, full) {
                     if (!full['site_name']) {
                         return '<span class="text-body-secondary">—</span>';
@@ -82,7 +82,7 @@ function initStoreTable() {
             },
             {
                 // Owner: chưa gán team = dùng chung, ngược lại là store riêng của team
-                targets: 5, orderable: false,
+                targets: 5,
                 render: (d, t, full) => full['team_id'] > 0
                     ? `<span class="badge bg-label-info">${full['team_name'] || 'Team #' + full['team_id']}</span>`
                     : '<span class="badge bg-label-secondary">Shared</span>'

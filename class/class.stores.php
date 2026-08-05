@@ -90,13 +90,28 @@ class Stores
     }
 
     /**
+     * Cột sắp xếp được của bảng Stores: tên cột DataTables => biểu thức SQL.
+     * Cột hiển thị tên (site/owner) sắp xếp theo TÊN chứ không theo id, cột đếm sắp xếp
+     * theo số thật. Cột nào không có ở đây thì bên JS phải để orderable: false.
+     */
+    private const SORT_MAP = [
+        'name'           => 't.name',
+        'slug'           => 't.slug',
+        'site_name'      => 's.name',
+        'team_name'      => 'tm.name',
+        'products_count' => 'products_count',
+        'status'         => 't.status',
+        'ID'             => 't.ID',
+    ];
+
+    /**
      * Dữ liệu cho DataTables của trang Stores.
      *
      * @return array{draw:int,recordsTotal:int,recordsFiltered:int,data:array}
      */
     public static function get_stores(): array
     {
-        $params = get_datatable_params(['ID', 'name', 'slug', 'status']);
+        $params = get_datatable_params(array_keys(self::SORT_MAP), 'name');
         if (!checkRoles('view', 'store')) {
             return ['draw' => $params['draw'], 'recordsTotal' => 0, 'recordsFiltered' => 0, 'data' => []];
         }
@@ -145,7 +160,7 @@ class Stores
                 LEFT JOIN site s ON s.ID = t.site_id
                 LEFT JOIN team tm ON tm.ID = t.team_id
                 $where
-                ORDER BY t.{$params['orderColumn']} {$params['orderDir']}
+                ORDER BY " . build_order_by($params, self::SORT_MAP, 't.ID') . "
                 LIMIT {$params['start']}, {$params['length']}";
         $rs = $conn->query($sql);
 
