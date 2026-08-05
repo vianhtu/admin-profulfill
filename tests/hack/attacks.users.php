@@ -121,12 +121,39 @@ return function (HackRunner $h): void {
     });
 
     // ---------- IDOR ----------
-    $h->attack('IDOR (xóa)', 'Non-admin xóa tài khoản người khác', 'MGR_OUT', function ($atk, $fx) {
+    // Manager ĐƯỢC xóa người cùng team (luật chốt 05/08/2026) nên đòn phải nhắm ra
+    // NGOÀI team mới đo đúng ranh giới.
+    $h->attack('IDOR (xóa)', 'Manager xóa tài khoản của TEAM KHÁC', 'MGR_OUT', function ($atk, $fx) {
+        $id = $fx->new_user(1);   // team 1, attacker là manager team 2
+        $_POST = ['csrf_token' => 'VICTIM_SECRET', 'ids' => [$id]];
+        Users::delete_users();
+        return ['breach' => hack_count($fx->conn, "SELECT COUNT(*) FROM authors WHERE ID = $id") === 0,
+            'note' => 'Xóa được user của team khác'];
+    });
+
+    $h->attack('IDOR (xóa)', 'Manager xóa tài khoản ADMIN cùng team', 'MGR_OUT', function ($atk, $fx) {
+        $id = $fx->new_user((int)$atk->team, $fx->admin_level());
+        $_POST = ['csrf_token' => 'VICTIM_SECRET', 'ids' => [$id]];
+        Users::delete_users();
+        return ['breach' => hack_count($fx->conn, "SELECT COUNT(*) FROM authors WHERE ID = $id") === 0,
+            'note' => 'Manager xóa được tài khoản admin -> hạ gục quản trị viên'];
+    }, 'NGHIÊM TRỌNG');
+
+    $h->attack('IDOR (xóa)', 'Trộn ID team khác vào lô xóa', 'MGR_OUT', function ($atk, $fx) {
+        $mine  = $fx->new_user((int)$atk->team);
+        $other = $fx->new_user(1);
+        $_POST = ['csrf_token' => 'VICTIM_SECRET', 'ids' => [$mine, $other]];
+        Users::delete_users();
+        return ['breach' => hack_count($fx->conn, "SELECT COUNT(*) FROM authors WHERE ID = $other") === 0,
+            'note' => 'Lô hỗn hợp xóa lan sang user team khác'];
+    });
+
+    $h->attack('Leo thang quyền', 'User chỉ-view xóa người cùng team', 'USR_VIEW', function ($atk, $fx) {
         $id = $fx->new_user((int)$atk->team);
         $_POST = ['csrf_token' => 'VICTIM_SECRET', 'ids' => [$id]];
         Users::delete_users();
         return ['breach' => hack_count($fx->conn, "SELECT COUNT(*) FROM authors WHERE ID = $id") === 0,
-            'note' => 'Non-admin xóa được user'];
+            'note' => 'Chỉ có view mà xóa được user'];
     });
 
     // ---------- SQL injection ----------

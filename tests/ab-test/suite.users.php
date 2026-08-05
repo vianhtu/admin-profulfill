@@ -152,12 +152,28 @@ return function (AbRunner $r): void {
     })->allow();
 
     // ---------- Xóa ----------
-    $r->add('Users — xóa', 'Xóa user không có dữ liệu', function ($a, $fx) {
+    $r->add('Users — xóa', 'Xóa user cùng team (không có dữ liệu)', function ($a, $fx) {
         $id = $fx->new_user((int)$a->team);
         $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$id]];
         $res = Users::delete_users();
         $gone = $fx->conn->query("SELECT ID FROM authors WHERE ID = $id")->fetch_row() === null;
         return $gone ? $res : ['status' => 'error', 'message' => 'User vẫn còn'];
+    })->allow('ADMIN', 'MGR_T1', 'MGR_T2');
+
+    $r->add('Users — xóa', 'Xóa user của TEAM 2', function ($a, $fx) {
+        $id = $fx->new_user(2);
+        $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$id]];
+        $res = Users::delete_users();
+        $gone = $fx->conn->query("SELECT ID FROM authors WHERE ID = $id")->fetch_row() === null;
+        return $gone ? $res : ['status' => 'error', 'message' => 'User vẫn còn'];
+    })->allow('ADMIN', 'MGR_T2');
+
+    // Manager không được xóa tài khoản admin ngay cả khi cùng team (chặn leo ngang)
+    $r->add('Users — xóa', 'Xóa tài khoản ADMIN cùng team', function ($a, $fx) {
+        $id = $fx->new_user((int)$a->team, $fx->admin_level());
+        $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$id]];
+        Users::delete_users();
+        return $fx->conn->query("SELECT ID FROM authors WHERE ID = $id")->fetch_row() === null;
     })->allow('ADMIN');
 
     $r->add('Users — xóa', 'CHẶN xóa user còn sản phẩm đứng tên', function ($a, $fx) {
@@ -196,7 +212,8 @@ return function (AbRunner $r): void {
         fn($a, $fx) => ab_has(ab_render('app-user-list.php'), 'user_team')
     )->allow('ADMIN');
 
-    $r->add('Users — giao diện', 'Modal xóa chỉ render cho admin',
+    // Modal xóa render cho ai còn xóa được ai: admin và manager có role delete
+    $r->add('Users — giao diện', 'Modal xóa được render',
         fn($a, $fx) => ab_has(ab_render('app-user-list.php'), 'deleteUserModal')
-    )->allow('ADMIN');
+    )->allow('ADMIN', 'MGR_T1', 'MGR_T2');
 };

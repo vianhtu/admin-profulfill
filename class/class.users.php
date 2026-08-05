@@ -105,10 +105,31 @@ class Users
         return $teamId === self::own_team() && !in_array($level, self::admin_level_ids($conn), true);
     }
 
-    /** Xóa user: chỉ admin, và không tự xóa chính mình. */
-    public static function can_delete_row(int $userId): bool
+    /**
+     * Được xóa 1 user cụ thể không.
+     * - admin: mọi user;
+     * - manager (có role delete): user CÙNG TEAM và KHÔNG phải tài khoản admin;
+     * - user: không.
+     * Không ai tự xóa chính mình.
+     */
+    public static function can_delete_row(int $userId, int $teamId, int $level, mysqli $conn): bool
     {
-        return is_admin() && $userId !== self::own_id();
+        if ($userId === self::own_id()) {
+            return false;
+        }
+        if (is_admin()) {
+            return true;
+        }
+        if (!is_manager() || !checkRoles('delete', 'users')) {
+            return false;
+        }
+        return $teamId === self::own_team() && !in_array($level, self::admin_level_ids($conn), true);
+    }
+
+    /** Còn ai xóa được không — dùng để quyết định có render modal xóa hay không. */
+    public static function can_delete_any(): bool
+    {
+        return is_admin() || (is_manager() && checkRoles('delete', 'users'));
     }
 
     /**
@@ -184,7 +205,7 @@ class Users
                 'level'      => $level,
                 'role_name'  => (string)($row['role_name'] ?? ''),
                 'can_edit'   => self::can_edit_row($teamId, $level, $conn),
-                'can_delete' => self::can_delete_row((int)$row['ID']),
+                'can_delete' => self::can_delete_row((int)$row['ID'], $teamId, $level, $conn),
             ];
             // Lương chỉ gửi cho người được phép — không dựa vào giao diện để giấu
             if ($showSalary) {
@@ -235,7 +256,8 @@ class Users
     }
 
     /**
-     * Xóa user. Chỉ admin; chặn khi user còn sản phẩm hoặc account đứng tên.
+     * Xóa user. Admin xóa được mọi user; manager có role delete xóa được người CÙNG TEAM
+     * (trừ tài khoản admin). Chặn khi user còn sản phẩm hoặc account đứng tên.
      *
      * @return array{status:string,deleted?:int,message?:string}
      */
@@ -244,8 +266,8 @@ class Users
         if (!check_csrf()) {
             return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
         }
-        if (!is_admin()) {
-            return ['status' => 'error', 'message' => 'Only an admin can delete users.'];
+        if (!self::can_delete_any()) {
+            return ['status' => 'error', 'message' => 'You do not have permission to delete users.'];
         }
 
         $ids = $_POST['ids'] ?? [];
@@ -263,15 +285,20 @@ class Users
         $conn = db();
         $idsStr = implode(',', $ids);
 
-        // Lớp dữ liệu: còn dữ liệu đứng tên thì từ chối, nêu rõ vướng ở đâu
+        // Kiểm quyền trên TỪNG dòng — không tin danh sách ID gửi lên
         $blocked = [];
-        $rs = $conn->query("SELECT a.ID, a.username,
+        $denied  = 0;
+        $rs = $conn->query("SELECT a.ID, a.username, a.team_id, a.level,
                 (SELECT COUNT(*) FROM posts p WHERE p.author_id = a.ID) AS products,
                 (SELECT COUNT(*) FROM accounts_authors aa WHERE aa.author_id = a.ID) AS accounts
              FROM authors a WHERE a.ID IN ($idsStr)");
         $found = 0;
         while ($row = $rs->fetch_assoc()) {
             $found++;
+            if (!self::can_delete_row((int)$row['ID'], (int)$row['team_id'], (int)$row['level'], $conn)) {
+                $denied++;
+                continue;
+            }
             $parts = [];
             if ((int)$row['products'] > 0) {
                 $parts[] = $row['products'] . ' products';
@@ -285,6 +312,11 @@ class Users
         }
         if ($found === 0) {
             return ['status' => 'error', 'message' => 'User not found.'];
+        }
+        if ($denied > 0) {
+            return ['status' => 'error',
+                'message' => $denied . ' of the selected users are in another team or are admin accounts.'
+                    . ' Only an admin can delete those.'];
         }
         if ($blocked) {
             return ['status' => 'error',

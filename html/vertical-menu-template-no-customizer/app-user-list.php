@@ -98,7 +98,7 @@ $can_see_wage  = Users::can_see_salary();
     </div>
 </div>
 
-<?php if (is_admin()) : ?>
+<?php if (Users::can_delete_any()) : ?>
 <!-- Modal xác nhận xóa MỘT user (không có xóa hàng loạt) -->
 <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-hidden="true" role="dialog">
     <div class="modal-dialog modal-dialog-centered" role="document">
