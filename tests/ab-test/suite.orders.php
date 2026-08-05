@@ -10,7 +10,8 @@
  *
  * Lưu ý: USR_T1 dùng chung uid với MGR_T1/ADMIN (xem ab_actors), nên fixture gán
  * account team 1 cho chính uid đó — user team 1 vì thế THẤY được đơn của team mình.
- * Ngược lại USR_T2/USR_T3 không được gán account team 1 nên không thấy.
+ * Tương tự accountT2 gán cho AB_UID_T2 (dùng chung bởi MGR_T2/USR_T2), nên USR_T2 hợp lệ
+ * với đơn team 2. USR_T3 không được gán account nào nên không thấy đơn nào.
  */
 
 return function (AbRunner $r): void {
@@ -24,7 +25,7 @@ return function (AbRunner $r): void {
     $r->add('Orders — đọc', 'Thấy đơn của account TEAM 2', function ($a, $fx) {
         $_POST = ab_dt(['columns' => [['data' => 'host_id']], 'search' => ['value' => 'ZZAB-ORD-T2']]);
         return ab_sees(Orders::get_orders(), $fx->orderT2);
-    })->allow('ADMIN', 'MGR_T2');
+    })->allow('ADMIN', 'MGR_T2', 'USR_T2');
 
     $r->add('Orders — đọc', 'Bộ lọc + cờ quyền trả về được', function ($a, $fx) {
         $res = Orders::get_orders_filters();
@@ -45,7 +46,7 @@ return function (AbRunner $r): void {
         $stat = Orders::get_orders_statistic();
         // Không role view -> phải trả toàn 0
         return array_sum($stat) > 0;
-    })->allow('ADMIN', 'MGR_T1', 'MGR_T1_V', 'USR_T1', 'USR_T1_V', 'MGR_T2');
+    })->allow('ADMIN', 'MGR_T1', 'MGR_T1_V', 'USR_T1', 'USR_T1_V', 'MGR_T2', 'USR_T2');
 
     // ---------- Ghi: đổi trạng thái ----------
     $r->add('Orders — ghi', 'Đổi trạng thái đơn TEAM 1', function ($a, $fx) {
@@ -69,7 +70,7 @@ return function (AbRunner $r): void {
         }
         $now = $fx->conn->query("SELECT status FROM orders WHERE ID = $id")->fetch_row()[0];
         return $now === 'shipped' ? $res : ['status' => 'error', 'message' => 'DB không đổi'];
-    })->allow('ADMIN', 'MGR_T2');
+    })->allow('ADMIN', 'MGR_T2', 'USR_T2');
 
     $r->add('Orders — ghi', 'Trạng thái lạ bị từ chối', function ($a, $fx) {
         $id = $fx->new_order($fx->accountT1, 'ZZAB-ORD-BAD');
@@ -100,7 +101,7 @@ return function (AbRunner $r): void {
         $_POST = ['csrf_token' => 'ABTEST', 'id' => $id, 'itemIndex' => 0,
             'services' => 'ZZAB Express', 'track' => 'ZZABTRACK2'];
         return Order::add_item_tracking();
-    })->allow('ADMIN', 'MGR_T2');
+    })->allow('ADMIN', 'MGR_T2', 'USR_T2');
 
     // ---------- Xóa ----------
     $r->add('Orders — xóa', 'Xóa đơn TEAM 1', function ($a, $fx) {
@@ -117,9 +118,11 @@ return function (AbRunner $r): void {
         $res = Orders::delete_orders();
         $still = $fx->conn->query("SELECT ID FROM orders WHERE ID = $id")->fetch_row();
         return $still === null ? $res : ['status' => 'error', 'message' => 'Đơn vẫn còn'];
-    })->allow('ADMIN', 'MGR_T2');
+    })->allow('ADMIN', 'MGR_T2', 'USR_T2');
 
-    $r->add('Orders — xóa', 'Xóa hàng loạt lẫn đơn team khác (chỉ xóa phần được phép)', function ($a, $fx) {
+    // Đo đúng một điều: trong lô hỗn hợp, đơn của TEAM 2 có bị xóa không.
+    // USR_T2 được gán account T2 nên hợp lệ; người ngoài phạm vi phải không đụng được.
+    $r->add('Orders — xóa', 'Lô hỗn hợp: đơn TEAM 2 bị xóa', function ($a, $fx) {
         $mine  = $fx->new_order($fx->accountT1, 'ZZAB-ORD-MIX1');
         $other = $fx->new_order($fx->accountT2, 'ZZAB-ORD-MIX2');
         $_POST = ['csrf_token' => 'ABTEST', 'order_ids' => [$mine, $other]];
@@ -127,7 +130,7 @@ return function (AbRunner $r): void {
         $otherGone = $fx->conn->query("SELECT ID FROM orders WHERE ID = $other")->fetch_row() === null;
         // ALLOW = đơn của TEAM 2 bị xóa mất -> chỉ admin/team2 được phép như vậy
         return $otherGone;
-    })->allow('ADMIN', 'MGR_T2');
+    })->allow('ADMIN', 'MGR_T2', 'USR_T2');
 
     $r->add('Orders — xóa', 'Thiếu CSRF thì không xóa được', function ($a, $fx) {
         $id = $fx->new_order($fx->accountT1, 'ZZAB-ORD-DELNOCSRF');
