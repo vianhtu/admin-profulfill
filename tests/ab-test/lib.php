@@ -322,12 +322,12 @@ final class AbRunner
                 $group = $check->group;
                 echo "\n[$group]\n";
             }
-            $name = mb_strimwidth($check->name, 0, $w - 2, '…');
-            printf("%-{$w}s", '  ' . $name);
+            $name = mb_strimwidth($check->name, 0, $w - 3, '…');
+            echo mb_str_pad('  ' . $name, $w);
             foreach ($actors as $a) {
                 $r = $this->results[$i][$a->key];
                 $m = self::mark($r['expected'], $r['actual']);
-                printf('%-10s', $m);
+                echo mb_str_pad($m, 10);
                 if ($m === '!' || $m === 'x' || $m === 'E') {
                     $fails[] = [$m, $check->name, $a->label, $r['detail']];
                 }
