@@ -17,11 +17,12 @@
 return function (AbRunner $r): void {
 
     // ---------- Đọc ----------
+    // Level `user` chỉ thấy chính mình -> USR_T2 KHÔNG được thấy đồng đội mới tạo
     $r->add('Users — đọc', 'Thấy user của TEAM 2', function ($a, $fx) {
         $id = $fx->new_user(2);
         $_POST = ab_dt(['columns' => [['data' => 'username']]]);
         return ab_sees(Users::get_users(), $id);
-    })->allow('ADMIN', 'MGR_T2', 'USR_T2');
+    })->allow('ADMIN', 'MGR_T2');
 
     $r->add('Users — đọc', 'Thấy user của TEAM 1', function ($a, $fx) {
         $id = $fx->new_user(1);
