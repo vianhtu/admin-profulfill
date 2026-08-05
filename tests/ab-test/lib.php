@@ -60,7 +60,7 @@ final class AbActor
             // `teams` cũng được cấp đủ role — dùng để chứng minh menu admin-only KHÔNG
             // mở ra chỉ vì có role (xem suite.teams.php).
             'roles'   => $roles ? array_fill_keys(
-                ['products', 'categories', 'sites', 'store', 'orders', 'teams'], $roles
+                ['products', 'categories', 'sites', 'store', 'orders', 'teams', 'users'], $roles
             ) : [],
         ];
         $_SESSION['csrf_token'] = 'ABTEST';
