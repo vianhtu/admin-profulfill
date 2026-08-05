@@ -227,22 +227,21 @@ return function (HackRunner $h): void {
     }, 'NGHIÊM TRỌNG');
 
     // ===== 10. Stored XSS qua trường name =====
-    $h->attack('Upload', "Stored XSS: name chứa <img onerror>", 'USR_OUT', function ($atk, $fx) {
-        $payload = '<img src=x onerror=alert(1)>';
-        $slug = 'zzab-xssn-' . bin2hex(random_bytes(3));
-        $_POST = ['csrf_token' => 'VICTIM_SECRET', 'id' => 0, 'name' => $payload,
-            'slug' => $slug, 'logo' => '', 'system_prompt' => '', 'developer_prompt' => '', 'fields' => '[]'];
-        $res = Site::save_site();
-        $storedName = '';
-        if (!empty($res['id'])) {
-            $storedName = (string)$fx->conn->query('SELECT name FROM site WHERE ID=' . (int)$res['id'])->fetch_row()[0];
-            $fx->conn->query('DELETE FROM site WHERE ID=' . (int)$res['id']);
+    // name là free-text (tên sàn có dấu chấm, hoa...) nên KHÔNG cấm ký tự ở tầng lưu;
+    // phòng thủ đúng là ESCAPE khi render danh sách. Đòn này kiểm chính nơi phòng thủ đó:
+    // trang danh sách có escape name/logo/slug trước khi nhét vào HTML không.
+    $h->attack('Upload', "Stored XSS: render name/logo không escape", 'USR_OUT', function ($atk, $fx) {
+        $js = (string)@file_get_contents('/var/www/html/admin-profulfill/assets/js/app-ecommerce-site-list.js');
+        // Lọt nếu còn nhét THÔ ${full['name']} / ${full['logo']} / ${full['slug']} (không qua esc)
+        $rawInjection = [];
+        foreach (['name', 'logo', 'slug'] as $field) {
+            if (str_contains($js, '${full[\'' . $field . '\']}')) {
+                $rawInjection[] = $field;
+            }
         }
-        // Tên là free-text (không cấm được ký tự) -> phòng thủ nằm ở ESCAPE khi render.
-        // "Lọt" ở tầng dữ liệu: name thô còn nguyên payload; đánh dấu để nhắc kiểm escape JS.
-        $breach = str_contains($storedName, '<img');
-        return ['breach' => $breach, 'note' => 'name lưu thô: ' . json_encode($storedName)
-            . ' — phải escape khi render (đã thêm esc() ở app-ecommerce-site-list.js)'];
+        return ['breach' => !empty($rawInjection), 'note' => empty($rawInjection)
+            ? 'name/logo/slug đều được escape (esc()) khi render.'
+            : 'Render THÔ (chưa escape): ' . implode(', ', $rawInjection)];
     }, 'CAO');
 
     // ===== 11. Pixel-flood: ảnh nhỏ, kích thước khổng lồ -> DoS bộ nhớ =====
