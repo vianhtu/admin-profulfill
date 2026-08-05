@@ -127,6 +127,13 @@ class Site
             $stmt->close();
         }
 
+        // Người dùng upload đè khi CHƯA lưu form: dọn luôn file vừa bị thay (nếu là file
+        // mồ côi chưa gắn với site nào). delete_logo_file tự bỏ qua nếu còn site đang dùng.
+        $replace = trim((string)($_POST['replace'] ?? ''));
+        if ($replace !== '' && $replace !== $row['storage_path']) {
+            self::delete_logo_file($conn, $replace);
+        }
+
         return ['status' => 'success', 'logo' => $row['storage_path']];
     }
 
@@ -210,7 +217,7 @@ class Site
         }
         // Thêm mới: theo role add. Sửa: admin, hoặc chính người đã thêm site đó.
         if ($isEdit) {
-            $current = $conn->query('SELECT ID, created_by FROM site WHERE ID = ' . $id . ' LIMIT 1')->fetch_assoc();
+            $current = $conn->query('SELECT ID, created_by, logo FROM site WHERE ID = ' . $id . ' LIMIT 1')->fetch_assoc();
             if (!$current) {
                 return ['status' => 'error', 'message' => 'Site not found.'];
             }
@@ -274,6 +281,47 @@ class Site
         $newId = $isEdit ? $id : (int)$conn->insert_id;
         $stmt->close();
 
+        // Thay logo -> xóa file logo cũ (chỉ khi khác logo mới và không site nào khác còn dùng)
+        if ($isEdit) {
+            $oldLogo = (string)($current['logo'] ?? '');
+            if ($oldLogo !== '' && $oldLogo !== $logo) {
+                self::delete_logo_file($conn, $oldLogo);
+            }
+        }
+
         return ['status' => $isEdit ? 'updated' : 'inserted', 'id' => $newId];
+    }
+
+    /**
+     * Xóa 1 file logo do người dùng tải lên (uploads/sites/...) khỏi đĩa và bảng `files`.
+     * Bỏ qua an toàn nếu: rỗng, là icon dựng sẵn (assets/img/icons/brands, không có '/'),
+     * hoặc vẫn còn site khác đang dùng đường dẫn đó.
+     */
+    private static function delete_logo_file(mysqli $conn, string $path): void
+    {
+        $path = trim($path);
+        // Chỉ đụng tới file người dùng upload; tên file trần là icon dựng sẵn -> giữ nguyên
+        if ($path === '' || !str_starts_with($path, 'uploads/sites/')) {
+            return;
+        }
+        // Còn site khác trỏ tới đúng file này thì không xóa (tránh làm hỏng logo của họ)
+        $stmt = $conn->prepare('SELECT 1 FROM site WHERE logo = ? LIMIT 1');
+        $stmt->bind_param('s', $path);
+        $stmt->execute();
+        $stillUsed = (bool)$stmt->get_result()->fetch_row();
+        $stmt->close();
+        if ($stillUsed) {
+            return;
+        }
+
+        $full = defined('ROOT_DIR') ? ROOT_DIR . '/' . $path : __DIR__ . '/../' . $path;
+        if (is_file($full)) {
+            @unlink($full);
+        }
+        // Dọn bản ghi trong bảng files
+        $stmt = $conn->prepare('DELETE FROM files WHERE storage_path = ?');
+        $stmt->bind_param('s', $path);
+        $stmt->execute();
+        $stmt->close();
     }
 }

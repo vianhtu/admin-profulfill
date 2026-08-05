@@ -88,6 +88,8 @@ function uploadSiteLogo(dz, file) {
     const fd = new FormData();
     fd.append('file', file);
     fd.append('csrf_token', window.csrfToken);
+    // Gửi logo đang có để server dọn file cũ nếu nó là file mồ côi (upload đè khi chưa lưu)
+    fd.append('replace', $('#site_logo').val() || '');
     fetch('../../ajax.php?action=upload-site-logo', { method: 'POST', body: fd })
         .then(r => r.json())
         .then(res => {
