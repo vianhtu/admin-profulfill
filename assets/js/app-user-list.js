@@ -264,10 +264,73 @@ function buildFilters(api) {
         $('#UserTeam').val(urlTeam).trigger('change.select2');
     }
 
-    $('#UserRole, #UserStatus, #UserTeam').on('change', () => api.draw());
+    $('#UserRole, #UserStatus, #UserTeam').on('change', function () {
+        refreshFilterBadge();
+        api.draw();
+    });
+
+    initFilterCollapse(!!urlTeam);
     if (urlTeam && $('#UserTeam').length) {
         api.draw();
     }
+}
+
+// --- Khối Filter: badge đếm, nút Clear, thu gọn (cùng khuôn Products/Stores) ---
+function countActiveFilters() {
+    let n = 0;
+    if ($('#UserRole').val()) { n++; }
+    if ($('#UserStatus').val()) { n++; }
+    if ($('#UserTeam').val()) { n++; }
+    return n;
+}
+
+function refreshFilterBadge() {
+    const n = countActiveFilters();
+    $('#activeFilterCount').text(n).toggleClass('d-none', n === 0);
+    const hasSearch = !!(dtUsers && dtUsers.search());
+    $('#clearFilters').prop('disabled', n === 0 && !hasSearch);
+}
+
+function clearAllFilters() {
+    $('#UserRole, #UserStatus, #UserTeam').val('').trigger('change.select2');
+    if (dtUsers) {
+        dtUsers.search('').draw();
+    }
+    refreshFilterBadge();
+}
+
+function setFilterCollapsed(collapsed, animate) {
+    const $header = $('#filterCard .card-header');
+    const $icon = $('#filterCard .card-collapsible i');
+    const body = document.getElementById('filterBody');
+    if (!body) {
+        return;
+    }
+    if (animate) {
+        bootstrap.Collapse.getOrCreateInstance(body, { toggle: false })[collapsed ? 'hide' : 'show']();
+    } else {
+        $(body).toggleClass('show', !collapsed);
+    }
+    $header.toggleClass('collapsed', collapsed);
+    $icon.toggleClass('tabler-chevron-up', !collapsed).toggleClass('tabler-chevron-down', collapsed);
+}
+
+/**
+ * @param {boolean} keepOpen mở sẵn khi vào trang với filter dựng từ URL (vd. từ Teams
+ *        sang bằng ?UserTeam=..), để người dùng thấy ngay mình đang bị lọc
+ */
+function initFilterCollapse(keepOpen) {
+    refreshFilterBadge();
+    // Gõ vào ô search cũng ảnh hưởng trạng thái nút Clear
+    $(document).on('input', '.dt-search input', refreshFilterBadge);
+    $('#clearFilters').on('click', clearAllFilters);
+
+    $('#filterCard .card-collapsible').on('click', function (e) {
+        e.preventDefault();
+        setFilterCollapsed(!$('#filterCard .card-header').hasClass('collapsed'), true);
+    });
+
+    setFilterCollapsed(!keepOpen, false);
 }
 
 // --- Form Add/Edit ---

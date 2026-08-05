@@ -6,18 +6,41 @@ if (!checkRoles('view', 'users')) {
 $can_add_user  = Users::can_add();
 $can_see_wage  = Users::can_see_salary();
 ?>
-<!-- Users List Table -->
-<div class="card">
-    <div class="card-header border-bottom">
-        <h5 class="card-title mb-0">Filters</h5>
-        <div class="d-flex justify-content-between align-items-center row pt-4 gap-4 gap-md-0">
-            <div class="col-md-4 user_role"></div>
-            <?php if (is_admin()) : ?>
-                <div class="col-md-4 user_team"></div>
-            <?php endif; ?>
-            <div class="col-md-4 user_status"></div>
+<!-- Filter — cùng khuôn với Products/Stores: card riêng, có badge đếm, nút Clear và thu gọn -->
+<div class="card card-action mb-6" id="filterCard">
+    <div class="card-header">
+        <h5 class="card-action-title mb-0">
+            Filter
+            <span id="activeFilterCount" class="badge bg-label-primary ms-2 d-none">0</span>
+        </h5>
+        <div class="card-action-element">
+            <ul class="list-inline mb-0 d-flex align-items-center gap-2">
+                <li class="list-inline-item me-0">
+                    <button type="button" class="btn btn-label-secondary btn-sm" id="clearFilters" disabled>
+                        <i class="icon-base ti tabler-filter-off icon-xs me-1"></i>Clear Filters
+                    </button>
+                </li>
+                <li class="list-inline-item">
+                    <a href="javascript:void(0);" class="card-collapsible"><i class="icon-base ti tabler-chevron-up"></i></a>
+                </li>
+            </ul>
         </div>
     </div>
+    <div class="collapse show" id="filterBody">
+        <div class="card-body pt-0">
+            <div class="row g-4 pt-4">
+                <div class="col-md-3 user_role"></div>
+                <?php if (is_admin()) : // lọc theo team chỉ dành cho admin ?>
+                    <div class="col-md-3 user_team"></div>
+                <?php endif; ?>
+                <div class="col-md-3 user_status"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Users List Table -->
+<div class="card">
     <div class="card-datatable">
         <!-- Không có cột checkbox: Users chỉ xóa từng dòng, không có thao tác hàng loạt -->
         <table class="datatables-users table">
