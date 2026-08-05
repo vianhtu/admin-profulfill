@@ -300,8 +300,11 @@ class Site
     private static function delete_logo_file(mysqli $conn, string $path): void
     {
         $path = trim($path);
-        // Chỉ đụng tới file người dùng upload; tên file trần là icon dựng sẵn -> giữ nguyên
-        if ($path === '' || !str_starts_with($path, 'uploads/sites/')) {
+        // Chỉ đụng tới file người dùng upload; tên file trần là icon dựng sẵn -> giữ nguyên.
+        // CHẶN path traversal: $path đến từ input người dùng ($_POST['replace']), nếu chứa
+        // '..' hoặc ký tự null có thể thoát khỏi uploads/sites để xóa file tùy ý (config.php...).
+        if ($path === '' || !str_starts_with($path, 'uploads/sites/')
+            || str_contains($path, '..') || str_contains($path, "\0")) {
             return;
         }
         // Còn site khác trỏ tới đúng file này thì không xóa (tránh làm hỏng logo của họ)
@@ -314,7 +317,14 @@ class Site
             return;
         }
 
-        $full = defined('ROOT_DIR') ? ROOT_DIR . '/' . $path : __DIR__ . '/../' . $path;
+        // Phòng thủ theo lớp: xác nhận file thật NẰM TRONG uploads/sites sau khi giải symlink
+        $baseDir  = (defined('ROOT_DIR') ? ROOT_DIR : __DIR__ . '/..') . '/uploads/sites';
+        $baseReal = realpath($baseDir);
+        $full     = realpath((defined('ROOT_DIR') ? ROOT_DIR : __DIR__ . '/..') . '/' . $path);
+        if ($baseReal === false || $full === false
+            || !str_starts_with($full, $baseReal . DIRECTORY_SEPARATOR)) {
+            return;
+        }
         if (is_file($full)) {
             @unlink($full);
         }

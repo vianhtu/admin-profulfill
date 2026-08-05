@@ -112,16 +112,18 @@ return function (HackRunner $h): void {
         return ['breach' => $after < $before, 'note' => "Số site: $before -> $after"];
     });
 
-    // ===== 8. Upload — chèn file không phải ảnh =====
+    // ===== 8. Upload — chèn web-shell (key ĐÚNG là 'file'; bộ 'upload' phủ đầy đủ hơn) =====
     $h->attack('Upload', 'Upload PHP giả dạng logo', 'USR_OUT', function ($atk, $fx) {
         $tmp = tempnam(sys_get_temp_dir(), 'zzab');
         file_put_contents($tmp, "<?php echo 'pwned'; ?>");
         $_POST = ['csrf_token' => 'VICTIM_SECRET'];
-        $_FILES = ['logo' => ['name' => 'shell.php', 'type' => 'image/png', 'tmp_name' => $tmp,
+        $_FILES = ['file' => ['name' => 'shell.php', 'type' => 'image/png', 'tmp_name' => $tmp,
             'error' => 0, 'size' => filesize($tmp)]];
         $res = Site::upload_logo();
         @unlink($tmp);
-        $ok = ($res['status'] ?? '') !== 'error';
-        return ['breach' => $ok, 'note' => 'Server chấp nhận file .php: ' . json_encode($res, JSON_UNESCAPED_UNICODE)];
+        // Qua validation = lọt (dù ghi file fail ở CLI). Chặn đúng nếu bị từ chối vì đuôi/MIME.
+        $m = (string)($res['message'] ?? '');
+        $passed = ($res['status'] ?? '') !== 'error' || str_contains($m, 'Failed to save') || str_contains($m, 'Uploaded file not found');
+        return ['breach' => $passed, 'note' => json_encode($res, JSON_UNESCAPED_UNICODE)];
     });
 };

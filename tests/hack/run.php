@@ -25,9 +25,11 @@ $suites = [
     'categories' => ['file' => 'attacks.categories.php', 'menu' => 'categories', 'title' => 'Categories / Category'],
     'sites'      => ['file' => 'attacks.sites.php',      'menu' => 'sites',      'title' => 'Sites / Site'],
     'stores'     => ['file' => 'attacks.stores.php',     'menu' => 'store',      'title' => 'Stores / Store'],
+    'upload'     => ['file' => 'attacks.upload.php',     'menu' => 'sites',      'title' => 'Upload file (logo site)'],
 ];
 $alias = ['product' => 'products', 'category' => 'categories', 'danhmuc' => 'categories',
-    'site' => 'sites', 'store' => 'stores', 'shop' => 'stores', 'sanpham' => 'products'];
+    'site' => 'sites', 'store' => 'stores', 'shop' => 'stores', 'sanpham' => 'products',
+    'uploadfile' => 'upload', 'file' => 'upload', 'logo' => 'upload'];
 
 $arg = strtolower(trim($argv[1] ?? 'all'));
 $arg = $alias[$arg] ?? $arg;
