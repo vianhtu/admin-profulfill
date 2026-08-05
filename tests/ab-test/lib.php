@@ -23,7 +23,7 @@ require_once AB_ROOT . '/functions.php';
 // deletePhysicalFile() — Teams::purge_team() dùng để xóa tệp riêng của account
 require_once AB_ROOT . '/functions/functions-upload-files.php';
 foreach (['products', 'product', 'categories', 'category', 'sites', 'site', 'stores', 'store',
-          'orders', 'order', 'teams', 'team', 'extension'] as $abClass) {
+          'orders', 'order', 'teams', 'team', 'users', 'user', 'extension'] as $abClass) {
     require_once AB_ROOT . "/class/class.$abClass.php";
 }
 
