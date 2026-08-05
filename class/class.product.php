@@ -172,19 +172,30 @@ class Product
         return ['status' => 'error', 'message' => 'Invalid status.'];
     }
 
-    // Category phải thuộc team (mỗi team có bộ category riêng)
-    $team = get_current_team_scope_id();
-    if ($team > 0) {
-        $ok = $conn->query("SELECT 1 FROM `type` WHERE ID = $typeId AND team_id = $team LIMIT 1")->fetch_row();
-        if (!$ok) {
-            return ['status' => 'error', 'message' => 'Category is not available for your team.'];
-        }
+    // Chủ sở hữu sản phẩm: chỉ admin/manager mới được gán cho người khác,
+    // và người được gán phải nằm trong phạm vi quyền của họ.
+    $authorId = self::resolve_author_id($conn, (int)($_POST['author_id'] ?? 0));
+    if ($authorId <= 0) {
+        return ['status' => 'error', 'message' => 'Selected manager is not in your team.'];
     }
-    // Store phải là store dùng chung hoặc store riêng của team (admin thì store nào cũng được)
-    $storeScope = Stores::scope_condition('store');
-    $ok = $conn->query("SELECT 1 FROM store WHERE ID = $storeId" . ($storeScope ? " AND $storeScope" : '') . ' LIMIT 1')->fetch_row();
+
+    // Category/Store hợp lệ tính theo team của CHỦ SỞ HỮU, không phải của người đang sửa:
+    // admin gán sản phẩm cho user team khác thì category/store cũng phải thuộc team đó,
+    // nếu không chủ mới sẽ giữ 1 sản phẩm trỏ tới dữ liệu họ không nhìn thấy.
+    $ownerRow = $conn->query("SELECT team_id FROM authors WHERE ID = $authorId LIMIT 1")->fetch_row();
+    $ownerTeam = (int)($ownerRow[0] ?? 0);
+    if ($ownerTeam <= 0) {
+        return ['status' => 'error', 'message' => 'The selected owner is not assigned to a team.'];
+    }
+
+    $ok = $conn->query("SELECT 1 FROM `type` WHERE ID = $typeId AND team_id = $ownerTeam LIMIT 1")->fetch_row();
     if (!$ok) {
-        return ['status' => 'error', 'message' => 'Store is not available for your team.'];
+        return ['status' => 'error', 'message' => "This category does not belong to the owner's team."];
+    }
+    // Store: dùng chung (team_id = 0) hoặc store riêng của chính team chủ sở hữu
+    $ok = $conn->query("SELECT 1 FROM store WHERE ID = $storeId AND team_id IN (0, $ownerTeam) LIMIT 1")->fetch_row();
+    if (!$ok) {
+        return ['status' => 'error', 'message' => "This store does not belong to the owner's team."];
     }
 
     // SKU là UNIQUE — chặn trùng với sản phẩm khác
@@ -199,13 +210,6 @@ class Product
     $imagesJson = json_encode(['main' => $images[0], 'images' => array_slice($images, 1)]);
     $metaJson   = json_encode(['tags' => $tags]);
     $badgeVal   = $badge !== '' ? $badge : null;
-
-    // Chủ sở hữu sản phẩm: chỉ admin/manager mới được gán cho người khác,
-    // và người được gán phải nằm trong phạm vi quyền của họ.
-    $authorId = self::resolve_author_id($conn, (int)($_POST['author_id'] ?? 0));
-    if ($authorId <= 0) {
-        return ['status' => 'error', 'message' => 'Selected manager is not in your team.'];
-    }
 
     if ($isEdit) {
         // variantdata do extension ghi, form không đụng tới nên giữ nguyên khi sửa

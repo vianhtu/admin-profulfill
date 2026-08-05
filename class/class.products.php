@@ -435,16 +435,25 @@ class Products
         return ['status' => 'error', 'message' => 'No permitted products in selection.'];
     }
 
-    // Category phải tồn tại VÀ thuộc team của user (mỗi team có bộ category riêng) —
-    // giống kiểm tra ở Product::save_product(), nếu không sẽ sửa hàng loạt sang
-    // category của team khác bằng cách giả mạo type_id.
-    $team = get_current_team_scope_id();
-    $teamCond = $team > 0 ? ' AND team_id = ' . $team : '';
-    $stmt = $conn->prepare('SELECT ID FROM `type` WHERE ID = ?' . $teamCond);
+    // Category phải tồn tại VÀ thuộc đúng team của CHỦ SỞ HỮU từng sản phẩm được chọn
+    // (mỗi team có bộ category riêng). Chặn 2 tình huống: user giả mạo type_id của team
+    // khác, và admin gán category của team này cho sản phẩm của team kia.
+    $stmt = $conn->prepare('SELECT team_id FROM `type` WHERE ID = ?');
     $stmt->bind_param('i', $typeId);
     $stmt->execute();
-    if (!$stmt->get_result()->fetch_row()) {
-        return ['status' => 'error', 'message' => 'Category is not available for your team.'];
+    $catRow = $stmt->get_result()->fetch_row();
+    $stmt->close();
+    if (!$catRow) {
+        return ['status' => 'error', 'message' => 'Category does not exist.'];
+    }
+    $catTeam = (int)$catRow[0];
+    $idsStr = implode(',', $ids);
+    $foreign = (int)$conn->query("SELECT COUNT(*) FROM posts p
+        LEFT JOIN authors a ON a.ID = p.author_id
+        WHERE p.ID IN ($idsStr) AND (a.team_id IS NULL OR a.team_id <> $catTeam)")->fetch_row()[0];
+    if ($foreign > 0) {
+        return ['status' => 'error', 'message' => number_format($foreign)
+            . ' of the selected products belong to another team; this category is not available for them.'];
     }
 
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
