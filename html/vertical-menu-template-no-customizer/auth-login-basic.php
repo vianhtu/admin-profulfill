@@ -1,9 +1,11 @@
 <?php
 declare(strict_types=1);
 require __DIR__ . '/../../config.php';
-// Nếu đã login hoặc cookie hợp lệ → chuyển về dashboards
+// Nếu đã login hoặc cookie hợp lệ → chuyển về dashboards.
+// 'index.php' TƯƠNG ĐỐI (không phải '/index.php'): app nằm trong thư mục con
+// /admin-profulfill nên đường dẫn tuyệt đối trỏ ra gốc domain và trả 404.
 if (is_logged_in() || attempt_cookie_login()) {
-    header('Location: /index.php');
+    header('Location: index.php');
     exit;
 }
 $err  = flash_get('error') ?? "Please sign-in to your account and start the adventure";
