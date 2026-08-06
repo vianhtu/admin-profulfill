@@ -13,6 +13,9 @@ require_once __DIR__ . '/../../class/class.stores.php';
 require_once __DIR__ . '/../../class/class.store.php';
 // Fragment app-user-list.php dùng Users::can_add() / can_see_salary() để gate lớp UI
 require_once __DIR__ . '/../../class/class.users.php';
+// Fragment app-access-permission.php dùng Roles::can_manage() / Role::valid_menu_actions()
+require_once __DIR__ . '/../../class/class.roles.php';
+require_once __DIR__ . '/../../class/class.role.php';
 require_login();
 $user = $_SESSION['auth']['user'] ?? 'user';
 $currentMenu = $_GET['menu'] ?? '';
