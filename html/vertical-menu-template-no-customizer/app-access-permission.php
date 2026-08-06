@@ -58,11 +58,6 @@ $all_actions    = Roles::ACTIONS;
 </div>
 
 <style>
-    /* Vuexy đặt .modal-simple .modal-content { padding: 3rem } — viền dày hai bên ngốn
-       gần hết bề ngang, ma trận quyền bị bóp lại. Bỏ đi; .modal-body vốn đã có đệm riêng. */
-    #addPermissionModal.modal-simple .modal-content,
-    #addPermissionModal .modal-simple .modal-content { padding: 0; }
-
     /* Chọn nhanh: bấm tiêu đề cột, tên nhóm, hoặc tên menu để bật/tắt cả cụm */
     #addPermissionForm .perm-col,
     #addPermissionForm tr.table-secondary > td,
@@ -77,16 +72,20 @@ $all_actions    = Roles::ACTIONS;
 </style>
 
 <!-- Add/Edit Role Modal -->
-<div class="modal fade" id="addPermissionModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-simple modal-lg">
+<div class="modal fade" id="addPermissionModal" tabindex="-1"
+     aria-labelledby="roleModalTitle" aria-hidden="true">
+    <!-- Cấu trúc CHUẨN Bootstrap: header / body / footer.
+         Bỏ .modal-simple + .btn-pinned của Vuexy — nó ném nút X ra ngoài góc modal,
+         xa tầm tay và không theo chuẩn. modal-dialog-scrollable cho thân tự cuộn. -->
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
         <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="roleModalTitle">Add New Role</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
             <div class="modal-body">
-                <button type="button" class="btn-close btn-pinned" data-bs-dismiss="modal" aria-label="Close"></button>
-                <div class="text-center mb-6">
-                    <h3 id="roleModalTitle">Add New Role</h3>
-                    <p class="text-body-secondary">Permissions you may use and assign to your users.</p>
-                    <div class="alert alert-dismissible fade" id="alertPermissionModal" role="alert"></div>
-                </div>
+                <p class="text-body-secondary mb-4">Permissions you may use and assign to your users.</p>
+                <div class="alert alert-dismissible fade" id="alertPermissionModal" role="alert"></div>
                 <form id="addPermissionForm" class="row" onsubmit="return false">
                     <input type="hidden" id="roleId" value="0">
                     <div class="col-md-7 form-control-validation mb-4">
@@ -194,11 +193,11 @@ $all_actions    = Roles::ACTIONS;
                         </table>
                         </div>
                     </div>
-                    <div class="col-12 text-center demo-vertical-spacing">
-                        <button type="submit" class="btn btn-primary me-sm-4 me-1" id="roleSubmit">Save</button>
-                        <button type="reset" class="btn btn-label-secondary" data-bs-dismiss="modal">Discard</button>
-                    </div>
                 </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Discard</button>
+                <button type="button" class="btn btn-primary" id="roleSubmit">Save</button>
             </div>
         </div>
     </div>

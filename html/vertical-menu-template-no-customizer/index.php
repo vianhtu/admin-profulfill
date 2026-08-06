@@ -110,10 +110,7 @@ if (empty($_SESSION['csrf_token'])) {
           .modal:not(.dtr-bs-modal) .modal-body { padding: 1rem; }
           .modal:not(.dtr-bs-modal) .modal-header { padding: .75rem 1rem; }
           .modal:not(.dtr-bs-modal) .modal-footer { padding: .5rem 1rem; }
-          /* Khối tiêu đề giữa của form Role chiếm quá nhiều chiều cao */
-          #addPermissionModal .modal-body > .text-center { margin-bottom: 1rem !important; }
-          #addPermissionModal .modal-body > .text-center h3 { font-size: 1.15rem; margin-bottom: .25rem; }
-          #addPermissionModal .modal-body > .text-center p { font-size: .82rem; margin-bottom: 0; }
+          /* Form Role đã dùng modal-header chuẩn, không còn khối tiêu đề giữa thân */
           /* Ma trận quyền: cao hơn + ô gọn hơn để thấy được nhiều menu cùng lúc */
           #addPermissionForm .table-responsive { max-height: 55vh !important; }
           #addPermissionForm table.table { font-size: .85rem; }
