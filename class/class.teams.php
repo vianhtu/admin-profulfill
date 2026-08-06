@@ -500,15 +500,25 @@ class Teams
             // options chứa openai_key/gemini_key của team -> xóa hẳn, không để secret nằm
             // lại trong DB trỏ vào team không còn tồn tại.
             // sms treo vào phone_id nên phải xóa TRƯỚC phones, nếu không tin nhắn thành mồ côi.
+            // MariaDB KHÔNG cho LIMIT trong DELETE nhiều bảng -> lấy ID theo lô rồi xóa theo ID,
+            // giống chặng Orders ở trên.
             if (self::table_exists($conn, 'sms') && self::col_exists($conn, 'phones', 'team_id')) {
-                do {
-                    $conn->execute_query(
-                        'DELETE s FROM sms s INNER JOIN phones p ON p.ID = s.phone_id
+                while ($budget > 0) {
+                    $ids = [];
+                    $rs = $conn->execute_query(
+                        'SELECT s.ID FROM sms s INNER JOIN phones p ON p.ID = s.phone_id
                          WHERE p.team_id = ? LIMIT ' . self::PURGE_CHUNK, [$id]);
+                    while ($row = $rs->fetch_row()) {
+                        $ids[] = (int)$row[0];
+                    }
+                    if (!$ids) {
+                        break;
+                    }
+                    $conn->query('DELETE FROM sms WHERE ID IN (' . implode(',', $ids) . ')');
                     $n = $conn->affected_rows;
                     $deleted += $n;
                     $budget -= max($n, 1);
-                } while ($n === self::PURGE_CHUNK && $budget > 0);
+                }
                 if ($budget <= 0) {
                     return ['status' => 'partial', 'stage' => 'Messages', 'deleted' => $deleted];
                 }
