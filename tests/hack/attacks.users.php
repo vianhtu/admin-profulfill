@@ -345,4 +345,75 @@ return function (HackRunner $h): void {
             }
             return ['breach' => $slug !== 'admin', 'note' => 'slug sau đòn: ' . $slug];
         }, 'NGHIÊM TRỌNG');
+
+    // ---------- Lợi dụng đường TỰ SỬA MÌNH ----------
+    // Đường này mở cho MỌI cấp và không đòi role `edit`, nên là mặt tấn công rộng nhất
+    // của menu Users: kẻ chỉ có `view` vẫn đi qua được cửa này.
+    $h->attack('Tự sửa mình', 'Mượn đường tự-sửa để NÂNG LƯƠNG', 'USR_VIEW', function ($atk, $fx) {
+        $me = $fx->conn->execute_query(
+            'SELECT username, email, level, team_id, status, wage FROM authors WHERE ID = ? LIMIT 1',
+            [$atk->uid])->fetch_assoc();
+        $cu = (float)$me['wage'];
+        $_POST = ['csrf_token' => $_SESSION['csrf_token'], 'id' => $atk->uid,
+            'username' => $me['username'], 'email' => $me['email'], 'password' => '',
+            'level' => (int)$me['level'], 'team_id' => (int)$me['team_id'],
+            'status' => (int)$me['status'], 'wage' => $cu + 500000000, 'insurance' => 500000000];
+        User::save_user();
+        $now = (float)$fx->conn->execute_query(
+            'SELECT wage FROM authors WHERE ID = ?', [$atk->uid])->fetch_row()[0];
+        if ($now !== $cu) {   // tài khoản THẬT -> trả lương cũ về ngay trong cùng phép thử
+            $fx->conn->execute_query('UPDATE authors SET wage = ? WHERE ID = ?', [$cu, $atk->uid]);
+        }
+        return ['breach' => $now !== $cu, 'note' => 'Lương sau đòn: ' . $now . ' (cũ ' . $cu . ')'];
+    }, 'NGHIÊM TRỌNG');
+
+    $h->attack('Tự sửa mình', 'Mượn đường tự-sửa để tự NÂNG CẤP lên admin', 'USR_VIEW',
+        function ($atk, $fx) {
+            $me = $fx->conn->execute_query(
+                'SELECT username, email, level, team_id, status FROM authors WHERE ID = ? LIMIT 1',
+                [$atk->uid])->fetch_assoc();
+            $_POST = ['csrf_token' => $_SESSION['csrf_token'], 'id' => $atk->uid,
+                'username' => $me['username'], 'email' => $me['email'], 'password' => '',
+                'level' => $fx->admin_level(), 'team_id' => (int)$me['team_id'],
+                'status' => (int)$me['status']];
+            User::save_user();
+            $now = (int)$fx->conn->execute_query(
+                'SELECT level FROM authors WHERE ID = ?', [$atk->uid])->fetch_row()[0];
+            if ($now !== (int)$me['level']) {
+                $fx->conn->execute_query('UPDATE authors SET level = ? WHERE ID = ?',
+                    [(int)$me['level'], $atk->uid]);
+            }
+            return ['breach' => $now !== (int)$me['level'], 'note' => 'level sau đòn: ' . $now];
+        }, 'NGHIÊM TRỌNG');
+
+    $h->attack('Tự sửa mình', 'Nhồi id người KHÁC nhưng giữ dáng tự-sửa', 'USR_VIEW',
+        function ($atk, $fx) {
+            // Cải trang: chỉ đổi tham số `id` sang nạn nhân cùng team, hy vọng chốt tự-sửa
+            // được tính theo POST chứ không theo session.
+            $nan = $fx->new_user((int)$atk->team);
+            $row = $fx->conn->query("SELECT username, email, level FROM authors WHERE ID = $nan")->fetch_assoc();
+            $_POST = ['csrf_token' => $_SESSION['csrf_token'], 'id' => $nan,
+                'username' => $row['username'], 'email' => $row['email'], 'password' => 'hacked12',
+                'level' => (int)$row['level'], 'team_id' => (int)$atk->team, 'status' => 3];
+            User::save_user();
+            $now = (int)$fx->conn->query("SELECT status FROM authors WHERE ID = $nan")->fetch_row()[0];
+            return ['breach' => $now === 3, 'note' => 'Sửa được tài khoản người khác qua đường tự-sửa'];
+        }, 'NGHIÊM TRỌNG');
+
+    $h->attack('Tự sửa mình', 'Tự chuyển mình sang TEAM khác', 'USR_VIEW', function ($atk, $fx) {
+        $me = $fx->conn->execute_query(
+            'SELECT username, email, level, team_id, status FROM authors WHERE ID = ? LIMIT 1',
+            [$atk->uid])->fetch_assoc();
+        $_POST = ['csrf_token' => $_SESSION['csrf_token'], 'id' => $atk->uid,
+            'username' => $me['username'], 'email' => $me['email'], 'password' => '',
+            'level' => (int)$me['level'], 'team_id' => 1, 'status' => (int)$me['status']];
+        User::save_user();
+        $now = (int)$fx->conn->execute_query(
+            'SELECT team_id FROM authors WHERE ID = ?', [$atk->uid])->fetch_row()[0];
+        if ($now !== (int)$me['team_id']) {
+            $fx->conn->execute_query('UPDATE authors SET team_id = ? WHERE ID = ?',
+                [(int)$me['team_id'], $atk->uid]);
+        }
+        return ['breach' => $now !== (int)$me['team_id'], 'note' => 'team sau đòn: ' . $now];
+    }, 'NGHIÊM TRỌNG');
 };
