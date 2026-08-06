@@ -94,6 +94,23 @@ người đang sửa (admin gán sản phẩm cho user team khác thì category/
   giữa chừng vẫn chạy lại được (idempotent).
 - **Xoá bản ghi cha có bảng khác tham chiếu**: hỏi người dùng cách xử lý. Đã quyết: Category/Site →
   chặn xoá khi còn dùng; Store → cho xoá, sản phẩm chuyển `inactive` + gỡ liên kết (`store_id=0`).
+- **QUÉT CẢ DB TRƯỚC KHI CODE xoá / chuyển giao / sáp nhập** (xoá user, xoá team, chuyển user sang
+  team khác, bàn giao sản phẩm, merge team...). **Đọc code cũ là KHÔNG đủ** — phần lớn tham chiếu ở
+  DB này không có FK thật nên bỏ sót chỉ làm dữ liệu lặng lẽ mồ côi, không báo lỗi gì. Quy trình:
+  1. `SELECT TABLE_NAME, COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='data'
+     AND COLUMN_NAME LIKE '%team%'` (đổi `team` → `author`/`store`/`site`/`type`... tuỳ bản ghi),
+     rồi `DESC <bảng>` lấy **đúng tên cột** — đừng suy theo quy ước: `salary` dùng cột `authors`
+     chứ không phải `author_id`, nên câu DELETE cũ bị `col_exists()` bỏ qua, **chưa từng chạy**.
+  2. Đếm dữ liệu thật + dòng mồ côi sẵn có cho từng cột tìm được.
+  3. Mỗi bảng phải chốt luật với người dùng rồi mới code: **xoá theo / giữ lại / chuyển sang /
+     gỡ liên kết về 0**. Dữ liệu dùng chung và dữ liệu kế toán (`salary`) thì giữ.
+  4. Bảng giữ lại nhưng cột chủ sở hữu sắp mồ côi → **chụp thông tin trước khi xoá**
+     (vd `salary.username_snapshot`), đừng để trơ ID vô nghĩa.
+  5. Rà cả liên kết ra **dịch vụ ngoài**: xoá dòng `phones` KHÔNG huỷ số bên Telnyx (vẫn mất phí
+     thuê bao) — nêu cho người dùng quyết, đừng tự gọi API huỷ.
+  6. Viết AB TEST cho từng luật, kiểm hiệu quả THẬT bằng đọc lại DB sau thao tác.
+  Đã dính 06/08/2026: xoá team bỏ sót `options` (chứa `openai_key`/`gemini_key` RIÊNG của team) →
+  xoá team xong secret vẫn nằm lại trong DB; và bỏ sót `phones`.
 
 ## 7. Bảo mật — BẮT BUỘC
 
