@@ -49,7 +49,7 @@ return function (AbRunner $r): void {
         $_POST = ab_dt(['columns' => [['data' => 'name']], 'length' => 100]);
         $res = Roles::get_roles();
         if (!Roles::can_manage('view')) {
-            return $res;   // bị chặn -> actor không được phép, đúng
+            return ['status' => 'error', 'message' => 'không vào được menu'];
         }
         // "Showing X of Y" không được nói dối: Y phải bằng số dòng thực sự thấy được
         return (int)$res['recordsTotal'] === count($res['data']);
@@ -69,7 +69,7 @@ return function (AbRunner $r): void {
         $_POST = ['id' => 0, 'role_name' => 'ZZABROLE' . bin2hex(random_bytes(4)),
                   'level' => 'user', 'permissions' => [], 'csrf_token' => 'ABTEST'];
         return Role::save_role();
-    })->allow('ADMIN', 'MGR_T1');
+    })->allow('ADMIN', 'MGR_T1', 'MGR_T2');
 
     // slug NOT NULL không default + sql_mode STRICT -> INSERT thiếu slug là văng lỗi.
     // Đây chính là lỗi khiến "Add Permission" bản cũ chưa bao giờ chạy được.
@@ -84,7 +84,7 @@ return function (AbRunner $r): void {
         $slug = $fx->conn->execute_query(
             'SELECT slug FROM roles_permissions WHERE ID = ?', [$res['id']])->fetch_row()[0];
         return $slug !== '' && $slug !== null;
-    })->allow('ADMIN', 'MGR_T1');
+    })->allow('ADMIN', 'MGR_T1', 'MGR_T2');
 
     // ---------- Chống leo thang quyền ----------
     $r->add('Roles — leo thang', 'KHÔNG tạo được role cấp admin (gửi level=admin bị ép)', function ($a, $fx) {
@@ -104,8 +104,12 @@ return function (AbRunner $r): void {
     $r->add('Roles — leo thang', 'KHÔNG sửa được role của CHÍNH MÌNH', function ($a, $fx) {
         $myLevel = (int)$fx->conn->execute_query(
             'SELECT level FROM authors WHERE ID = ? LIMIT 1', [$a->uid])->fetch_row()[0];
+        // Gửi ĐÚNG cấp hiện tại: nếu hardcode 'user' thì admin bị chặn vì lý do khác
+        // ("The Admin role level cannot be changed") chứ không phải vì luật sửa-role-mình.
+        $mySlug = (string)$fx->conn->execute_query(
+            'SELECT slug FROM roles_permissions WHERE ID = ?', [$myLevel])->fetch_row()[0];
         $_POST = ['id' => $myLevel, 'role_name' => 'ZZABSELF' . bin2hex(random_bytes(3)),
-                  'level' => 'user', 'permissions' => [], 'csrf_token' => 'ABTEST'];
+                  'level' => $mySlug, 'permissions' => [], 'csrf_token' => 'ABTEST'];
         return Role::save_role();
     })->allow('ADMIN');
 
@@ -139,7 +143,7 @@ return function (AbRunner $r): void {
         $_POST = ['id' => $id, 'role_name' => 'ZZABEDIT' . bin2hex(random_bytes(3)),
                   'level' => 'user', 'permissions' => [], 'csrf_token' => 'ABTEST'];
         return Role::save_role();
-    })->allow('ADMIN', 'MGR_T1');
+    })->allow('ADMIN', 'MGR_T1', 'MGR_T2');
 
     $r->add('Roles — sửa', 'KHÔNG hạ cấp được role admin', function ($a, $fx) {
         $adm = (int)$fx->conn->query("SELECT ID FROM roles_permissions WHERE slug='admin' LIMIT 1")->fetch_row()[0];
@@ -161,7 +165,7 @@ return function (AbRunner $r): void {
         }
         return $fx->conn->execute_query(
             'SELECT ID FROM roles_permissions WHERE ID = ?', [$id])->fetch_row() === null;
-    })->allow('ADMIN', 'MGR_T1');
+    })->allow('ADMIN', 'MGR_T1', 'MGR_T2');
 
     $r->add('Roles — xóa', 'KHÔNG xóa được role admin (kể cả admin)', function ($a, $fx) {
         $adm = (int)$fx->conn->query("SELECT ID FROM roles_permissions WHERE slug='admin' LIMIT 1")->fetch_row()[0];
