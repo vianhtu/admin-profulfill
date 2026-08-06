@@ -35,6 +35,13 @@ class Users
     ];
 
     /** Trạng thái hợp lệ của user (theo quy ước sẵn có của trang). */
+    /**
+     * Thứ bậc CẤP: Admin > Manager > User > Customer (chốt 06/08/2026).
+     * Người cấp thấp không thấy người cấp cao hơn — chỉ ngang hàng hoặc thấp hơn.
+     * Thứ hạng đi theo LEVEL gán cho role, không theo tên role.
+     */
+    private const LEVEL_RANK = ['admin' => 4, 'manager' => 3, 'user' => 2, 'customer' => 1];
+
     public const STATUSES = [1 => 'Pending', 2 => 'Active', 3 => 'Inactive'];
     /** Chỉ user ở trạng thái này mới đăng nhập được. */
     public const STATUS_ACTIVE = 2;
@@ -70,16 +77,6 @@ class Users
         return (int)($_SESSION['auth']['user_id'] ?? 0);
     }
 
-    /**
-     * Người xem chỉ nhìn thấy ĐÚNG dòng của chính mình (xem scope_where): vai không phải
-     * admin/manager luôn bị giới hạn `authors.ID = <chính mình>`. Bảng 1 dòng thì khối
-     * Filter vô nghĩa -> ẩn đi theo luật "Filter thì ẩn, không khóa".
-     */
-    public static function sees_only_self(): bool
-    {
-        return !is_admin() && !is_manager();
-    }
-
     /** Lương/bảo hiểm chỉ admin và manager được nhìn. */
     public static function can_see_salary(): bool
     {
@@ -103,14 +100,32 @@ class Users
         if (is_admin()) {
             return '';
         }
-        if (is_manager()) {
-            $adminIds = self::admin_level_ids(db());
-            $hideAdmin = $adminIds
-                ? ' AND authors.level NOT IN (' . implode(',', $adminIds) . ')'
-                : '';
-            return 'authors.team_id = ' . self::own_team() . $hideAdmin;
+        // Chỉ thấy người CÙNG TEAM và có thứ hạng KHÔNG CAO HƠN mình
+        $cond = 'authors.team_id = ' . self::own_team();
+        $ids = self::levels_above(db());
+        if ($ids) {
+            $cond .= ' AND authors.level NOT IN (' . implode(',', $ids) . ')';
         }
-        return 'authors.ID = ' . self::own_id();
+        return $cond;
+    }
+
+    /**
+     * ID các role có thứ hạng CAO HƠN người đang đăng nhập.
+     *
+     * Thứ hạng lấy theo LEVEL được gán cho role (`roles_permissions.slug`), không theo tên
+     * role — nên role tự đặt tên gì cũng xếp đúng bậc của level nó mang.
+     */
+    private static function levels_above(mysqli $conn): array
+    {
+        $myRank = self::LEVEL_RANK[(string)($_SESSION['auth']['level'] ?? '')] ?? 0;
+        $ids = [];
+        $rs = $conn->query('SELECT ID, slug FROM roles_permissions');
+        while ($r = $rs->fetch_assoc()) {
+            if ((self::LEVEL_RANK[$r['slug']] ?? 0) > $myRank) {
+                $ids[] = (int)$r['ID'];
+            }
+        }
+        return $ids;
     }
 
     /** Danh sách ID của các nhóm quyền cấp admin — dùng chặn leo thang quyền. */
@@ -436,9 +451,9 @@ class Users
         // ho trong danh sach nhan ban giao (xem scope_where).
         $hideAdmin = '';
         if (!is_admin()) {
-            $adminIds = self::admin_level_ids($conn);
-            if ($adminIds) {
-                $hideAdmin = ' AND level NOT IN (' . implode(',', $adminIds) . ')';
+            $above = self::levels_above($conn);
+            if ($above) {
+                $hideAdmin = ' AND level NOT IN (' . implode(',', $above) . ')';
             }
         }
         $candidates = [];

@@ -5,10 +5,7 @@ if (!checkRoles('view', 'users')) {
 }
 $can_add_user  = Users::can_add();
 $can_see_wage  = Users::can_see_salary();
-// Vai chỉ thấy đúng dòng của mình -> bảng luôn 1 dòng, lọc chẳng để làm gì
-$show_filters  = !Users::sees_only_self();
 ?>
-<?php if ($show_filters) : ?>
 <!-- Filter — cùng khuôn với Products/Stores: card riêng, có badge đếm, nút Clear và thu gọn -->
 <div class="card card-action mb-6" id="filterCard">
     <div class="card-header">
@@ -41,7 +38,6 @@ $show_filters  = !Users::sees_only_self();
         </div>
     </div>
 </div>
-<?php endif; ?>
 
 <!-- Users List Table -->
 <div class="card">

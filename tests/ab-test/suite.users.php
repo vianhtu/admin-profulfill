@@ -30,12 +30,27 @@ return function (AbRunner $r): void {
         return ab_sees(Users::get_users(), $id);
     })->allow('ADMIN', 'MGR_T1', 'MGR_T1_V');
 
-    $r->add('Users — đọc', 'Level user chỉ thấy đúng 1 dòng (chính mình)', function ($a, $fx) {
-        $fx->new_user((int)$a->team);   // thêm đồng đội -> người khác phải thấy nhiều hơn 1
+    // Trục CẤP (chốt 06/08/2026): Admin > Manager > User > Customer — cấp thấp chỉ thấy
+    // NGANG HÀNG hoặc thấp hơn, trong team mình.
+    $r->add('Users — đọc', 'Level user THẤY đồng nghiệp ngang cấp cùng team', function ($a, $fx) {
+        $id = $fx->new_user((int)$a->team);   // đồng đội cấp user cùng team
         $_POST = ab_dt(['columns' => [['data' => 'username']]]);
-        $rows = Users::get_users()['data'] ?? [];
-        return count($rows) === 1 && (int)$rows[0]['id'] === (int)$a->uid;
-    })->allow('USR_T1', 'USR_T1_V', 'USR_T2', 'USR_T3');
+        return ab_sees(Users::get_users(), $id);
+    })->allow('ADMIN', 'MGR_T1', 'MGR_T1_V', 'USR_T1', 'USR_T1_V');
+
+    $r->add('Users — đọc', 'Level user KHÔNG thấy tài khoản cấp cao hơn', function ($a, $fx) {
+        $adm = $fx->new_user((int)$a->team, $fx->admin_level());
+        $_POST = ab_dt(['columns' => [['data' => 'username']]]);
+        $seen = ab_sees(Users::get_users(), $adm);
+        // Chỉ ADMIN được thấy dòng admin; mọi cấp thấp hơn phải KHÔNG thấy
+        return $seen;
+    })->allow('ADMIN');
+
+    $r->add('Users — đọc', 'Manager KHÔNG thấy tài khoản admin cùng team', function ($a, $fx) {
+        $adm = $fx->new_user((int)$a->team, $fx->admin_level());
+        $_POST = ab_dt(['columns' => [['data' => 'username']]]);
+        return ab_sees(Users::get_users(), $adm);
+    })->allow('ADMIN');
 
     $r->add('Users — đọc', 'Lương xuất hiện trong dữ liệu trả về', function ($a, $fx) {
         $_POST = ab_dt(['columns' => [['data' => 'username']]]);

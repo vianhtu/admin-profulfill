@@ -266,8 +266,7 @@ function fillSelect($sel, map, allLabel) {
 }
 
 function buildFilters(api) {
-    // Vai chỉ thấy dòng của chính mình -> fragment không render khối Filter (bảng luôn 1
-    // dòng, lọc vô nghĩa). Thoát sớm cho rõ ý; các $() bên dưới vốn cũng no-op.
+    // Khối Filter luôn được render; giữ guard phòng khi fragment đổi (các $() vốn no-op)
     if (!document.getElementById('filterCard')) {
         return;
     }
