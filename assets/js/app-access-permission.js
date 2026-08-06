@@ -21,6 +21,9 @@ function lockedBtn(icon, why) {
         ` title="${esc(why)}"><i class="icon-base ti ${icon} icon-22px"></i></button>`;
 }
 
+// Thứ tự PHẢI khớp mảng `columns` bên dưới — helper URL đổi tên cột <-> chỉ số cột
+const ROLE_COLS = ['id', 'name', 'level', 'menus', 'count', 'id'];
+let urlState = null;
 let dtRoles = null;
 let levelsObj = {};
 let rolePerms = { add: false, delete_any: false, is_admin: false, my_level: 0 };
@@ -48,6 +51,8 @@ function initTable() {
         return;
     }
 
+    urlState = dtUrlState({ level: '#RoleLevel', assigned: '#RoleAssigned' }, 25);
+
     dtRoles = new DataTable(el, {
         serverSide: true,
         processing: true,
@@ -55,8 +60,10 @@ function initTable() {
             url: '../../ajax.php?action=get-roles-permissions-table',
             type: 'POST',
             data: function (d) {
-                d.level = $('#RoleLevel').val() || '';
-                d.assigned = $('#RoleAssigned').val() || '';
+                // Lần vẽ đầu các ô lọc chưa được dựng (initComplete mới chạy sau) nên
+                // phải lấy thẳng từ URL, nếu không bảng vẽ sai rồi mới sửa lại.
+                d.level = $('#RoleLevel').length ? ($('#RoleLevel').val() || '') : urlState.get('level');
+                d.assigned = $('#RoleAssigned').length ? ($('#RoleAssigned').val() || '') : urlState.get('assigned');
             },
             dataSrc: json => json.data
         },
@@ -125,6 +132,9 @@ function initTable() {
         ],
         order: [[1, 'asc']],
         displayLength: 25,
+        // Đọc URL TRƯỚC khi dựng bảng -> vẽ đúng ngay lần đầu, không phải draw lần hai.
+        // PHẢI spread SAU order/displayLength, nếu không mặc định sẽ ghi đè giá trị từ URL.
+        ...urlState.tableOptions(ROLE_COLS),
         layout: {
             topStart: {
                 rowClass: 'row m-3 my-0 justify-content-between',
@@ -184,7 +194,9 @@ function initTable() {
         },
         initComplete: function () {
             buildFilters();
-            initFilterUi();
+            const preset = urlState.applyFilters();
+            initFilterUi(preset);
+            urlState.bind(dtRoles, ROLE_COLS);
         }
     });
 
@@ -275,7 +287,7 @@ function setFilterCollapsed(collapsed, animate) {
     $icon.toggleClass('tabler-chevron-up', !collapsed).toggleClass('tabler-chevron-down', collapsed);
 }
 
-function initFilterUi() {
+function initFilterUi(keepOpen) {
     $('#clearFilters').on('click', clearAllFilters);
     $('#filterCard .card-collapsible').on('click', function (e) {
         e.preventDefault();
@@ -284,7 +296,8 @@ function initFilterUi() {
     if (dtRoles) {
         dtRoles.on('search.dt', updateFilterUi);
     }
-    setFilterCollapsed(true, false);
+    // Có lọc dựng sẵn từ URL -> mở khối Filter để người dùng thấy ngay mình đang bị lọc
+    setFilterCollapsed(!keepOpen, false);
     updateFilterUi();
 }
 

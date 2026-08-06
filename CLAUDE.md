@@ -98,6 +98,18 @@ người đang sửa (admin gán sản phẩm cho user team khác thì category/
 
 ## 6. Trang danh sách DataTables (server-side) — quy ước
 
+- **TRẠNG THÁI XEM PHẢI NẰM TRÊN URL — mọi bảng, không trừ bảng nào.** Filter (theo đúng tên ô
+  sẵn có: `UserTeam`, `UserRole`, `UserStatus`...), Search, cột+chiều sắp xếp, trang hiện tại,
+  số dòng/trang — tất cả đẩy lên query string và **đồng bộ hai chiều**: đổi trên bảng thì URL
+  đổi theo, mở URL có sẵn tham số thì bảng dựng lại đúng trạng thái đó. URL là thứ duy nhất
+  chia sẻ/bookmark/Back/F5 giữ được, và là cách các trang link sang nhau (Teams → Users
+  `?UserTeam=<id>`, Roles → Users `?UserRole=<id>`).
+  Dùng **helper chung** `assets/js/dt-url-state.js`, đừng chép lại từng file. Đọc tham số
+  **TRƯỚC** khi khởi tạo DataTable rồi nhét vào config (`order`/`displayStart`/`pageLength`/
+  `search`) để không vẽ bảng hai lần; ghi bằng `history.replaceState` (không `pushState`, kẻo
+  mỗi lần đổi lọc lại thêm một mục lịch sử); bỏ tham số mang giá trị mặc định. Ô lọc có thể
+  KHÔNG tồn tại tuỳ quyền → luôn kiểm `.length` trước khi gán. Tham số URL là dữ liệu người
+  dùng: server vẫn whitelist cột sort qua `SORT_MAP` và kiểm phạm vi như thường.
 - **ORDER BY**: mỗi class khai `SORT_MAP = ['<key DataTables>' => '<biểu thức SQL>']`, dùng
   `get_datatable_params(array_keys(SORT_MAP), '<mặc định>')` + `build_order_by($params, SORT_MAP, '<bảng>.ID')`.
   Cột hiển thị **tên** thì sort theo tên (`s.name`), không theo id. **Luôn kèm khoá phụ ID** (giá trị

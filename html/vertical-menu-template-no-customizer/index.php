@@ -399,6 +399,9 @@ if (empty($_SESSION['csrf_token'])) {
     <script src="../../assets/vendor/libs/flatpickr/flatpickr.js"></script>
     <script src="../../assets/vendor/libs/tagify/tagify.js"></script>
     <script src="../../assets/vendor/libs/swiper/swiper.js"></script>
+    <!-- Helper chung: đồng bộ trạng thái bảng (filter/search/sort/trang/số dòng) với URL.
+         Phải nạp TRƯỚC page-JS vì các trang gọi dtUrlState() lúc dựng DataTable. -->
+    <script src="../../assets/js/dt-url-state.js?v=<?= filemtime(ROOT_DIR . '/assets/js/dt-url-state.js') ?>"></script>
     <?php
     switch ($currentMenu) {
         case 'products':
