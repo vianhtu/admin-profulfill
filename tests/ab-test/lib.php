@@ -363,6 +363,11 @@ final class AbFixtures
                    OR username_snapshot LIKE 'ZZABFIX%'");
         $c->query("DELETE FROM authors WHERE username LIKE 'ZZABFIX%'");
         // Cấu hình riêng của team ZZAB
+        // Role ZZAB do suite.roles/attacks.roles tạo. CHỪA 15/16 (role thường trực của
+        // skill ui-test) và chừa role đang có người dùng để không sinh authors.level mồ côi.
+        $c->query("DELETE FROM roles_permissions
+                   WHERE name LIKE 'ZZAB%' AND ID NOT IN (15,16)
+                     AND ID NOT IN (SELECT DISTINCT level FROM authors)");
         $c->query("DELETE FROM options WHERE value LIKE 'ZZAB%'");
         $c->query("DELETE FROM phones WHERE number LIKE 'ZZAB%'");
         // Team ZZAB xóa cuối: chỉ xóa team KHÔNG có thành viên thật để không đụng dữ liệu sống

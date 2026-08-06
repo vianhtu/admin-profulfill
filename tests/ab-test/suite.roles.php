@@ -108,9 +108,17 @@ return function (AbRunner $r): void {
         // ("The Admin role level cannot be changed") chứ không phải vì luật sửa-role-mình.
         $mySlug = (string)$fx->conn->execute_query(
             'SELECT slug FROM roles_permissions WHERE ID = ?', [$myLevel])->fetch_row()[0];
+        // ADMIN được phép sửa role của chính mình -> phép thử sẽ ĐỔI TÊN role Admin THẬT
+        // (2 người đang mang). Chụp lại tên/roles gốc và khôi phục ngay sau khi thử.
+        $goc = $fx->conn->execute_query(
+            'SELECT name, roles FROM roles_permissions WHERE ID = ?', [$myLevel])->fetch_assoc();
         $_POST = ['id' => $myLevel, 'role_name' => 'ZZABSELF' . bin2hex(random_bytes(3)),
                   'level' => $mySlug, 'permissions' => [], 'csrf_token' => 'ABTEST'];
-        return Role::save_role();
+        $res = Role::save_role();
+        $fx->conn->execute_query(
+            'UPDATE roles_permissions SET name = ?, roles = ? WHERE ID = ?',
+            [$goc['name'], $goc['roles'], $myLevel]);
+        return $res;
     })->allow('ADMIN');
 
     $r->add('Roles — leo thang', 'KHÔNG cấp được quyền mà bản thân không có', function ($a, $fx) {
