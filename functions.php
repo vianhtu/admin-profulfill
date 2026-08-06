@@ -946,8 +946,13 @@ function get_authors_by_team(): array
 
     $conn = db();
 
+    // Luật NHÌN: bỏ mọi cấp cao hơn mình, đúng như câu WHERE của bảng danh sách —
+    // manager không được thấy tài khoản admin cùng team lọt vào ô lọc/select.
+    $above = levels_above_ids($conn);
+    $hide  = $above ? ' AND level NOT IN (' . implode(',', $above) . ')' : '';
+
     // 1. Sử dụng dấu ? làm placeholder thay vì truyền thẳng giá trị
-    $stmt = $conn->prepare("SELECT ID, username FROM authors WHERE team_id = ?");
+    $stmt = $conn->prepare("SELECT ID, username FROM authors WHERE team_id = ?$hide");
 
     // 2. Gán giá trị biến $team_id vào dấu ? (chữ 'i' đại diện cho kiểu integer)
     $stmt->bind_param("i", $team_id);

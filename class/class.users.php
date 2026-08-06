@@ -40,7 +40,6 @@ class Users
      * Người cấp thấp không thấy người cấp cao hơn — chỉ ngang hàng hoặc thấp hơn.
      * Thứ hạng đi theo LEVEL gán cho role, không theo tên role.
      */
-    private const LEVEL_RANK = ['admin' => 4, 'manager' => 3, 'user' => 2, 'customer' => 1];
 
     public const STATUSES = [1 => 'Pending', 2 => 'Active', 3 => 'Inactive'];
     /** Chỉ user ở trạng thái này mới đăng nhập được. */
@@ -117,15 +116,7 @@ class Users
      */
     private static function levels_above(mysqli $conn): array
     {
-        $myRank = self::LEVEL_RANK[(string)($_SESSION['auth']['level'] ?? '')] ?? 0;
-        $ids = [];
-        $rs = $conn->query('SELECT ID, slug FROM roles_permissions');
-        while ($r = $rs->fetch_assoc()) {
-            if ((self::LEVEL_RANK[$r['slug']] ?? 0) > $myRank) {
-                $ids[] = (int)$r['ID'];
-            }
-        }
-        return $ids;
+        return levels_above_ids($conn);   // bản dùng chung ở config.php
     }
 
     /**
@@ -135,12 +126,12 @@ class Users
      */
     public static function manageable_level_ids(mysqli $conn): array
     {
-        $myRank = self::LEVEL_RANK[(string)($_SESSION['auth']['level'] ?? '')] ?? 0;
+        $myRank = own_level_rank();
         $sieu   = is_super_admin();   // super admin đụng được cả admin khác
         $ids = [];
         $rs = $conn->query('SELECT ID, slug FROM roles_permissions');
         while ($r = $rs->fetch_assoc()) {
-            if ($sieu || (self::LEVEL_RANK[$r['slug']] ?? 9) < $myRank) {
+            if ($sieu || (LEVEL_RANK[$r['slug']] ?? 9) < $myRank) {
                 $ids[] = (int)$r['ID'];
             }
         }

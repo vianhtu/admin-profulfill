@@ -37,7 +37,6 @@ final class Roles
      * Người cấp thấp không được THẤY role cấp cao hơn: danh sách lộ có role admin là lộ
      * luôn mục tiêu tấn công, và nhìn một dòng mà mọi nút đều khóa thì rất khó hiểu.
      */
-    private const LEVEL_RANK = ['admin' => 4, 'manager' => 3, 'user' => 2, 'customer' => 1];
 
     /** Hành động con của mỗi menu trong JSON roles. */
     public const ACTIONS = ['view', 'add', 'edit', 'delete'];
@@ -117,7 +116,7 @@ final class Roles
     /** Thứ hạng của chính người đang đăng nhập. */
     private static function own_rank(): int
     {
-        return self::LEVEL_RANK[(string)($_SESSION['auth']['level'] ?? '')] ?? 0;
+        return own_level_rank();
     }
 
     /**
@@ -130,7 +129,7 @@ final class Roles
             return self::LEVELS;
         }
         $rank = self::own_rank();
-        return array_filter(self::LEVELS, fn($l, $slug) => (self::LEVEL_RANK[$slug] ?? 0) <= $rank,
+        return array_filter(self::LEVELS, fn($l, $slug) => (LEVEL_RANK[$slug] ?? 0) <= $rank,
             ARRAY_FILTER_USE_BOTH);
     }
 
@@ -150,7 +149,7 @@ final class Roles
         }
         $rank = self::own_rank();
         return array_filter(self::LEVELS,
-            fn($l, $slug) => (self::LEVEL_RANK[$slug] ?? 9) < $rank, ARRAY_FILTER_USE_BOTH);
+            fn($l, $slug) => (LEVEL_RANK[$slug] ?? 9) < $rank, ARRAY_FILTER_USE_BOTH);
     }
 
     /** Dòng này có cấp THẤP HƠN mình không — điều kiện để được sửa/xóa. */
@@ -358,7 +357,7 @@ final class Roles
         // Xếp CẤP THẤP NHẤT LÊN ĐẦU: ô chọn mặc định lấy option đầu, để Admin đứng đầu thì
         // ai bấm Delete mà không đổi là vô tình nâng cả nhóm người lên Admin.
         usort($targets, fn($a, $b) =>
-            (self::LEVEL_RANK[$a['slug']] ?? 9) <=> (self::LEVEL_RANK[$b['slug']] ?? 9)
+            (LEVEL_RANK[$a['slug']] ?? 9) <=> (LEVEL_RANK[$b['slug']] ?? 9)
             ?: strcasecmp($a['name'], $b['name']));
 
         return ['status' => 'success', 'name' => $t['row']['name'],

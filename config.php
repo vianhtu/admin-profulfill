@@ -542,6 +542,37 @@ function check_csrf(): bool {
  * fox1990 trong DB là quyền tối cao mất theo, không cần sửa code.
  */
 const SUPER_ADMINS = ['fox1990'];
+
+/**
+ * Thứ bậc CẤP (chính là `roles_permissions.slug`): Admin > Manager > User > Customer.
+ * Để ở đây vì cả class lẫn helper toàn cục đều cần — trước có 2 bản sao trong
+ * class.users/class.roles, sửa một chỗ quên chỗ kia là lộ dữ liệu.
+ */
+const LEVEL_RANK = ['admin' => 4, 'manager' => 3, 'user' => 2, 'customer' => 1];
+
+function own_level_rank(): int
+{
+    return LEVEL_RANK[(string)($_SESSION['auth']['level'] ?? '')] ?? 0;
+}
+
+/**
+ * ID các role có cấp CAO HƠN mình — luật NHÌN: không bao giờ thấy người ở trên.
+ * Dùng cho MỌI chỗ liệt kê người hoặc cấp: câu WHERE của bảng, ô lọc, danh sách người
+ * nhận bàn giao, select người phụ trách. Ô lọc phải dùng CHUNG hàm này với câu WHERE,
+ * nếu không sẽ có lựa chọn luôn ra 0 kết quả và lộ đang tồn tại cấp nào ở trên.
+ */
+function levels_above_ids(?mysqli $conn = null): array
+{
+    $rank = own_level_rank();
+    $ids  = [];
+    $rs   = ($conn ?? db())->query('SELECT ID, slug FROM roles_permissions');
+    while ($r = $rs->fetch_assoc()) {
+        if ((LEVEL_RANK[$r['slug']] ?? 0) > $rank) {
+            $ids[] = (int)$r['ID'];
+        }
+    }
+    return $ids;
+}
 function is_super_admin(): bool {
     return is_admin()
         && in_array(strtolower((string)($_SESSION['auth']['user'] ?? '')), SUPER_ADMINS, true);
