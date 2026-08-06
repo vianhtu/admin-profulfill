@@ -23,7 +23,7 @@ return function (HackRunner $h): void {
     };
 
     // ---------- Leo thang qua cột slug ----------
-    $h->attack('Leo thang quyền', 'Tạo role cấp admin bằng level=admin', 'MGR_FULL',
+    $h->attack('Leo thang quyền', 'Tạo role cấp admin bằng level=admin', 'MGR_OUT',
         function ($atk, $fx) use ($slugOf) {
             $n = 'ZZABHACKROLE' . bin2hex(random_bytes(4));
             $_POST = ['id' => 0, 'role_name' => $n, 'level' => 'admin',
@@ -35,7 +35,7 @@ return function (HackRunner $h): void {
                     'note' => 'slug lưu thực tế: ' . ($id ? $slugOf($fx, $id) : '(không tạo được)')];
         });
 
-    $h->attack('Leo thang quyền', 'Nâng cấp role sẵn có lên admin qua sửa', 'MGR_FULL',
+    $h->attack('Leo thang quyền', 'Nâng cấp role sẵn có lên admin qua sửa', 'MGR_OUT',
         function ($atk, $fx) use ($slugOf, $newRole) {
             $id = $newRole($fx);
             $_POST = ['id' => $id, 'role_name' => 'ZZABHACKUP', 'level' => 'admin',
@@ -44,7 +44,7 @@ return function (HackRunner $h): void {
             return ['breach' => $slugOf($fx, $id) === 'admin', 'note' => 'slug sau khi sửa: ' . $slugOf($fx, $id)];
         });
 
-    $h->attack('Leo thang quyền', 'Sửa chính role mình đang mang', 'MGR_FULL',
+    $h->attack('Leo thang quyền', 'Sửa chính role mình đang mang', 'MGR_OUT',
         function ($atk, $fx) {
             $my = (int)$fx->conn->execute_query(
                 'SELECT level FROM authors WHERE ID = ? LIMIT 1', [$atk->uid])->fetch_row()[0];
@@ -59,7 +59,7 @@ return function (HackRunner $h): void {
             return ['breach' => $truoc !== $sau, 'note' => 'role của chính mình bị sửa'];
         });
 
-    $h->attack('Leo thang quyền', 'Cấp quyền mà bản thân KHÔNG có', 'MGR_FULL',
+    $h->attack('Leo thang quyền', 'Cấp quyền mà bản thân KHÔNG có', 'MGR_OUT',
         function ($atk, $fx) {
             $n = 'ZZABHACKROLE' . bin2hex(random_bytes(4));
             $_POST = ['id' => 0, 'role_name' => $n, 'level' => 'user', 'csrf_token' => 'HACK',
@@ -85,7 +85,7 @@ return function (HackRunner $h): void {
                                                               : 'chỉ cấp lại đúng quyền mình có'];
         });
 
-    $h->attack('Leo thang quyền', 'Nhét menu admin-only (teams) vào JSON quyền', 'MGR_FULL',
+    $h->attack('Leo thang quyền', 'Nhét menu admin-only (teams) vào JSON quyền', 'MGR_OUT',
         function ($atk, $fx) {
             $n = 'ZZABHACKROLE' . bin2hex(random_bytes(4));
             $_POST = ['id' => 0, 'role_name' => $n, 'level' => 'user', 'csrf_token' => 'HACK',
@@ -100,7 +100,7 @@ return function (HackRunner $h): void {
             return ['breach' => isset($json['teams']), 'note' => 'menu admin-only chui vào roles_permissions'];
         });
 
-    $h->attack('Leo thang quyền', 'Nhét menu không tồn tại vào JSON quyền', 'MGR_FULL',
+    $h->attack('Leo thang quyền', 'Nhét menu không tồn tại vào JSON quyền', 'MGR_OUT',
         function ($atk, $fx) {
             $n = 'ZZABHACKROLE' . bin2hex(random_bytes(4));
             $_POST = ['id' => 0, 'role_name' => $n, 'level' => 'user', 'csrf_token' => 'HACK',
@@ -117,7 +117,7 @@ return function (HackRunner $h): void {
         });
 
     // ---------- Phá hệ thống ----------
-    $h->attack('Phá hệ thống', 'Xóa role admin (mất hết quyền quản trị)', 'MGR_FULL',
+    $h->attack('Phá hệ thống', 'Xóa role admin (mất hết quyền quản trị)', 'MGR_OUT',
         function ($atk, $fx) {
             $adm = (int)$fx->conn->query("SELECT ID FROM roles_permissions WHERE slug='admin' LIMIT 1")->fetch_row()[0];
             $_POST = ['id' => $adm, 'csrf_token' => 'HACK'];
@@ -127,7 +127,7 @@ return function (HackRunner $h): void {
             return ['breach' => $mat, 'note' => 'role admin bị xóa -> không còn ai quản trị được'];
         });
 
-    $h->attack('Phá hệ thống', 'Hạ cấp role admin xuống user', 'MGR_FULL',
+    $h->attack('Phá hệ thống', 'Hạ cấp role admin xuống user', 'MGR_OUT',
         function ($atk, $fx) use ($slugOf) {
             $adm = (int)$fx->conn->query("SELECT ID FROM roles_permissions WHERE slug='admin' LIMIT 1")->fetch_row()[0];
             $_POST = ['id' => $adm, 'role_name' => 'Admin', 'level' => 'user',
@@ -136,7 +136,7 @@ return function (HackRunner $h): void {
             return ['breach' => $slugOf($fx, $adm) !== 'admin', 'note' => 'slug role admin: ' . $slugOf($fx, $adm)];
         });
 
-    $h->attack('Phá hệ thống', 'Xóa role còn người dùng, bỏ trống role thay thế', 'MGR_FULL',
+    $h->attack('Phá hệ thống', 'Xóa role còn người dùng, bỏ trống role thay thế', 'MGR_OUT',
         function ($atk, $fx) use ($newRole) {
             $id = $newRole($fx);
             $uid = $fx->new_user((int)$atk->team);
@@ -151,7 +151,7 @@ return function (HackRunner $h): void {
         });
 
     // ---------- CSRF / IDOR / SQLi / XSS ----------
-    $h->attack('CSRF', 'Lưu role không kèm csrf_token', 'MGR_FULL', function ($atk, $fx) {
+    $h->attack('CSRF', 'Lưu role không kèm csrf_token', 'MGR_OUT', function ($atk, $fx) {
         $n = 'ZZABHACKCSRF' . bin2hex(random_bytes(3));
         $_POST = ['id' => 0, 'role_name' => $n, 'level' => 'user', 'permissions' => []];
         Role::save_role();
@@ -160,7 +160,7 @@ return function (HackRunner $h): void {
         return ['breach' => $co, 'note' => 'tạo được role dù thiếu CSRF'];
     });
 
-    $h->attack('CSRF', 'Xóa role không kèm csrf_token', 'MGR_FULL',
+    $h->attack('CSRF', 'Xóa role không kèm csrf_token', 'MGR_OUT',
         function ($atk, $fx) use ($newRole) {
             $id = $newRole($fx);
             $_POST = ['id' => $id];
@@ -171,7 +171,7 @@ return function (HackRunner $h): void {
             return ['breach' => $mat, 'note' => 'xóa được dù thiếu CSRF'];
         });
 
-    $h->attack('IDOR', 'Đọc role cấp admin qua id gửi thẳng', 'MGR_FULL', function ($atk, $fx) {
+    $h->attack('IDOR', 'Đọc role cấp admin qua id gửi thẳng', 'MGR_OUT', function ($atk, $fx) {
         $adm = (int)$fx->conn->query("SELECT ID FROM roles_permissions WHERE slug='admin' LIMIT 1")->fetch_row()[0];
         $_POST = ['id' => $adm, 'csrf_token' => 'HACK'];
         $res = Role::get_role();
@@ -180,7 +180,7 @@ return function (HackRunner $h): void {
                 'note' => 'can_edit trên role admin: ' . var_export($res['can_edit'] ?? null, true)];
     });
 
-    $h->attack('SQLi', 'Cột sort giả mạo kèm câu DROP', 'MGR_FULL', function ($atk, $fx) {
+    $h->attack('SQLi', 'Cột sort giả mạo kèm câu DROP', 'MGR_OUT', function ($atk, $fx) {
         $truoc = (int)$fx->conn->query('SELECT COUNT(*) FROM roles_permissions')->fetch_row()[0];
         $_POST = ab_dt(['columns' => [['data' => "name; DROP TABLE roles_permissions--"]],
                         'order' => [['column' => 0, 'dir' => 'asc']]]);
@@ -193,7 +193,7 @@ return function (HackRunner $h): void {
         return ['breach' => $sau !== $truoc, 'note' => "role trước $truoc / sau $sau"];
     });
 
-    $h->attack('SQLi', 'Bộ lọc level nhét câu SQL', 'MGR_FULL', function ($atk, $fx) {
+    $h->attack('SQLi', 'Bộ lọc level nhét câu SQL', 'MGR_OUT', function ($atk, $fx) {
         $truoc = (int)$fx->conn->query('SELECT COUNT(*) FROM roles_permissions')->fetch_row()[0];
         $_POST = ab_dt(['columns' => [['data' => 'name']]]);
         $_POST['level'] = "user' OR '1'='1";
@@ -206,7 +206,7 @@ return function (HackRunner $h): void {
         return ['breach' => $sau !== $truoc, 'note' => 'giá trị lạ bị bỏ qua, không lọc bừa'];
     });
 
-    $h->attack('XSS', 'Tên role nhét thẻ script', 'MGR_FULL', function ($atk, $fx) {
+    $h->attack('XSS', 'Tên role nhét thẻ script', 'MGR_OUT', function ($atk, $fx) {
         $payload = 'ZZABX<img src=x onerror=alert(1)>';
         $_POST = ['id' => 0, 'role_name' => $payload, 'level' => 'user',
                   'permissions' => [], 'csrf_token' => 'HACK'];
