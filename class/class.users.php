@@ -138,18 +138,26 @@ class Users
         return $ids;
     }
 
-    /** Được thêm user mới không. */
+    /**
+     * Được thêm user mới không.
+     * KHÔNG chốt theo cấp cụ thể: hễ có role `add` và còn cấp nào THẤP HƠN mình để gán
+     * thì thêm được. Nhờ vậy cấp `user` cũng quản được `customer` (cấp thấp nhất) mà
+     * không phải nới luật riêng — hạng nào cũng chỉ với xuống được, không với ngang.
+     */
     public static function can_add(): bool
     {
-        return is_admin() || (is_manager() && checkRoles('add', 'users'));
+        if (!is_admin() && !checkRoles('add', 'users')) {
+            return false;
+        }
+        return self::manageable_level_ids(db()) !== [];
     }
 
     /**
      * Được sửa 1 user cụ thể không.
      * - admin: mọi user;
-     * - manager: user CÙNG TEAM;
-     * - mọi vai: chỉ cấp THẤP HƠN mình, không đụng người ngang cấp (super admin ngoại lệ);
-     * - user: không sửa được ai (kể cả chính mình — đổi role/team là leo quyền).
+     * - non-admin có role `edit`: user CÙNG TEAM;
+     * - mọi vai: chỉ cấp THẤP HƠN mình, không đụng người ngang cấp (super admin ngoại lệ).
+     * Không chốt theo cấp: `user` có role vẫn sửa được `customer` trong team mình.
      */
     public static function can_edit_row(int $teamId, int $level, mysqli $conn): bool
     {
@@ -160,7 +168,7 @@ class Users
         if (is_admin()) {
             return true;
         }
-        if (!is_manager() || !checkRoles('edit', 'users')) {
+        if (!checkRoles('edit', 'users')) {
             return false;
         }
         return $teamId === self::own_team();
@@ -169,8 +177,7 @@ class Users
     /**
      * Được xóa 1 user cụ thể không.
      * - admin: mọi user;
-     * - manager (có role delete): user CÙNG TEAM và KHÔNG phải tài khoản admin;
-     * - user: không.
+     * - non-admin có role `delete`: user CÙNG TEAM, cấp thấp hơn mình;
      * Không ai tự xóa chính mình.
      */
     public static function can_delete_row(int $userId, int $teamId, int $level, mysqli $conn): bool
@@ -184,7 +191,7 @@ class Users
         if (is_admin()) {
             return true;
         }
-        if (!is_manager() || !checkRoles('delete', 'users')) {
+        if (!checkRoles('delete', 'users')) {
             return false;
         }
         return $teamId === self::own_team();
@@ -193,7 +200,10 @@ class Users
     /** Còn ai xóa được không — dùng để quyết định có render modal xóa hay không. */
     public static function can_delete_any(): bool
     {
-        return is_admin() || (is_manager() && checkRoles('delete', 'users'));
+        if (!is_admin() && !checkRoles('delete', 'users')) {
+            return false;
+        }
+        return self::manageable_level_ids(db()) !== [];
     }
 
     /**
