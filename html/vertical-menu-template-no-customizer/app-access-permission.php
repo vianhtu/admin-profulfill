@@ -78,13 +78,15 @@ $all_actions    = Roles::ACTIONS;
                     </div>
                     <div class="col-md-5 mb-4">
                         <label class="form-label" for="modalRoleLevel">Level</label>
-                        <select id="modalRoleLevel" class="form-select"<?= is_admin() ? '' : ' disabled' ?>>
+                        <!-- Chọn được cấp cùng hàng hoặc thấp hơn (allowed_levels đã lọc sẵn),
+                             nên không khóa select nữa; server vẫn kiểm lại. -->
+                        <select id="modalRoleLevel" class="form-select">
                             <?php foreach ($allowed_levels as $slug => $label) : ?>
                                 <option value="<?= h($slug) ?>"><?= h($label) ?></option>
                             <?php endforeach; ?>
                         </select>
                         <?php if (!is_admin()) : ?>
-                            <div class="form-text">Only an admin can set the level; new roles are User level.</div>
+                            <div class="form-text">You can only assign your own level or below.</div>
                         <?php endif; ?>
                     </div>
                     <?php if (!is_admin()) : ?>

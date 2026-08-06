@@ -138,13 +138,15 @@ final class Roles
             ARRAY_FILTER_USE_BOTH);
     }
 
-    /** Cấp mà người đang đăng nhập được phép gán. Non-admin chỉ tạo được role vai `user`. */
+    /**
+     * Cấp mà người đang đăng nhập được phép GÁN cho role (chốt 06/08/2026): **cùng cấp hoặc
+     * thấp hơn**. Manager tạo được role cấp manager/user/customer nhưng KHÔNG bao giờ tạo
+     * được role cấp admin — đó là đường tự nâng quyền.
+     * Trùng với visible_levels() (thấy gì thì gán được nấy) nên dùng chung một nguồn.
+     */
     public static function allowed_levels(): array
     {
-        if (is_admin()) {
-            return self::LEVELS;
-        }
-        return ['user' => self::LEVELS['user']];
+        return self::visible_levels();
     }
 
     /**
@@ -336,8 +338,8 @@ final class Roles
         $rs = $conn->execute_query(
             'SELECT ID, name, slug FROM roles_permissions WHERE ID <> ? ORDER BY name', [$id]);
         while ($r = $rs->fetch_assoc()) {
-            if (!is_admin() && $r['slug'] !== 'user') {
-                continue;   // manager chỉ chuyển người sang role vai `user`
+            if (!isset(self::allowed_levels()[$r['slug']])) {
+                continue;   // chỉ chuyển người sang role cùng cấp hoặc thấp hơn
             }
             $targets[] = ['id' => (int)$r['ID'], 'name' => $r['name'],
                           'level' => self::LEVELS[$r['slug']] ?? $r['slug']];
@@ -376,9 +378,9 @@ final class Roles
                 return ['status' => 'error', 'message' => 'Replacement role not found.'];
             }
             // Non-admin không được đẩy người sang role quyền cao hơn vai `user`
-            if (!is_admin() && $rep['slug'] !== 'user') {
+            if (!isset(self::allowed_levels()[$rep['slug']])) {
                 return ['status' => 'error',
-                        'message' => 'You can only move users to a User-level role.'];
+                        'message' => 'You can only move users to a role at your level or below.'];
             }
             $conn->execute_query('UPDATE authors SET level = ? WHERE level = ?', [$to, $id]);
             $moved = $conn->affected_rows;

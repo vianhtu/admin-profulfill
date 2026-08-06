@@ -6,7 +6,8 @@
  * request (xem class.roles.php để hiểu vì sao):
  *
  *   - `slug`  : chính là CẤP (admin/manager/user/customer) mà `is_admin()`/`is_manager()`
- *               đọc. Non-admin gửi `slug=admin` phải bị ép về `user`, KHÔNG được tin.
+ *               đọc. Chỉ nhận cấp CÙNG HÀNG hoặc THẤP HƠN người đang thao tác; ngoài phạm
+ *               vi thì ép về giá trị an toàn, KHÔNG được tin.
  *   - `permissions` : non-admin chỉ cấp lại được đúng những ô mình đang có.
  *   - `id`    : phải kiểm quyền theo dòng, không tin id gửi lên.
  */
@@ -52,14 +53,17 @@ final class Role
         }
 
         // --- CẤP (slug): trường nguy hiểm nhất bảng ---
-        // Non-admin gửi gì cũng bị ép: sửa thì GIỮ NGUYÊN cấp cũ, thêm mới thì luôn `user`.
-        // Không báo lỗi mà lặng lẽ ép — đúng luật "tham số không được phép dùng thì bỏ qua".
+        // Nhận cấp gửi lên NẾU nằm trong phạm vi được phép gán (cùng cấp hoặc thấp hơn).
+        // Ngoài phạm vi thì ÉP về giá trị an toàn chứ không báo lỗi — đúng luật "tham số
+        // không được phép dùng thì bỏ qua, không tin".
         $allowed = Roles::allowed_levels();
         $slug = (string)($_POST['level'] ?? '');
-        if (!is_admin()) {
+        if (!isset($allowed[$slug])) {
             $slug = $isEdit ? (string)$current['slug'] : 'user';
-        } elseif (!isset($allowed[$slug])) {
-            $slug = $isEdit ? (string)$current['slug'] : 'user';
+        }
+        // Sửa role: không được nâng cấp nó lên cao hơn cấp CŨ nếu cấp cũ ngoài tầm mình
+        if ($isEdit && !isset($allowed[(string)$current['slug']])) {
+            $slug = (string)$current['slug'];
         }
         // Không cho hạ cấp role `admin` xuống thứ khác — sẽ không còn ai là admin
         if ($isEdit && $current['slug'] === 'admin' && $slug !== 'admin') {
