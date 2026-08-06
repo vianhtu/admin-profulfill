@@ -194,6 +194,7 @@ function initTable() {
         },
         initComplete: function () {
             buildFilters();
+            initModalSelects();
             const preset = urlState.applyFilters();
             initFilterUi(preset);
             urlState.bind(dtRoles, ROLE_COLS);
@@ -308,6 +309,18 @@ function setAllBoxes(on) {
     });
 }
 
+// Mọi <select> phải là select2 theo quy ước template (CLAUDE.md mục 3). Dựng một lần,
+// dropdownParent trỏ vào modal để dropdown không bị modal cắt mất.
+function initModalSelects() {
+    [['#modalRoleLevel', '#addPermissionModal'],
+     ['#deleteRoleReplacement', '#deleteRoleModal']].forEach(([sel, parent]) => {
+        const $el = $(sel);
+        if ($el.length && !$el.hasClass('select2-hidden-accessible')) {
+            $el.select2({ dropdownParent: $(parent), minimumResultsForSearch: Infinity, width: '100%' });
+        }
+    });
+}
+
 function openRoleForm(row) {
     const isEdit = !!row;
     $('#roleId').val(isEdit ? row.id : 0);
@@ -318,12 +331,13 @@ function openRoleForm(row) {
     // Admin trước nên mặc định cũ là Admin — bấm vội một cái là ra role admin toàn quyền.
     if (!isEdit) {
         const $lv = $('#modalRoleLevel');
-        $lv.val($lv.find('option[value="user"]').length ? 'user' : $lv.find('option').last().val());
+        $lv.val($lv.find('option[value="user"]').length ? 'user' : $lv.find('option').last().val())
+           .trigger('change.select2');
     }
     $('#alertPermissionModal').removeClass('show alert-danger alert-success').text('');
     setAllBoxes(false);
     if (isEdit) {
-        $('#modalRoleLevel').val(row.level);
+        $('#modalRoleLevel').val(row.level).trigger('change.select2');
         const perms = row.permissions || {};
         $('#addPermissionForm .perm-box').each(function () {
             const m = this.dataset.menu, a = this.dataset.action;
@@ -424,6 +438,8 @@ $(document).on('click', '.delete-role', function () {
                 (res.targets || []).forEach(t =>
                     $sel.append(new Option(t.name + ' (' + t.level + ')', t.id, false, false)));
                 $('#deleteRoleAssigned').removeClass('d-none');
+                initModalSelects();
+                $sel.trigger('change.select2');
                 // Không còn role nào nhận được -> không cho xóa
                 $('#deleteRoleConfirm').prop('disabled', (res.targets || []).length === 0);
                 if (!(res.targets || []).length) {
