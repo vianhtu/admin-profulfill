@@ -545,6 +545,46 @@ if (empty($_SESSION['csrf_token'])) {
       }, true);
     </script>
 
+    <script>
+      /**
+       * MOBILE — bấm nút Actions BÊN TRONG modal "Details" của DataTables Responsive.
+       *
+       * Dưới 768px, Responsive giấu cột Actions và đẩy nó vào modal Details (.dtr-bs-modal).
+       * Bấm Edit/Delete ở đó là mở modal THỨ HAI chồng lên modal thứ nhất — Bootstrap không
+       * xếp chồng modal, nên form mới bị backdrop nuốt: nút bấm được mà không thấy gì hiện
+       * ra, trông y như nút hỏng. Đúng lỗi đã gặp ở menu Roles.
+       *
+       * Cách chữa dùng chung cho MỌI bảng: chặn cú bấm, đóng modal Details trước, đợi nó
+       * đóng hẳn rồi mới phát lại cú bấm đó. Không trang nào phải tự lo lấy.
+       */
+      document.addEventListener('click', function (e) {
+        var dtr = e.target.closest ? e.target.closest('.dtr-bs-modal') : null;
+        if (!dtr) {
+          return;
+        }
+        var btn = e.target.closest('button, a');
+        // Nút đóng của chính modal Details thì để yên cho Bootstrap xử lý
+        if (!btn || btn.hasAttribute('data-bs-dismiss') || btn.classList.contains('btn-close')) {
+          return;
+        }
+        if (btn.dataset.dtrRelayed === '1') {
+          delete btn.dataset.dtrRelayed;   // đây là cú bấm phát lại -> cho đi tiếp
+          return;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        var inst = bootstrap.Modal.getInstance(dtr);
+        if (!inst) {
+          return;
+        }
+        dtr.addEventListener('hidden.bs.modal', function () {
+          btn.dataset.dtrRelayed = '1';
+          btn.click();
+        }, { once: true });
+        inst.hide();
+      }, true);
+    </script>
+
     <!-- Main JS -->
 
     <script src="../../assets/js/main.js?v=<?= filemtime(ROOT_DIR . '/assets/js/main.js') ?>"></script>

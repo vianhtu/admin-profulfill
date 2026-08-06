@@ -86,7 +86,11 @@ function initTable() {
                 return '<div class="d-flex justify-content-start align-items-center user-name">' +
                     '<div class="avatar-wrapper"><div class="avatar avatar-sm me-4">' + face + '</div></div>' +
                     '<div class="d-flex flex-column">' +
-                    '<span class="text-heading fw-medium">' + esc(name) + '</span>' +
+                    // Tên là link sang trang Account của người đó. Mọi dòng lọt được vào
+                    // bảng này đều đã qua scope_where(), tức là đúng tập mà Account cũng
+                    // cho xem — không cần cờ riêng, và dòng của chính mình cũng vào được.
+                    '<a href="index.php?menu=account&id=' + Number(full['id']) +
+                    '" class="text-heading fw-medium">' + esc(name) + '</a>' +
                     '<small>' + esc(full['email']) + '</small>' +
                     '</div></div>';
             }
