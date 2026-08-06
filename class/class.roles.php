@@ -94,10 +94,9 @@ final class Roles
         if (!self::can_manage('edit')) {
             return false;
         }
-        if (is_admin()) {
-            return true;
-        }
-        if (($row['slug'] ?? '') === 'admin') {
+        // Chỉ sửa được role có cấp THẤP HƠN mình (nên role của chính mình cũng loại luôn,
+        // vì nó ngang cấp với mình).
+        if (!self::level_thap_hon($row)) {
             return false;
         }
         return (int)($row['id'] ?? 0) !== self::own_level_id();
@@ -109,13 +108,10 @@ final class Roles
         if (!self::can_manage('delete')) {
             return false;
         }
-        if (($row['slug'] ?? '') === 'admin') {
-            return false;
+        if (!self::level_thap_hon($row)) {
+            return false;   // bao gồm cả role cấp admin và role ngang cấp mình
         }
-        if ((int)($row['id'] ?? 0) === self::own_level_id()) {
-            return false;
-        }
-        return is_admin() || ($row['slug'] ?? '') !== 'manager';
+        return (int)($row['id'] ?? 0) !== self::own_level_id();
     }
 
     /** Thứ hạng của chính người đang đăng nhập. */
@@ -139,14 +135,25 @@ final class Roles
     }
 
     /**
-     * Cấp mà người đang đăng nhập được phép GÁN cho role (chốt 06/08/2026): **cùng cấp hoặc
-     * thấp hơn**. Manager tạo được role cấp manager/user/customer nhưng KHÔNG bao giờ tạo
-     * được role cấp admin — đó là đường tự nâng quyền.
-     * Trùng với visible_levels() (thấy gì thì gán được nấy) nên dùng chung một nguồn.
+     * Cấp được phép TẠO/SỬA/XÓA (chốt 06/08/2026): **CHỈ THẤP HƠN mình**, không phải
+     * cùng cấp. Admin quản được manager/user/customer nhưng KHÔNG đụng role cấp admin;
+     * manager quản được user/customer nhưng không đụng role cấp manager.
+     *
+     * KHÁC visible_levels() (cùng cấp hoặc thấp hơn) — nhìn thấy đồng cấp là được, nhưng
+     * SỬA đồng cấp thì không: sửa role ngang hàng là đường vòng để tự nâng quyền cho nhóm
+     * mình, và để một người xóa mất quyền của người ngang vai.
      */
     public static function allowed_levels(): array
     {
-        return self::visible_levels();
+        $rank = self::own_rank();
+        return array_filter(self::LEVELS,
+            fn($l, $slug) => (self::LEVEL_RANK[$slug] ?? 9) < $rank, ARRAY_FILTER_USE_BOTH);
+    }
+
+    /** Dòng này có cấp THẤP HƠN mình không — điều kiện để được sửa/xóa. */
+    private static function level_thap_hon(array $row): bool
+    {
+        return isset(self::allowed_levels()[(string)($row['slug'] ?? '')]);
     }
 
     /**
