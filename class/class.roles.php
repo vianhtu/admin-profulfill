@@ -32,6 +32,13 @@ final class Roles
         'customer' => 'Customer',
     ];
 
+    /**
+     * Thứ bậc CẤP: Admin > Manager > User > Customer (chốt 06/08/2026) — GIỐNG Users.
+     * Người cấp thấp không được THẤY role cấp cao hơn: danh sách lộ có role admin là lộ
+     * luôn mục tiêu tấn công, và nhìn một dòng mà mọi nút đều khóa thì rất khó hiểu.
+     */
+    private const LEVEL_RANK = ['admin' => 4, 'manager' => 3, 'user' => 2, 'customer' => 1];
+
     /** Hành động con của mỗi menu trong JSON roles. */
     public const ACTIONS = ['view', 'add', 'edit', 'delete'];
 
@@ -111,6 +118,26 @@ final class Roles
         return is_admin() || ($row['slug'] ?? '') !== 'manager';
     }
 
+    /** Thứ hạng của chính người đang đăng nhập. */
+    private static function own_rank(): int
+    {
+        return self::LEVEL_RANK[(string)($_SESSION['auth']['level'] ?? '')] ?? 0;
+    }
+
+    /**
+     * Các cấp người đang đăng nhập được phép NHÌN THẤY (ngang hàng hoặc thấp hơn).
+     * Khác allowed_levels() — cái đó là cấp được phép GÁN, chặt hơn nhiều.
+     */
+    public static function visible_levels(): array
+    {
+        if (is_admin()) {
+            return self::LEVELS;
+        }
+        $rank = self::own_rank();
+        return array_filter(self::LEVELS, fn($l, $slug) => (self::LEVEL_RANK[$slug] ?? 0) <= $rank,
+            ARRAY_FILTER_USE_BOTH);
+    }
+
     /** Cấp mà người đang đăng nhập được phép gán. Non-admin chỉ tạo được role vai `user`. */
     public static function allowed_levels(): array
     {
@@ -163,6 +190,12 @@ final class Roles
 
         $cond = [];
         $args = [];
+        // Trục CẤP: không nhìn lên trên. Lọc trong SQL để số đếm phân trang không sai.
+        if (!is_admin()) {
+            $vis = array_keys(self::visible_levels());
+            $cond[] = 'rp.slug IN (' . implode(',', array_fill(0, count($vis), '?')) . ')';
+            foreach ($vis as $v) { $args[] = $v; }
+        }
         if ($params['searchValue'] !== '') {
             $cond[] = '(rp.name LIKE ? OR rp.slug LIKE ?)';
             $like   = '%' . $params['searchValue'] . '%';
@@ -170,7 +203,7 @@ final class Roles
             $args[] = $like;
         }
         $level = (string)($_POST['level'] ?? '');
-        if ($level !== '' && isset(self::LEVELS[$level])) {
+        if ($level !== '' && isset(self::visible_levels()[$level])) {
             $cond[] = 'rp.slug = ?';
             $args[] = $level;
         }
@@ -240,7 +273,7 @@ final class Roles
             return ['status' => 'error', 'message' => 'You do not have permission to view roles.'];
         }
         return [
-            'levels' => self::LEVELS,
+            'levels' => self::visible_levels(),
             'perms'  => [
                 'add'        => self::can_add(),
                 'delete_any' => self::can_delete_any(),
