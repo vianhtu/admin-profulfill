@@ -102,6 +102,20 @@ if (empty($_SESSION['csrf_token'])) {
           overflow-x: hidden;
       }
 
+      /* Modal "Details of ..." của DataTables Responsive — chỉ xuất hiện ở khổ hẹp, nơi cột
+         bị thu gọn. Đệm mặc định của template quá dày nên mỗi màn hình chỉ xem được vài dòng;
+         thu gọn lại để hiện được nhiều dữ liệu hơn. Áp cho MỌI bảng vì dùng chung modal này. */
+      .dtr-bs-modal .modal-body { padding: .75rem 1rem 1rem; }
+      .dtr-bs-modal .modal-header { padding: .75rem 1rem; }
+      .dtr-bs-modal .modal-title { font-size: 1.05rem; }
+      .dtr-bs-modal .table-responsive { margin-bottom: 0; }
+      .dtr-bs-modal table.table { margin-bottom: 0; font-size: .9rem; }
+      .dtr-bs-modal table.table > tbody > tr > td { padding: .4rem .5rem; vertical-align: middle; }
+      /* Nhãn cột bên trái không cần rộng bằng nửa modal */
+      .dtr-bs-modal table.table > tbody > tr > td:first-child {
+          width: 38%; white-space: nowrap; color: var(--bs-secondary-color);
+      }
+
   </style>
   </head>
 
