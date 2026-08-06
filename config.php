@@ -132,23 +132,56 @@ function user_is_active(int $userId): bool {
  * Admin được miễn phần TEAM (tránh tự nhốt khi tắt team của mình) nhưng KHÔNG được miễn
  * phần tài khoản: admin bị khóa tài khoản thì cũng phải dừng.
  */
-function current_team_blocked(): bool {
+function access_block_reason(): ?string {
 	if (empty($_SESSION['auth'])) {
+		return null;
+	}
+	$uid  = (int)($_SESSION['auth']['user_id'] ?? 0);
+	$team = (int)($_SESSION['auth']['team'] ?? 0);
+
+	if (!user_is_active($uid)) {
+		return USER_INACTIVE_MESSAGE;
+	}
+	// Bị admin chuyển sang team khác trong lúc đang đăng nhập: session vẫn giữ team CŨ
+	// (login_user chụp team một lần lúc đăng nhập) nên vẫn thao tác được trên phạm vi cũ.
+	// Buộc đăng nhập lại để nhận đúng team mới.
+	if (user_team_changed($uid, $team)) {
+		return TEAM_CHANGED_MESSAGE;
+	}
+	// Admin được miễn phần TEAM (tránh tự nhốt khi tắt team của mình)
+	if (!is_admin() && !team_is_active($team)) {
+		return TEAM_INACTIVE_MESSAGE;
+	}
+	return null;
+}
+
+function current_team_blocked(): bool {
+	return access_block_reason() !== null;
+}
+
+/** Team trong session có còn khớp team trong DB không. */
+function user_team_changed(int $userId, int $sessionTeam): bool {
+	if ($userId <= 0) {
 		return false;
 	}
-	if (!user_is_active((int)($_SESSION['auth']['user_id'] ?? 0))) {
-		return true;
+	static $cache = [];
+	if (!array_key_exists($userId, $cache)) {
+		try {
+			$row = db()->execute_query('SELECT team_id FROM authors WHERE ID = ? LIMIT 1', [$userId])->fetch_row();
+			$cache[$userId] = $row === null ? null : (int)$row[0];
+		} catch (mysqli_sql_exception) {
+			$cache[$userId] = null;   // DB hỏng thì không tự đá người dùng ra
+		}
 	}
-	if (is_admin()) {
-		return false;
-	}
-	return !team_is_active((int)($_SESSION['auth']['team'] ?? 0));
+	return $cache[$userId] !== null && $cache[$userId] !== $sessionTeam;
 }
 
 /** Thông báo dùng chung khi bị khóa (app hiển thị tiếng Anh). */
 const TEAM_INACTIVE_MESSAGE = 'Your team has been deactivated. Please contact an administrator.';
 /** Tài khoản chưa duyệt / đã khóa. */
 const USER_INACTIVE_MESSAGE = 'Your account is not active. Please contact an administrator.';
+/** Bị chuyển sang team khác trong lúc đang đăng nhập. */
+const TEAM_CHANGED_MESSAGE = 'Your team has changed. Please sign in again.';
 /**
  * URL trang đăng nhập, tính theo vị trí script đang chạy.
  *
@@ -176,10 +209,12 @@ function require_login(): void {
 			exit;
 		}
 	}
-	// Team bị tắt trong lúc đang đăng nhập -> đẩy ra ngay, không vào được trang nào
-	if (current_team_blocked()) {
+	// Tài khoản bị khóa / team bị tắt / bị chuyển team trong lúc đang đăng nhập
+	// -> đẩy ra ngay, không vào được trang nào
+	$reason = access_block_reason();
+	if ($reason !== null) {
 		logout_user();
-		flash_set('error', TEAM_INACTIVE_MESSAGE);
+		flash_set('error', $reason);
 		header('Location: ' . login_url());
 		exit;
 	}

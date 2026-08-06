@@ -151,6 +151,75 @@ return function (AbRunner $r): void {
         return $fx->conn->query("SELECT ID FROM authors WHERE username = '$u'")->fetch_row() !== null;
     })->allow();
 
+    // ---------- Chuyển team ----------
+    $r->add('Users — chuyển team', 'Xem trước hệ quả khi chuyển team', function ($a, $fx) {
+        $_POST = ['csrf_token' => 'ABTEST', 'id' => $fx->new_user(1), 'team_id' => 2];
+        $res = Users::get_move_preview();
+        return ($res['status'] ?? '') === 'error' ? $res : isset($res['counts']['products']);
+    })->allow('ADMIN');
+
+    $r->add('Users — chuyển team', 'Chuyển user sang team khác', function ($a, $fx) {
+        $id = $fx->new_user(1);
+        $row = $fx->conn->query("SELECT username, email, level FROM authors WHERE ID = $id")->fetch_assoc();
+        $_POST = ['csrf_token' => 'ABTEST', 'id' => $id, 'username' => $row['username'],
+            'email' => $row['email'], 'password' => '', 'level' => (int)$row['level'],
+            'team_id' => 2, 'status' => 2];
+        $res = User::save_user();
+        if (($res['status'] ?? '') === 'error') {
+            return $res;
+        }
+        $now = (int)$fx->conn->query("SELECT team_id FROM authors WHERE ID = $id")->fetch_row()[0];
+        return $now === 2 ? $res : ['status' => 'error', 'message' => 'team_id vẫn là ' . $now];
+    })->allow('ADMIN');
+
+    // Chuyển team phải gỡ ràng buộc chỉ đúng với team CŨ, nếu không sản phẩm trỏ store
+    // riêng team cũ sẽ không sửa được nữa ("store does not belong to the owner's team")
+    $r->add('Users — chuyển team', 'Gỡ liên kết account + store riêng của team cũ', function ($a, $fx) {
+        $id = $fx->new_user(1);
+        $acc = $fx->new_account(1, $id);
+        $store = $fx->new_store(1);
+        $post = $fx->new_post($id, 'ZZAB-P-MOVE');
+        $fx->conn->query("UPDATE posts SET store_id = $store WHERE ID = $post");
+
+        $row = $fx->conn->query("SELECT username, email, level FROM authors WHERE ID = $id")->fetch_assoc();
+        $_POST = ['csrf_token' => 'ABTEST', 'id' => $id, 'username' => $row['username'],
+            'email' => $row['email'], 'password' => '', 'level' => (int)$row['level'],
+            'team_id' => 2, 'status' => 2];
+        $res = User::save_user();
+        if (($res['status'] ?? '') === 'error') {
+            return $res;
+        }
+        $links = (int)$fx->conn->query(
+            "SELECT COUNT(*) FROM accounts_authors WHERE author_id = $id AND account_id = $acc")->fetch_row()[0];
+        $storeId = (int)$fx->conn->query("SELECT store_id FROM posts WHERE ID = $post")->fetch_row()[0];
+        return ($links === 0 && $storeId === 0)
+            ? $res : ['status' => 'error', 'message' => "links=$links store_id=$storeId"];
+    })->allow('ADMIN');
+
+    $r->add('Users — chuyển team', 'Non-admin đổi được team của người khác', function ($a, $fx) {
+        $id = $fx->new_user((int)$a->team);
+        $row = $fx->conn->query("SELECT username, email, level FROM authors WHERE ID = $id")->fetch_assoc();
+        $_POST = ['csrf_token' => 'ABTEST', 'id' => $id, 'username' => $row['username'],
+            'email' => $row['email'], 'password' => '', 'level' => (int)$row['level'],
+            'team_id' => 3, 'status' => 2];
+        User::save_user();
+        $now = (int)$fx->conn->query("SELECT team_id FROM authors WHERE ID = $id")->fetch_row()[0];
+        // ALLOW = team bị đổi sang 3 -> chỉ admin mới được phép
+        return $now === 3;
+    })->allow('ADMIN');
+
+    $r->add('Users — chuyển team', 'Phiên bị đá ra khi team trong DB đổi', function ($a, $fx) {
+        $team = (int)$a->team;
+        if ($team <= 0) {
+            return false;
+        }
+        $fx->conn->query('UPDATE authors SET team_id = 3 WHERE ID = ' . (int)$a->uid);
+        $blocked = current_team_blocked();
+        $fx->conn->query("UPDATE authors SET team_id = $team WHERE ID = " . (int)$a->uid);
+        // ALLOW = KHÔNG bị chặn -> không ai được phép (kể cả admin)
+        return !$blocked;
+    })->allow();
+
     // ---------- Xóa ----------
     $r->add('Users — xóa', 'Xóa user cùng team (không có dữ liệu)', function ($a, $fx) {
         $id = $fx->new_user((int)$a->team);

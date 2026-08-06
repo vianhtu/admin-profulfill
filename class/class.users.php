@@ -292,6 +292,87 @@ class Users
     }
 
     /**
+     * Đếm trước hệ quả khi CHUYỂN user sang team khác — dùng cho hộp xác nhận.
+     * Chỉ ĐỌC. Chỉ admin (chỉ admin mới đổi được team).
+     *
+     * @return array{status:string,counts?:array,from?:string,to?:string,message?:string}
+     */
+    public static function get_move_preview(): array
+    {
+        if (!check_csrf()) {
+            return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
+        }
+        if (!is_admin()) {
+            return ['status' => 'error', 'message' => 'Only an admin can move users between teams.'];
+        }
+        $id = (int)($_POST['id'] ?? 0);
+        $to = (int)($_POST['team_id'] ?? 0);
+        if ($id <= 0) {
+            return ['status' => 'error', 'message' => 'Missing user.'];
+        }
+
+        $conn = db();
+        $row = $conn->execute_query(
+            'SELECT username, team_id FROM authors WHERE ID = ? LIMIT 1', [$id])->fetch_assoc();
+        if (!$row) {
+            return ['status' => 'error', 'message' => 'User not found.'];
+        }
+        $from = (int)$row['team_id'];
+
+        return [
+            'status'   => 'success',
+            'username' => $row['username'],
+            'from'     => $from > 0 ? (string)get_field_by_id('team', 'name', $from) : '(no team)',
+            'to'       => $to > 0 ? (string)get_field_by_id('team', 'name', $to) : '(no team)',
+            'counts'   => [
+                // Sản phẩm đi theo tác giả -> đổi luôn tầm nhìn của cả 2 team
+                'products' => (int)$conn->execute_query(
+                    'SELECT COUNT(*) FROM posts WHERE author_id = ?', [$id])->fetch_row()[0],
+                // Liên kết tới account của team CŨ sẽ bị gỡ
+                'accounts' => (int)$conn->execute_query(
+                    'SELECT COUNT(*) FROM accounts_authors aa
+                     INNER JOIN accounts ac ON ac.ID = aa.account_id
+                     WHERE aa.author_id = ? AND ac.team_id = ?', [$id, $from])->fetch_row()[0],
+                // Sản phẩm đang trỏ store RIÊNG của team cũ -> sẽ bị gỡ liên kết store
+                'stores'   => (int)$conn->execute_query(
+                    'SELECT COUNT(*) FROM posts p INNER JOIN store s ON s.ID = p.store_id
+                     WHERE p.author_id = ? AND s.team_id <> 0 AND s.team_id = ?', [$id, $from])->fetch_row()[0],
+            ],
+        ];
+    }
+
+    /**
+     * Dọn dẹp sau khi user được chuyển từ team $from sang team mới.
+     *
+     * Sản phẩm ĐI THEO người (phạm vi tính bằng authors.team_id) nên không phải chuyển gì,
+     * nhưng những ràng buộc chỉ đúng với team CŨ thì phải gỡ:
+     *   - liên kết tới account của team cũ (accounts_authors);
+     *   - store RIÊNG của team cũ mà sản phẩm đang trỏ tới (nếu không, lần sửa sau sẽ
+     *     báo "This store does not belong to the owner's team");
+     *   - token nhớ đăng nhập, để user phải đăng nhập lại với team mới.
+     *
+     * @return array{accounts:int,stores:int}
+     */
+    public static function cleanup_after_move(mysqli $conn, int $userId, int $from): array
+    {
+        $conn->execute_query(
+            'DELETE aa FROM accounts_authors aa
+             INNER JOIN accounts ac ON ac.ID = aa.account_id
+             WHERE aa.author_id = ? AND ac.team_id = ?', [$userId, $from]);
+        $accounts = $conn->affected_rows;
+
+        $conn->execute_query(
+            'UPDATE posts p INNER JOIN store s ON s.ID = p.store_id
+             SET p.store_id = 0
+             WHERE p.author_id = ? AND s.team_id <> 0 AND s.team_id = ?', [$userId, $from]);
+        $stores = $conn->affected_rows;
+
+        $conn->execute_query('DELETE FROM author_remember_tokens WHERE author_id = ?', [$userId]);
+
+        return ['accounts' => $accounts, 'stores' => $stores];
+    }
+
+    /**
      * Xóa user. Admin xóa được mọi user; manager có role delete xóa được người CÙNG TEAM
      * (trừ tài khoản admin). Chặn khi user còn sản phẩm hoặc account đứng tên.
      *

@@ -275,7 +275,16 @@ class User
             if ($password !== '') {
                 $conn->execute_query('DELETE FROM author_remember_tokens WHERE author_id = ?', [$id]);
             }
-            return ['status' => 'success', 'id' => $id];
+
+            // CHUYỂN TEAM: sản phẩm đi theo người, nhưng ràng buộc chỉ đúng với team cũ
+            // (liên kết account, store riêng) phải gỡ; token bị thu hồi để user đăng nhập
+            // lại với team mới (phiên đang mở cũng bị đá ra bởi access_block_reason()).
+            $oldTeam = (int)$current['team_id'];
+            $moved = [];
+            if ($oldTeam !== $teamId) {
+                $moved = Users::cleanup_after_move($conn, $id, $oldTeam);
+            }
+            return ['status' => 'success', 'id' => $id] + ($moved ? ['moved' => $moved] : []);
         } catch (\mysqli_sql_exception $e) {
             return ['status' => 'error', 'message' => 'Save failed: ' . $e->getMessage()];
         }

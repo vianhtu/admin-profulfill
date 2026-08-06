@@ -415,6 +415,7 @@ function openUserForm(row) {
     const firstTeam = String(userPerms.own_team || '') || ($('#user-team option').first().val() ?? '');
     $('#user-level').val(String(row?.level ?? firstLevel)).trigger('change.select2');
     $('#user-team').val(String(row?.team_id ?? firstTeam)).trigger('change.select2');
+    editingOriginalTeam = row ? String(row.team_id) : null;
     $('#user-status').val(String(row?.status ?? 2)).trigger('change.select2');
     if (userPerms.see_salary) {
         // wage trả về đã format tiền tệ -> lấy lại phần số để đưa vào ô nhập
@@ -430,7 +431,51 @@ $(document).on('click', '.edit-user', function () {
     openUserForm(row);
 });
 
-$(document).on('click', '#userSubmit', function () {
+// Team gốc của bản ghi đang mở — dùng để phát hiện admin đổi team
+let editingOriginalTeam = null;
+
+// Đổi team kéo theo cả tầm nhìn dữ liệu (sản phẩm đi theo tác giả) nên phải xác nhận
+// có số liệu trước, thay vì lặng lẽ chuyển.
+function confirmTeamMove(id, targetTeam) {
+    return new Promise(resolve => {
+        const modalEl = document.getElementById('moveUserModal');
+        if (!modalEl) {
+            resolve(true);   // không phải admin -> không đổi được team, khỏi hỏi
+            return;
+        }
+        $.ajax({
+            url: '../../ajax.php?action=get-user-move-preview',
+            type: 'POST',
+            data: { id: id, team_id: targetTeam, csrf_token: window.csrfToken }
+        }).done(function (res) {
+            if (res?.status !== 'success') {
+                alert(res?.message || 'Failed to check the team change.');
+                resolve(false);
+                return;
+            }
+            $('#moveUserName').text(res.username);
+            $('#moveUserFrom').text(res.from);
+            $('#moveUserTo').text(res.to);
+            $('#moveCntProducts').text((res.counts.products || 0).toLocaleString());
+            $('#moveCntAccounts').text((res.counts.accounts || 0).toLocaleString());
+            $('#moveCntStores').text((res.counts.stores || 0).toLocaleString());
+
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            let confirmed = false;
+            $('#moveUserConfirm').off('click.move').on('click.move', function () {
+                confirmed = true;
+                modal.hide();
+            });
+            $(modalEl).off('hidden.bs.modal.move').on('hidden.bs.modal.move', () => resolve(confirmed));
+            modal.show();
+        }).fail(function () {
+            alert('Server connection error.');
+            resolve(false);
+        });
+    });
+}
+
+$(document).on('click', '#userSubmit', async function () {
     const $btn = $(this);
     const isNew = parseInt($('#user-id').val(), 10) === 0;
     const username = $('#user-username').val().trim();
@@ -447,6 +492,15 @@ $(document).on('click', '#userSubmit', function () {
     if (badPass) { ok = false; }
     if (!ok) {
         return;
+    }
+
+    // Sửa user và team bị đổi -> hỏi trước, huỷ thì không lưu gì cả
+    const targetTeam = $('#user-team').val();
+    if (!isNew && editingOriginalTeam !== null && String(targetTeam) !== String(editingOriginalTeam)) {
+        const okMove = await confirmTeamMove($('#user-id').val(), targetTeam);
+        if (!okMove) {
+            return;
+        }
     }
 
     const data = {

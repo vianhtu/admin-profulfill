@@ -97,11 +97,12 @@ if (!is_logged_in() && !attempt_cookie_login()) {
 	exit;
 }
 
-// Team ngừng hoạt động -> chặn TOÀN BỘ ajax của phiên này (admin không bị chặn).
-// Đặt ngay sau cửa đăng nhập để không handler nào phải tự nhớ kiểm.
-if (current_team_blocked()) {
+// Tài khoản khóa / team ngừng hoạt động / bị chuyển team -> chặn TOÀN BỘ ajax của phiên
+// này. Đặt ngay sau cửa đăng nhập để không handler nào phải tự nhớ kiểm.
+$accessBlock = access_block_reason();
+if ($accessBlock !== null) {
     http_response_code(403);
-    echo json_encode(['status' => 'error', 'message' => TEAM_INACTIVE_MESSAGE]);
+    echo json_encode(['status' => 'error', 'message' => $accessBlock]);
     exit;
 }
 
@@ -239,6 +240,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             break;
         case 'upload-user-avatar':
             echo json_encode(User::upload_avatar());
+            break;
+        case 'get-user-move-preview':
+            echo json_encode(Users::get_move_preview());
             break;
         case 'delete-users':
             echo json_encode(Users::delete_users());

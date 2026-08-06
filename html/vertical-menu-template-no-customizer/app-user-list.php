@@ -139,6 +139,41 @@ $can_see_wage  = Users::can_see_salary();
     </div>
 </div>
 
+<?php if (is_admin()) : ?>
+<!-- Modal xác nhận CHUYỂN TEAM: đổi team kéo theo cả tầm nhìn dữ liệu nên phải xác nhận -->
+<div class="modal fade" id="moveUserModal" tabindex="-1" aria-hidden="true" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-warning">Move user to another team</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-4">
+                    Moving <strong id="moveUserName"></strong> from <strong id="moveUserFrom"></strong>
+                    to <strong id="moveUserTo"></strong> also moves what they own.
+                </p>
+                <table class="table table-sm mb-4">
+                    <tbody>
+                    <tr><td>Products that change team</td><td class="text-end fw-medium" id="moveCntProducts">0</td></tr>
+                    <tr><td>Account links removed</td><td class="text-end fw-medium" id="moveCntAccounts">0</td></tr>
+                    <tr><td>Products unlinked from private stores</td><td class="text-end fw-medium" id="moveCntStores">0</td></tr>
+                    </tbody>
+                </table>
+                <div class="alert alert-info d-flex mb-0" role="alert">
+                    <i class="icon-base ti tabler-info-circle me-2"></i>
+                    <span>The user is signed out and must sign in again to get the new team.</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-label-secondary waves-effect" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning waves-effect waves-light" id="moveUserConfirm">Move user</button>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
 <?php if (Users::can_delete_any()) : ?>
 <!-- Modal xác nhận xóa MỘT user (không có xóa hàng loạt) -->
 <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-hidden="true" role="dialog">
