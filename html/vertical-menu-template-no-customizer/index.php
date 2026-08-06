@@ -102,11 +102,6 @@ if (empty($_SESSION['csrf_token'])) {
           overflow-x: hidden;
       }
 
-      /* CHƯA VÁ ĐƯỢC: mở modal thì thanh navbar xê dịch 7px. Đã thử và ĐỀU KHÔNG ăn:
-         scrollbar-gutter:stable trên body, trên html, body{overflow-y:scroll},
-         body.modal-open{padding-right}. Không phần tử cha nào của navbar đổi bề rộng,
-         document.documentElement.clientWidth cũng không đổi — nguồn dịch nằm ngoài chuỗi
-         cha. Đừng thêm CSS đoán mò nữa; tìm ra gốc rồi hãy vá. */
   </style>
   </head>
 
@@ -478,6 +473,34 @@ if (empty($_SESSION['csrf_token'])) {
             <?php break;
     }
     ?>
+    <script>
+      /**
+       * Mở modal làm thanh navbar xê dịch 7px — KHÔNG phải lỗi thanh cuộn.
+       * Vuexy có rule:
+       *   .layout-navbar-fixed .modal-open .layout-navbar.navbar-detached {
+       *       inline-size: calc(100% - 1.5rem*2 - calc(16.25rem + var(--bs-scrollbar-width))) }
+       * tức là nó CỐ Ý thu hẹp navbar đúng bằng --bs-scrollbar-width để bù phần thanh cuộn
+       * mà Bootstrap lấy đi khi khoá cuộn body. Nhưng ở layout này Bootstrap KHÔNG lấy
+       * (body padding-right vẫn 0), nên phần bù thành thừa -> navbar hụt 15px -> canh giữa
+       * lại -> lệch 7.5px mỗi bên.
+       *
+       * Vá đúng gốc: đồng bộ --bs-scrollbar-width với phần Bootstrap THỰC SỰ bù vào body.
+       * Trang nào Bootstrap có bù thật thì giá trị vẫn đúng như cũ, nên không phá trang khác.
+       * Dùng capture để chạy trước lúc trình duyệt vẽ lại.
+       */
+      (function () {
+        var sync = function () {
+          var pr = parseFloat(getComputedStyle(document.body).paddingRight) || 0;
+          document.body.style.setProperty('--bs-scrollbar-width', pr + 'px');
+        };
+        document.addEventListener('show.bs.modal', sync, true);
+        document.addEventListener('shown.bs.modal', sync, true);
+        document.addEventListener('hidden.bs.modal', function () {
+          document.body.style.removeProperty('--bs-scrollbar-width');
+        }, true);
+      })();
+    </script>
+
     <!-- Main JS -->
 
     <script src="../../assets/js/main.js?v=<?= filemtime(ROOT_DIR . '/assets/js/main.js') ?>"></script>
