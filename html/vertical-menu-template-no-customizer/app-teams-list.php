@@ -109,6 +109,8 @@ if (!is_admin()) {
                         <tr><td>Orders</td><td class="text-end fw-medium" id="cntOrders">0</td></tr>
                         <tr><td>Private stores</td><td class="text-end fw-medium" id="cntStores">0</td></tr>
                         <tr><td>Account files</td><td class="text-end fw-medium" id="cntFiles">0</td></tr>
+                        <tr><td>API keys &amp; settings</td><td class="text-end fw-medium" id="cntSettings">0</td></tr>
+                        <tr><td>Phone numbers</td><td class="text-end fw-medium" id="cntPhones">0</td></tr>
                         </tbody>
                     </table>
                     <div class="alert alert-info d-flex" role="alert">

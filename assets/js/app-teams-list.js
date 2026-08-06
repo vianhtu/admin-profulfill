@@ -318,6 +318,8 @@ function openDeleteTeamModal(id, name) {
         $('#cntOrders').text((c.orders || 0).toLocaleString());
         $('#cntStores').text((c.stores || 0).toLocaleString());
         $('#cntFiles').text((c.files || 0).toLocaleString());
+        $('#cntSettings').text((c.settings || 0).toLocaleString());
+        $('#cntPhones').text((c.phones || 0).toLocaleString());
         $(modalEl).data('total', res.total || 0);
         $('#deleteTeamSummary').removeClass('d-none');
 
@@ -375,7 +377,8 @@ $(document).on('click', '#deleteTeamMerge', function () {
         const m = res.moved || {};
         $('#deleteTeamBar').css('width', '100%');
         $('#deleteTeamProgressText').text('Done — moved ' + (m.members || 0) + ' members, '
-            + (m.accounts || 0) + ' accounts, ' + (m.stores || 0) + ' stores.');
+            + (m.accounts || 0) + ' accounts, ' + (m.stores || 0) + ' stores, '
+            + (m.phones || 0) + ' phone numbers. Conflicting API keys were kept from the target team.');
         setTimeout(function () {
             bootstrap.Modal.getOrCreateInstance(modalEl).hide();
             $(modalEl).removeData('id').removeData('total');

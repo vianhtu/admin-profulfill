@@ -472,6 +472,17 @@ class Users
             $conn->execute_query("UPDATE `$table` SET created_by = 0 WHERE created_by = ?", [$id]);
         }
 
+        // Bang luong duoc GIU lai (du lieu ke toan) nhung `authors` se tro vao khoang khong
+        // -> chup ten nguoi vao username_snapshot TRUOC khi xoa, de con tra cuu duoc sau nay.
+        if (self::has_column($conn, 'salary', 'username_snapshot')) {
+            $conn->execute_query(
+                'UPDATE salary s
+                 INNER JOIN authors a ON a.ID = s.authors
+                 SET s.username_snapshot = a.username
+                 WHERE s.authors = ? AND (s.username_snapshot IS NULL OR s.username_snapshot = \'\')',
+                [$id]);
+        }
+
         return ['files_deleted' => $deletedFiles, 'files_kept' => max($keptFiles, 0)];
     }
 
@@ -481,6 +492,20 @@ class Users
         return (bool)$conn->execute_query(
             'SELECT 1 FROM information_schema.TABLES
              WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? LIMIT 1', [$table])->fetch_row();
+    }
+
+    /**
+     * Cot co ton tai khong — deploy CODE truoc, doi DB sau (quy uoc cua du an) nen code
+     * phai chay duoc voi ca schema cu lan moi.
+     */
+    private static function has_column(mysqli $conn, string $table, string $col): bool
+    {
+        static $cache = [];
+        $k = "$table.$col";
+        return $cache[$k] ??= (bool)$conn->execute_query(
+            'SELECT 1 FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1',
+            [$table, $col])->fetch_row();
     }
 
     /**

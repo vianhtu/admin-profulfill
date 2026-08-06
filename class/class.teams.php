@@ -55,9 +55,14 @@ class Teams
     /** Bảng con của ĐƠN HÀNG — xóa theo order_id. */
     private const ORDER_CHILDREN = ['order_relationships'];
 
-    /** Bảng con của USER — xóa theo author_id. */
+    /**
+     * Bảng con của USER — xóa theo author_id.
+     * `salary` KHÔNG nằm ở đây: là dữ liệu kế toán nên được giữ lại, chỉ chụp tên người
+     * vào `username_snapshot` trước khi xóa (cột người của nó cũng tên `authors`, không
+     * phải `author_id`, nên trước đây đứng trong danh sách này mà chẳng bao giờ chạy).
+     */
     private const AUTHOR_CHILDREN = [
-        'author_remember_tokens', 'accounts_authors', 'salary',
+        'author_remember_tokens', 'accounts_authors',
     ];
 
     /**
@@ -216,6 +221,11 @@ class Teams
                 ? $one('SELECT COUNT(DISTINCT af.file_id) FROM accounts_files af
                         INNER JOIN accounts ac ON ac.ID = af.account_id WHERE ac.team_id = ?')
                 : 0,
+            // Cấu hình riêng của team: khóa API (options) và số điện thoại SMS (phones)
+            'settings' => self::col_exists($conn, 'options', 'team_id')
+                ? $one('SELECT COUNT(*) FROM options WHERE team_id = ?') : 0,
+            'phones'   => self::col_exists($conn, 'phones', 'team_id')
+                ? $one('SELECT COUNT(*) FROM phones WHERE team_id = ?') : 0,
         ];
 
         // Team khác để sáp nhập sang (thay vì xóa sạch)
@@ -268,9 +278,24 @@ class Teams
 
         try {
             $moved = [];
-            foreach (['authors' => 'members', 'accounts' => 'accounts', 'store' => 'stores'] as $table => $label) {
+            foreach (['authors' => 'members', 'accounts' => 'accounts', 'store' => 'stores',
+                      'phones' => 'phones'] as $table => $label) {
+                if (!self::col_exists($conn, $table, 'team_id')) {
+                    continue;
+                }
                 $conn->execute_query("UPDATE `$table` SET team_id = ? WHERE team_id = ?", [$to, $id]);
                 $moved[$label] = $conn->affected_rows;
+            }
+
+            // options = khóa API theo team. Team NHẬN đang hoạt động nên cấu hình của họ là
+            // chính: khóa trùng tên của team bị sáp nhập bị bỏ, phần còn lại mới chuyển sang.
+            if (self::col_exists($conn, 'options', 'team_id')) {
+                $conn->execute_query(
+                    'DELETE FROM options WHERE team_id = ?
+                     AND name IN (SELECT name FROM (SELECT name FROM options WHERE team_id = ?) x)',
+                    [$id, $to]);
+                $conn->execute_query('UPDATE options SET team_id = ? WHERE team_id = ?', [$to, $id]);
+                $moved['settings'] = $conn->affected_rows;
             }
             // Thành viên đã sang team mới -> thu hồi token để họ đăng nhập lại đúng team
             $conn->execute_query(
@@ -432,6 +457,15 @@ class Teams
                      WHERE a.team_id = ?", [$id]);
                 $deleted += $conn->affected_rows;
             }
+            // Bảng lương được GIỮ (dữ liệu kế toán, giống luật xóa từng user) nhưng cột
+            // `authors` sắp trỏ vào khoảng không -> chụp tên lại trước khi xóa người.
+            if (self::col_exists($conn, 'salary', 'username_snapshot')) {
+                $conn->execute_query(
+                    'UPDATE salary s INNER JOIN authors a ON a.ID = s.authors
+                     SET s.username_snapshot = a.username
+                     WHERE a.team_id = ? AND (s.username_snapshot IS NULL OR s.username_snapshot = \'\')',
+                    [$id]);
+            }
             $conn->execute_query('DELETE FROM authors WHERE team_id = ?', [$id]);
             $deleted += $conn->affected_rows;
 
@@ -456,6 +490,16 @@ class Teams
                 }
                 $conn->query("DELETE FROM store WHERE ID IN ($storeStr)");
                 $deleted += $conn->affected_rows;
+            }
+
+            // --- 6b. Cấu hình riêng của team: khóa API (options) và số điện thoại (phones).
+            // options chứa openai_key/gemini_key của team -> xóa hẳn, không để secret nằm
+            // lại trong DB trỏ vào team không còn tồn tại.
+            foreach (['options', 'phones'] as $table) {
+                if (self::col_exists($conn, $table, 'team_id')) {
+                    $conn->execute_query("DELETE FROM `$table` WHERE team_id = ?", [$id]);
+                    $deleted += $conn->affected_rows;
+                }
             }
 
             // --- 7. Dữ liệu DÙNG CHUNG: giữ bản ghi, chỉ gỡ người tạo về 0 ---
