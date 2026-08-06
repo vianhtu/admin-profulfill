@@ -387,6 +387,43 @@ return function (AbRunner $r): void {
         return $links === 0 ? $res : ['status' => 'error', 'message' => "còn $links liên kết"];
     })->allow('ADMIN', 'MGR_T1', 'MGR_T2');
 
+    // Dọn tham chiếu còn lại: file không ai dùng thì xóa, file đang dùng thì GIỮ và chỉ
+    // gỡ người upload — xóa thẳng theo người upload sẽ mất logo site và tệp của account.
+    $r->add('Users — xóa', 'Xóa file mồ côi nhưng GIỮ file đang được dùng', function ($a, $fx) {
+        $id = $fx->new_user((int)$a->team);
+        $orphan = $fx->new_file('accounts');
+        $inUse  = $fx->new_file('accounts');
+        $acc    = $fx->new_account((int)$a->team, $id);
+        $fx->conn->execute_query('UPDATE files SET user_id = ? WHERE ID IN (?, ?)', [$id, $orphan, $inUse]);
+        $fx->conn->execute_query('INSERT IGNORE INTO accounts_files (account_id, file_id) VALUES (?, ?)', [$acc, $inUse]);
+
+        $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$id]];
+        $res = Users::delete_users();
+        if (($res['status'] ?? '') === 'error') {
+            return $res;
+        }
+        $orphanGone = $fx->conn->query("SELECT ID FROM files WHERE ID = $orphan")->fetch_row() === null;
+        $kept = $fx->conn->query("SELECT user_id FROM files WHERE ID = $inUse")->fetch_row();
+        return ($orphanGone && $kept !== null && (int)$kept[0] === 0)
+            ? $res : ['status' => 'error', 'message' => 'orphanGone=' . var_export($orphanGone, true)
+                . ' kept=' . var_export($kept, true)];
+    })->allow('ADMIN', 'MGR_T1', 'MGR_T2');
+
+    $r->add('Users — xóa', 'Gỡ created_by của site/category về 0', function ($a, $fx) {
+        $id   = $fx->new_user((int)$a->team);
+        $site = $fx->new_site($id);
+        $cat  = $fx->new_category($id);
+        $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$id]];
+        $res = Users::delete_users();
+        if (($res['status'] ?? '') === 'error') {
+            return $res;
+        }
+        $s = (int)$fx->conn->query("SELECT created_by FROM site WHERE ID = $site")->fetch_row()[0];
+        $c = (int)$fx->conn->query("SELECT created_by FROM `type` WHERE ID = $cat")->fetch_row()[0];
+        return ($s === 0 && $c === 0)
+            ? $res : ['status' => 'error', 'message' => "site.created_by=$s type.created_by=$c"];
+    })->allow('ADMIN', 'MGR_T1', 'MGR_T2');
+
     $r->add('Users — xóa', 'Xem trước dữ liệu + danh sách người nhận', function ($a, $fx) {
         $id = $fx->new_user((int)$a->team);
         $fx->new_user((int)$a->team);

@@ -426,6 +426,64 @@ class Users
     }
 
     /**
+     * Don cac tham chieu con lai tro toi user sap bi xoa, de khong de lai du lieu mo coi.
+     *
+     * Quy tac theo tung loai (chot 05/08/2026):
+     *   - `files`  : CHI xoa file khong con ai dung. File dang gan account (accounts_files)
+     *                hoac dang la logo cua site thi GIU, chi go nguoi upload ve 0 — xoa
+     *                thang theo nguoi upload se lam mat 108 tep account va 20 logo site.
+     *   - `site.created_by`, `type.created_by` : ve 0 (ban ghi thanh "chi admin sua"),
+     *                dung luat "dung chung + nguoi tao" va khop voi xoa team.
+     *   - `download`, `exports` : GIU — day la lich su cong viec, khong phai so huu.
+     *   - `salary` : GIU — du lieu ke toan, khong xoa theo nguoi.
+     *
+     * @return array{files_deleted:int,files_kept:int}
+     */
+    private static function cleanup_user_refs(mysqli $conn, int $id): array
+    {
+        $deletedFiles = 0;
+        if (self::has_table($conn, 'files')) {
+            // File cua user va KHONG con ai dung -> xoa ca ban ghi lan file tren dia
+            $rs = $conn->execute_query(
+                'SELECT f.ID FROM files f
+                 WHERE f.user_id = ?
+                   AND NOT EXISTS (SELECT 1 FROM accounts_files af WHERE af.file_id = f.ID)
+                   AND NOT EXISTS (SELECT 1 FROM site s WHERE s.logo = f.storage_path)',
+                [$id]);
+            $ids = [];
+            while ($row = $rs->fetch_row()) {
+                $ids[] = (int)$row[0];
+            }
+            foreach ($ids as $fid) {
+                if (function_exists('deletePhysicalFile')) {
+                    deletePhysicalFile($conn, $fid);
+                } else {
+                    $conn->execute_query('DELETE FROM files WHERE ID = ?', [$fid]);
+                }
+                $deletedFiles++;
+            }
+            // File con dang duoc dung -> giu lai, chi go nguoi upload
+            $conn->execute_query('UPDATE files SET user_id = 0 WHERE user_id = ?', [$id]);
+        }
+        $keptFiles = $conn->affected_rows;
+
+        // Du lieu dung chung: nguoi tao mat -> ve 0, ban ghi thanh chi admin sua duoc
+        foreach (['site', 'type'] as $table) {
+            $conn->execute_query("UPDATE `$table` SET created_by = 0 WHERE created_by = ?", [$id]);
+        }
+
+        return ['files_deleted' => $deletedFiles, 'files_kept' => max($keptFiles, 0)];
+    }
+
+    /** Bang co ton tai khong (schema con vai bang phu da bi khai tu). */
+    private static function has_table(mysqli $conn, string $table): bool
+    {
+        return (bool)$conn->execute_query(
+            'SELECT 1 FROM information_schema.TABLES
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? LIMIT 1', [$table])->fetch_row();
+    }
+
+    /**
      * Xoa MOT user. Admin xoa duoc moi user; manager co role delete xoa duoc nguoi CUNG
      * TEAM (tru tai khoan admin). Khong ai tu xoa minh.
      *
@@ -560,6 +618,7 @@ class Users
             // Lien ket account chi la phan cong -> go, khong chan xoa
             $conn->execute_query('DELETE FROM author_remember_tokens WHERE author_id = ?', [$id]);
             $conn->execute_query('DELETE FROM accounts_authors WHERE author_id = ?', [$id]);
+            self::cleanup_user_refs($conn, $id);
             $conn->execute_query('DELETE FROM authors WHERE ID = ?', [$id]);
             $deleted = $conn->affected_rows;
         } catch (\mysqli_sql_exception $e) {
