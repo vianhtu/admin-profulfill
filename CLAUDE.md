@@ -111,6 +111,21 @@ người đang sửa (admin gán sản phẩm cho user team khác thì category/
   6. Viết AB TEST cho từng luật, kiểm hiệu quả THẬT bằng đọc lại DB sau thao tác.
   Đã dính 06/08/2026: xoá team bỏ sót `options` (chứa `openai_key`/`gemini_key` RIÊNG của team) →
   xoá team xong secret vẫn nằm lại trong DB; và bỏ sót `phones`.
+- **THÊM BẢNG MỚI có cột liên kết (`team_id`/`author_id`/`account_id`/...) — chiều ngược lại, NGUY
+  HIỂM HƠN**: mọi luồng xoá & chuyển giao ĐANG ĐÚNG bỗng thành THIẾU, và **không có gì báo lỗi** —
+  code vẫn chạy, vẫn trả `success`, chỉ bỏ sót lặng lẽ. Thêm bảng/cột liên kết thì phải:
+  1. Chốt luật với người dùng, sửa **mọi** luồng đang có: `Teams::purge_team()` + `merge_team()`,
+     `Users::delete_users()` + `cleanup_user_refs()` + `cleanup_after_move()`, xoá Store/Category/Site.
+  2. Cập nhật **số đếm ở modal xem trước** (người dùng phải thấy thứ sắp mất).
+  3. Khai vào `LINKS` trong **`tests/schema-links.php`** rồi chạy `php tests/schema-links.php`.
+     Chốt này quét `information_schema` mọi cột `%_id`/`authors`/`created_by`: **cột chưa khai =
+     TRƯỢT**, và nó còn đếm dòng mồ côi nên bắt được cả luật khai đúng mà code làm sai.
+  Chốt này ra đời vì chính commit thêm "xoá `phones` khi purge team" lại tạo đường mồ côi mới:
+  `sms.phone_id` trỏ vào `phones` → xoá team 1 sẽ bỏ lại 288 tin nhắn mồ côi (đã vá cùng ngày).
+- **Script dọn dữ liệu test (kể cả script tạm trong `/tmp`) phải xoá theo ĐÚNG ID vừa tạo**, hoặc
+  kèm guard `AND ID NOT IN (SELECT DISTINCT team_id FROM authors)`. `DELETE ... WHERE name LIKE
+  'ZZAB%'` trần trụi đã xoá nhầm team của skill ui-test (06/08/2026) làm 2 tài khoản test mất
+  quyền đăng nhập.
 
 ## 7. Bảo mật — BẮT BUỘC
 

@@ -52,7 +52,9 @@ const LINKS = [
     'options.authors_id'               => ['ref' => 'authors', 'rule' => 'luôn = 0 (cấu hình thuộc team, không thuộc người) — không đụng'],
     'site.created_by'                  => ['ref' => 'authors', 'rule' => 'về 0 -> bản ghi thành "chỉ admin sửa"'],
     'type.created_by'                  => ['ref' => 'authors', 'rule' => 'về 0 -> bản ghi thành "chỉ admin sửa"'],
-    'accounts.user_id'                 => ['ref' => 'authors', 'rule' => 'CHƯA CHỐT — cột cũ, 6/317 dòng có giá trị và đều đã mồ côi'],
+    // Giá trị thực tế là 8 chữ số (68523833, 96955148...) trong khi authors.ID mới tới ~5900
+    // -> đây là ID người bán BÊN SÀN, không phải user nội bộ. Đừng đụng khi xóa user.
+    'accounts.user_id'                 => ['ref' => null,      'rule' => 'ID người dùng bên sàn (Etsy), KHÔNG phải authors.ID'],
 
     // ---- trỏ tới accounts ----
     'accounts_authors.account_id'      => ['ref' => 'accounts', 'rule' => 'xóa account: xóa theo'],
