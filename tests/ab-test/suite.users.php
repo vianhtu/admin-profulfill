@@ -196,16 +196,19 @@ return function (AbRunner $r): void {
             ? $res : ['status' => 'error', 'message' => "links=$links store_id=$storeId"];
     })->allow('ADMIN');
 
+    // Team đích phải KHÁC team của actor, nếu không "chuyển" là không đổi gì và phép thử
+    // tự đạt một cách giả tạo (USR_T3 vốn đã ở team 3).
     $r->add('Users — chuyển team', 'Non-admin đổi được team của người khác', function ($a, $fx) {
+        $target = (int)$a->team === 3 ? 2 : 3;
         $id = $fx->new_user((int)$a->team);
         $row = $fx->conn->query("SELECT username, email, level FROM authors WHERE ID = $id")->fetch_assoc();
         $_POST = ['csrf_token' => 'ABTEST', 'id' => $id, 'username' => $row['username'],
             'email' => $row['email'], 'password' => '', 'level' => (int)$row['level'],
-            'team_id' => 3, 'status' => 2];
+            'team_id' => $target, 'status' => 2];
         User::save_user();
         $now = (int)$fx->conn->query("SELECT team_id FROM authors WHERE ID = $id")->fetch_row()[0];
-        // ALLOW = team bị đổi sang 3 -> chỉ admin mới được phép
-        return $now === 3;
+        // ALLOW = team bị đổi thật -> chỉ admin mới được phép
+        return $now === $target;
     })->allow('ADMIN');
 
     $r->add('Users — chuyển team', 'Phiên bị đá ra khi team trong DB đổi', function ($a, $fx) {
@@ -213,7 +216,8 @@ return function (AbRunner $r): void {
         if ($team <= 0) {
             return false;
         }
-        $fx->conn->query('UPDATE authors SET team_id = 3 WHERE ID = ' . (int)$a->uid);
+        $target = $team === 3 ? 2 : 3;
+        $fx->conn->query("UPDATE authors SET team_id = $target WHERE ID = " . (int)$a->uid);
         $blocked = current_team_blocked();
         $fx->conn->query("UPDATE authors SET team_id = $team WHERE ID = " . (int)$a->uid);
         // ALLOW = KHÔNG bị chặn -> không ai được phép (kể cả admin)
