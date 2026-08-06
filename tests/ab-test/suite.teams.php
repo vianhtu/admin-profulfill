@@ -170,6 +170,73 @@ return function (AbRunner $r): void {
             : ['status' => 'error', 'message' => 'accGone=' . var_export($accGone, true) . ' siteKept=' . var_export($siteKept, true)];
     })->allow('ADMIN');
 
+    // options chứa openai_key/gemini_key RIÊNG của team — xóa team mà để lại thì secret
+    // nằm mồ côi trong DB. phones là số SMS mua riêng, cũng thuộc về team.
+    $r->add('Teams — xóa', 'Xóa luôn khóa API (options) và số điện thoại của team', function ($a, $fx) {
+        [$teamId] = $fx->new_team_with_data(0);
+        $fx->conn->execute_query(
+            "INSERT INTO options (name, value, team_id, authors_id) VALUES ('openai_key', 'ZZABKEY', ?, 0)", [$teamId]);
+        $fx->conn->execute_query(
+            "INSERT INTO phones (number, team_id, carrier_id, status) VALUES ('ZZAB0001', ?, 0, 'active')", [$teamId]);
+
+        $_POST = ['csrf_token' => 'ABTEST', 'id' => $teamId];
+        $res = Teams::purge_team();
+        if (($res['status'] ?? '') === 'error') {
+            return $res;
+        }
+        $opt = (int)$fx->conn->query("SELECT COUNT(*) FROM options WHERE team_id = $teamId")->fetch_row()[0];
+        $ph  = (int)$fx->conn->query("SELECT COUNT(*) FROM phones  WHERE team_id = $teamId")->fetch_row()[0];
+        return ($opt === 0 && $ph === 0)
+            ? $res : ['status' => 'error', 'message' => "còn options=$opt phones=$ph"];
+    })->allow('ADMIN');
+
+    // Lương là dữ liệu kế toán: KHÔNG xóa theo người, nhưng cột `authors` sắp trỏ vào
+    // khoảng không nên phải chụp tên lại trước khi người bị xóa.
+    $r->add('Teams — xóa', 'GIỮ dòng lương và chụp tên vào username_snapshot', function ($a, $fx) {
+        [$teamId, $authorId] = $fx->new_team_with_data(0);
+        $uname = (string)$fx->conn->query("SELECT username FROM authors WHERE ID = $authorId")->fetch_row()[0];
+        $fx->conn->execute_query(
+            'INSERT INTO salary (authors, date, paid) VALUES (?, CURDATE(), 1)', [$authorId]);
+        $salId = (int)$fx->conn->insert_id;
+
+        $_POST = ['csrf_token' => 'ABTEST', 'id' => $teamId];
+        $res = Teams::purge_team();
+        if (($res['status'] ?? '') === 'error') {
+            return $res;
+        }
+        $row = $fx->conn->query("SELECT username_snapshot FROM salary WHERE ID = $salId")->fetch_row();
+        if ($row === null) {
+            return ['status' => 'error', 'message' => 'dòng lương bị xóa mất'];
+        }
+        return ($row[0] === $uname)
+            ? $res : ['status' => 'error', 'message' => 'snapshot=' . var_export($row[0], true) . " (cần $uname)"];
+    })->allow('ADMIN');
+
+    // Team NHẬN đang hoạt động nên cấu hình của họ là chính: khóa trùng tên của team bị
+    // sáp nhập phải bị bỏ, không được ghi đè lên khóa đang dùng.
+    $r->add('Teams — sáp nhập', 'Giữ khóa API của team NHẬN, chuyển phones sang', function ($a, $fx) {
+        [$src] = $fx->new_team_with_data(0);
+        $dst = $fx->new_team();
+        $ins = "INSERT INTO options (name, value, team_id, authors_id) VALUES (?, ?, ?, 0)";
+        $fx->conn->execute_query($ins, ['openai_key', 'ZZABSRC', $src]);
+        $fx->conn->execute_query($ins, ['zzab_only',  'ZZABSRC', $src]);
+        $fx->conn->execute_query($ins, ['openai_key', 'ZZABDST', $dst]);
+        $fx->conn->execute_query(
+            "INSERT INTO phones (number, team_id, carrier_id, status) VALUES ('ZZAB0002', ?, 0, 'active')", [$src]);
+
+        $_POST = ['csrf_token' => 'ABTEST', 'id' => $src, 'target_team' => $dst];
+        $res = Teams::merge_team();
+        if (($res['status'] ?? '') === 'error') {
+            return $res;
+        }
+        $val = $fx->conn->query("SELECT value FROM options WHERE team_id = $dst AND name = 'openai_key'");
+        $kept = $val->num_rows === 1 ? (string)$val->fetch_row()[0] : '(' . $val->num_rows . ' dòng)';
+        $moved = (int)$fx->conn->query("SELECT COUNT(*) FROM options WHERE team_id = $dst AND name = 'zzab_only'")->fetch_row()[0];
+        $ph    = (int)$fx->conn->query("SELECT COUNT(*) FROM phones WHERE team_id = $dst")->fetch_row()[0];
+        return ($kept === 'ZZABDST' && $moved === 1 && $ph === 1)
+            ? $res : ['status' => 'error', 'message' => "kept=$kept moved=$moved phones=$ph"];
+    })->allow('ADMIN');
+
     $r->add('Teams — xóa', 'GIỮ dữ liệu dùng chung (site/category/store chung)', function ($a, $fx) {
         [$teamId] = $fx->new_team_with_data(0);
         $_POST = ['csrf_token' => 'ABTEST', 'id' => $teamId];

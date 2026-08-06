@@ -348,7 +348,15 @@ final class AbFixtures
         // 'ZZABU%' vì nó khớp cả ZZABUSER (tài khoản thường trực của skill ui-test).
         $c->query("DELETE FROM author_remember_tokens
                    WHERE author_id IN (SELECT ID FROM authors WHERE username LIKE 'ZZABFIX%')");
+        // Dòng lương giả: xóa TRƯỚC khi xóa author (còn author thì lần theo được), rồi vét
+        // nốt theo username_snapshot cho trường hợp purge đã xóa author. Dòng lương thật
+        // luôn mang tên người thật nên không mẫu nào khớp.
+        $c->query("DELETE FROM salary WHERE authors IN (SELECT ID FROM authors WHERE username LIKE 'ZZABFIX%')
+                   OR username_snapshot LIKE 'ZZABFIX%'");
         $c->query("DELETE FROM authors WHERE username LIKE 'ZZABFIX%'");
+        // Cấu hình riêng của team ZZAB
+        $c->query("DELETE FROM options WHERE value LIKE 'ZZAB%'");
+        $c->query("DELETE FROM phones WHERE number LIKE 'ZZAB%'");
         // Team ZZAB xóa cuối: chỉ xóa team KHÔNG có thành viên thật để không đụng dữ liệu sống
         $c->query("DELETE FROM team WHERE name LIKE 'ZZAB%'
                    AND ID NOT IN (SELECT DISTINCT team_id FROM authors)");
