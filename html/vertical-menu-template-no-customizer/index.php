@@ -102,17 +102,11 @@ if (empty($_SESSION['csrf_token'])) {
           overflow-x: hidden;
       }
 
-      /* Mở modal làm THANH TRÊN CÙNG XÊ DỊCH: Bootstrap đặt `overflow:hidden` lên body,
-         thanh cuộn dọc biến mất và cả layout nhích sang. Bootstrap vốn bù bằng
-         padding-right, nhưng layout Vuexy có khung cuộn riêng nên nó đo ra 0 và không bù.
-         Chừa sẵn chỗ cho thanh cuộn: có hay không có nó thì bề rộng vẫn y nguyên. */
-      body {
-          scrollbar-gutter: stable;
-      }
-      /* Trình duyệt cũ không hiểu scrollbar-gutter -> luôn hiện thanh cuộn để khỏi nhảy */
-      @supports not (scrollbar-gutter: stable) {
-          body { overflow-y: scroll; }
-      }
+      /* CHƯA VÁ ĐƯỢC: mở modal thì thanh navbar xê dịch 7px. Đã thử và ĐỀU KHÔNG ăn:
+         scrollbar-gutter:stable trên body, trên html, body{overflow-y:scroll},
+         body.modal-open{padding-right}. Không phần tử cha nào của navbar đổi bề rộng,
+         document.documentElement.clientWidth cũng không đổi — nguồn dịch nằm ngoài chuỗi
+         cha. Đừng thêm CSS đoán mò nữa; tìm ra gốc rồi hãy vá. */
   </style>
   </head>
 
