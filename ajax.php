@@ -20,6 +20,8 @@ require_once __DIR__ . '/class/class.teams.php';
 require_once __DIR__ . '/class/class.team.php';
 require_once __DIR__ . '/class/class.users.php';
 require_once __DIR__ . '/class/class.user.php';
+require_once __DIR__ . '/class/class.roles.php';
+require_once __DIR__ . '/class/class.role.php';
 require __DIR__ . '/model/functions-gemini.php';
 require __DIR__ . '/model/functions-openai.php';
 header('Content-Type: application/json; charset=utf-8');
@@ -257,10 +259,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             echo json_encode(get_authors_by_team());
             break;
         case 'get-roles-permissions-table':
-            echo json_encode(getRolesPermissionsTable());
+            echo json_encode(Roles::get_roles());
+            break;
+        case 'get-roles-table-filter':
+            echo json_encode(Roles::get_roles_filters());
             break;
         case 'get-roles-permissions':
-            echo json_encode(getRolesPermissions());
+            echo json_encode(Role::get_role());
+            break;
+        case 'get-role-delete-preview':
+            echo json_encode(Roles::get_delete_preview());
+            break;
+        case 'delete-role':
+            echo json_encode(Roles::delete_role());
             break;
         case 'get-common-filter':
             echo json_encode(getCommonFilterData());
@@ -296,7 +307,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             echo json_encode(addAccount());
             break;
         case 'add-roles-permissions':
-            echo json_encode(addRolesPermissions());
+            echo json_encode(Role::save_role());
             break;
 		case 'delete-xlsx':
 			echo json_encode(deleteXlsx());

@@ -461,9 +461,8 @@ if (empty($_SESSION['csrf_token'])) {
             <script src="../../assets/js/app-user-list.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-user-list.js') ?>"></script>
         <?php break;
         case 'roles-permissions': ?>
+            <!-- modal-add-permission.js + modal-edit-permission.js đã gộp vào file dưới -->
             <script src="../../assets/js/app-access-permission.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-access-permission.js') ?>"></script>
-            <script src="../../assets/js/modal-add-permission.js?v=<?= filemtime(ROOT_DIR . '/assets/js/modal-add-permission.js') ?>"></script>
-            <script src="../../assets/js/modal-edit-permission.js?v=<?= filemtime(ROOT_DIR . '/assets/js/modal-edit-permission.js') ?>"></script>
             <?php break;
     }
     ?>

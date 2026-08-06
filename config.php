@@ -93,10 +93,10 @@ function is_logged_in(): bool {
  * Để ở biến toàn cục thay vì `static` để bộ kiểm thử CLI — vốn chạy hàng nghìn "request"
  * trong cùng một tiến trình — có thể xóa giữa các vai bằng reset_access_cache().
  */
-$GLOBALS['__access_cache'] = ['team' => [], 'user' => [], 'user_team' => [], 'perms' => []];
+$GLOBALS['__access_cache'] = ['team' => [], 'user' => [], 'user_team' => [], 'perms' => [], 'own_level' => []];
 
 function reset_access_cache(): void {
-	$GLOBALS['__access_cache'] = ['team' => [], 'user' => [], 'user_team' => [], 'perms' => []];
+	$GLOBALS['__access_cache'] = ['team' => [], 'user' => [], 'user_team' => [], 'perms' => [], 'own_level' => []];
 }
 
 function team_is_active(int $teamId): bool {
