@@ -249,14 +249,62 @@ return function (AbRunner $r): void {
         return $fx->conn->query("SELECT ID FROM authors WHERE ID = $id")->fetch_row() === null;
     })->allow('ADMIN');
 
-    $r->add('Users — xóa', 'CHẶN xóa user còn sản phẩm đứng tên', function ($a, $fx) {
+    $r->add('Users — xóa', 'CHẶN xóa user còn sản phẩm khi KHÔNG bàn giao', function ($a, $fx) {
         $id = $fx->new_user((int)$a->team);
         $fx->new_post($id, 'ZZAB-P-OWN');
-        $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$id]];
+        $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$id]];   // thiếu transfer_to
         Users::delete_users();
-        // ALLOW = xóa được dù còn sản phẩm -> không ai được phép
+        // ALLOW = xóa được dù còn sản phẩm và chưa bàn giao -> không ai được phép
         return $fx->conn->query("SELECT ID FROM authors WHERE ID = $id")->fetch_row() === null;
     })->allow();
+
+    $r->add('Users — xóa', 'Bàn giao sản phẩm rồi xóa', function ($a, $fx) {
+        $id   = $fx->new_user((int)$a->team);
+        $heir = $fx->new_user((int)$a->team);
+        $post = $fx->new_post($id, 'ZZAB-P-HAND');
+        $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$id], 'transfer_to' => $heir];
+        $res = Users::delete_users();
+        if (($res['status'] ?? '') === 'error') {
+            return $res;
+        }
+        $owner = (int)$fx->conn->query("SELECT author_id FROM posts WHERE ID = $post")->fetch_row()[0];
+        $gone  = $fx->conn->query("SELECT ID FROM authors WHERE ID = $id")->fetch_row() === null;
+        return ($gone && $owner === $heir)
+            ? $res : ['status' => 'error', 'message' => "gone=" . var_export($gone, true) . " owner=$owner"];
+    })->allow('ADMIN', 'MGR_T1', 'MGR_T2');
+
+    $r->add('Users — xóa', 'Người nhận bàn giao KHÁC TEAM bị từ chối', function ($a, $fx) {
+        $team  = (int)$a->team;
+        $other = $team === 3 ? 2 : 3;
+        $id    = $fx->new_user($team);
+        $heir  = $fx->new_user($other);
+        $fx->new_post($id, 'ZZAB-P-CROSS');
+        $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$id], 'transfer_to' => $heir];
+        Users::delete_users();
+        // ALLOW = xóa được dù người nhận khác team -> không ai được phép
+        return $fx->conn->query("SELECT ID FROM authors WHERE ID = $id")->fetch_row() === null;
+    })->allow();
+
+    $r->add('Users — xóa', 'Liên kết account KHÔNG chặn xóa (tự gỡ)', function ($a, $fx) {
+        $id  = $fx->new_user((int)$a->team);
+        $acc = $fx->new_account((int)$a->team, $id);
+        $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$id]];
+        $res = Users::delete_users();
+        if (($res['status'] ?? '') === 'error') {
+            return $res;
+        }
+        $links = (int)$fx->conn->query(
+            "SELECT COUNT(*) FROM accounts_authors WHERE author_id = $id")->fetch_row()[0];
+        return $links === 0 ? $res : ['status' => 'error', 'message' => "còn $links liên kết"];
+    })->allow('ADMIN', 'MGR_T1', 'MGR_T2');
+
+    $r->add('Users — xóa', 'Xem trước dữ liệu + danh sách người nhận', function ($a, $fx) {
+        $id = $fx->new_user((int)$a->team);
+        $fx->new_user((int)$a->team);
+        $_POST = ['csrf_token' => 'ABTEST', 'id' => $id];
+        $res = Users::get_delete_preview();
+        return ($res['status'] ?? '') === 'error' ? $res : !empty($res['candidates']);
+    })->allow('ADMIN', 'MGR_T1', 'MGR_T2');
 
     $r->add('Users — xóa', 'KHÔNG tự xóa chính mình', function ($a, $fx) {
         $_POST = ['csrf_token' => 'ABTEST', 'ids' => [(int)$a->uid]];

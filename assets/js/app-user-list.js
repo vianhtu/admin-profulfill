@@ -535,39 +535,135 @@ $(document).on('click', '#userSubmit', async function () {
         .always(() => $btn.prop('disabled', false));
 });
 
-// --- Xóa: chỉ TỪNG DÒNG một, không có thao tác hàng loạt ---
+// --- Xóa: chỉ TỪNG DÒNG một, kèm bàn giao sản phẩm theo lô ---
+const DELETE_MAX_ROUNDS = 2000;   // chặn vòng lặp vô hạn nếu server cứ trả 'partial'
+
 $(document).on('click', '.delete-user', function () {
     const modalEl = document.getElementById('deleteUserModal');
     if (!modalEl) {
-        return;   // không phải admin -> fragment không render modal
+        return;   // không đủ quyền xóa -> fragment không render modal
     }
+    const id = parseInt($(this).data('id'), 10);
     $('#deleteUserName').text(String($(this).data('name') ?? ''));
-    $(modalEl).data('id', parseInt($(this).data('id'), 10));
+    $(modalEl).data('id', id);
+
+    // Reset trạng thái cho lần mở mới
+    $('#deleteUserLoading').removeClass('d-none');
+    $('#deleteUserSummary').addClass('d-none');
+    $('#deleteUserTransferBox').addClass('d-none');
+    $('#deleteUserProgress').addClass('d-none');
+    $('#deleteUserBar').css('width', '0%').removeClass('bg-warning');
+    $('#deleteUserProgressText').text('');
+    $('#deleteUserConfirm').prop('disabled', true).show();
+    $('#deleteUserSpinner').addClass('d-none');
+    $('#deleteUserCancel').text('Cancel').prop('disabled', false);
     bootstrap.Modal.getOrCreateInstance(modalEl).show();
+
+    // Đếm trước + lấy danh sách người có thể nhận bàn giao
+    $.ajax({
+        url: '../../ajax.php?action=get-user-delete-preview',
+        type: 'POST',
+        data: { id: id, csrf_token: window.csrfToken }
+    }).done(function (res) {
+        $('#deleteUserLoading').addClass('d-none');
+        if (res?.status !== 'success') {
+            $('#deleteUserProgress').removeClass('d-none');
+            $('#deleteUserProgressText').text(res?.message || 'Failed to load user data.');
+            return;
+        }
+        $('#delCntProducts').text((res.products || 0).toLocaleString());
+        $('#delCntAccounts').text((res.accounts || 0).toLocaleString());
+        $(modalEl).data('products', res.products || 0);
+        $('#deleteUserSummary').removeClass('d-none');
+
+        if (res.products > 0) {
+            const $sel = $('#deleteUserTransfer').empty();
+            (res.candidates || []).forEach(c => $sel.append(new Option(c.username, c.id, false, false)));
+            $('#deleteUserTransferBox').removeClass('d-none');
+            if (!res.candidates || res.candidates.length === 0) {
+                // Không còn ai trong team để nhận -> không thể xóa
+                $('#deleteUserProgress').removeClass('d-none');
+                $('#deleteUserProgressText').text('No one else in this team can take over their products.');
+                return;
+            }
+            if (!$sel.hasClass('select2-hidden-accessible')) {
+                $sel.select2({ dropdownParent: $(modalEl) });
+            }
+        }
+        $('#deleteUserConfirm').prop('disabled', false);
+    }).fail(function () {
+        $('#deleteUserLoading').addClass('d-none');
+        $('#deleteUserProgress').removeClass('d-none');
+        $('#deleteUserProgressText').text('Server connection error.');
+    });
 });
 
-$(document).on('click', '#deleteUserConfirm', function () {
+$(document).on('click', '#deleteUserConfirm', async function () {
     const modalEl = document.getElementById('deleteUserModal');
     const id = $(modalEl).data('id');
+    const products = $(modalEl).data('products') || 0;
     if (!id) {
         return;
     }
-    $.ajax({
-        url: '../../ajax.php?action=delete-users',
-        type: 'POST',
-        data: { ids: [id], csrf_token: window.csrfToken }
-    }).done(function (res) {
-        if (res?.status === 'success') {
-            bootstrap.Modal.getInstance(modalEl)?.hide();
-            $(modalEl).removeData('id');
+    const transferTo = products > 0 ? ($('#deleteUserTransfer').val() || 0) : 0;
+    const $bar = $('#deleteUserBar');
+    const $text = $('#deleteUserProgressText');
+
+    $(this).prop('disabled', true);
+    $('#deleteUserSpinner').removeClass('d-none');
+    $('#deleteUserCancel').prop('disabled', true);
+    $('#deleteUserProgress').removeClass('d-none');
+    $text.text(products > 0 ? 'Handing over products...' : 'Deleting...');
+
+    let done = 0;
+    let rounds = 0;
+    try {
+        for (;;) {
+            const res = await $.ajax({
+                url: '../../ajax.php?action=delete-users',
+                type: 'POST',
+                data: { ids: [id], transfer_to: transferTo, csrf_token: window.csrfToken }
+            });
+            if (res?.status === 'error') {
+                throw new Error(res.message || 'Delete failed');
+            }
+            if (res?.status === 'partial') {
+                done += res.transferred ?? 0;
+                const pct = products > 0 ? Math.min(99, Math.round((done / products) * 100)) : 50;
+                $bar.css('width', pct + '%');
+                $text.text('Handed over ' + done.toLocaleString() + '/' + products.toLocaleString() + ' products...');
+                if (++rounds > DELETE_MAX_ROUNDS) {
+                    throw new Error('Too much data to process in one go. Please run the delete again.');
+                }
+                continue;
+            }
+            done += res?.transferred ?? 0;
+            $bar.css('width', '100%');
+            $text.text(done > 0
+                ? 'Done — handed over ' + done.toLocaleString() + ' products, user deleted.'
+                : 'User deleted.');
+            break;
+        }
+
+        setTimeout(function () {
+            bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+            $(modalEl).removeData('id').removeData('products');
             if (dtUsers) {
                 dtUsers.draw(false);
             }
-        } else {
-            // Giữ modal mở để đọc lý do (vd còn sản phẩm/account đứng tên)
-            alert(res?.message || 'Failed to delete user.');
+        }, 1000);
+    } catch (err) {
+        // Giữ modal mở để đọc lỗi; phần đã bàn giao vẫn giữ nguyên, chạy lại sẽ tiếp tục
+        $bar.addClass('bg-warning');
+        $text.text(err?.message || 'Server connection error.');
+        $('#deleteUserConfirm').hide();
+        $('#deleteUserCancel').text('Close').prop('disabled', false);
+        if (dtUsers) {
+            dtUsers.draw(false);
         }
-    }).fail(() => alert('Server connection error.'));
+    } finally {
+        $('#deleteUserSpinner').addClass('d-none');
+    }
 });
 
 document.addEventListener('DOMContentLoaded', function () {

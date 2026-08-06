@@ -244,6 +244,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         case 'get-user-move-preview':
             echo json_encode(Users::get_move_preview());
             break;
+        case 'get-user-delete-preview':
+            echo json_encode(Users::get_delete_preview());
+            break;
         case 'delete-users':
             echo json_encode(Users::delete_users());
             break;

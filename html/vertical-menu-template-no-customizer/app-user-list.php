@@ -184,12 +184,39 @@ $can_see_wage  = Users::can_see_salary();
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Are you sure you want to delete <strong id="deleteUserName"></strong>?
-                Users who still own products or accounts cannot be deleted — reassign their data first.
+                <p class="mb-4">Are you sure you want to delete <strong id="deleteUserName"></strong>?</p>
+
+                <div id="deleteUserLoading" class="text-center py-3">
+                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>Checking their data...
+                </div>
+
+                <div id="deleteUserSummary" class="d-none">
+                    <table class="table table-sm mb-4">
+                        <tbody>
+                        <tr><td>Products they own</td><td class="text-end fw-medium" id="delCntProducts">0</td></tr>
+                        <tr><td>Account assignments (removed)</td><td class="text-end fw-medium" id="delCntAccounts">0</td></tr>
+                        </tbody>
+                    </table>
+                    <!-- Sản phẩm phải có người nhận: xóa user mà bỏ lại sản phẩm sẽ thành dữ liệu mồ côi -->
+                    <div id="deleteUserTransferBox" class="d-none">
+                        <label class="form-label" for="deleteUserTransfer">Hand their products over to</label>
+                        <select id="deleteUserTransfer" class="form-select"></select>
+                        <div class="form-text">Only members of the same team can take them over.</div>
+                    </div>
+                </div>
+
+                <div id="deleteUserProgress" class="d-none mt-4">
+                    <div class="progress mb-2" style="height: 8px;">
+                        <div class="progress-bar bg-danger" id="deleteUserBar" style="width: 0%"></div>
+                    </div>
+                    <small class="text-body-secondary" id="deleteUserProgressText"></small>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-label-secondary waves-effect" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger waves-effect waves-light" id="deleteUserConfirm">Delete</button>
+                <button type="button" class="btn btn-label-secondary waves-effect" data-bs-dismiss="modal" id="deleteUserCancel">Cancel</button>
+                <button type="button" class="btn btn-danger waves-effect waves-light" id="deleteUserConfirm" disabled>
+                    <span class="spinner-border spinner-border-sm me-2 d-none" id="deleteUserSpinner" role="status"></span>Delete
+                </button>
             </div>
         </div>
     </div>

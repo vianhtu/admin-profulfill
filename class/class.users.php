@@ -11,8 +11,10 @@
  * LƯƠNG/BẢO HIỂM (`wage`, `insurance`) là dữ liệu nhạy cảm: chỉ admin và manager được
  * xem — endpoint KHÔNG trả field này cho level user (không chỉ ẩn ở giao diện).
  *
- * XÓA: chỉ admin, và CHẶN khi user còn sản phẩm/account đứng tên — phải chuyển giao
- * trước (cùng luật với Category/Site: xóa bản ghi cha có tham chiếu thì từ chối).
+ * XÓA (chốt 05/08/2026): admin xóa mọi user; manager có role delete xóa người CÙNG TEAM
+ * (trừ tài khoản admin); không ai tự xóa mình. Sản phẩm đứng tên user PHẢI bàn giao cho
+ * người cùng team ngay trong luồng xóa (chạy theo lô, có tiến trình). Liên kết account
+ * chỉ là phân công nên tự gỡ, KHÔNG chặn xóa.
  */
 class Users
 {
@@ -372,11 +374,65 @@ class Users
         return ['accounts' => $accounts, 'stores' => $stores];
     }
 
+    /** So san pham chuyen giao moi cau UPDATE (giu transaction ngan). */
+    private const TRANSFER_CHUNK = 1000;
+    /** Tran so dong xu ly trong 1 request - vuot thi tra 'partial' de client goi tiep. */
+    private const TRANSFER_BUDGET = 20000;
+
     /**
-     * Xóa user. Admin xóa được mọi user; manager có role delete xóa được người CÙNG TEAM
-     * (trừ tài khoản admin). Chặn khi user còn sản phẩm hoặc account đứng tên.
+     * Dem truoc he qua khi xoa user + danh sach nguoi co the nhan ban giao. Chi DOC.
      *
-     * @return array{status:string,deleted?:int,message?:string}
+     * @return array{status:string,username?:string,products?:int,accounts?:int,candidates?:array,message?:string}
+     */
+    public static function get_delete_preview(): array
+    {
+        if (!check_csrf()) {
+            return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
+        }
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id <= 0) {
+            return ['status' => 'error', 'message' => 'Missing user.'];
+        }
+
+        $conn = db();
+        $row = $conn->execute_query(
+            'SELECT ID, username, team_id, level FROM authors WHERE ID = ? LIMIT 1', [$id])->fetch_assoc();
+        if (!$row) {
+            return ['status' => 'error', 'message' => 'User not found.'];
+        }
+        if (!self::can_delete_row($id, (int)$row['team_id'], (int)$row['level'], $conn)) {
+            return ['status' => 'error', 'message' => 'You do not have permission to delete this user.'];
+        }
+
+        // Nguoi nhan ban giao phai CUNG TEAM de du lieu o lai dung team da lam ra no
+        $candidates = [];
+        $rs = $conn->execute_query(
+            'SELECT ID, username FROM authors WHERE team_id = ? AND ID <> ? ORDER BY username',
+            [(int)$row['team_id'], $id]);
+        while ($c = $rs->fetch_assoc()) {
+            $candidates[] = ['id' => (int)$c['ID'], 'username' => $c['username']];
+        }
+
+        return [
+            'status'     => 'success',
+            'username'   => $row['username'],
+            'products'   => (int)$conn->execute_query(
+                'SELECT COUNT(*) FROM posts WHERE author_id = ?', [$id])->fetch_row()[0],
+            'accounts'   => (int)$conn->execute_query(
+                'SELECT COUNT(*) FROM accounts_authors WHERE author_id = ?', [$id])->fetch_row()[0],
+            'candidates' => $candidates,
+        ];
+    }
+
+    /**
+     * Xoa MOT user. Admin xoa duoc moi user; manager co role delete xoa duoc nguoi CUNG
+     * TEAM (tru tai khoan admin). Khong ai tu xoa minh.
+     *
+     * San pham dung ten user PHAI ban giao cho nguoi cung team (POST transfer_to) - chay
+     * theo lo, het ngan sach thi tra 'partial' de client goi tiep. Lien ket account chi
+     * la phan cong nguoi phu trach nen TU GO, khong chan xoa.
+     *
+     * @return array{status:string,deleted?:int,transferred?:int,left?:int,message?:string}
      */
     public static function delete_users(): array
     {
@@ -395,61 +451,84 @@ class Users
         if (empty($ids)) {
             return ['status' => 'error', 'message' => 'Invalid user list.'];
         }
-        if (in_array(self::own_id(), $ids, true)) {
+        if (count($ids) > 1) {
+            return ['status' => 'error', 'message' => 'Users can only be deleted one at a time.'];
+        }
+        $id = $ids[0];
+        if ($id === self::own_id()) {
             return ['status' => 'error', 'message' => 'You cannot delete your own account.'];
         }
 
         $conn = db();
-        $idsStr = implode(',', $ids);
-
-        // Kiểm quyền trên TỪNG dòng — không tin danh sách ID gửi lên
-        $blocked = [];
-        $denied  = 0;
-        $rs = $conn->query("SELECT a.ID, a.username, a.team_id, a.level,
-                (SELECT COUNT(*) FROM posts p WHERE p.author_id = a.ID) AS products,
-                (SELECT COUNT(*) FROM accounts_authors aa WHERE aa.author_id = a.ID) AS accounts
-             FROM authors a WHERE a.ID IN ($idsStr)");
-        $found = 0;
-        while ($row = $rs->fetch_assoc()) {
-            $found++;
-            if (!self::can_delete_row((int)$row['ID'], (int)$row['team_id'], (int)$row['level'], $conn)) {
-                $denied++;
-                continue;
-            }
-            $parts = [];
-            if ((int)$row['products'] > 0) {
-                $parts[] = $row['products'] . ' products';
-            }
-            if ((int)$row['accounts'] > 0) {
-                $parts[] = $row['accounts'] . ' accounts';
-            }
-            if ($parts) {
-                $blocked[] = $row['username'] . ' (' . implode(', ', $parts) . ')';
-            }
-        }
-        if ($found === 0) {
+        $row = $conn->execute_query(
+            'SELECT ID, username, team_id, level FROM authors WHERE ID = ? LIMIT 1', [$id])->fetch_assoc();
+        if (!$row) {
             return ['status' => 'error', 'message' => 'User not found.'];
         }
-        if ($denied > 0) {
+        // Kiem quyen tren chinh dong do - khong tin ID gui len
+        if (!self::can_delete_row($id, (int)$row['team_id'], (int)$row['level'], $conn)) {
             return ['status' => 'error',
-                'message' => $denied . ' of the selected users are in another team or are admin accounts.'
-                    . ' Only an admin can delete those.'];
+                'message' => 'This user is in another team or is an admin account. Only an admin can delete them.'];
         }
-        if ($blocked) {
-            return ['status' => 'error',
-                'message' => 'Cannot delete: ' . implode('; ', $blocked)
-                    . '. Reassign their data to another user first.'];
+
+        $products = (int)$conn->execute_query(
+            'SELECT COUNT(*) FROM posts WHERE author_id = ?', [$id])->fetch_row()[0];
+
+        $transferred = 0;
+        if ($products > 0) {
+            $to = (int)($_POST['transfer_to'] ?? 0);
+            if ($to <= 0) {
+                return ['status' => 'error',
+                    'message' => 'This user still owns ' . number_format($products)
+                        . ' products. Choose someone to hand them over to.'];
+            }
+            if ($to === $id) {
+                return ['status' => 'error', 'message' => 'Choose a different user to hand over to.'];
+            }
+            // Nguoi nhan phai CUNG TEAM - neu khong, san pham nhay sang team khac va store
+            // rieng dang gan se thanh khong hop le voi chu moi.
+            $dest = $conn->execute_query(
+                'SELECT ID FROM authors WHERE ID = ? AND team_id = ? LIMIT 1',
+                [$to, (int)$row['team_id']])->fetch_row();
+            if (!$dest) {
+                return ['status' => 'error', 'message' => 'The chosen user is not in the same team.'];
+            }
+
+            try {
+                $budget = self::TRANSFER_BUDGET;
+                while ($budget > 0) {
+                    $conn->execute_query(
+                        'UPDATE posts SET author_id = ? WHERE author_id = ? LIMIT ' . self::TRANSFER_CHUNK,
+                        [$to, $id]);
+                    $n = $conn->affected_rows;
+                    $transferred += $n;
+                    $budget -= max($n, 1);
+                    if ($n < self::TRANSFER_CHUNK) {
+                        break;
+                    }
+                }
+            } catch (\mysqli_sql_exception $e) {
+                return ['status' => 'error', 'message' => 'Hand-over failed: ' . $e->getMessage()];
+            }
+
+            // Con san pham chua chuyen -> giu nguyen user, bao client goi tiep
+            $left = (int)$conn->execute_query(
+                'SELECT COUNT(*) FROM posts WHERE author_id = ?', [$id])->fetch_row()[0];
+            if ($left > 0) {
+                return ['status' => 'partial', 'transferred' => $transferred, 'left' => $left];
+            }
         }
 
         try {
-            $conn->query("DELETE FROM author_remember_tokens WHERE author_id IN ($idsStr)");
-            $conn->query("DELETE FROM accounts_authors WHERE author_id IN ($idsStr)");
-            $conn->query("DELETE FROM authors WHERE ID IN ($idsStr)");
+            // Lien ket account chi la phan cong -> go, khong chan xoa
+            $conn->execute_query('DELETE FROM author_remember_tokens WHERE author_id = ?', [$id]);
+            $conn->execute_query('DELETE FROM accounts_authors WHERE author_id = ?', [$id]);
+            $conn->execute_query('DELETE FROM authors WHERE ID = ?', [$id]);
             $deleted = $conn->affected_rows;
         } catch (\mysqli_sql_exception $e) {
             return ['status' => 'error', 'message' => 'Delete failed: ' . $e->getMessage()];
         }
 
-        return ['status' => 'success', 'deleted' => $deleted];
+        return ['status' => 'success', 'deleted' => $deleted, 'transferred' => $transferred];
     }
 }
