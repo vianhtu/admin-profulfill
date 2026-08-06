@@ -90,13 +90,25 @@ class Users
      * Điều kiện SQL giới hạn các user được phép NHÌN THẤY.
      * Trả chuỗi rỗng khi admin (không giới hạn).
      */
+    /**
+     * Phạm vi dữ liệu của trang Users. Ba trục cộng dồn, phải thoả CẢ BA:
+     *   ROLE (checkRoles) × PHẠM VI (team/dòng của mình) × CẤP (không nhìn lên trên).
+     *
+     * Trục CẤP (chốt 06/08/2026): Admin > Manager > User > Customer — người cấp thấp KHÔNG
+     * thấy người cấp cao hơn. Danh sách lộ ai là admin là lộ luôn mục tiêu tấn công.
+     * Lọc ngay trong SQL, KHÔNG lọc sau khi lấy về: lọc ở PHP làm sai số đếm phân trang.
+     */
     private static function scope_where(): string
     {
         if (is_admin()) {
             return '';
         }
         if (is_manager()) {
-            return 'authors.team_id = ' . self::own_team();
+            $adminIds = self::admin_level_ids(db());
+            $hideAdmin = $adminIds
+                ? ' AND authors.level NOT IN (' . implode(',', $adminIds) . ')'
+                : '';
+            return 'authors.team_id = ' . self::own_team() . $hideAdmin;
         }
         return 'authors.ID = ' . self::own_id();
     }
@@ -419,10 +431,19 @@ class Users
             return ['status' => 'error', 'message' => 'You do not have permission to delete this user.'];
         }
 
-        // Nguoi nhan ban giao phai CUNG TEAM de du lieu o lai dung team da lam ra no
+        // Nguoi nhan ban giao phai CUNG TEAM de du lieu o lai dung team da lam ra no.
+        // Truc CAP: non-admin khong duoc nhin thay tai khoan admin nen cung khong duoc thay
+        // ho trong danh sach nhan ban giao (xem scope_where).
+        $hideAdmin = '';
+        if (!is_admin()) {
+            $adminIds = self::admin_level_ids($conn);
+            if ($adminIds) {
+                $hideAdmin = ' AND level NOT IN (' . implode(',', $adminIds) . ')';
+            }
+        }
         $candidates = [];
         $rs = $conn->execute_query(
-            'SELECT ID, username FROM authors WHERE team_id = ? AND ID <> ? ORDER BY username',
+            "SELECT ID, username FROM authors WHERE team_id = ? AND ID <> ?$hideAdmin ORDER BY username",
             [(int)$row['team_id'], $id]);
         while ($c = $rs->fetch_assoc()) {
             $candidates[] = ['id' => (int)$c['ID'], 'username' => $c['username']];
