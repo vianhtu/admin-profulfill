@@ -481,6 +481,90 @@ return function (AbRunner $r): void {
         fn($a, $fx) => ab_has(ab_render('app-user-list.php'), 'user_team')
     )->allow('ADMIN');
 
+    // ---------- Tự sửa tài khoản của mình (chốt 06/08/2026) ----------
+    // App không có trang profile nào, nên đây là đường DUY NHẤT để đổi mật khẩu/email của
+    // chính mình -> phải mở cho MỌI cấp và KHÔNG đòi role `edit`. Bù lại, 4 trường tự ban
+    // phát cho bản thân được (role / team / status / lương) phải bị chặn.
+    $r->add('Users — tự sửa mình', 'Đổi email + mật khẩu của chính mình', function ($a, $fx) {
+        $me = $fx->conn->execute_query(
+            'SELECT username, email, level, team_id, status FROM authors WHERE ID = ? LIMIT 1',
+            [$a->uid])->fetch_assoc();
+        $moi = 'zzabself' . bin2hex(random_bytes(3)) . '@zzab.test';
+        $_POST = ['csrf_token' => 'ABTEST', 'id' => $a->uid, 'username' => $me['username'],
+            'email' => $moi, 'password' => 'zzabzzab', 'level' => (int)$me['level'],
+            'team_id' => (int)$me['team_id'], 'status' => (int)$me['status']];
+        $res = User::save_user();
+        $now = (string)$fx->conn->execute_query(
+            'SELECT email FROM authors WHERE ID = ?', [$a->uid])->fetch_row()[0];
+        // Trả email cũ về ngay: đây là tài khoản THẬT, không được để lại dấu vết
+        $fx->conn->execute_query('UPDATE authors SET email = ? WHERE ID = ?', [$me['email'], $a->uid]);
+        return $now === $moi ? $res : ['status' => 'error', 'message' => 'DB không đổi'];
+    })->allow('ADMIN', 'SUPER', 'MGR_T1', 'MGR_T1_V', 'MGR_T2', 'USR_T1', 'USR_T1_V',
+              'USR_T2', 'USR_T3', 'NOROLE');
+
+    $r->add('Users — tự sửa mình', 'Tự NÂNG LƯƠNG của mình', function ($a, $fx) {
+        $me = $fx->conn->execute_query(
+            'SELECT username, email, level, team_id, status, wage FROM authors WHERE ID = ? LIMIT 1',
+            [$a->uid])->fetch_assoc();
+        $cu = (float)$me['wage'];
+        $_POST = ['csrf_token' => 'ABTEST', 'id' => $a->uid, 'username' => $me['username'],
+            'email' => $me['email'], 'password' => '', 'level' => (int)$me['level'],
+            'team_id' => (int)$me['team_id'], 'status' => (int)$me['status'],
+            'wage' => $cu + 999999, 'insurance' => 999999];
+        User::save_user();
+        $now = (float)$fx->conn->execute_query(
+            'SELECT wage FROM authors WHERE ID = ?', [$a->uid])->fetch_row()[0];
+        if ($now !== $cu) {   // nếu thủng thì trả lương thật về ngay
+            $fx->conn->execute_query('UPDATE authors SET wage = ? WHERE ID = ?', [$cu, $a->uid]);
+        }
+        // ALLOW = nâng được lương mình -> không ai được phép, kể cả admin
+        return $now !== $cu;
+    })->allow();
+
+    $r->add('Users — tự sửa mình', 'Tự đổi ROLE của mình', function ($a, $fx) {
+        $me = $fx->conn->execute_query(
+            'SELECT username, email, level, team_id, status FROM authors WHERE ID = ? LIMIT 1',
+            [$a->uid])->fetch_assoc();
+        $khac = (int)$fx->conn->execute_query(
+            'SELECT ID FROM roles_permissions WHERE ID <> ? ORDER BY ID LIMIT 1',
+            [(int)$me['level']])->fetch_row()[0];
+        $_POST = ['csrf_token' => 'ABTEST', 'id' => $a->uid, 'username' => $me['username'],
+            'email' => $me['email'], 'password' => '', 'level' => $khac,
+            'team_id' => (int)$me['team_id'], 'status' => (int)$me['status']];
+        User::save_user();
+        $now = (int)$fx->conn->execute_query(
+            'SELECT level FROM authors WHERE ID = ?', [$a->uid])->fetch_row()[0];
+        if ($now !== (int)$me['level']) {
+            $fx->conn->execute_query('UPDATE authors SET level = ? WHERE ID = ?',
+                [(int)$me['level'], $a->uid]);
+        }
+        return $now !== (int)$me['level'];
+    })->allow();
+
+    $r->add('Users — tự sửa mình', 'Tự đặt mình thành Inactive', function ($a, $fx) {
+        $me = $fx->conn->execute_query(
+            'SELECT username, email, level, team_id, status FROM authors WHERE ID = ? LIMIT 1',
+            [$a->uid])->fetch_assoc();
+        $_POST = ['csrf_token' => 'ABTEST', 'id' => $a->uid, 'username' => $me['username'],
+            'email' => $me['email'], 'password' => '', 'level' => (int)$me['level'],
+            'team_id' => (int)$me['team_id'], 'status' => 3];
+        User::save_user();
+        $now = (int)$fx->conn->execute_query(
+            'SELECT status FROM authors WHERE ID = ?', [$a->uid])->fetch_row()[0];
+        if ($now !== (int)$me['status']) {
+            $fx->conn->execute_query('UPDATE authors SET status = ? WHERE ID = ?',
+                [(int)$me['status'], $a->uid]);
+        }
+        return $now !== (int)$me['status'];
+    })->allow();
+
+    $r->add('Users — tự sửa mình', 'KHÔNG tự xóa tài khoản của mình', function ($a, $fx) {
+        $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$a->uid]];
+        Users::delete_users();
+        return $fx->conn->execute_query(
+            'SELECT ID FROM authors WHERE ID = ?', [$a->uid])->fetch_row() === null;
+    })->allow();
+
     // Modal xóa render cho ai còn xóa được AI ĐÓ: có role delete và còn cấp thấp hơn mình.
     // Vai `user` cũng nằm trong đó vì còn quản được `customer` (cấp thấp nhất).
     $r->add('Users — giao diện', 'Modal xóa được render',

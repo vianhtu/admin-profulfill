@@ -155,12 +155,21 @@ class Users
     /**
      * Được sửa 1 user cụ thể không.
      * - admin: mọi user;
+     * - chính mình: luôn được, không cần role (chỉ sửa được thông tin cá nhân);
      * - non-admin có role `edit`: user CÙNG TEAM;
      * - mọi vai: chỉ cấp THẤP HƠN mình, không đụng người ngang cấp (super admin ngoại lệ).
      * Không chốt theo cấp: `user` có role vẫn sửa được `customer` trong team mình.
      */
-    public static function can_edit_row(int $teamId, int $level, mysqli $conn): bool
+    public static function can_edit_row(int $userId, int $teamId, int $level, mysqli $conn): bool
     {
+        // Sửa CHÍNH MÌNH: luôn được, mọi cấp, và KHÔNG cần role `edit` — đổi mật khẩu hay
+        // email của bản thân không phải là "quản lý người dùng" (chốt 06/08/2026). Trước đó
+        // luật ngang cấp vô tình chặn luôn chính mình, mà app không có trang profile nào ->
+        // không ai đổi nổi mật khẩu của mình. Các trường nguy hiểm (role/team/status/lương)
+        // bị khóa riêng trong save_user(), không dựa vào chốt này.
+        if ($userId > 0 && $userId === self::own_id()) {
+            return true;
+        }
         // Chỉ sửa được người có cấp THẤP HƠN mình — người ngang cấp cũng không đụng được
         if (!in_array($level, self::manageable_level_ids($conn), true)) {
             return false;
@@ -294,7 +303,7 @@ class Users
                 'level'      => $level,
                 'role_name'  => (string)($row['role_name'] ?? ''),
                 'avatar'     => (string)($row['avatar'] ?? ''),
-                'can_edit'   => self::can_edit_row($teamId, $level, $conn),
+                'can_edit'   => self::can_edit_row((int)$row['ID'], $teamId, $level, $conn),
                 'can_delete' => self::can_delete_row((int)$row['ID'], $teamId, $level, $conn),
             ];
             // Lương chỉ gửi cho người được phép — không dựa vào giao diện để giấu

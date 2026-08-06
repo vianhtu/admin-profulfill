@@ -62,7 +62,7 @@ class User
             if (!$row) {
                 return ['status' => 'error', 'message' => 'User not found.'];
             }
-            if (!Users::can_edit_row((int)$row['team_id'], (int)$row['level'], $conn)) {
+            if (!Users::can_edit_row($id, (int)$row['team_id'], (int)$row['level'], $conn)) {
                 return ['status' => 'error', 'message' => 'You do not have permission to edit this user.'];
             }
         } elseif (!Users::can_add()) {
@@ -142,8 +142,13 @@ class User
 
         $id = (int)($_POST['id'] ?? 0);
         $isNew = $id <= 0;
+        // Đang tự sửa mình: mở nhiều thứ (không cần role `edit`) nhưng khóa chặt hơn ở
+        // những trường tự ban phát cho bản thân được — xem 2 chốt bên dưới.
+        $laChinhMinh = !$isNew && $id === (int)($_SESSION['auth']['user_id'] ?? 0);
 
-        if ($isNew ? !Users::can_add() : !checkRoles('edit', 'users')) {
+        // Sửa chính mình không cần role `edit` -> để can_edit_row() bên dưới quyết, nó đã
+        // gộp cả 3 trục. Chặn sớm ở đây chỉ đúng cho luồng THÊM MỚI.
+        if ($isNew && !Users::can_add()) {
             return ['status' => 'error', 'message' => 'You do not have permission to manage users.'];
         }
 
@@ -187,13 +192,13 @@ class User
             if (!$current) {
                 return ['status' => 'error', 'message' => 'User not found.'];
             }
-            if (!Users::can_edit_row((int)$current['team_id'], (int)$current['level'], $conn)) {
+            if (!Users::can_edit_row($id, (int)$current['team_id'], (int)$current['level'], $conn)) {
                 return ['status' => 'error', 'message' => 'You do not have permission to edit this user.'];
             }
             // Không tự đổi quyền/team/trạng thái của chính mình qua màn hình này.
             // Trạng thái nằm trong danh sách vì đặt Inactive cho chính mình là tự khóa
             // ngay lập tức — admin cuối cùng làm vậy thì kẹt cả hệ thống.
-            if ((int)$current['ID'] === (int)($_SESSION['auth']['user_id'] ?? 0)
+            if ($laChinhMinh
                 && ((int)$current['level'] !== $level
                     || (int)$current['team_id'] !== $teamId
                     || (int)$current['status'] !== $status)) {
@@ -225,9 +230,12 @@ class User
             return ['status' => 'error', 'message' => 'Username or email is already in use.'];
         }
 
-        // Lương: chỉ người được xem lương mới được ghi; người khác gửi lên thì bỏ qua
+        // Lương: chỉ người được xem lương mới được ghi; người khác gửi lên thì bỏ qua.
+        // KHÔNG ai tự sửa lương của CHÍNH MÌNH — manager thấy được ô lương nên nếu không
+        // chặn ở đây thì tự nâng lương mình chỉ bằng một lần Save (chốt 06/08/2026).
+        // Bỏ qua âm thầm đúng quy ước tham số vượt quyền; lớp UI đã khóa sẵn 2 ô này.
         $wage = $insurance = null;
-        if (Users::can_see_salary()) {
+        if (Users::can_see_salary() && !$laChinhMinh) {
             $wage      = (float)($_POST['wage'] ?? 0);
             $insurance = (float)($_POST['insurance'] ?? 0);
         }

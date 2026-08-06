@@ -451,8 +451,8 @@ function openUserForm(row) {
     $('#user-status').val(String(row?.status ?? 2)).trigger('change.select2');
 
     // KHÓA theo TỪNG TRƯỜNG những gì server sẽ từ chối, thay vì để người dùng bấm Save mới
-    // biết. Sửa chính mình: save_user() chặn đổi role/team/status của bản thân (tự hạ quyền
-    // hoặc tự khóa tài khoản). Team của non-admin vốn đã khóa sẵn trong fragment.
+    // biết. Sửa chính mình: save_user() chặn đổi role/team/status/LƯƠNG của bản thân (tự hạ
+    // quyền, tự khóa tài khoản, tự nâng lương). Team của non-admin vốn đã khóa trong fragment.
     const isSelf = !!row && Number(row.id) === Number(userPerms.my_id || 0);
     $('#user-level').prop('disabled', isSelf)
         .attr('title', isSelf ? 'You cannot change your own role' : null);
@@ -469,6 +469,10 @@ function openUserForm(row) {
         // wage trả về đã format tiền tệ -> lấy lại phần số để đưa vào ô nhập
         $('#user-wage').val(String(row?.wage ?? '').replace(/\D/g, '') || 0);
         $('#user-insurance').val(String(row?.insurance ?? '').replace(/\D/g, '') || 0);
+        // Tự sửa mình thì KHÓA lương: manager nhìn thấy ô này nên không khóa là tự nâng
+        // lương được. Khóa chứ không ẩn — lương của CHÍNH MÌNH thì được quyền xem.
+        $('#user-wage, #user-insurance').prop('disabled', isSelf)
+            .attr('title', isSelf ? 'You cannot change your own salary' : null);
     }
     bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasUser')).show();
 }

@@ -105,7 +105,7 @@ $can_see_wage  = Users::can_see_salary();
                 </div>
                 <div class="alert alert-info d-none" id="user-self-hint" role="alert">
                     <i class="icon-base ti tabler-info-circle me-1"></i>
-                    You are editing your own account, so role, team and status are locked.
+                    You are editing your own account, so role, team, status and salary are locked.
                 </div>
                 <div class="mb-6">
                     <label class="form-label" for="user-level">Role</label>
