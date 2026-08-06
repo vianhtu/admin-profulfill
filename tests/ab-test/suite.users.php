@@ -153,7 +153,25 @@ return function (AbRunner $r): void {
 
     // ---------- Đổi quyền / trạng thái ----------
     // Thu hồi quyền phải có hiệu lực NGAY, không đợi người dùng tự đăng xuất
-    $r->add('Users — quyền', 'Phiên bị đá ra khi NHÓM QUYỀN bị đổi', function ($a, $fx) {
+    /**
+     * Đặt session khớp ĐÚNG dữ liệu thật trong DB. Actor mặc định là danh tính tổng hợp
+     * (bộ role tự dựng) nên nếu không đồng bộ trước, phép thử sẽ "đạt" chỉ vì lệch sẵn
+     * chứ không phải vì việc đổi quyền — đo sai điều cần đo.
+     */
+    $syncSession = function ($uid, $fx) {
+        $row = $fx->conn->execute_query(
+            'SELECT rl.slug, rl.roles FROM authors a
+             LEFT JOIN roles_permissions rl ON rl.ID = a.level WHERE a.ID = ? LIMIT 1', [$uid])->fetch_assoc();
+        $_SESSION['auth']['level'] = (string)($row['slug'] ?? '');
+        $_SESSION['auth']['roles'] = (array)json_decode((string)($row['roles'] ?? '[]'), true);
+        reset_access_cache();
+    };
+
+    $r->add('Users — quyền', 'Phiên bị đá ra khi NHÓM QUYỀN bị đổi', function ($a, $fx) use ($syncSession) {
+        $syncSession((int)$a->uid, $fx);
+        if (current_team_blocked()) {
+            return ['status' => 'error', 'message' => 'Đã bị chặn từ trước khi đổi -> phép thử vô nghĩa'];
+        }
         $orig = (int)$fx->conn->query('SELECT level FROM authors WHERE ID = ' . (int)$a->uid)->fetch_row()[0];
         $other = (int)$fx->conn->query(
             "SELECT ID FROM roles_permissions WHERE ID <> $orig ORDER BY ID LIMIT 1")->fetch_row()[0];
@@ -166,7 +184,11 @@ return function (AbRunner $r): void {
         return !$blocked;
     })->allow();
 
-    $r->add('Users — quyền', 'Phiên bị đá ra khi NỘI DUNG nhóm quyền bị sửa', function ($a, $fx) {
+    $r->add('Users — quyền', 'Phiên bị đá ra khi NỘI DUNG nhóm quyền bị sửa', function ($a, $fx) use ($syncSession) {
+        $syncSession((int)$a->uid, $fx);
+        if (current_team_blocked()) {
+            return ['status' => 'error', 'message' => 'Đã bị chặn từ trước khi sửa -> phép thử vô nghĩa'];
+        }
         $lvl = (int)$fx->conn->query('SELECT level FROM authors WHERE ID = ' . (int)$a->uid)->fetch_row()[0];
         $before = (string)($fx->conn->query("SELECT roles FROM roles_permissions WHERE ID = $lvl")->fetch_row()[0] ?? '{}');
         $fx->conn->execute_query('UPDATE roles_permissions SET roles = ? WHERE ID = ?',

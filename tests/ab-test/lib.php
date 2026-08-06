@@ -68,6 +68,14 @@ final class AbActor
         // Cache trạng thái truy cập vốn chỉ sống trong 1 request của web; bộ test chạy
         // hàng nghìn "request" trong cùng tiến trình nên phải xóa giữa các vai.
         reset_access_cache();
+        // Actor là danh tính TỔNG HỢP (level + bộ role tự dựng) nên không bao giờ khớp
+        // roles_permissions thật -> chốt "quyền đã đổi" sẽ chặn mọi vai. Mồi sẵn cache
+        // bằng chính danh tính giả lập để nó coi như khớp; phép thử nào muốn đo đúng
+        // việc đổi quyền thì tự gọi reset_access_cache() sau khi sửa DB.
+        $GLOBALS['__access_cache']['perms'][$this->uid] = [
+            'slug'  => $this->level,
+            'roles' => $_SESSION['auth']['roles'],
+        ];
         unset($_SESSION['products_stats_' . $this->uid]);
         $_REQUEST['menu'] = $menu;
         $_POST = [];
