@@ -192,10 +192,11 @@ return function (AbRunner $r) {
     })->allow();
 
     // ---------- Lớp UI ----------
+    // ab_render() GHI ĐÈ $_GET bằng tham số thứ hai — đặt $_GET trước khi gọi là vô nghĩa,
+    // fragment sẽ thấy mảng rỗng và render trang của chính mình (đã dính đúng bẫy này).
     $r->add('Account — giao diện', 'Trang của mình render form sửa + đổi mật khẩu',
         function ($a, $fx) {
-            $_GET = [];
-            $html = ab_render('app-account.php');
+            $html = ab_render('app-account.php', []);
             return ab_has($html, 'accProfileSave', 'accPasswordSave', 'accDeviceRows');
         })->allow('ADMIN', 'SUPER', 'MGR_T1', 'MGR_T1_V', 'MGR_T2', 'USR_T1', 'USR_T1_V',
                   'USR_T2', 'USR_T3', 'NOROLE');
@@ -203,9 +204,7 @@ return function (AbRunner $r) {
     $r->add('Account — giao diện', 'Trang người khác KHÔNG render đường ghi nào',
         function ($a, $fx) {
             $id = $fx->new_user((int)$a->team, $fx->customer_level());
-            $_GET = ['id' => $id];
-            $html = ab_render('app-account.php');
-            $_GET = [];
+            $html = ab_render('app-account.php', ['id' => $id]);
             if (!ab_has($html, 'acc-username')) {
                 return false;   // không xem được -> DENY (đúng với vai thiếu role view)
             }
