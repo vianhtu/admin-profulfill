@@ -151,6 +151,48 @@ return function (AbRunner $r): void {
         return $fx->conn->query("SELECT ID FROM authors WHERE username = '$u'")->fetch_row() !== null;
     })->allow();
 
+    // ---------- Đổi quyền / trạng thái ----------
+    // Thu hồi quyền phải có hiệu lực NGAY, không đợi người dùng tự đăng xuất
+    $r->add('Users — quyền', 'Phiên bị đá ra khi NHÓM QUYỀN bị đổi', function ($a, $fx) {
+        $orig = (int)$fx->conn->query('SELECT level FROM authors WHERE ID = ' . (int)$a->uid)->fetch_row()[0];
+        $other = (int)$fx->conn->query(
+            "SELECT ID FROM roles_permissions WHERE ID <> $orig ORDER BY ID LIMIT 1")->fetch_row()[0];
+        $fx->conn->query("UPDATE authors SET level = $other WHERE ID = " . (int)$a->uid);
+        reset_access_cache();
+        $blocked = current_team_blocked();
+        $fx->conn->query("UPDATE authors SET level = $orig WHERE ID = " . (int)$a->uid);
+        reset_access_cache();
+        // ALLOW = KHÔNG bị chặn -> không ai được phép giữ quyền cũ
+        return !$blocked;
+    })->allow();
+
+    $r->add('Users — quyền', 'Phiên bị đá ra khi NỘI DUNG nhóm quyền bị sửa', function ($a, $fx) {
+        $lvl = (int)$fx->conn->query('SELECT level FROM authors WHERE ID = ' . (int)$a->uid)->fetch_row()[0];
+        $before = (string)($fx->conn->query("SELECT roles FROM roles_permissions WHERE ID = $lvl")->fetch_row()[0] ?? '{}');
+        $fx->conn->execute_query('UPDATE roles_permissions SET roles = ? WHERE ID = ?',
+            ['{"zzab_changed":{"view":"on"}}', $lvl]);
+        reset_access_cache();
+        $blocked = current_team_blocked();
+        $fx->conn->execute_query('UPDATE roles_permissions SET roles = ? WHERE ID = ?', [$before, $lvl]);
+        reset_access_cache();
+        return !$blocked;
+    })->allow();
+
+    $r->add('Users — quyền', 'KHÔNG tự đổi trạng thái của chính mình', function ($a, $fx) {
+        $row = $fx->conn->query(
+            'SELECT username, email, level, team_id, status FROM authors WHERE ID = ' . (int)$a->uid)->fetch_assoc();
+        $_POST = ['csrf_token' => 'ABTEST', 'id' => (int)$a->uid, 'username' => $row['username'],
+            'email' => $row['email'], 'password' => '', 'level' => (int)$row['level'],
+            'team_id' => (int)$row['team_id'], 'status' => 3];
+        User::save_user();
+        $now = (int)$fx->conn->query('SELECT status FROM authors WHERE ID = ' . (int)$a->uid)->fetch_row()[0];
+        if ($now !== (int)$row['status']) {
+            $fx->conn->query("UPDATE authors SET status = {$row['status']} WHERE ID = " . (int)$a->uid);
+        }
+        // ALLOW = tự đổi được trạng thái -> không ai được phép
+        return $now === 3;
+    })->allow();
+
     // ---------- Chuyển team ----------
     $r->add('Users — chuyển team', 'Xem trước hệ quả khi chuyển team', function ($a, $fx) {
         $_POST = ['csrf_token' => 'ABTEST', 'id' => $fx->new_user(1), 'team_id' => 2];

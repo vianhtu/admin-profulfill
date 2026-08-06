@@ -93,10 +93,10 @@ function is_logged_in(): bool {
  * Để ở biến toàn cục thay vì `static` để bộ kiểm thử CLI — vốn chạy hàng nghìn "request"
  * trong cùng một tiến trình — có thể xóa giữa các vai bằng reset_access_cache().
  */
-$GLOBALS['__access_cache'] = ['team' => [], 'user' => [], 'user_team' => []];
+$GLOBALS['__access_cache'] = ['team' => [], 'user' => [], 'user_team' => [], 'perms' => []];
 
 function reset_access_cache(): void {
-	$GLOBALS['__access_cache'] = ['team' => [], 'user' => [], 'user_team' => []];
+	$GLOBALS['__access_cache'] = ['team' => [], 'user' => [], 'user_team' => [], 'perms' => []];
 }
 
 function team_is_active(int $teamId): bool {
@@ -157,6 +157,13 @@ function access_block_reason(): ?string {
 	if (user_team_changed($uid, $team)) {
 		return TEAM_CHANGED_MESSAGE;
 	}
+	// Bị đổi nhóm quyền, hoặc nhóm quyền của họ bị sửa nội dung: session vẫn giữ bộ quyền
+	// CŨ (login_user chụp level + roles một lần) nên thu hồi quyền sẽ không có tác dụng gì
+	// tới khi họ tự đăng xuất. Buộc đăng nhập lại để nhận đúng quyền hiện hành.
+	if (user_perms_changed($uid, (string)($_SESSION['auth']['level'] ?? ''),
+			(array)($_SESSION['auth']['roles'] ?? []))) {
+		return PERMS_CHANGED_MESSAGE;
+	}
 	// Admin được miễn phần TEAM (tránh tự nhốt khi tắt team của mình)
 	if (!is_admin() && !team_is_active($team)) {
 		return TEAM_INACTIVE_MESSAGE;
@@ -166,6 +173,37 @@ function access_block_reason(): ?string {
 
 function current_team_blocked(): bool {
 	return access_block_reason() !== null;
+}
+
+/**
+ * Bộ quyền trong session có còn khớp DB không — bắt CẢ HAI trường hợp:
+ *   - user bị chuyển sang nhóm quyền khác (`authors.level` đổi -> slug đổi);
+ *   - nhóm quyền của họ bị sửa nội dung (`roles_permissions.roles` đổi).
+ */
+function user_perms_changed(int $userId, string $sessionLevel, array $sessionRoles): bool {
+	if ($userId <= 0) {
+		return false;
+	}
+	if (!array_key_exists($userId, $GLOBALS['__access_cache']['perms'])) {
+		try {
+			$row = db()->execute_query(
+				'SELECT rl.slug, rl.roles FROM authors a
+				 LEFT JOIN roles_permissions rl ON rl.ID = a.level
+				 WHERE a.ID = ? LIMIT 1', [$userId])->fetch_assoc();
+			$GLOBALS['__access_cache']['perms'][$userId] = $row === null ? null : [
+				'slug'  => (string)($row['slug'] ?? ''),
+				'roles' => (array)json_decode((string)($row['roles'] ?? '[]'), true),
+			];
+		} catch (mysqli_sql_exception) {
+			$GLOBALS['__access_cache']['perms'][$userId] = null;   // DB hỏng thì không tự đá ra
+		}
+	}
+	$cur = $GLOBALS['__access_cache']['perms'][$userId];
+	if ($cur === null) {
+		return false;
+	}
+	// So sánh lỏng (==) trên mảng: khớp theo cặp khóa/giá trị, không quan tâm thứ tự
+	return $cur['slug'] !== $sessionLevel || $cur['roles'] != $sessionRoles;
 }
 
 /** Team trong session có còn khớp team trong DB không. */
@@ -191,6 +229,8 @@ const TEAM_INACTIVE_MESSAGE = 'Your team has been deactivated. Please contact an
 const USER_INACTIVE_MESSAGE = 'Your account is not active. Please contact an administrator.';
 /** Bị chuyển sang team khác trong lúc đang đăng nhập. */
 const TEAM_CHANGED_MESSAGE = 'Your team has changed. Please sign in again.';
+/** Nhóm quyền bị đổi hoặc bị sửa nội dung. */
+const PERMS_CHANGED_MESSAGE = 'Your permissions have changed. Please sign in again.';
 /**
  * URL trang đăng nhập, tính theo vị trí script đang chạy.
  *

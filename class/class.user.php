@@ -184,17 +184,22 @@ class User
         $current = null;
         if (!$isNew) {
             $current = $conn->execute_query(
-                'SELECT ID, team_id, level FROM authors WHERE ID = ? LIMIT 1', [$id])->fetch_assoc();
+                'SELECT ID, team_id, level, status FROM authors WHERE ID = ? LIMIT 1', [$id])->fetch_assoc();
             if (!$current) {
                 return ['status' => 'error', 'message' => 'User not found.'];
             }
             if (!Users::can_edit_row((int)$current['team_id'], (int)$current['level'], $conn)) {
                 return ['status' => 'error', 'message' => 'You do not have permission to edit this user.'];
             }
-            // Không tự đổi quyền/team của chính mình qua màn hình này
+            // Không tự đổi quyền/team/trạng thái của chính mình qua màn hình này.
+            // Trạng thái nằm trong danh sách vì đặt Inactive cho chính mình là tự khóa
+            // ngay lập tức — admin cuối cùng làm vậy thì kẹt cả hệ thống.
             if ((int)$current['ID'] === (int)($_SESSION['auth']['user_id'] ?? 0)
-                && ((int)$current['level'] !== $level || (int)$current['team_id'] !== $teamId)) {
-                return ['status' => 'error', 'message' => 'You cannot change your own role or team.'];
+                && ((int)$current['level'] !== $level
+                    || (int)$current['team_id'] !== $teamId
+                    || (int)$current['status'] !== $status)) {
+                return ['status' => 'error',
+                    'message' => 'You cannot change your own role, team or status.'];
             }
         }
 
