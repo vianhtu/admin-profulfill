@@ -88,13 +88,23 @@ function is_logged_in(): bool {
  * Team này có đang hoạt động không. Chưa gán team (id <= 0) coi như không có gì để khóa.
  * Team không tồn tại -> coi là KHÓA (dữ liệu mồ côi thì chặn cho an toàn).
  */
+/**
+ * Cache trạng thái truy cập theo MỘT REQUEST (đổi trong DB là request sau ăn ngay).
+ * Để ở biến toàn cục thay vì `static` để bộ kiểm thử CLI — vốn chạy hàng nghìn "request"
+ * trong cùng một tiến trình — có thể xóa giữa các vai bằng reset_access_cache().
+ */
+$GLOBALS['__access_cache'] = ['team' => [], 'user' => [], 'user_team' => []];
+
+function reset_access_cache(): void {
+	$GLOBALS['__access_cache'] = ['team' => [], 'user' => [], 'user_team' => []];
+}
+
 function team_is_active(int $teamId): bool {
 	if ($teamId <= 0) {
 		return true;
 	}
-	static $cache = [];   // cache theo REQUEST, không để lâu trong session (đổi là ăn ngay)
-	if (isset($cache[$teamId])) {
-		return $cache[$teamId];
+	if (isset($GLOBALS['__access_cache']['team'][$teamId])) {
+		return $GLOBALS['__access_cache']['team'][$teamId];
 	}
 	try {
 		$row = db()->execute_query('SELECT status FROM team WHERE ID = ? LIMIT 1', [$teamId])->fetch_row();
@@ -102,7 +112,7 @@ function team_is_active(int $teamId): bool {
 		// DB hỏng thì cả app đã không chạy được; không tự khóa thêm người dùng ở đây.
 		return true;
 	}
-	return $cache[$teamId] = ($row !== null && (int)$row[0] === 1);
+	return $GLOBALS['__access_cache']['team'][$teamId] = ($row !== null && (int)$row[0] === 1);
 }
 
 /**
@@ -113,16 +123,15 @@ function user_is_active(int $userId): bool {
 	if ($userId <= 0) {
 		return false;
 	}
-	static $cache = [];
-	if (isset($cache[$userId])) {
-		return $cache[$userId];
+	if (isset($GLOBALS['__access_cache']['user'][$userId])) {
+		return $GLOBALS['__access_cache']['user'][$userId];
 	}
 	try {
 		$row = db()->execute_query('SELECT status FROM authors WHERE ID = ? LIMIT 1', [$userId])->fetch_row();
 	} catch (mysqli_sql_exception) {
 		return true;   // DB hỏng thì cả app đã không chạy được; không tự khóa thêm ở đây
 	}
-	return $cache[$userId] = ($row !== null && (int)$row[0] === 2);
+	return $GLOBALS['__access_cache']['user'][$userId] = ($row !== null && (int)$row[0] === 2);
 }
 
 /**
@@ -164,16 +173,16 @@ function user_team_changed(int $userId, int $sessionTeam): bool {
 	if ($userId <= 0) {
 		return false;
 	}
-	static $cache = [];
-	if (!array_key_exists($userId, $cache)) {
+	if (!array_key_exists($userId, $GLOBALS['__access_cache']['user_team'])) {
 		try {
 			$row = db()->execute_query('SELECT team_id FROM authors WHERE ID = ? LIMIT 1', [$userId])->fetch_row();
-			$cache[$userId] = $row === null ? null : (int)$row[0];
+			$GLOBALS['__access_cache']['user_team'][$userId] = $row === null ? null : (int)$row[0];
 		} catch (mysqli_sql_exception) {
-			$cache[$userId] = null;   // DB hỏng thì không tự đá người dùng ra
+			$GLOBALS['__access_cache']['user_team'][$userId] = null;   // DB hỏng thì không tự đá người dùng ra
 		}
 	}
-	return $cache[$userId] !== null && $cache[$userId] !== $sessionTeam;
+	$dbTeam = $GLOBALS['__access_cache']['user_team'][$userId];
+	return $dbTeam !== null && $dbTeam !== $sessionTeam;
 }
 
 /** Thông báo dùng chung khi bị khóa (app hiển thị tiếng Anh). */

@@ -231,9 +231,11 @@ return function (HackRunner $h): void {
 
     $h->attack('Team bị khóa', 'Ajax nội bộ chưa có chốt chặn team Inactive', 'MGR_OUT',
         function ($atk, $fx) {
+            // Chốt chặn nằm ở access_block_reason() (bản mở rộng của current_team_blocked,
+            // gộp thêm tài khoản bị khóa và bị chuyển team) — chấp nhận cả hai tên hàm.
             $ajax = (string)file_get_contents(AB_ROOT . '/ajax.php');
-            return ['breach' => !str_contains($ajax, 'current_team_blocked()'),
-                'note' => 'ajax.php thiếu chốt current_team_blocked()'];
+            $ok = str_contains($ajax, 'access_block_reason()') || str_contains($ajax, 'current_team_blocked()');
+            return ['breach' => !$ok, 'note' => 'ajax.php thiếu chốt chặn truy cập'];
         });
 
     // ---------- XSS ----------

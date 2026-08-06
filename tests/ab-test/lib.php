@@ -65,6 +65,9 @@ final class AbActor
         ];
         $_SESSION['csrf_token'] = 'ABTEST';
         $_SESSION['count_cache'] = [];
+        // Cache trạng thái truy cập vốn chỉ sống trong 1 request của web; bộ test chạy
+        // hàng nghìn "request" trong cùng tiến trình nên phải xóa giữa các vai.
+        reset_access_cache();
         unset($_SESSION['products_stats_' . $this->uid]);
         $_REQUEST['menu'] = $menu;
         $_POST = [];
