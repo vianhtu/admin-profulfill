@@ -327,6 +327,17 @@ function initModalSelects() {
     });
 }
 
+// MOBILE: DataTables Responsive thu gọn cột và đưa cả cột Actions vào modal
+// "Details of ...". Bấm Edit/Delete trong đó là mở modal THỨ HAI chồng lên — Bootstrap
+// không xếp chồng modal nên form mới bị backdrop nuốt, người dùng bấm mà không thấy gì.
+// Phải đóng modal chi tiết TRƯỚC, đợi nó đóng hẳn rồi mới mở form.
+function afterDetailsClosed(then) {
+    const dtr = document.querySelector('.dtr-bs-modal.show');
+    if (!dtr) { then(); return; }
+    $(dtr).one('hidden.bs.modal', then);
+    bootstrap.Modal.getOrCreateInstance(dtr).hide();
+}
+
 function openRoleForm(row) {
     const isEdit = !!row;
     $('#roleId').val(isEdit ? row.id : 0);
@@ -350,7 +361,8 @@ function openRoleForm(row) {
             if (perms[m] && perms[m][a]) { this.checked = true; }
         });
     }
-    bootstrap.Modal.getOrCreateInstance(document.getElementById('addPermissionModal')).show();
+    afterDetailsClosed(() =>
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('addPermissionModal')).show());
 }
 
 $(document).on('click', '.edit-role', function () {
@@ -426,7 +438,7 @@ $(document).on('click', '.delete-role', function () {
     $('#deleteRoleBar').css('width', '0%').removeClass('bg-warning');
     $('#deleteRoleConfirm').prop('disabled', true).show();
     $('#deleteRoleCancel').text('Cancel').prop('disabled', false);
-    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    afterDetailsClosed(() => bootstrap.Modal.getOrCreateInstance(modalEl).show());
 
     $.ajax({
         url: '../../ajax.php?action=get-role-delete-preview',
