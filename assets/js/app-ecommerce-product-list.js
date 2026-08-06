@@ -9,6 +9,14 @@ function esc(s) {
         ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+// Nút LẺ ở cột Actions: thiếu quyền thì KHÓA chứ không ẩn — ẩn làm các nút còn lại xô lệch
+// giữa các dòng, và người dùng tưởng hệ thống không có chức năng đó. Bảo vệ THẬT nằm ở
+// endpoint: `disabled` gỡ được bằng DevTools trong 2 giây.
+function lockedBtn(icon, why) {
+    return `<button type="button" class="btn btn-text-secondary rounded-pill btn-icon" disabled` +
+        ` title="${esc(why)}"><i class="icon-base ti ${icon} icon-22px"></i></button>`;
+}
+
 
 let categoryObj = {};
 let authorsObj = {};
@@ -254,10 +262,11 @@ function initProductTable(){
                     searchable: false,
                     orderable: false,
                     render: function (data, type, full, meta) {
-                        // Chỉ hiện nút sửa/suspend khi user có quyền edit
+                        // Nút Edit đứng LẺ ngoài dropdown -> thiếu quyền thì KHÓA (xem lockedBtn);
+                        // Suspend/Delete nằm TRONG nhóm -> thiếu quyền thì ẩn hẳn mục đó.
                         const editBtn = productPerms.edit
                             ? `<a href="index.php?menu=products&form=edit&id=${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon"><i class="icon-base ti tabler-edit icon-22px"></i></a>`
-                            : '';
+                            : lockedBtn('tabler-edit', 'You do not have permission to edit products');
                         const suspendItem = productPerms.edit
                             ? `<a href="javascript:void(0);" class="dropdown-item suspend-product" data-id="${full['id']}">Suspend</a>`
                             : '';
@@ -265,16 +274,23 @@ function initProductTable(){
                             ? `<a href="javascript:void(0);" class="dropdown-item text-danger delete-product" data-id="${full['id']}">Delete</a>`
                             : '';
 
-                        return `
-              <div class="d-inline-block text-nowrap">
-                ${editBtn}
-                <button class="btn btn-text-secondary rounded-pill waves-effect btn-icon dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                        // Cả 2 mục con đều bị ẩn -> KHÓA nút cha thay vì để dropdown rỗng
+                        const menuBtn = (suspendItem || deleteItem)
+                            ? `<button class="btn btn-text-secondary rounded-pill waves-effect btn-icon dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
                   <i class="icon-base ti tabler-dots-vertical icon-22px"></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-end m-0">
                   ${suspendItem}
                   ${deleteItem}
-                </div>
+                </div>`
+                            : `<button class="btn btn-text-secondary rounded-pill btn-icon hide-arrow" disabled title="You have no actions available on this product">
+                  <i class="icon-base ti tabler-dots-vertical icon-22px"></i>
+                </button>`;
+
+                        return `
+              <div class="d-inline-block text-nowrap">
+                ${editBtn}
+                ${menuBtn}
               </div>
             `;
                     }

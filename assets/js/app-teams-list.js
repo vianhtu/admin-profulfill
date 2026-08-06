@@ -10,6 +10,14 @@ function esc(s) {
         ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+// Nút LẺ ở cột Actions: thiếu quyền thì KHÓA chứ không ẩn — ẩn làm các nút còn lại xô lệch
+// giữa các dòng, và người dùng tưởng hệ thống không có chức năng đó. Bảo vệ THẬT nằm ở
+// endpoint: `disabled` gỡ được bằng DevTools trong 2 giây.
+function lockedBtn(icon, why) {
+    return `<button type="button" class="btn btn-text-secondary rounded-pill btn-icon" disabled` +
+        ` title="${esc(why)}"><i class="icon-base ti ${icon} icon-22px"></i></button>`;
+}
+
 let dtTeams = null;
 
 function initTable() {
@@ -79,10 +87,10 @@ function initTable() {
                     const viewBtn = `<button type="button" class="btn btn-text-secondary rounded-pill waves-effect btn-icon view-key" data-name="${esc(full['name'])}" data-key="${esc(full['key'])}" title="View key"><i class="icon-base ti tabler-key icon-22px"></i></button>`;
                     const editBtn = full['can_edit']
                         ? `<button type="button" class="btn btn-text-secondary rounded-pill waves-effect btn-icon edit-team" data-id="${full['id']}" data-name="${esc(full['name'])}" data-status="${full['status']}" title="Edit"><i class="icon-base ti tabler-edit icon-22px"></i></button>`
-                        : '';
+                        : lockedBtn('tabler-edit', 'You cannot edit this team');
                     const deleteBtn = full['can_delete']
                         ? `<button type="button" class="btn btn-text-danger rounded-pill waves-effect btn-icon delete-team" data-id="${full['id']}" data-name="${esc(full['name'])}" title="Delete"><i class="icon-base ti tabler-trash icon-22px"></i></button>`
-                        : '';
+                        : lockedBtn('tabler-trash', 'You cannot delete this team');
                     return `<div class="d-inline-block text-nowrap">${viewBtn}${editBtn}${deleteBtn}</div>`;
                 }
             }

@@ -9,6 +9,14 @@ function esc(s) {
         ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+// Nút LẺ ở cột Actions: thiếu quyền thì KHÓA chứ không ẩn — ẩn làm các nút còn lại xô lệch
+// giữa các dòng, và người dùng tưởng hệ thống không có chức năng đó. Bảo vệ THẬT nằm ở
+// endpoint: `disabled` gỡ được bằng DevTools trong 2 giây.
+function lockedBtn(icon, why) {
+    return `<button type="button" class="btn btn-text-secondary rounded-pill btn-icon" disabled` +
+        ` title="${esc(why)}"><i class="icon-base ti ${icon} icon-22px"></i></button>`;
+}
+
 
 let dtCategories = null;
 // Quyền cấp trang; sửa/xóa từng dòng lấy theo can_edit/can_delete server trả về
@@ -82,14 +90,11 @@ function initCategoryTable() {
                     // Sửa: admin, hoặc chính người đã thêm category này (can_edit theo dòng)
                     const editBtn = full['can_edit']
                         ? `<a href="index.php?menu=categories&form=edit&id=${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon"><i class="icon-base ti tabler-edit icon-22px"></i></a>`
-                        : '';
+                        : lockedBtn('tabler-edit', 'Only an admin or the person who added it can edit');
                     // Nút xóa để thẳng ra ngoài dạng icon, không giấu trong dropdown
                     const deleteBtn = full['can_delete']
                         ? `<button type="button" class="btn btn-text-danger rounded-pill waves-effect btn-icon delete-category" data-id="${full['id']}" data-count="${full['products_count']}" title="Delete"><i class="icon-base ti tabler-trash icon-22px"></i></button>`
-                        : '';
-                    if (!editBtn && !deleteBtn) {
-                        return '';
-                    }
+                        : lockedBtn('tabler-trash', 'Only an admin can delete a category');
                     return `<div class="d-inline-block text-nowrap">${editBtn}${deleteBtn}</div>`;
                 }
             }

@@ -14,6 +14,14 @@ function esc(s) {
         ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+// Nút LẺ ở cột Actions: thiếu quyền thì KHÓA chứ không ẩn — ẩn làm các nút còn lại xô lệch
+// giữa các dòng, và người dùng tưởng hệ thống không có chức năng đó. Bảo vệ THẬT nằm ở
+// endpoint: `disabled` gỡ được bằng DevTools trong 2 giây.
+function lockedBtn(icon, why) {
+    return `<button type="button" class="btn btn-text-secondary rounded-pill btn-icon" disabled` +
+        ` title="${esc(why)}"><i class="icon-base ti ${icon} icon-22px"></i></button>`;
+}
+
 async function init() {
     try {
         const options = await fetchTableFilter('get-sites-table-filter');
@@ -89,11 +97,11 @@ function initSiteTable() {
                     // Sửa: admin, hoặc chính người đã thêm site này (can_edit theo từng dòng)
                     const editBtn = full['can_edit']
                         ? `<a href="index.php?menu=sites&form=edit&id=${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon"><i class="icon-base ti tabler-edit icon-22px"></i></a>`
-                        : '';
+                        : lockedBtn('tabler-edit', 'Only an admin or the person who added it can edit');
                     const inUse = full['products_count'] + full['accounts_count'] + full['stores_count'];
                     const deleteBtn = full['can_delete']
                         ? `<button type="button" class="btn btn-text-danger rounded-pill waves-effect btn-icon delete-site" data-id="${full['id']}" data-inuse="${inUse}" title="Delete"><i class="icon-base ti tabler-trash icon-22px"></i></button>`
-                        : '';
+                        : lockedBtn('tabler-trash', 'Only an admin can delete a site');
                     return `<div class="d-inline-block text-nowrap">${editBtn}${deleteBtn}</div>`;
                 }
             }

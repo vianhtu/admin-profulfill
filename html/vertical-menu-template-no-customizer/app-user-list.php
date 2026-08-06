@@ -103,6 +103,10 @@ $can_see_wage  = Users::can_see_salary();
                     <div class="form-text" id="user-password-hint">Leave blank to keep the current password.</div>
                     <div class="invalid-feedback">Password must be at least 8 characters.</div>
                 </div>
+                <div class="alert alert-info d-none" id="user-self-hint" role="alert">
+                    <i class="icon-base ti tabler-info-circle me-1"></i>
+                    You are editing your own account, so role, team and status are locked.
+                </div>
                 <div class="mb-6">
                     <label class="form-label" for="user-level">Role</label>
                     <select id="user-level" class="form-select"></select>

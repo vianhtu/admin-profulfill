@@ -10,6 +10,14 @@ function esc(s) {
         ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+// Nút LẺ ở cột Actions: thiếu quyền thì KHÓA chứ không ẩn — ẩn làm các nút còn lại xô lệch
+// giữa các dòng, và người dùng tưởng hệ thống không có chức năng đó. Bảo vệ THẬT nằm ở
+// endpoint: `disabled` gỡ được bằng DevTools trong 2 giây.
+function lockedBtn(icon, why) {
+    return `<button type="button" class="btn btn-text-secondary rounded-pill btn-icon" disabled` +
+        ` title="${esc(why)}"><i class="icon-base ti ${icon} icon-22px"></i></button>`;
+}
+
 let rolesObj = {};
 let teamsObj = {};
 let statusesObj = {};
@@ -110,13 +118,13 @@ function initTable() {
         {
             targets: -1, title: 'Actions', searchable: false, orderable: false,
             render: function (d, t, full) {
-                // Quyền theo TỪNG dòng: không đủ quyền thì KHÔNG render nút
+                // Quyền theo TỪNG dòng. Nút lẻ -> thiếu quyền thì KHÓA, không ẩn (xem lockedBtn).
                 const editBtn = full['can_edit']
                     ? `<button type="button" class="btn btn-text-secondary rounded-pill waves-effect btn-icon edit-user" data-id="${full['id']}" title="Edit"><i class="icon-base ti tabler-edit icon-22px"></i></button>`
-                    : '';
+                    : lockedBtn('tabler-edit', 'You cannot edit this user');
                 const deleteBtn = full['can_delete']
                     ? `<button type="button" class="btn btn-text-danger rounded-pill waves-effect btn-icon delete-user" data-id="${full['id']}" data-name="${esc(full['username'])}" title="Delete"><i class="icon-base ti tabler-trash icon-22px"></i></button>`
-                    : '';
+                    : lockedBtn('tabler-trash', 'You cannot delete this user');
                 return `<div class="d-inline-block text-nowrap">${editBtn}${deleteBtn}</div>`;
             }
         }
@@ -342,7 +350,14 @@ function initFilterCollapse(keepOpen) {
 
 // --- Form Add/Edit ---
 function buildFormSelects() {
-    fillSelect($('#user-level'), rolesObj, null);
+    // Role admin là MỤC trong nhóm lựa chọn -> non-admin thì ẨN hẳn mục đó (save_user() từ
+    // chối "You cannot assign the admin role", để lại chỉ tổ cho người dùng chọn rồi báo lỗi).
+    let roles = rolesObj;
+    if (!userPerms.is_admin && Array.isArray(userPerms.admin_roles)) {
+        const banned = userPerms.admin_roles.map(String);
+        roles = Object.fromEntries(Object.entries(rolesObj).filter(([id]) => !banned.includes(String(id))));
+    }
+    fillSelect($('#user-level'), roles, null);
     fillSelect($('#user-team'), teamsObj, null);
     fillSelect($('#user-status'), statusesObj, null);
     $('#user-level, #user-team, #user-status').each(function () {
@@ -417,6 +432,22 @@ function openUserForm(row) {
     $('#user-team').val(String(row?.team_id ?? firstTeam)).trigger('change.select2');
     editingOriginalTeam = row ? String(row.team_id) : null;
     $('#user-status').val(String(row?.status ?? 2)).trigger('change.select2');
+
+    // KHÓA theo TỪNG TRƯỜNG những gì server sẽ từ chối, thay vì để người dùng bấm Save mới
+    // biết. Sửa chính mình: save_user() chặn đổi role/team/status của bản thân (tự hạ quyền
+    // hoặc tự khóa tài khoản). Team của non-admin vốn đã khóa sẵn trong fragment.
+    const isSelf = !!row && Number(row.id) === Number(userPerms.my_id || 0);
+    $('#user-level').prop('disabled', isSelf)
+        .attr('title', isSelf ? 'You cannot change your own role' : null);
+    $('#user-status').prop('disabled', isSelf)
+        .attr('title', isSelf ? 'You cannot change your own status' : null);
+    if (userPerms.is_admin) {
+        $('#user-team').prop('disabled', isSelf)
+            .attr('title', isSelf ? 'You cannot move yourself to another team' : null);
+    }
+    $('#user-level, #user-team, #user-status').trigger('change.select2');
+    $('#user-self-hint').toggleClass('d-none', !isSelf);
+
     if (userPerms.see_salary) {
         // wage trả về đã format tiền tệ -> lấy lại phần số để đưa vào ô nhập
         $('#user-wage').val(String(row?.wage ?? '').replace(/\D/g, '') || 0);

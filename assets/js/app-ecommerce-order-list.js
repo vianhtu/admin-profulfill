@@ -219,8 +219,13 @@ function initTable(){
                         const deleteItem = full['can_delete']
                             ? '<a href="javascript:void(0);" class="dropdown-item delete-record">Delete</a>'
                             : '';
+                        // Nút CON trong nhóm thì ẩn; con ẩn hết thì KHÓA nút cha, không ẩn cả
+                        // cụm — giữ cột Actions thẳng hàng giữa các dòng.
                         if (!statusItems && !deleteItem) {
-                            return '';
+                            return '<div class="d-flex justify-content-sm-start align-items-sm-center">' +
+                                '<button class="btn btn-text-secondary rounded-pill btn-icon hide-arrow" disabled' +
+                                ' title="You have no actions available on this order">' +
+                                '<i class="icon-base ti tabler-dots-vertical"></i></button></div>';
                         }
                         return `
                           <div class="d-flex justify-content-sm-start align-items-sm-center">

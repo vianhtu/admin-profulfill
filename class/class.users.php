@@ -290,6 +290,10 @@ class Users
                 'see_salary'  => self::can_see_salary(),
                 'filter_team' => is_admin(),
                 'own_team'    => self::own_team(),
+                // JS khóa Role/Team/Status khi mở form sửa CHÍNH MÌNH — save_user() từ chối
+                // đổi 3 trường đó của bản thân, khóa trước cho khỏi bấm Save mới báo lỗi.
+                'my_id'       => self::own_id(),
+                'admin_roles' => array_values(self::admin_level_ids(db())),
             ],
         ];
     }
