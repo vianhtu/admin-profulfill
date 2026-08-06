@@ -38,6 +38,7 @@ $suites = [
     'teams'      => ['file' => 'suite.teams.php',      'menu' => 'teams',      'title' => 'Teams / Team (admin-only)'],
     'users'      => ['file' => 'suite.users.php',      'menu' => 'users',      'title' => 'Users / User'],
     'roles'      => ['file' => 'suite.roles.php',      'menu' => 'roles-permissions', 'title' => 'Roles / Role (phân quyền)'],
+    'account'    => ['file' => 'suite.account.php',    'menu' => 'account',    'title' => 'Account (hồ sơ cá nhân)'],
 ];
 // Tên gọi tắt: số ít, tiếng Việt, tên menu
 $alias = [
@@ -45,6 +46,7 @@ $alias = [
     'site' => 'sites', 'store' => 'stores', 'shop' => 'stores', 'sanpham' => 'products',
     'order' => 'orders', 'donhang' => 'orders', 'team' => 'teams', 'nhom' => 'teams',
     'user' => 'users', 'nguoidung' => 'users', 'author' => 'users', 'authors' => 'users',
+    'taikhoan' => 'account', 'profile' => 'account', 'hoso' => 'account',
 ];
 
 $arg = strtolower(trim($argv[1] ?? 'all'));
