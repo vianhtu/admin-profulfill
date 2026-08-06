@@ -659,6 +659,12 @@ function initTable(){
                 $('#accountFilter, #sitesFilter').on('change', function () {
                     api.draw();
                 });
+
+                // Các ô lọc đã dựng xong -> đổ trạng thái từ URL vào, rồi ghi lại URL sau
+                // mỗi lần bảng vẽ. Lần vẽ đầu đã đọc thẳng URL trong hàm data() nên không
+                // cần draw lại ở đây.
+                urlState.applyFilters();
+                urlState.bind(dt_products, ORDER_COLS);
             }
         });
 
@@ -708,9 +714,6 @@ function initTable(){
             {
                 selector: '.dt-layout-end .dt-buttons',
                 classToAdd: 'gap-2 px-3 mt-0 mb-md-0 mb-6'
-
-                urlState.applyFilters();
-                urlState.bind(dt_products, ORDER_COLS);
             },
             {
                 selector: '.dt-layout-end .dt-buttons .btn-group',
