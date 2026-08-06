@@ -96,7 +96,9 @@ $all_actions    = Roles::ACTIONS;
                         </div>
                     <?php endif; ?>
                     <div class="col-12 mb-2">
-                        <div class="table-responsive" style="max-height:60vh; overflow-y:auto;">
+                        <!-- overflow-x:auto để bảng rộng cuộn TRONG khung này, không đẩy
+                             tràn thân modal (đã dính: modal-body 759px > khung 704px) -->
+                        <div class="table-responsive" style="max-height:60vh; overflow:auto; max-width:100%;">
                         <table class="table table-bordered align-middle">
                             <thead class="table-light">
                             <tr>
@@ -111,14 +113,19 @@ $all_actions    = Roles::ACTIONS;
                             // Ô nào bản thân không có quyền thì KHÓA (disabled) chứ không ẩn —
                             // giữ bảng thẳng hàng và cho thấy quyền đó có tồn tại.
                             $grantable = Roles::grantable();
-                            $cell = function (string $menuKey, string $action) use ($menu_actions, $grantable): string {
+                            $cell = function (string $menuKey, string $action, string $menuLabel)
+                                use ($menu_actions, $grantable): string {
                                 $supported = in_array($action, $menu_actions[$menuKey] ?? [], true);
                                 $mayGrant  = $grantable === null
                                     || in_array($action, $grantable[$menuKey] ?? [], true);
                                 $off = !$supported || !$mayGrant;
                                 $title = !$supported ? 'This menu has no such action'
                                     : (!$mayGrant ? 'You do not hold this permission yourself' : '');
+                                // aria-label BẮT BUỘC: ma trận này là 56 ô tick giống hệt nhau,
+                                // không nhãn thì trình đọc màn hình chỉ đọc "checkbox" 56 lần.
+                                $aria = $menuLabel . ' — ' . ucfirst($action);
                                 return '<td class="text-center"><input type="checkbox" class="perm-box"'
+                                    . ' aria-label="' . h($aria) . '"'
                                     . ' data-menu="' . h($menuKey) . '" data-action="' . h($action) . '"'
                                     . ($off ? ' disabled title="' . h($title) . '"' : '') . '></td>';
                             };
@@ -139,7 +146,8 @@ $all_actions    = Roles::ACTIONS;
                                         <tr>
                                             <td class="ps-4"><?= h($subData['label'] ?? $subKey) ?></td>
                                             <?php foreach ($all_actions as $action) {
-                                                echo $cell((string)$subKey, $action);
+                                                echo $cell((string)$subKey, $action,
+                                                    (string)($subData['label'] ?? $subKey));
                                             } ?>
                                         </tr>
                                     <?php endforeach;
@@ -154,7 +162,7 @@ $all_actions    = Roles::ACTIONS;
                                             <?= h($menuName) ?>
                                         </td>
                                         <?php foreach ($all_actions as $action) {
-                                            echo $cell($key, $action);
+                                            echo $cell($key, $action, (string)$menuName);
                                         } ?>
                                     </tr>
                                 <?php }
