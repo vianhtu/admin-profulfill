@@ -101,6 +101,18 @@ $all_actions    = Roles::ACTIONS;
                         <!-- overflow-x:auto để bảng rộng cuộn TRONG khung này, không đẩy
                              tràn thân modal (đã dính: modal-body 759px > khung 704px) -->
                         <div class="table-responsive" style="max-height:60vh; overflow:auto; max-width:100%;">
+                        <!-- Hàng tiêu đề và hàng NHÓM menu cao gấp đôi hàng thường một cách
+                             vô ích, đẩy bảng dài ra. Giảm đệm dọc còn một nửa để thấy được
+                             nhiều menu hơn trong cùng chiều cao. -->
+                        <style>
+                            #addPermissionForm table.table > thead > tr > th,
+                            #addPermissionForm table.table > tbody > tr.table-secondary > td,
+                            #addPermissionForm table.table > tbody > tr.table-warning > td {
+                                padding-top: .25rem;
+                                padding-bottom: .25rem;
+                                line-height: 1.25;
+                            }
+                        </style>
                         <table class="table table-bordered align-middle">
                             <thead class="table-light">
                             <tr>
