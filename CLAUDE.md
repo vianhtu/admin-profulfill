@@ -101,6 +101,19 @@ và `ajax.php` (403). **Đừng bỏ một trong hai**, chỉ gác ajax thì ng�
 quyền cũ. Sửa 1 role → mọi user mang role đó bị buộc đăng nhập lại ở request kế tiếp; đổi CẤP
 (`slug`) cũng vậy. Riêng **đổi TÊN role thì KHÔNG đá ai ra** — quyền không đổi, đá ra chỉ làm phiền.
 
+**CẤP là trục THỨ BA** (`roles_permissions.slug`): Admin > Manager > User > Customer.
+- **NHÌN**: chỉ thấy người ngang cấp hoặc thấp hơn (manager không thấy admin). Lọc ngay trong
+  SQL của danh sách, đừng lọc ở PHP — lọc sau khi lấy về làm sai số đếm phân trang.
+- **ĐỘNG VÀO**: chỉ tạo/sửa/xoá được cấp **THẤP HƠN HẲN**. Manager không đụng manager khác,
+  admin không đụng admin khác. Thấy được ≠ sửa được: dòng ngang cấp vẫn hiện, nút thì khoá.
+- **SUPER ADMIN** (`SUPER_ADMINS` + `is_super_admin()` trong `config.php`) là ngoại lệ DUY
+  NHẤT: được xử lý admin khác và role cấp admin — nếu không, sẽ không còn đường nào qua UI để
+  lập một tài khoản admin. So theo **tên đăng nhập** và vẫn bắt buộc đang ở cấp admin, nên hạ
+  cấp tài khoản đó trong DB là quyền tối cao mất theo, không phải sửa code. Vẫn chặn cả super
+  admin: hạ cấp role Admin, xoá role Admin, tự xoá mình.
+- Hai bộ helper cho hai luật, đừng lẫn: `Users::levels_above()` / `Roles::visible_levels()`
+  cho NHÌN; `Users::manageable_level_ids()` / `Roles::allowed_levels()` cho ĐỘNG VÀO.
+
 Gán chủ sở hữu chéo team: category/store phải hợp lệ theo **team của CHỦ SỞ HỮU MỚI**, không phải
 người đang sửa (admin gán sản phẩm cho user team khác thì category/store cũng phải thuộc team đó).
 
