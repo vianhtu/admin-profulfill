@@ -141,10 +141,14 @@ return function (HackRunner $h): void {
             $id = $newRole($fx);
             $uid = $fx->new_user((int)$atk->team);
             $fx->conn->execute_query('UPDATE authors SET level = ? WHERE ID = ?', [$id, $uid]);
+            // Chấm bằng HIỆU SỐ, không phải tổng tuyệt đối: đòn khác chạy trước có thể
+            // để lại trạng thái tạm, đếm tuyệt đối sẽ báo lỗ hổng giả.
+            $truoc = (int)$fx->conn->query(
+                'SELECT COUNT(*) FROM authors WHERE level NOT IN (SELECT ID FROM roles_permissions)')->fetch_row()[0];
             $_POST = ['id' => $id, 'csrf_token' => 'HACK'];
             Roles::delete_role();
             $moCoi = (int)$fx->conn->query(
-                'SELECT COUNT(*) FROM authors WHERE level NOT IN (SELECT ID FROM roles_permissions)')->fetch_row()[0];
+                'SELECT COUNT(*) FROM authors WHERE level NOT IN (SELECT ID FROM roles_permissions)')->fetch_row()[0] - $truoc;
             $fx->conn->execute_query('DELETE FROM authors WHERE ID = ?', [$uid]);
             $fx->conn->execute_query('DELETE FROM roles_permissions WHERE ID = ?', [$id]);
             return ['breach' => $moCoi > 0, 'note' => "$moCoi dòng authors.level mồ côi"];
