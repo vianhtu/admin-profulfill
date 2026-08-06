@@ -320,6 +320,7 @@ function openDeleteTeamModal(id, name) {
         $('#cntFiles').text((c.files || 0).toLocaleString());
         $('#cntSettings').text((c.settings || 0).toLocaleString());
         $('#cntPhones').text((c.phones || 0).toLocaleString());
+        $('#cntMessages').text((c.messages || 0).toLocaleString());
         $(modalEl).data('total', res.total || 0);
         $('#deleteTeamSummary').removeClass('d-none');
 

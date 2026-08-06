@@ -226,6 +226,10 @@ class Teams
                 ? $one('SELECT COUNT(*) FROM options WHERE team_id = ?') : 0,
             'phones'   => self::col_exists($conn, 'phones', 'team_id')
                 ? $one('SELECT COUNT(*) FROM phones WHERE team_id = ?') : 0,
+            // sms treo vào phone_id -> mất theo số điện thoại
+            'messages' => self::table_exists($conn, 'sms') && self::col_exists($conn, 'phones', 'team_id')
+                ? $one('SELECT COUNT(*) FROM sms s INNER JOIN phones p ON p.ID = s.phone_id
+                        WHERE p.team_id = ?') : 0,
         ];
 
         // Team khác để sáp nhập sang (thay vì xóa sạch)
@@ -495,6 +499,20 @@ class Teams
             // --- 6b. Cấu hình riêng của team: khóa API (options) và số điện thoại (phones).
             // options chứa openai_key/gemini_key của team -> xóa hẳn, không để secret nằm
             // lại trong DB trỏ vào team không còn tồn tại.
+            // sms treo vào phone_id nên phải xóa TRƯỚC phones, nếu không tin nhắn thành mồ côi.
+            if (self::table_exists($conn, 'sms') && self::col_exists($conn, 'phones', 'team_id')) {
+                do {
+                    $conn->execute_query(
+                        'DELETE s FROM sms s INNER JOIN phones p ON p.ID = s.phone_id
+                         WHERE p.team_id = ? LIMIT ' . self::PURGE_CHUNK, [$id]);
+                    $n = $conn->affected_rows;
+                    $deleted += $n;
+                    $budget -= max($n, 1);
+                } while ($n === self::PURGE_CHUNK && $budget > 0);
+                if ($budget <= 0) {
+                    return ['status' => 'partial', 'stage' => 'Messages', 'deleted' => $deleted];
+                }
+            }
             foreach (['options', 'phones'] as $table) {
                 if (self::col_exists($conn, $table, 'team_id')) {
                     $conn->execute_query("DELETE FROM `$table` WHERE team_id = ?", [$id]);
