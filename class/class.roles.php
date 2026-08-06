@@ -186,15 +186,23 @@ final class Roles
         }
         $conn = db();
 
-        $total = (int)$conn->query('SELECT COUNT(ID) FROM roles_permissions')->fetch_row()[0];
+        // Trục CẤP: không nhìn lên trên. Lọc trong SQL để số đếm phân trang không sai.
+        $scope = ''; $scopeArgs = [];
+        if (!is_admin()) {
+            $vis = array_keys(self::visible_levels());
+            $scope = 'rp.slug IN (' . implode(',', array_fill(0, count($vis), '?')) . ')';
+            $scopeArgs = $vis;
+        }
+        // recordsTotal phải đếm TRONG phạm vi, nếu không dòng "Showing X of Y" nói dối
+        $total = (int)$conn->execute_query(
+            'SELECT COUNT(rp.ID) FROM roles_permissions rp' . ($scope ? " WHERE $scope" : ''),
+            $scopeArgs)->fetch_row()[0];
 
         $cond = [];
         $args = [];
-        // Trục CẤP: không nhìn lên trên. Lọc trong SQL để số đếm phân trang không sai.
-        if (!is_admin()) {
-            $vis = array_keys(self::visible_levels());
-            $cond[] = 'rp.slug IN (' . implode(',', array_fill(0, count($vis), '?')) . ')';
-            foreach ($vis as $v) { $args[] = $v; }
+        if ($scope !== '') {
+            $cond[] = $scope;
+            foreach ($scopeArgs as $v) { $args[] = $v; }
         }
         if ($params['searchValue'] !== '') {
             $cond[] = '(rp.name LIKE ? OR rp.slug LIKE ?)';
