@@ -314,6 +314,12 @@ function openRoleForm(row) {
     $('#roleModalTitle').text(isEdit ? 'Edit Role' : 'Add New Role');
     $('#roleSubmit').text(isEdit ? 'Save Changes' : 'Create Role');
     $('#modalPermissionName').val(isEdit ? row.role_name : '').removeClass('is-invalid');
+    // Thêm mới: mặc định cấp THẤP NHẤT, không phải cấp đầu danh sách. Danh sách xếp
+    // Admin trước nên mặc định cũ là Admin — bấm vội một cái là ra role admin toàn quyền.
+    if (!isEdit) {
+        const $lv = $('#modalRoleLevel');
+        $lv.val($lv.find('option[value="user"]').length ? 'user' : $lv.find('option').last().val());
+    }
     $('#alertPermissionModal').removeClass('show alert-danger alert-success').text('');
     setAllBoxes(false);
     if (isEdit) {
@@ -342,6 +348,11 @@ $(document).on('click', '.edit-role', function () {
         },
         error: () => alert('Server connection error.')
     });
+});
+
+// Người dùng sửa lại thì gỡ báo lỗi ngay, đừng để ô đỏ mãi sau khi đã nhập đúng
+$(document).on('input', '#modalPermissionName', function () {
+    if ($(this).val().trim()) { $(this).removeClass('is-invalid'); }
 });
 
 $(document).on('click', '#roleSubmit', function () {
