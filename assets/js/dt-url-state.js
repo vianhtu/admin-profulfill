@@ -169,6 +169,10 @@ function dtUrlState(filterMap, defaultLength) {
                 history.replaceState(null, '', qs ? '?' + qs : window.location.pathname);
             };
 
+            // Ghi NGAY một lần: `draw.dt` của lần vẽ đầu đã bắn TRƯỚC initComplete (lúc đó
+            // các ô lọc chưa được đổ giá trị), nên nếu chỉ chờ lần draw sau thì bộ lọc dựng
+            // từ URL sẽ bị xóa khỏi URL ngay khi vào trang.
+            write();
             dt.on('draw.dt', write);
         }
     };

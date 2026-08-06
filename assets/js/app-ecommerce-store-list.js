@@ -209,11 +209,12 @@ function initStoreTable() {
             // Đổ trạng thái từ URL vào các ô lọc vừa dựng; có lọc sẵn thì mở khối Filter
             const preset = urlState.applyFilters();
             initFilterCollapse(preset);
+            // bind SAU applyFilters, nếu không URL bị ghi đè lúc ô lọc còn trống
+            urlState.bind(api, STORE_COLS);
         }
     });
 
     dtStores = dt;
-    urlState.bind(dtStores, STORE_COLS);
 
     setTimeout(() => {
         const tweaks = [

@@ -874,12 +874,15 @@ function initProductTable(){
                 // Khối Filter & Export: init xong mới thu gọn (select2 cần container hiện hình
                 // lúc khởi tạo mới tính đúng chiều rộng)
                 initFilterCollapse();
+
+                // Các ô lọc đã dựng xong -> đổ trạng thái từ URL rồi mới bind. Bind TRƯỚC
+                // applyFilters sẽ ghi đè URL lúc ô lọc còn trống, mất luôn bộ lọc vừa mở.
+                urlState.applyFilters();
+                urlState.bind(this.api(), PRODUCT_COLS);
             }
         });
 
         dtProducts = dt_products;
-        urlState.applyFilters();
-        urlState.bind(dtProducts, PRODUCT_COLS);
 
         // Khi bảng vẽ xong, enable nút
         dt_products.on('draw.dt', function () {
