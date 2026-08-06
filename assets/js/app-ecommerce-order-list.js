@@ -4,6 +4,8 @@
 
 'use strict';
 
+let urlState = null;
+
 // Escape dữ liệu người dùng (tên/địa chỉ khách, title item từ sàn...) trước khi nhét vào HTML
 // -> chặn stored XSS. Bắt buộc với MỌI field free-text khi render.
 function esc(s) {
@@ -88,18 +90,28 @@ function initTable(){
     const dt_order_table = document.querySelector('.datatables-order')
 
     if (dt_order_table) {
+        // Thứ tự PHẢI khớp mảng `columns` bên dưới
+        const ORDER_COLS = ['id','id','host_id','purchase_date','ship_date','delivery_date',
+                            'total_price','status','full_name','id'];
+        urlState = dtUrlState({
+            minDate: '#minDate', maxDate: '#maxDate',
+            account: '#accountFilter', sites: '#sitesFilter'
+        }, 10);
+
         const dt_products = new DataTable(dt_order_table, {
             serverSide: true,
             processing: true,
-            stateSave: true,
+            // stateSave ĐÃ BỎ: nó khôi phục trạng thái từ localStorage nên đánh nhau với
+            // URL — mở link người khác gửi lại ra bộ lọc cũ của mình. URL là nguồn duy nhất.
             ajax: {
                 url: '../../ajax.php?action=get-orders-table',
                 type: 'POST',
                 data: function (d) {
-                    d.minDate = $('#minDate').val() || '';
-                    d.maxDate = $('#maxDate').val() || '';
-                    d.account = $('#accountFilter').val() || '';
-                    d.sites = $('#sitesFilter').val() || [];
+                    // Lần vẽ đầu các ô lọc chưa dựng -> lấy thẳng từ URL
+                    d.minDate = $('#minDate').length ? ($('#minDate').val() || '') : urlState.get('minDate');
+                    d.maxDate = $('#maxDate').length ? ($('#maxDate').val() || '') : urlState.get('maxDate');
+                    d.account = $('#accountFilter').length ? ($('#accountFilter').val() || '') : urlState.get('account');
+                    d.sites = $('#sitesFilter').length ? ($('#sitesFilter').val() || []) : urlState.getMulti('sites');
                 },
                 dataSrc: function (json) {
                     return json.data;
@@ -242,6 +254,8 @@ function initTable(){
                 selector: 'td:nth-child(2)'
             },
             order: [3, 'desc'],
+            // PHẢI spread SAU order, nếu không mặc định ghi đè giá trị từ URL
+            ...urlState.tableOptions(ORDER_COLS),
             layout: {
                 topStart: {
                     search: {
@@ -609,6 +623,8 @@ function initTable(){
             initComplete: function(settings, json) {
                 const api = this.api();
                 addTrackingNumber(api);
+                // Đổ trạng thái từ URL vào các ô lọc (dựng ngay bên dưới) rồi ghi lại URL
+                // sau mỗi lần bảng vẽ. Đặt ở CUỐI initComplete — xem dòng gọi phía dưới.
 
                 // --- Bộ lọc của trang: khoảng ngày mua + account + sites ---
                 $('.order_from_date').html('<label class="form-label">From</label><input type="text" class="form-control" id="minDate" placeholder="YYYY-MM-DD">');
@@ -692,6 +708,9 @@ function initTable(){
             {
                 selector: '.dt-layout-end .dt-buttons',
                 classToAdd: 'gap-2 px-3 mt-0 mb-md-0 mb-6'
+
+                urlState.applyFilters();
+                urlState.bind(dt_products, ORDER_COLS);
             },
             {
                 selector: '.dt-layout-end .dt-buttons .btn-group',

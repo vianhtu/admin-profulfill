@@ -63,6 +63,15 @@ function dtUrlState(filterMap, defaultLength) {
         },
 
         /**
+         * Như get() nhưng cho ô lọc NHIỀU LỰA CHỌN (select multiple): trên URL lưu dạng
+         * `a,b,c`, trả về mảng. Products/Orders có mấy ô kiểu này.
+         */
+        getMulti(name) {
+            const v = params.get(name);
+            return v ? v.split(',').filter(Boolean) : [];
+        },
+
+        /**
          * Phần config nhét thẳng vào `new DataTable(...)` để bảng vẽ ĐÚNG NGAY LẦN ĐẦU —
          * đọc URL trước khi khởi tạo thì không phải draw lần hai.
          */
@@ -98,10 +107,13 @@ function dtUrlState(filterMap, defaultLength) {
             Object.entries(map).forEach(([name, sel]) => {
                 const v = params.get(name);
                 const $el = window.jQuery ? jQuery(sel) : null;
-                if (v && $el && $el.length) {
-                    $el.val(v).trigger('change.select2');
-                    any = true;
+                if (!v || !$el || !$el.length) {
+                    return;
                 }
+                // select multiple cần mảng, select thường cần chuỗi
+                $el.val($el.prop('multiple') ? v.split(',').filter(Boolean) : v)
+                   .trigger('change.select2');
+                any = true;
             });
             return any;   // true = có lọc dựng sẵn -> trang nên mở khối Filter cho thấy
         },
@@ -125,8 +137,10 @@ function dtUrlState(filterMap, defaultLength) {
                 Object.keys(map).forEach(name => {
                     const $el = window.jQuery ? jQuery(map[name]) : null;
                     const v = $el && $el.length ? $el.val() : '';
-                    if (v) {
-                        next.set(name, v);
+                    // Mảng rỗng vẫn là "không lọc" -> đừng ghi `name=` trống lên URL
+                    const s2 = Array.isArray(v) ? v.filter(Boolean).join(',') : v;
+                    if (s2) {
+                        next.set(name, s2);
                     }
                 });
 

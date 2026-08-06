@@ -18,6 +18,9 @@ function lockedBtn(icon, why) {
 }
 
 
+// Thứ tự PHẢI khớp mảng `columns` bên dưới — helper URL đổi tên cột <-> chỉ số cột
+const CATEGORY_COLS = ['id','id','name','products_count','prompt_preview','id'];
+let urlState = null;
 let dtCategories = null;
 // Quyền cấp trang; sửa/xóa từng dòng lấy theo can_edit/can_delete server trả về
 let categoryPerms = { add: false, delete: false, is_admin: false };
@@ -37,6 +40,8 @@ function initCategoryTable() {
     if (!el) {
         return;
     }
+
+    urlState = dtUrlState({}, 25);
 
     const dt = new DataTable(el, {
         serverSide: true,
@@ -102,6 +107,8 @@ function initCategoryTable() {
         select: { style: 'multi', selector: 'td:nth-child(2)' },
         order: [[2, 'asc']],
         displayLength: 25,
+        // PHẢI spread SAU order/displayLength, nếu không mặc định ghi đè URL
+        ...urlState.tableOptions(CATEGORY_COLS),
         layout: {
             topStart: {
                 rowClass: 'card-header d-flex border-top rounded-0 flex-wrap py-0 flex-column flex-md-row align-items-start',
@@ -143,6 +150,8 @@ function initCategoryTable() {
     });
 
     dtCategories = dt;
+    urlState.applyFilters();
+    urlState.bind(dtCategories, CATEGORY_COLS);
 
     setTimeout(() => {
         const tweaks = [

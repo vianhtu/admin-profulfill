@@ -22,6 +22,7 @@ let categoryObj = {};
 let authorsObj = {};
 let sitesObj = {};
 let lastPostData = {};
+let urlState = null;
 let dtProducts = null;
 let teamsObj = {};
 let productPerms = { add: false, edit: false, delete: false, export: false, filter_team: false, filter_author: false };
@@ -58,6 +59,14 @@ function initProductTable(){
     // E-commerce Products datatable
 
     if (dt_product_table) {
+        // Thứ tự PHẢI khớp mảng `columns` bên dưới
+        const PRODUCT_COLS = ['id','id','title','sku','type_id','author_id','badge','date','status','id'];
+        urlState = dtUrlState({
+            minDate: '#minDate', maxDate: '#maxDate', stores: '#storeFilter',
+            accounts: '#accountsFilter', team: '#teamFilter', author: '#authorFilter',
+            exported: '#exportAccount'
+        }, 10);
+
         var dt_products = new DataTable(dt_product_table, {
             serverSide: true,
             processing: true,
@@ -80,14 +89,15 @@ function initProductTable(){
                             }
                         }
                     });
-                    d.minDate = $('#minDate').val();
-                    d.maxDate = $('#maxDate').val();
-                    d.stores = $('#storeFilter').val();
+                    // Lần vẽ đầu các ô lọc chưa dựng -> lấy thẳng từ URL
+                    d.minDate = $('#minDate').length ? $('#minDate').val() : urlState.get('minDate');
+                    d.maxDate = $('#maxDate').length ? $('#maxDate').val() : urlState.get('maxDate');
+                    d.stores = $('#storeFilter').length ? $('#storeFilter').val() : urlState.getMulti('stores');
                     d.sites = getCheckedSites();
-                    d.accounts = $('#accountsFilter').val();
-                    d.team = $('#teamFilter').val() || '';
-                    d.author = $('#authorFilter').val() || '';
-                    d.exported = $('#exportAccount').val();
+                    d.accounts = $('#accountsFilter').length ? $('#accountsFilter').val() : urlState.getMulti('accounts');
+                    d.team = $('#teamFilter').length ? ($('#teamFilter').val() || '') : urlState.get('team');
+                    d.author = $('#authorFilter').length ? ($('#authorFilter').val() || '') : urlState.get('author');
+                    d.exported = $('#exportAccount').length ? $('#exportAccount').val() : urlState.get('exported');
                     lastPostData = d;
                 },
                 dataSrc: function (json) {
@@ -302,6 +312,8 @@ function initProductTable(){
             },
             order: [7, 'desc'],
             displayLength: 10,
+            // PHẢI spread SAU order/displayLength, nếu không mặc định ghi đè URL
+            ...urlState.tableOptions(PRODUCT_COLS),
             layout: {
                 topStart: {
                     rowClass: 'card-header d-flex border-top rounded-0 flex-wrap py-0 flex-column flex-md-row align-items-start',
@@ -866,6 +878,8 @@ function initProductTable(){
         });
 
         dtProducts = dt_products;
+        urlState.applyFilters();
+        urlState.bind(dtProducts, PRODUCT_COLS);
 
         // Khi bảng vẽ xong, enable nút
         dt_products.on('draw.dt', function () {

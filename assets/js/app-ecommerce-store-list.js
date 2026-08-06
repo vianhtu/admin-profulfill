@@ -20,6 +20,9 @@ function lockedBtn(icon, why) {
 
 let sitesObj = {};
 let teamsObj = {};
+// Thứ tự PHẢI khớp mảng `columns` bên dưới — helper URL đổi tên cột <-> chỉ số cột
+const STORE_COLS = ['id','id','name','slug','site_name','team_name','products_count','status','id'];
+let urlState = null;
 let dtStores = null;
 let storePerms = { add: false, delete: false, is_admin: false };
 
@@ -46,6 +49,8 @@ function initStoreTable() {
         return;
     }
 
+    urlState = dtUrlState({ siteFilter: '#siteFilter', statusFilter: '#statusFilter', teamFilter: '#teamFilter' }, 25);
+
     const dt = new DataTable(el, {
         serverSide: true,
         processing: true,
@@ -53,9 +58,10 @@ function initStoreTable() {
             url: '../../ajax.php?action=get-store-table',
             type: 'POST',
             data: function (d) {
-                d.site = $('#siteFilter').val() || '';
-                d.status = $('#statusFilter').val() || '';
-                d.team = $('#teamFilter').val() ?? '';
+                // Lần vẽ đầu các ô lọc chưa dựng (initComplete chạy sau) -> lấy từ URL
+                d.site = $('#siteFilter').length ? ($('#siteFilter').val() || '') : urlState.get('siteFilter');
+                d.status = $('#statusFilter').length ? ($('#statusFilter').val() || '') : urlState.get('statusFilter');
+                d.team = $('#teamFilter').length ? ($('#teamFilter').val() ?? '') : urlState.get('teamFilter');
             },
             dataSrc: json => json.data
         },
@@ -131,6 +137,8 @@ function initStoreTable() {
         select: { style: 'multi', selector: 'td:nth-child(2)' },
         order: [[2, 'asc']],
         displayLength: 25,
+        // PHẢI spread SAU order/displayLength, nếu không mặc định ghi đè URL
+        ...urlState.tableOptions(STORE_COLS),
         layout: {
             topStart: {
                 rowClass: 'card-header d-flex border-top rounded-0 flex-wrap py-0 flex-column flex-md-row align-items-start',
@@ -198,11 +206,14 @@ function initStoreTable() {
                 api.draw();
             });
 
-            initFilterCollapse();
+            // Đổ trạng thái từ URL vào các ô lọc vừa dựng; có lọc sẵn thì mở khối Filter
+            const preset = urlState.applyFilters();
+            initFilterCollapse(preset);
         }
     });
 
     dtStores = dt;
+    urlState.bind(dtStores, STORE_COLS);
 
     setTimeout(() => {
         const tweaks = [
@@ -387,7 +398,7 @@ function setFilterCollapsed(collapsed, animate) {
     $icon.toggleClass('tabler-chevron-up', !collapsed).toggleClass('tabler-chevron-down', collapsed);
 }
 
-function initFilterCollapse() {
+function initFilterCollapse(keepOpen) {
     refreshFilterBadge();
     $(document).on('input', '.dt-search input', refreshFilterBadge);
 
@@ -404,7 +415,8 @@ function initFilterCollapse() {
         setFilterCollapsed(!$('#filterCard .card-header').hasClass('collapsed'), true);
     });
 
-    setFilterCollapsed(true, false);
+    // Có lọc dựng sẵn từ URL -> mở khối Filter để người dùng thấy ngay mình đang bị lọc
+    setFilterCollapsed(!keepOpen, false);
 }
 
 document.addEventListener('DOMContentLoaded', function () {
