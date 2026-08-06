@@ -93,6 +93,14 @@ JS dựng nút từ cờ đó; `perms` cấp trang chỉ quyết định nút Ad
    ID list phải lọc qua helper ownership trước khi ghi/xoá.
 3. **Dữ liệu**: schema tự chặn (cột scope, UNIQUE hợp luật, từ chối xoá gây mồ côi).
 
+**PHIÊN CŨ PHẢI BỊ ĐÁ RA NGAY khi quyền đổi.** `login_user()` **chụp** `level` + `roles` vào session,
+nên sửa quyền trong DB mà không làm gì thì người đang đăng nhập vẫn giữ quyền cũ tới khi tự logout
+(đã dính đúng lỗi này: đổi role không có hiệu lực gì). `access_block_reason()` so session với DB và
+chặn — gác ở **CẢ HAI** lối vào: `require_login()` (mọi trang: logout + đẩy về login kèm thông báo)
+và `ajax.php` (403). **Đừng bỏ một trong hai**, chỉ gác ajax thì người dùng vẫn duyệt trang bằng
+quyền cũ. Sửa 1 role → mọi user mang role đó bị buộc đăng nhập lại ở request kế tiếp; đổi CẤP
+(`slug`) cũng vậy. Riêng **đổi TÊN role thì KHÔNG đá ai ra** — quyền không đổi, đá ra chỉ làm phiền.
+
 Gán chủ sở hữu chéo team: category/store phải hợp lệ theo **team của CHỦ SỞ HỮU MỚI**, không phải
 người đang sửa (admin gán sản phẩm cho user team khác thì category/store cũng phải thuộc team đó).
 
