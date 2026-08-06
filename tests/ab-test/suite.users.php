@@ -22,13 +22,14 @@ return function (AbRunner $r): void {
         $id = $fx->new_user(2);
         $_POST = ab_dt(['columns' => [['data' => 'username']]]);
         return ab_sees(Users::get_users(), $id);
-    })->allow('ADMIN', 'MGR_T2');
+        // Luật CẤP: mọi actor của team 2 có quyền view đều thấy user cấp user của team mình
+    })->allow('ADMIN', 'MGR_T2', 'USR_T2');
 
     $r->add('Users — đọc', 'Thấy user của TEAM 1', function ($a, $fx) {
         $id = $fx->new_user(1);
         $_POST = ab_dt(['columns' => [['data' => 'username']]]);
         return ab_sees(Users::get_users(), $id);
-    })->allow('ADMIN', 'MGR_T1', 'MGR_T1_V');
+    })->allow('ADMIN', 'MGR_T1', 'MGR_T1_V', 'USR_T1', 'USR_T1_V');
 
     // Trục CẤP (chốt 06/08/2026): Admin > Manager > User > Customer — cấp thấp chỉ thấy
     // NGANG HÀNG hoặc thấp hơn, trong team mình.
@@ -36,7 +37,8 @@ return function (AbRunner $r): void {
         $id = $fx->new_user((int)$a->team);   // đồng đội cấp user cùng team
         $_POST = ab_dt(['columns' => [['data' => 'username']]]);
         return ab_sees(Users::get_users(), $id);
-    })->allow('ADMIN', 'MGR_T1', 'MGR_T1_V', 'USR_T1', 'USR_T1_V');
+        // Fixture tạo đồng đội trong team CỦA CHÍNH ACTOR -> mọi actor có view đều phải thấy
+    })->allow('ADMIN', 'MGR_T1', 'MGR_T1_V', 'MGR_T2', 'USR_T1', 'USR_T1_V', 'USR_T2', 'USR_T3');
 
     $r->add('Users — đọc', 'Level user KHÔNG thấy tài khoản cấp cao hơn', function ($a, $fx) {
         $adm = $fx->new_user((int)$a->team, $fx->admin_level());
