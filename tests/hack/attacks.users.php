@@ -276,4 +276,73 @@ return function (HackRunner $h): void {
         return ['breach' => (int)($u['user_status'] ?? 2) === 2,
             'note' => 'user_status trả về: ' . var_export($u['user_status'] ?? null, true)];
     });
+
+    // ---------- Chiếm quyền SUPER ADMIN ----------
+    // Kẻ tấn công ở đây là ADMIN THẬT, chỉ thiếu đúng một thứ: không nằm trong SUPER_ADMINS.
+    // Mọi nút trên UI đã trong tay, nên đích duy nhất còn lại là leo lên cấp tối cao.
+    $h->attack('Super admin', 'Admin thường sửa tài khoản admin khác (IDOR thẳng vào endpoint)',
+        'ADM_PLAIN', function ($atk, $fx) {
+            $id  = $fx->new_user((int)$atk->team, $fx->admin_level());
+            $row = $fx->conn->query("SELECT username, email FROM authors WHERE ID = $id")->fetch_assoc();
+            $_POST = ['csrf_token' => $_SESSION['csrf_token'], 'id' => $id,
+                'username' => $row['username'], 'email' => $row['email'], 'password' => '',
+                'level' => $fx->admin_level(), 'team_id' => (int)$atk->team, 'status' => 3];
+            User::save_user();
+            $now = (int)$fx->conn->query("SELECT status FROM authors WHERE ID = $id")->fetch_row()[0];
+            return ['breach' => $now === 3, 'note' => 'Sửa được tài khoản ngang cấp admin'];
+        }, 'NGHIÊM TRỌNG');
+
+    $h->attack('Super admin', 'Đổi tên một tài khoản thành fox1990 để chiếm danh tính tối cao',
+        'ADM_PLAIN', function ($atk, $fx) {
+            // Không đụng fox1990 thật: dựng user ZZAB rồi thử đổi TÊN NÓ thành fox1990.
+            $id   = $fx->new_user((int)$atk->team);
+            $ten  = SUPER_ADMINS[0];
+            $_POST = ['csrf_token' => $_SESSION['csrf_token'], 'id' => $id, 'username' => $ten,
+                'email' => 'zzab_' . bin2hex(random_bytes(3)) . '@zzab.test', 'password' => '',
+                'level' => (int)$fx->conn->query("SELECT level FROM authors WHERE ID = $id")->fetch_row()[0],
+                'team_id' => (int)$atk->team, 'status' => 2];
+            User::save_user();
+            $now = (string)$fx->conn->query("SELECT username FROM authors WHERE ID = $id")->fetch_row()[0];
+            // Trùng tên đăng nhập phải bị chặn — nếu lọt thì có HAI fox1990, và
+            // is_super_admin() so theo tên sẽ trao quyền tối cao cho kẻ tấn công.
+            return ['breach' => strtolower($now) === strtolower($ten),
+                'note' => 'Tên sau khi thử đổi: ' . $now];
+        }, 'NGHIÊM TRỌNG');
+
+    $h->attack('Super admin', 'Tạo tài khoản mới mang tên fox1990', 'ADM_PLAIN', function ($atk, $fx) {
+        $ten = SUPER_ADMINS[0];
+        $_POST = ['csrf_token' => $_SESSION['csrf_token'], 'id' => 0, 'username' => $ten,
+            'email' => 'zzab_' . bin2hex(random_bytes(3)) . '@zzab.test', 'password' => 'zzabzzab',
+            'level' => $fx->admin_level(), 'team_id' => (int)$atk->team, 'status' => 2];
+        $res = User::save_user();
+        $n = (int)$fx->conn->execute_query(
+            'SELECT COUNT(*) FROM authors WHERE username = ?', [$ten])->fetch_row()[0];
+        if ($n > 1 && !empty($res['id'])) {   // dọn ngay nếu lỡ tạo được
+            $fx->conn->query('DELETE FROM authors WHERE ID = ' . (int)$res['id']);
+        }
+        return ['breach' => $n > 1, 'note' => 'Số tài khoản mang tên ' . $ten . ': ' . $n];
+    }, 'NGHIÊM TRỌNG');
+
+    $h->attack('Super admin', 'Nhồi tham số để tự nhận là super admin', 'ADM_PLAIN', function ($atk, $fx) {
+        // is_super_admin() chỉ được đọc SESSION. Nếu nó lỡ đọc $_POST/$_GET/$_REQUEST thì
+        // kẻ tấn công tự phong mình chỉ bằng một tham số.
+        $_POST['super'] = 1;      $_POST['is_super_admin'] = 1;
+        $_GET['user']   = SUPER_ADMINS[0];
+        $_REQUEST['user'] = SUPER_ADMINS[0];
+        return ['breach' => is_super_admin(), 'note' => 'is_super_admin() nghe theo tham số request'];
+    }, 'NGHIÊM TRỌNG');
+
+    $h->attack('Super admin', 'Hạ cấp role Admin để vô hiệu hóa cấp tối cao', 'ADM_PLAIN',
+        function ($atk, $fx) {
+            $adm = (int)$fx->conn->query("SELECT ID FROM roles_permissions WHERE slug='admin' LIMIT 1")->fetch_row()[0];
+            $_POST = ['csrf_token' => $_SESSION['csrf_token'], 'id' => $adm, 'role_name' => 'Admin',
+                'level' => 'user', 'permissions' => [], 'csrf_token' => $_SESSION['csrf_token']];
+            Role::save_role();
+            $slug = (string)$fx->conn->execute_query(
+                'SELECT slug FROM roles_permissions WHERE ID = ?', [$adm])->fetch_row()[0];
+            if ($slug !== 'admin') {   // khôi phục ngay nếu thủng — đây là role Admin THẬT
+                $fx->conn->execute_query("UPDATE roles_permissions SET slug='admin' WHERE ID = ?", [$adm]);
+            }
+            return ['breach' => $slug !== 'admin', 'note' => 'slug sau đòn: ' . $slug];
+        }, 'NGHIÊM TRỌNG');
 };

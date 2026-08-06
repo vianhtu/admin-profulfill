@@ -34,6 +34,9 @@ function hack_attackers(): array
         'MGR_OUT'   => new AbActor('MGR_OUT', 'MANAGER team 2 (đủ role)', 'manager', AB_UID_T2, 2, $all),
         // Có tài khoản trong đúng team nhưng CHỈ có quyền view — muốn leo lên ghi/xóa
         'USR_VIEW'  => new AbActor('USR_VIEW', 'USER team 1 (chỉ view)', 'user', AB_UID_T1, 1, ['view']),
+        // Admin THƯỜNG (không phải super admin): mô hình "kẻ nội gián đã có quyền cao nhất
+        // mà UI cấp được" — mục tiêu duy nhất còn lại là chiếm quyền SUPER ADMIN.
+        'ADM_PLAIN' => new AbActor('ADM_PLAIN', 'ADMIN thường (không phải super admin)', 'admin', AB_UID_T1, 1, $all),
     ];
 }
 
