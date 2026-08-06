@@ -102,18 +102,22 @@ if (empty($_SESSION['csrf_token'])) {
           overflow-x: hidden;
       }
 
-      /* Modal "Details of ..." của DataTables Responsive — chỉ xuất hiện ở khổ hẹp, nơi cột
-         bị thu gọn. Đệm mặc định của template quá dày nên mỗi màn hình chỉ xem được vài dòng;
-         thu gọn lại để hiện được nhiều dữ liệu hơn. Áp cho MỌI bảng vì dùng chung modal này. */
-      .dtr-bs-modal .modal-body { padding: .75rem 1rem 1rem; }
-      .dtr-bs-modal .modal-header { padding: .75rem 1rem; }
-      .dtr-bs-modal .modal-title { font-size: 1.05rem; }
-      .dtr-bs-modal .table-responsive { margin-bottom: 0; }
-      .dtr-bs-modal table.table { margin-bottom: 0; font-size: .9rem; }
-      .dtr-bs-modal table.table > tbody > tr > td { padding: .4rem .5rem; vertical-align: middle; }
-      /* Nhãn cột bên trái không cần rộng bằng nửa modal */
-      .dtr-bs-modal table.table > tbody > tr > td:first-child {
-          width: 38%; white-space: nowrap; color: var(--bs-secondary-color);
+      /* Modal Add/Edit và Delete ở KHỔ HẸP: đệm mặc định của template ngốn gần hết màn hình
+         nên ma trận quyền và danh sách chỉ còn vài dòng. Thu gọn để hiện được nhiều dữ liệu.
+         Modal "Details of ..." của DataTables Responsive GIỮ NGUYÊN, không đụng tới. */
+      @media (max-width: 767.98px) {
+          .modal:not(.dtr-bs-modal) .modal-dialog { margin: .5rem; max-width: calc(100% - 1rem); }
+          .modal:not(.dtr-bs-modal) .modal-body { padding: 1rem; }
+          .modal:not(.dtr-bs-modal) .modal-header { padding: .75rem 1rem; }
+          .modal:not(.dtr-bs-modal) .modal-footer { padding: .5rem 1rem; }
+          /* Khối tiêu đề giữa của form Role chiếm quá nhiều chiều cao */
+          #addPermissionModal .modal-body > .text-center { margin-bottom: 1rem !important; }
+          #addPermissionModal .modal-body > .text-center h3 { font-size: 1.15rem; margin-bottom: .25rem; }
+          #addPermissionModal .modal-body > .text-center p { font-size: .82rem; margin-bottom: 0; }
+          /* Ma trận quyền: cao hơn + ô gọn hơn để thấy được nhiều menu cùng lúc */
+          #addPermissionForm .table-responsive { max-height: 55vh !important; }
+          #addPermissionForm table.table { font-size: .85rem; }
+          #addPermissionForm table.table > :not(caption) > * > * { padding: .3rem .35rem; }
       }
 
   </style>
