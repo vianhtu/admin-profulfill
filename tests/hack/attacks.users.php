@@ -106,11 +106,20 @@ return function (HackRunner $h): void {
         return ['breach' => false];
     });
 
-    $h->attack('Rò rỉ dữ liệu', 'USER thường thấy đồng đội cùng team', 'USR_VIEW', function ($atk, $fx) {
-        $fx->new_user((int)$atk->team);
+    // Luật CẤP (chốt 06/08/2026): user THẤY đồng nghiệp ngang cấp cùng team là ĐÚNG.
+    // Điều phải chặn là NHÌN LÊN TRÊN — thấy tài khoản cấp cao hơn.
+    $h->attack('Rò rỉ dữ liệu', 'USER thường moi được tài khoản ADMIN cùng team', 'USR_VIEW', function ($atk, $fx) {
+        $adm = $fx->new_user((int)$atk->team, $fx->admin_level());
         $_POST = ab_dt(['columns' => [['data' => 'username']]]);
-        $rows = Users::get_users()['data'] ?? [];
-        return ['breach' => count($rows) > 1, 'note' => 'Thấy ' . count($rows) . ' dòng (phải đúng 1)'];
+        return ['breach' => ab_sees(Users::get_users(), $adm),
+                'note' => 'Danh sách lộ tài khoản admin -> lộ luôn mục tiêu tấn công'];
+    });
+
+    $h->attack('Rò rỉ dữ liệu', 'USER thường moi được tài khoản MANAGER cùng team', 'USR_VIEW', function ($atk, $fx) {
+        $mgr = $fx->new_user((int)$atk->team, $fx->level_id('manager'));
+        $_POST = ab_dt(['columns' => [['data' => 'username']]]);
+        return ['breach' => ab_sees(Users::get_users(), $mgr),
+                'note' => 'Cấp user không được nhìn lên cấp manager'];
     });
 
     $h->attack('Rò rỉ dữ liệu', 'Lọc theo team khác để moi user team đó', 'USR_OUT', function ($atk, $fx) {

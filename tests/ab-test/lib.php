@@ -243,6 +243,14 @@ final class AbFixtures
     }
 
     /** ID nhóm quyền cấp admin đầu tiên — dùng cho phép thử chống leo thang quyền. */
+    /** ID role mang một cấp bất kỳ (admin/manager/user/customer) — dùng dựng fixture theo thứ bậc. */
+    public function level_id(string $slug): int
+    {
+        $row = $this->conn->execute_query(
+            'SELECT ID FROM roles_permissions WHERE slug = ? LIMIT 1', [$slug])->fetch_row();
+        return (int)($row[0] ?? 0);
+    }
+
     public function admin_level(): int
     {
         return (int)$this->conn->query("SELECT ID FROM roles_permissions WHERE slug = 'admin' LIMIT 1")->fetch_row()[0];
