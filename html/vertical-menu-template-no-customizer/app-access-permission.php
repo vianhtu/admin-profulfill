@@ -57,6 +57,13 @@ $all_actions    = Roles::ACTIONS;
     </div>
 </div>
 
+<style>
+    /* Vuexy đặt .modal-simple .modal-content { padding: 3rem } — viền dày hai bên ngốn
+       gần hết bề ngang, ma trận quyền bị bóp lại. Bỏ đi; .modal-body vốn đã có đệm riêng. */
+    #addPermissionModal.modal-simple .modal-content,
+    #addPermissionModal .modal-simple .modal-content { padding: 0; }
+</style>
+
 <!-- Add/Edit Role Modal -->
 <div class="modal fade" id="addPermissionModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-simple modal-lg">
@@ -101,18 +108,6 @@ $all_actions    = Roles::ACTIONS;
                         <!-- overflow-x:auto để bảng rộng cuộn TRONG khung này, không đẩy
                              tràn thân modal (đã dính: modal-body 759px > khung 704px) -->
                         <div class="table-responsive" style="max-height:60vh; overflow:auto; max-width:100%;">
-                        <!-- Hàng tiêu đề và hàng NHÓM menu cao gấp đôi hàng thường một cách
-                             vô ích, đẩy bảng dài ra. Giảm đệm dọc còn một nửa để thấy được
-                             nhiều menu hơn trong cùng chiều cao. -->
-                        <style>
-                            #addPermissionForm table.table > thead > tr > th,
-                            #addPermissionForm table.table > tbody > tr.table-secondary > td,
-                            #addPermissionForm table.table > tbody > tr.table-warning > td {
-                                padding-top: .25rem;
-                                padding-bottom: .25rem;
-                                line-height: 1.25;
-                            }
-                        </style>
                         <table class="table table-bordered align-middle">
                             <thead class="table-light">
                             <tr>
