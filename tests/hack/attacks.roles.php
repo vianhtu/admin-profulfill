@@ -222,4 +222,170 @@ return function (HackRunner $h): void {
         return ['breach' => !$coEsc, 'note' => $coEsc ? 'JS bọc esc() khi render tên role'
                                                       : 'JS render tên role KHÔNG escape'];
     });
+
+    // ================================================================================
+    // TƯ DUY TẤN CÔNG — không bám luật đã khai báo, tìm đường người viết chưa nghĩ tới
+    // ================================================================================
+
+    // Mass assignment: nhét thẳng tên CỘT vào POST, hy vọng code gán bừa vào SQL
+    $h->attack('Mass assignment', 'Nhét cột slug/ID thẳng vào POST', 'MGR_OUT',
+        function ($atk, $fx) use ($slugOf) {
+            $n = 'ZZABMASS' . bin2hex(random_bytes(4));
+            $_POST = ['id' => 0, 'role_name' => $n, 'level' => 'user', 'permissions' => [],
+                      'csrf_token' => 'HACK',
+                      'slug' => 'admin', 'ID' => 13, 'authors_id' => 1, 'created_by' => 1];
+            $res = Role::save_role();
+            $id = (int)($res['id'] ?? 0);
+            if (!$id) {
+                return ['breach' => false, 'note' => 'khong tao duoc role'];
+            }
+            $slug = $slugOf($fx, $id);
+            $fx->conn->execute_query('DELETE FROM roles_permissions WHERE ID = ?', [$id]);
+            return ['breach' => $slug === 'admin', 'note' => 'slug thuc te: ' . $slug . ' (da gui kem slug=admin)'];
+        });
+
+    // Type juggling: so sanh long + ep kieu cua PHP la nguon loi kinh dien
+    $h->attack('Type juggling', 'Gui id/level/permissions sai KIEU', 'MGR_OUT',
+        function ($atk, $fx) {
+            $truoc = (int)$fx->conn->query('SELECT COUNT(*) FROM roles_permissions')->fetch_row()[0];
+            $loi = [];
+            $cases = [
+                'id la mang'           => ['id' => ['13'], 'role_name' => 'ZZABTJ1', 'level' => 'user'],
+                'id kieu 0e123'        => ['id' => '0e123', 'role_name' => 'ZZABTJ2', 'level' => 'user'],
+                'id am'                => ['id' => -1, 'role_name' => 'ZZABTJ3', 'level' => 'user'],
+                'id 13abc'             => ['id' => '13abc', 'role_name' => 'ZZABTJ4', 'level' => 'user'],
+                'level la mang'        => ['id' => 0, 'role_name' => 'ZZABTJ5', 'level' => ['admin']],
+                'permissions la chuoi' => ['id' => 0, 'role_name' => 'ZZABTJ6', 'level' => 'user',
+                                           'permissions' => 'products'],
+                'permissions long sau' => ['id' => 0, 'role_name' => 'ZZABTJ7', 'level' => 'user',
+                                           'permissions' => ['products' => ['view' => ['on' => ['on']]]]],
+            ];
+            foreach ($cases as $ten => $post) {
+                $_POST = array_merge(['permissions' => [], 'csrf_token' => 'HACK'], $post);
+                try {
+                    Role::save_role();
+                } catch (\Throwable $e) {
+                    $loi[] = $ten . ' -> ' . substr($e->getMessage(), 0, 30);
+                }
+            }
+            // id "13abc" bi ep thanh 13 = role admin -> phai KHONG bi sua
+            $row = $fx->conn->query('SELECT slug FROM roles_permissions WHERE ID=13')->fetch_row();
+            $admSlug = (string)($row[0] ?? '');
+            $fx->conn->query("DELETE FROM roles_permissions WHERE name LIKE 'ZZABTJ%'");
+            $sau = (int)$fx->conn->query('SELECT COUNT(*) FROM roles_permissions')->fetch_row()[0];
+            return ['breach' => $loi !== [] || $admSlug !== 'admin' || $sau < $truoc,
+                    'note' => $loi ? 'vang loi chua bat: ' . implode(' | ', $loi)
+                                   : 'moi kieu la deu xu ly gon, role admin nguyen ven'];
+        });
+
+    // Chuoi nhieu buoc: tung buoc vo hai, cong lai thanh chiem quyen
+    $h->attack('Chuoi tan cong', 'Tao role hien -> sua dan -> tu gan cho minh', 'MGR_OUT',
+        function ($atk, $fx) use ($slugOf) {
+            $n = 'ZZABCHAIN' . bin2hex(random_bytes(3));
+            $_POST = ['id' => 0, 'role_name' => $n, 'level' => 'user',
+                      'permissions' => [], 'csrf_token' => 'HACK'];
+            $id = (int)(Role::save_role()['id'] ?? 0);
+            if (!$id) {
+                return ['breach' => false, 'note' => 'khong tao duoc role buoc 1'];
+            }
+            $cu = (int)$fx->conn->execute_query(
+                'SELECT level FROM authors WHERE ID = ?', [$atk->uid])->fetch_row()[0];
+            foreach ([['users' => ['delete' => 'on']], ['teams' => ['delete' => 'on']],
+                      ['roles-permissions' => ['delete' => 'on']]] as $p) {
+                $_POST = ['id' => $id, 'role_name' => $n, 'level' => 'admin',
+                          'permissions' => $p, 'csrf_token' => 'HACK'];
+                Role::save_role();
+            }
+            $fx->conn->execute_query('UPDATE authors SET level = ? WHERE ID = ?', [$id, $atk->uid]);
+            $slug = $slugOf($fx, $id);
+            $json = json_decode((string)$fx->conn->execute_query(
+                'SELECT roles FROM roles_permissions WHERE ID = ?', [$id])->fetch_row()[0], true) ?: [];
+            $mine = (array)($_SESSION['auth']['roles'] ?? []);
+            $thua = [];
+            foreach ($json as $menu => $acts) {
+                foreach (array_keys($acts) as $act) {
+                    if (empty($mine[$menu][$act])) { $thua[] = $menu . ':' . $act; }
+                }
+            }
+            $fx->conn->execute_query('UPDATE authors SET level = ? WHERE ID = ?', [$cu, $atk->uid]);
+            $fx->conn->execute_query('DELETE FROM roles_permissions WHERE ID = ?', [$id]);
+            return ['breach' => $slug === 'admin' || $thua !== [],
+                    'note' => 'sau 3 buoc: slug=' . $slug . ', quyen thua=' . (implode(',', $thua) ?: 'khong')];
+        });
+
+    // Oracle qua thong bao loi: thong bao khac nhau la kenh do ID/su ton tai
+    $h->attack('Ro ri thong tin', 'Thong bao loi tiet lo role nao TON TAI', 'USR_OUT',
+        function ($atk, $fx) {
+            $_POST = ['id' => 999999, 'csrf_token' => 'HACK'];
+            $khong = (string)(Roles::get_delete_preview()['message'] ?? '');
+            $_POST = ['id' => 13, 'csrf_token' => 'HACK'];
+            $co = (string)(Roles::get_delete_preview()['message'] ?? '');
+            return ['breach' => $khong !== $co && $khong !== '' && $co !== '',
+                    'note' => 'id khong ton tai: [' . $khong . '] | id co that nhung cam: [' . $co . ']'];
+        });
+
+    // Lach kiem trung ten bang khoang trang / null byte
+    $h->attack('Qua mat kiem tra', 'Lach kiem trung ten bang khoang trang va null byte', 'MGR_OUT',
+        function ($atk, $fx) {
+            $goc = 'ZZABDUPBASE' . bin2hex(random_bytes(3));
+            $_POST = ['id' => 0, 'role_name' => $goc, 'level' => 'user',
+                      'permissions' => [], 'csrf_token' => 'HACK'];
+            Role::save_role();
+            $bien = [$goc . ' ', ' ' . $goc, $goc . "\0", strtoupper($goc)];
+            $lot = [];
+            foreach ($bien as $i => $v) {
+                $_POST = ['id' => 0, 'role_name' => $v, 'level' => 'user',
+                          'permissions' => [], 'csrf_token' => 'HACK'];
+                $r = Role::save_role();
+                if (($r['status'] ?? '') === 'success') { $lot[] = 'bien the #' . $i; }
+            }
+            $fx->conn->query("DELETE FROM roles_permissions WHERE name LIKE 'ZZABDUPBASE%'");
+            // Null byte lot la THUNG that: ten khac nhau ve byte nhung nguoi doc thay giong het
+            return ['breach' => in_array('bien the #2', $lot, true),
+                    'note' => 'bien the tao duoc: ' . (implode(', ', $lot) ?: 'khong cai nao')];
+        });
+
+    // Nhoi du lieu: JSON quyen khong lo -> phinh cot, ton RAM (server chi 955MB)
+    $h->attack('Can tai nguyen', 'Nhoi 5.000 menu gia vao JSON quyen', 'MGR_OUT',
+        function ($atk, $fx) {
+            $perms = [];
+            for ($i = 0; $i < 5000; $i++) {
+                $perms['zzabmenu' . $i] = ['view' => 'on', 'add' => 'on', 'edit' => 'on', 'delete' => 'on'];
+            }
+            $n = 'ZZABFLOOD' . bin2hex(random_bytes(3));
+            $_POST = ['id' => 0, 'role_name' => $n, 'level' => 'user',
+                      'permissions' => $perms, 'csrf_token' => 'HACK'];
+            $res = Role::save_role();
+            $id = (int)($res['id'] ?? 0);
+            $len = 0;
+            if ($id) {
+                $len = strlen((string)$fx->conn->execute_query(
+                    'SELECT roles FROM roles_permissions WHERE ID = ?', [$id])->fetch_row()[0]);
+                $fx->conn->execute_query('DELETE FROM roles_permissions WHERE ID = ?', [$id]);
+            }
+            return ['breach' => $len > 1000,
+                    'note' => 'JSON luu ' . $len . ' byte (menu gia bi loc het thi phai rat nho)'];
+        });
+
+    // Endpoint DOC thuong bi quen kiem quyen
+    $h->attack('IDOR', 'Vai user doc trom cau hinh role bat ky', 'USR_OUT',
+        function ($atk, $fx) {
+            $_POST = ['id' => 10, 'csrf_token' => 'HACK'];
+            $res = Role::get_role();
+            return ['breach' => ($res['status'] ?? '') === 'success',
+                    'note' => 'vai user doc duoc JSON quyen cua role Manager'];
+        });
+
+    $h->attack('Auth bypass', 'Khach vang lai goi thang endpoint ghi', 'ANON',
+        function ($atk, $fx) {
+            $truoc = (int)$fx->conn->query('SELECT COUNT(*) FROM roles_permissions')->fetch_row()[0];
+            $_POST = ['id' => 0, 'role_name' => 'ZZABANON', 'level' => 'admin',
+                      'permissions' => [], 'csrf_token' => 'HACK'];
+            Role::save_role();
+            $_POST = ['id' => 12, 'csrf_token' => 'HACK'];
+            Roles::delete_role();
+            $sau = (int)$fx->conn->query('SELECT COUNT(*) FROM roles_permissions')->fetch_row()[0];
+            $fx->conn->query("DELETE FROM roles_permissions WHERE name = 'ZZABANON'");
+            return ['breach' => $sau !== $truoc, 'note' => 'role truoc ' . $truoc . ' / sau ' . $sau];
+        });
 };
