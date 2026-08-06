@@ -71,7 +71,23 @@ JS dựng nút từ cờ đó; `perms` cấp trang chỉ quyết định nút Ad
   (`authors.team_id`); user=chỉ dòng mình (`posts.author_id`). Xem `Products::get_base_auth_conditions()`.
 
 **Ba lớp chặn — UI → code → dữ liệu lưu. Áp dụng mà không cần nhắc:**
-1. **UI**: control không đủ quyền thì **không render** (fragment `if`), không chỉ ẩn CSS.
+1. **UI**: control không đủ quyền thì **KHOÁ hay ẨN theo bảng dưới** — ẩn = **không render**
+   (fragment `if` / template string), tuyệt đối không chỉ ẩn bằng CSS. **Áp dụng MỌI bảng:**
+
+   | Vị trí | Thiếu quyền thì | Vì sao |
+   |---|---|---|
+   | **Nút LẺ** ở cột Actions từng dòng | **KHOÁ** (`disabled` + `title` nói rõ lý do) | ẩn làm các nút còn lại xô lệch, mỗi dòng một kiểu; nút khoá còn cho biết chức năng có tồn tại để đi hỏi quản trị |
+   | **Nút CON trong nhóm** (dropdown/btn-group) | **ẨN** mục đó | |
+   | **Nút CHA** khi mọi con đều ẩn | **KHOÁ** nút cha (không ẩn cả cụm) | giữ cột Actions thẳng hàng |
+   | **Filter** | **ẨN** — không bao giờ khoá | không gắn với dòng nào, khoá chỉ là rác thị giác |
+   | **Form Add/Edit** | **KHOÁ theo TỪNG TRƯỜNG** đúng những gì endpoint sẽ từ chối | đỡ phải bấm Save mới biết bị chặn |
+   | **Action hàng loạt** (Delete Selected...) | **ẨN** | |
+
+   Helper `lockedBtn(icon, why)` có sẵn ở đầu mỗi `app-*-list.js` (cạnh `esc()`).
+   **NGOẠI LỆ — giá trị bí mật thì ẨN, đừng khoá**: trường `disabled` vẫn **hiện giá trị**, nên
+   khoá chỉ chặn *sửa* chứ không chặn *đọc*. Lương (`wage`/`insurance`) phải ẩn hẳn với người
+   không có quyền xem, không được chuyển sang khoá.
+   Nhớ: KHOÁ/ẨN chỉ là lớp 1 — `disabled` gỡ bằng DevTools trong 2 giây, lớp 2 và 3 mới là bảo vệ thật.
 2. **Code**: mọi endpoint tự kiểm lại role + phạm vi, coi request là giả mạo. Tham số role không
    được phép dùng thì **bỏ qua, không tin** (non-admin gửi `team_id`/`author_id` → ép về của họ).
    ID list phải lọc qua helper ownership trước khi ghi/xoá.
