@@ -214,7 +214,10 @@ class User
         }
         // Chỉ gán được role có cấp THẤP HƠN mình (chốt 06/08/2026) — không tạo/nâng ai lên
         // NGANG CẤP với mình, vì người ngang cấp lại quản được người khác cùng vai.
-        if (!in_array($level, Users::manageable_level_ids($conn), true)) {
+        // TRỪ khi đang sửa CHÍNH MÌNH: cấp gửi lên chính là cấp hiện tại của mình, không
+        // bao giờ "thấp hơn mình", nên chốt này sẽ chặn nhầm cả việc tự đổi mật khẩu.
+        // An toàn vì chốt ngay trên đã từ chối mọi thay đổi level của bản thân.
+        if (!$laChinhMinh && !in_array($level, Users::manageable_level_ids($conn), true)) {
             return ['status' => 'error',
                     'message' => 'You can only assign a role below your own level.'];
         }
