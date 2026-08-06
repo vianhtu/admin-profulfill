@@ -518,3 +518,43 @@ $(document).on('click', '#deleteRoleConfirm', function () {
 });
 
 document.addEventListener('DOMContentLoaded', initRoles);
+
+// --- Chọn nhanh trong ma trận quyền: theo CỘT, theo NHÓM, theo HÀNG ---
+// Bấm lần nữa thì bỏ chọn. Chỉ đụng ô KHÔNG bị khóa — ô khóa là quyền bản thân không có
+// hoặc menu không hỗ trợ hành động đó, bật bừa cũng bị server lọc bỏ.
+// Dùng b.click() chứ không gán b.checked: click bắn event thật, đúng luật của dự án.
+function togglePermBoxes(boxes) {
+    const dung = boxes.filter(b => !b.disabled);
+    if (!dung.length) { return; }
+    const bat = !dung.every(b => b.checked);      // còn ô chưa bật -> bật hết; đủ cả -> tắt hết
+    dung.forEach(b => { if (b.checked !== bat) { b.click(); } });
+}
+
+/** Các hàng menu thuộc về một hàng NHÓM: đi tiếp tới khi gặp nhóm khác. */
+function rowsOfGroup(tr) {
+    const out = [];
+    let n = tr.nextElementSibling;
+    while (n && !n.classList.contains('table-secondary') && !n.classList.contains('table-warning')) {
+        out.push(n);
+        n = n.nextElementSibling;
+    }
+    return out;
+}
+
+// Cột: bấm tiêu đề View / Add / Edit / Delete
+$(document).on('click', '#addPermissionForm .perm-col', function () {
+    const col = this.dataset.col;
+    togglePermBoxes([...document.querySelectorAll('#addPermissionForm .perm-box[data-action="' + col + '"]')]);
+});
+
+// Nhóm: bấm tên nhóm (eCommerce, Platform Orders, Export, Phones...)
+$(document).on('click', '#addPermissionForm tr.table-secondary > td', function () {
+    const boxes = [];
+    rowsOfGroup(this.closest('tr')).forEach(r => boxes.push(...r.querySelectorAll('.perm-box')));
+    togglePermBoxes(boxes);
+});
+
+// Hàng: bấm tên menu (Products, Category, Sites... và cả menu đứng riêng như Users)
+$(document).on('click', '#addPermissionForm tbody tr:not(.table-secondary) > td:first-child', function () {
+    togglePermBoxes([...this.closest('tr').querySelectorAll('.perm-box')]);
+});

@@ -62,6 +62,18 @@ $all_actions    = Roles::ACTIONS;
        gần hết bề ngang, ma trận quyền bị bóp lại. Bỏ đi; .modal-body vốn đã có đệm riêng. */
     #addPermissionModal.modal-simple .modal-content,
     #addPermissionModal .modal-simple .modal-content { padding: 0; }
+
+    /* Chọn nhanh: bấm tiêu đề cột, tên nhóm, hoặc tên menu để bật/tắt cả cụm */
+    #addPermissionForm .perm-col,
+    #addPermissionForm tr.table-secondary > td,
+    #addPermissionForm tr.table-warning > td:first-child,
+    #addPermissionForm tbody tr:not(.table-secondary):not(.table-warning) > td:first-child {
+        cursor: pointer;
+        user-select: none;
+    }
+    #addPermissionForm .perm-col:hover,
+    #addPermissionForm tr.table-secondary > td:hover,
+    #addPermissionForm tbody > tr > td:first-child:hover { text-decoration: underline; }
 </style>
 
 <!-- Add/Edit Role Modal -->
@@ -113,7 +125,9 @@ $all_actions    = Roles::ACTIONS;
                             <tr>
                                 <th>Module</th>
                                 <?php foreach ($all_actions as $action) : ?>
-                                    <th class="text-center text-capitalize"><?= h($action) ?></th>
+                                    <th class="text-center text-capitalize perm-col"
+                                        data-col="<?= h($action) ?>"
+                                        title="Bật/tắt cả cột này"><?= h($action) ?></th>
                                 <?php endforeach; ?>
                             </tr>
                             </thead>
