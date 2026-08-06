@@ -305,6 +305,11 @@ return function (HackRunner $h): void {
             $now = (string)$fx->conn->query("SELECT username FROM authors WHERE ID = $id")->fetch_row()[0];
             // Trùng tên đăng nhập phải bị chặn — nếu lọt thì có HAI fox1990, và
             // is_super_admin() so theo tên sẽ trao quyền tối cao cho kẻ tấn công.
+            if (strtolower($now) === strtolower($ten)) {
+                // Lọt = có một dòng ZZAB đang chiếm tên tối cao -> xóa NGAY, đừng để lại
+                // cho lần chạy sau (và đừng bao giờ đụng tới fox1990 thật).
+                $fx->conn->query('DELETE FROM authors WHERE ID = ' . (int)$id);
+            }
             return ['breach' => strtolower($now) === strtolower($ten),
                 'note' => 'Tên sau khi thử đổi: ' . $now];
         }, 'NGHIÊM TRỌNG');

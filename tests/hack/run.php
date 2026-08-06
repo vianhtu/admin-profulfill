@@ -39,6 +39,9 @@ $alias = ['product' => 'products', 'category' => 'categories', 'danhmuc' => 'cat
     'uploadfile' => 'upload', 'file' => 'upload', 'logo' => 'upload',
     'taikhoan' => 'account', 'profile' => 'account', 'hoso' => 'account'];
 
+// Chụp tài khoản thật TRƯỚC khi chạy — xem ab_snapshot_authors() để biết vì sao.
+$abCanary = ab_snapshot_authors();
+
 $arg = strtolower(trim($argv[1] ?? 'all'));
 $arg = $alias[$arg] ?? $arg;
 $run = $arg === 'all' ? array_keys($suites) : (isset($suites[$arg]) ? [$arg] : null);
@@ -66,6 +69,23 @@ foreach ($run as $key) {
 }
 
 $fx->cleanup();
+
+// Đòn tấn công ghi lên "dòng của chính mình" là ghi vào tài khoản THẬT — chốt canary bắt
+$abLech = ab_verify_authors($abCanary);
+if ($abLech) {
+    echo "
+!!! ĐÒN TẤN CÔNG ĐÃ SỬA TÀI KHOẢN THẬT (đã tự khôi phục) !!!
+";
+    foreach ($abLech as $d) {
+        echo "  - $d
+";
+    }
+    echo "  => Sửa đòn gây ra việc này, đừng chỉ khôi phục dữ liệu.
+
+";
+    $total += count($abLech);
+}
+
 echo $total === 0
     ? "KẾT LUẬN: không khai thác được lỗ hổng nào. Hệ thống trụ vững trước các đòn đã thử.\n\n"
     : "KẾT LUẬN: còn $total lỗ hổng/lỗi — xem phần CẦN VÁ NGAY ở trên.\n\n";

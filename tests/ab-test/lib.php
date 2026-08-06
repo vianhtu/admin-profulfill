@@ -484,6 +484,59 @@ function ab_render(string $fragment, array $get = []): string
     return trim((string)ob_get_clean());
 }
 
+/**
+ * CHỐT CANARY cho tài khoản THẬT.
+ *
+ * Các actor của AB TEST/HACK mượn author CÓ THẬT (AB_UID_T1 = ID 1 = fox1990). Phép thử nào
+ * ghi lên "dòng của chính mình" là ghi thẳng vào tài khoản thật, và nếu quên trả lại thì
+ * không có gì báo — chạy xong vẫn "0 lỗi". Đã dính 06/08/2026: một đòn đổi tên fox1990 thành
+ * ZZABPWN…, mất luôn quyền super admin (is_super_admin so theo TÊN ĐĂNG NHẬP), lại làm đòn
+ * khác chiếm được tên fox1990 và báo THỦNG giả.
+ *
+ * Chụp trước khi chạy, so lại sau khi chạy, TỰ TRẢ VỀ và hô to nếu lệch.
+ */
+function ab_snapshot_authors(): array
+{
+    $snap = [];
+    $rs = db()->query('SELECT ID, username, email, level, team_id, status, wage, insurance
+                       FROM authors');
+    while ($r = $rs->fetch_assoc()) {
+        $snap[(int)$r['ID']] = $r;
+    }
+    return $snap;
+}
+
+/** @return string[] mô tả các sai lệch đã phát hiện (và đã khôi phục). Rỗng = sạch. */
+function ab_verify_authors(array $snap): array
+{
+    $conn = db();
+    $loi  = [];
+    foreach ($snap as $id => $cu) {
+        $now = $conn->execute_query(
+            'SELECT ID, username, email, level, team_id, status, wage, insurance
+             FROM authors WHERE ID = ? LIMIT 1', [$id])->fetch_assoc();
+        if (!$now) {
+            $loi[] = "authors.$id ({$cu['username']}) đã BỊ XÓA — không tự dựng lại được";
+            continue;
+        }
+        $lech = [];
+        foreach (['username', 'email', 'level', 'team_id', 'status', 'wage', 'insurance'] as $c) {
+            if ((string)$now[$c] !== (string)$cu[$c]) {
+                $lech[] = "$c: {$cu[$c]} -> {$now[$c]}";
+            }
+        }
+        if ($lech) {
+            $loi[] = "authors.$id ({$cu['username']}) bị sửa — " . implode(', ', $lech);
+            $conn->execute_query(
+                'UPDATE authors SET username = ?, email = ?, level = ?, team_id = ?,
+                        status = ?, wage = ?, insurance = ? WHERE ID = ?',
+                [$cu['username'], $cu['email'], $cu['level'], $cu['team_id'],
+                 $cu['status'], $cu['wage'], $cu['insurance'], $id]);
+        }
+    }
+    return $loi;
+}
+
 /** HTML có chứa TẤT CẢ các chuỗi này không. */
 function ab_has(string $html, string ...$needles): bool
 {

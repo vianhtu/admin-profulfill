@@ -55,11 +55,19 @@ return function (HackRunner $h) {
         function ($atk, $fx) {
             $nan = $fx->new_user((int)$atk->team);
             $ten = (string)$fx->conn->query("SELECT username FROM authors WHERE ID = $nan")->fetch_row()[0];
+            // save_profile() ghi lên dòng của NGƯỜI ĐANG ĐĂNG NHẬP — mà actor là author CÓ
+            // THẬT. Phải chụp và trả lại dòng của chính kẻ tấn công, không chỉ của nạn nhân:
+            // bỏ sót vế này đã đổi tên tài khoản thật fox1990 (06/08/2026) và làm mất luôn
+            // quyền super admin, vì is_super_admin() so theo TÊN ĐĂNG NHẬP.
+            $toi = $fx->conn->execute_query(
+                'SELECT username, email FROM authors WHERE ID = ? LIMIT 1', [$atk->uid])->fetch_assoc();
             $_POST = ['csrf_token' => $_SESSION['csrf_token'], 'id' => $nan, 'user_id' => $nan,
                 'author_id' => $nan, 'ID' => $nan,
                 'username' => 'ZZABPWN' . bin2hex(random_bytes(3)), 'email' => 'zzabpwn@zzab.test'];
             Account::save_profile();
             $now = (string)$fx->conn->query("SELECT username FROM authors WHERE ID = $nan")->fetch_row()[0];
+            $fx->conn->execute_query('UPDATE authors SET username = ?, email = ? WHERE ID = ?',
+                [$toi['username'], $toi['email'], $atk->uid]);
             return ['breach' => $now !== $ten, 'note' => 'Tên nạn nhân sau đòn: ' . $now];
         }, 'NGHIÊM TRỌNG');
 

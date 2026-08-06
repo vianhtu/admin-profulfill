@@ -49,6 +49,9 @@ $alias = [
     'taikhoan' => 'account', 'profile' => 'account', 'hoso' => 'account',
 ];
 
+// Chụp tài khoản thật TRƯỚC khi chạy — xem ab_snapshot_authors() để biết vì sao.
+$abCanary = ab_snapshot_authors();
+
 $arg = strtolower(trim($argv[1] ?? 'all'));
 $arg = $alias[$arg] ?? $arg;
 
@@ -83,6 +86,23 @@ foreach ($run as $key) {
 }
 
 $fx->cleanup();
+
+// So lại tài khoản thật: phép thử ghi lên "dòng của chính mình" mà quên trả về thì ở đây mới lộ
+$abLech = ab_verify_authors($abCanary);
+if ($abLech) {
+    echo "
+!!! PHÉP THỬ ĐÃ SỬA TÀI KHOẢN THẬT (đã tự khôi phục) !!!
+";
+    foreach ($abLech as $d) {
+        echo "  - $d
+";
+    }
+    echo "  => Sửa phép thử gây ra việc này, đừng chỉ khôi phục dữ liệu.
+
+";
+    $totalBad += count($abLech);
+}
+
 echo $totalBad === 0
     ? "KẾT LUẬN: tất cả các bộ test đều đạt.\n\n"
     : "KẾT LUẬN: còn $totalBad ô sai — xem phần CHI TIẾT CẦN XỬ LÝ ở trên.\n\n";
