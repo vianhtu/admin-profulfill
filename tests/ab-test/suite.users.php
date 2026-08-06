@@ -481,8 +481,51 @@ return function (AbRunner $r): void {
         fn($a, $fx) => ab_has(ab_render('app-user-list.php'), 'user_team')
     )->allow('ADMIN');
 
-    // Modal xóa render cho ai còn xóa được ai: admin và manager có role delete
+    // Modal xóa render cho ai còn xóa được AI ĐÓ: có role delete và còn cấp thấp hơn mình.
+    // Vai `user` cũng nằm trong đó vì còn quản được `customer` (cấp thấp nhất).
     $r->add('Users — giao diện', 'Modal xóa được render',
         fn($a, $fx) => ab_has(ab_render('app-user-list.php'), 'deleteUserModal')
-    )->allow('ADMIN', 'MGR_T1', 'MGR_T2');
+    )->allow('ADMIN', 'MGR_T1', 'MGR_T2', 'USR_T1', 'USR_T2', 'USR_T3');
+
+    // ---------- Cấp `user` quản `customer` (chốt 06/08/2026) ----------
+    // Luật cấp thay cho việc chốt cứng is_manager(): hạng nào cũng với XUỐNG được, nên
+    // `user` có role thì thêm/sửa/xóa được `customer` trong team mình — nhưng vẫn không
+    // đụng nổi một `user` khác. Ba ca dưới đo đúng hai vế đó.
+    $r->add('Users — cấp customer', 'Thêm được tài khoản cấp CUSTOMER', function ($a, $fx) {
+        $u = 'ZZABFIX' . bin2hex(random_bytes(4));
+        $_POST = ['csrf_token' => 'ABTEST', 'id' => 0, 'username' => $u, 'email' => $u . '@zzab.test',
+            'password' => 'zzabzzab', 'level' => $fx->customer_level(),
+            'team_id' => (int)$a->team, 'status' => 2];
+        return User::save_user();
+    })->allow('ADMIN', 'MGR_T1', 'MGR_T2', 'USR_T1', 'USR_T2', 'USR_T3');
+
+    $r->add('Users — cấp customer', 'Sửa được CUSTOMER cùng team', function ($a, $fx) {
+        $id = $fx->new_user((int)$a->team, $fx->customer_level());
+        $row = $fx->conn->query("SELECT username, email FROM authors WHERE ID = $id")->fetch_assoc();
+        $_POST = ['csrf_token' => 'ABTEST', 'id' => $id, 'username' => $row['username'],
+            'email' => $row['email'], 'password' => '', 'level' => $fx->customer_level(),
+            'team_id' => (int)$a->team, 'status' => 3];
+        $res = User::save_user();
+        if (($res['status'] ?? '') === 'error') {
+            return $res;
+        }
+        // Tham số vượt quyền bị BỎ QUA âm thầm -> đọc lại DB mới biết có ăn thật không
+        $now = (int)$fx->conn->query("SELECT status FROM authors WHERE ID = $id")->fetch_row()[0];
+        return $now === 3 ? $res : ['status' => 'error', 'message' => 'DB không đổi'];
+    })->allow('ADMIN', 'MGR_T1', 'MGR_T2', 'USR_T1', 'USR_T2', 'USR_T3');
+
+    $r->add('Users — cấp customer', 'Xóa được CUSTOMER cùng team', function ($a, $fx) {
+        $id = $fx->new_user((int)$a->team, $fx->customer_level());
+        $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$id]];
+        Users::delete_users();
+        return $fx->conn->query("SELECT ID FROM authors WHERE ID = $id")->fetch_row() === null;
+    })->allow('ADMIN', 'MGR_T1', 'MGR_T2', 'USR_T1', 'USR_T2', 'USR_T3');
+
+    $r->add('Users — cấp customer', 'KHÔNG xóa được user NGANG CẤP cùng team', function ($a, $fx) {
+        $id = $fx->new_user((int)$a->team, $fx->user_level());
+        $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$id]];
+        Users::delete_users();
+        // Vai USR_* ngang cấp với dòng này -> phải chặn; ADMIN/MGR đứng trên nên xóa được
+        return $fx->conn->query("SELECT ID FROM authors WHERE ID = $id")->fetch_row() === null;
+    })->allow('ADMIN', 'MGR_T1', 'MGR_T2');
 };

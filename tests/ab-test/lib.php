@@ -259,6 +259,18 @@ final class AbFixtures
         return (int)$this->conn->query("SELECT ID FROM roles_permissions WHERE slug = 'admin' LIMIT 1")->fetch_row()[0];
     }
 
+    /** Nhóm quyền cấp `customer` — cấp THẤP NHẤT, ai cũng đứng trên nó. */
+    public function customer_level(): int
+    {
+        return (int)$this->conn->query("SELECT ID FROM roles_permissions WHERE slug = 'customer' LIMIT 1")->fetch_row()[0];
+    }
+
+    /** Nhóm quyền cấp `user` — dùng để dựng người NGANG CẤP với vai USR_*. */
+    public function user_level(): int
+    {
+        return (int)$this->conn->query("SELECT ID FROM roles_permissions WHERE slug = 'user' LIMIT 1")->fetch_row()[0];
+    }
+
     /**
      * Tạo 1 bản ghi `files` giả (không có file thật trên đĩa — deletePhysicalFile tự bỏ
      * qua khi không tìm thấy). $type = 'accounts' hoặc 'sites'.
