@@ -311,6 +311,12 @@ function setAllBoxes(on) {
 
 // Mọi <select> phải là select2 theo quy ước template (CLAUDE.md mục 3). Dựng một lần,
 // dropdownParent trỏ vào modal để dropdown không bị modal cắt mất.
+// Bảng quyền cuộn được: mở lại form phải về ĐẦU danh sách. Phải đặt ở 'shown' — gán
+// scrollTop lúc modal còn display:none thì trình duyệt bỏ qua (đã dính đúng lỗi này).
+$(document).on('shown.bs.modal', '#addPermissionModal', function () {
+    $(this).find('.table-responsive').scrollTop(0);
+});
+
 function initModalSelects() {
     [['#modalRoleLevel', '#addPermissionModal'],
      ['#deleteRoleReplacement', '#deleteRoleModal']].forEach(([sel, parent]) => {
@@ -344,9 +350,6 @@ function openRoleForm(row) {
             if (perms[m] && perms[m][a]) { this.checked = true; }
         });
     }
-    // Bảng quyền cuộn được: mở lại form phải về ĐẦU danh sách, không giữ vị trí lần trước
-    const $box = $('#addPermissionForm .table-responsive');
-    if ($box.length) { $box.scrollTop(0); }
     bootstrap.Modal.getOrCreateInstance(document.getElementById('addPermissionModal')).show();
 }
 
