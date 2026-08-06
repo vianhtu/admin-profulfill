@@ -344,6 +344,9 @@ function openRoleForm(row) {
             if (perms[m] && perms[m][a]) { this.checked = true; }
         });
     }
+    // Bảng quyền cuộn được: mở lại form phải về ĐẦU danh sách, không giữ vị trí lần trước
+    const $box = $('#addPermissionForm .table-responsive');
+    if ($box.length) { $box.scrollTop(0); }
     bootstrap.Modal.getOrCreateInstance(document.getElementById('addPermissionModal')).show();
 }
 
