@@ -20,6 +20,32 @@
 
 'use strict';
 
+/**
+ * `dt.order()` trả về BA dạng khác nhau tuỳ cách sắp xếp được đặt:
+ *   [2, 'desc']              — khi gọi .order([2,'desc'])
+ *   [[2, 'desc']]            — dạng lồng (config `order`)
+ *   [{ idx: 2, dir: 'desc' }] — DataTables 2.x khi người dùng bấm vào tiêu đề cột
+ * Gom cả ba về [idx, dir]. Bỏ sót dạng nào là sort lặng lẽ không lên URL.
+ *
+ * @return {[number,string]|null}
+ */
+function normalizeOrder(ord) {
+    if (!ord || !ord.length) {
+        return null;
+    }
+    if (typeof ord[0] === 'number') {
+        return [ord[0], String(ord[1] || 'asc')];
+    }
+    const first = ord[0];
+    if (Array.isArray(first)) {
+        return [first[0], String(first[1] || 'asc')];
+    }
+    if (first && typeof first === 'object' && 'idx' in first) {
+        return [first.idx, String(first.dir || 'asc')];
+    }
+    return null;
+}
+
 function dtUrlState(filterMap, defaultLength) {
     const map = filterMap || {};
     // Mặc định số dòng/trang của CHÍNH trang đó (Roles 25, Users 10...). Cần để tính đúng
@@ -109,12 +135,12 @@ function dtUrlState(filterMap, defaultLength) {
                     next.set('q', q);
                 }
 
-                const ord = dt.order();
-                if (ord && ord.length && Array.isArray(columnKeys)) {
-                    const key = columnKeys[ord[0][0]];
+                const ord = normalizeOrder(dt.order());
+                if (ord && Array.isArray(columnKeys)) {
+                    const key = columnKeys[ord[0]];
                     if (key) {
                         next.set('sort', key);
-                        next.set('dir', ord[0][1]);
+                        next.set('dir', ord[1]);
                     }
                 }
                 if (info.page > 0) {
