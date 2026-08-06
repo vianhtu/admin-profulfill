@@ -18,6 +18,9 @@ function lockedBtn(icon, why) {
         ` title="${esc(why)}"><i class="icon-base ti ${icon} icon-22px"></i></button>`;
 }
 
+// Thứ tự PHẢI khớp mảng `columns` bên dưới
+const TEAM_COLS = ['id', 'name', 'members', 'status', 'id'];
+let urlState = null;
 let dtTeams = null;
 
 function initTable() {
@@ -27,6 +30,9 @@ function initTable() {
     }
 
     const avatarStates = ['success', 'danger', 'warning', 'info', 'dark', 'primary', 'secondary'];
+
+    // Teams không có ô lọc riêng — vẫn phải giữ search/sắp xếp/phân trang trên URL
+    urlState = dtUrlState({}, 10);
 
     dtTeams = new DataTable(el, {
         serverSide: true,
@@ -96,6 +102,8 @@ function initTable() {
             }
         ],
         order: [[1, 'asc']],
+        // PHẢI spread SAU order, nếu không mặc định ghi đè giá trị từ URL
+        ...urlState.tableOptions(TEAM_COLS),
         layout: {
             topStart: {
                 rowClass: 'row m-3 my-0 justify-content-between',
@@ -166,6 +174,9 @@ function initTable() {
             }
         }
     });
+
+    // Ghi search/sắp xếp/phân trang lên URL sau mỗi lần bảng vẽ lại
+    urlState.bind(dtTeams, TEAM_COLS);
 
     // Status select trong offcanvas — mọi <select> đều là select2 theo quy ước template
     const $status = $('#team-status');

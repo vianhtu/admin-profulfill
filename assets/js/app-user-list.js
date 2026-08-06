@@ -18,6 +18,7 @@ function lockedBtn(icon, why) {
         ` title="${esc(why)}"><i class="icon-base ti ${icon} icon-22px"></i></button>`;
 }
 
+let urlState = null;
 let rolesObj = {};
 let teamsObj = {};
 let statusesObj = {};
@@ -136,6 +137,11 @@ function initTable() {
         });
     }
 
+    // Khóa cột suy thẳng từ `columns` để không lệch khi cột Salary có/không tùy quyền
+    const USER_COLS = columns.map(c => c.data);
+    urlState = dtUrlState(
+        { UserRole: '#UserRole', UserStatus: '#UserStatus', UserTeam: '#UserTeam' }, 25);
+
     dtUsers = new DataTable(el, {
         serverSide: true,
         processing: true,
@@ -143,9 +149,11 @@ function initTable() {
             url: '../../ajax.php?action=get-authors-table',
             type: 'POST',
             data: function (d) {
-                d.level = $('#UserRole').val() || '';
-                d.status = $('#UserStatus').val() || '';
-                d.team = $('#UserTeam').val() || '';
+                // Lần vẽ đầu các ô lọc chưa dựng (buildFilters chạy trong initComplete)
+                // nên phải lấy thẳng từ URL, nếu không bảng vẽ sai rồi mới sửa lại.
+                d.level = $('#UserRole').length ? ($('#UserRole').val() || '') : urlState.get('UserRole');
+                d.status = $('#UserStatus').length ? ($('#UserStatus').val() || '') : urlState.get('UserStatus');
+                d.team = $('#UserTeam').length ? ($('#UserTeam').val() || '') : urlState.get('UserTeam');
             },
             dataSrc: json => json.data
         },
@@ -153,6 +161,8 @@ function initTable() {
         columnDefs: columnDefs,
         order: [[1, 'asc']],
         displayLength: 25,
+        // PHẢI spread SAU order/displayLength, nếu không mặc định ghi đè giá trị từ URL
+        ...urlState.tableOptions(USER_COLS),
         layout: {
             topStart: {
                 rowClass: 'row m-3 my-0 justify-content-between',
@@ -213,6 +223,7 @@ function initTable() {
             const api = this.api();
             buildFilters(api);
             buildFormSelects();
+            urlState.bind(dtUsers, USER_COLS);
         }
     });
 
@@ -278,22 +289,10 @@ function buildFilters(api) {
         $('#UserTeam').select2({ dropdownParent: $team });
     }
 
-    // Vào từ trang khác kèm bộ lọc dựng sẵn:
-    //   Teams  -> index.php?menu=users&UserTeam=<id>
-    //   Roles  -> index.php?menu=users&UserRole=<id>   (cột "Assigned To")
-    // Ô lọc Team chỉ admin mới có, nên phải kiểm .length trước khi gán.
-    const params = new URLSearchParams(window.location.search);
-    const urlTeam = params.get('UserTeam');
-    const urlRole = params.get('UserRole');
-    let preset = false;
-    if (urlTeam && $('#UserTeam').length) {
-        $('#UserTeam').val(urlTeam).trigger('change.select2');
-        preset = true;
-    }
-    if (urlRole && $('#UserRole').length) {
-        $('#UserRole').val(urlRole).trigger('change.select2');
-        preset = true;
-    }
+    // Đổ trạng thái từ URL vào các ô lọc — gồm cả link từ trang khác sang:
+    //   Teams -> ?UserTeam=<id>   |   Roles (cột "Assigned To") -> ?UserRole=<id>
+    // Helper tự bỏ qua ô không tồn tại (ô Team chỉ admin có).
+    const preset = urlState.applyFilters();
 
     $('#UserRole, #UserStatus, #UserTeam').on('change', function () {
         refreshFilterBadge();
@@ -302,9 +301,9 @@ function buildFilters(api) {
 
     // Mở sẵn khối Filter khi có lọc dựng từ URL để người dùng thấy ngay mình đang bị lọc
     initFilterCollapse(preset);
-    if (preset) {
-        api.draw();
-    }
+    // KHÔNG draw lại ở đây: lần vẽ đầu đã đọc thẳng bộ lọc từ URL (xem hàm data() phía
+    // trên), draw thêm chỉ tốn một request nữa cho cùng kết quả.
+    refreshFilterBadge();
 }
 
 // --- Khối Filter: badge đếm, nút Clear, thu gọn (cùng khuôn Products/Stores) ---
