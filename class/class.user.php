@@ -148,7 +148,6 @@ class User
         }
 
         $conn = db();
-        $adminLevels = Users::admin_level_ids($conn);
 
         $username = trim((string)($_POST['username'] ?? ''));
         $email    = trim((string)($_POST['email'] ?? ''));

@@ -147,21 +147,6 @@ class Users
         return $ids;
     }
 
-    /** Danh sách ID của các nhóm quyền cấp admin — dùng chặn leo thang quyền. */
-    public static function admin_level_ids(mysqli $conn): array
-    {
-        static $ids = null;
-        if ($ids !== null) {
-            return $ids;
-        }
-        $ids = [];
-        $rs = $conn->query("SELECT ID FROM roles_permissions WHERE slug = 'admin'");
-        while ($row = $rs->fetch_row()) {
-            $ids[] = (int)$row[0];
-        }
-        return $ids;
-    }
-
     /** Được thêm user mới không. */
     public static function can_add(): bool
     {
@@ -171,7 +156,8 @@ class Users
     /**
      * Được sửa 1 user cụ thể không.
      * - admin: mọi user;
-     * - manager: user CÙNG TEAM và KHÔNG phải tài khoản admin (chặn leo thang quyền);
+     * - manager: user CÙNG TEAM;
+     * - mọi vai: chỉ cấp THẤP HƠN mình, không đụng người ngang cấp (super admin ngoại lệ);
      * - user: không sửa được ai (kể cả chính mình — đổi role/team là leo quyền).
      */
     public static function can_edit_row(int $teamId, int $level, mysqli $conn): bool
@@ -326,11 +312,11 @@ class Users
         // Dùng thẳng bảng roles_permissions, KHÔNG dùng get_all_roles(): hàm đó chèn thêm
         // mục giả `0 => Admin` (di sản cũ) — chọn phải mục đó thì lưu luôn báo "Invalid role".
         $roles = get_data_map('roles_permissions', 'name');
-        if (!is_admin()) {
-            // Manager không được cấp quyền admin cho ai -> không đưa nhóm quyền admin vào select
-            foreach (self::admin_level_ids($conn) as $adminId) {
-                unset($roles[$adminId]);
-            }
+        // Bỏ MỌI cấp cao hơn mình, không riêng cấp admin: dòng của họ đã bị scope_where()
+        // lọc khỏi bảng nên để lại trong ô lọc chỉ là lựa chọn luôn ra 0 kết quả, và còn
+        // lộ đang tồn tại những cấp nào ở trên (luật NHÌN — chỉ thấy ngang hàng trở xuống).
+        foreach (self::levels_above($conn) as $id) {
+            unset($roles[$id]);
         }
 
         // Admin chọn được mọi team; người khác chỉ có đúng team của mình (select bị khóa,
