@@ -70,6 +70,16 @@ class Users
         return (int)($_SESSION['auth']['user_id'] ?? 0);
     }
 
+    /**
+     * Người xem chỉ nhìn thấy ĐÚNG dòng của chính mình (xem scope_where): vai không phải
+     * admin/manager luôn bị giới hạn `authors.ID = <chính mình>`. Bảng 1 dòng thì khối
+     * Filter vô nghĩa -> ẩn đi theo luật "Filter thì ẩn, không khóa".
+     */
+    public static function sees_only_self(): bool
+    {
+        return !is_admin() && !is_manager();
+    }
+
     /** Lương/bảo hiểm chỉ admin và manager được nhìn. */
     public static function can_see_salary(): bool
     {

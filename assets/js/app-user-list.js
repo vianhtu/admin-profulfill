@@ -255,6 +255,11 @@ function fillSelect($sel, map, allLabel) {
 }
 
 function buildFilters(api) {
+    // Vai chỉ thấy dòng của chính mình -> fragment không render khối Filter (bảng luôn 1
+    // dòng, lọc vô nghĩa). Thoát sớm cho rõ ý; các $() bên dưới vốn cũng no-op.
+    if (!document.getElementById('filterCard')) {
+        return;
+    }
     const $role = $('.user_role');
     $role.html('<label class="form-label" for="UserRole">Role</label><select id="UserRole" class="form-select"></select>');
     fillSelect($('#UserRole'), rolesObj, 'All');
