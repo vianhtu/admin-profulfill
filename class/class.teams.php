@@ -165,10 +165,26 @@ class Teams
             // Tự xóa team của chính mình sẽ xóa luôn tài khoản đang đăng nhập
             return ['error' => 'You cannot delete the team you belong to.'];
         }
-        if (!db()->execute_query('SELECT ID FROM team WHERE ID = ? LIMIT 1', [$id])->fetch_row()) {
+        $row = db()->execute_query('SELECT ID, status FROM team WHERE ID = ? LIMIT 1', [$id])->fetch_assoc();
+        if (!$row) {
             return ['error' => 'Team not found.'];
         }
-        return ['id' => $id];
+        return ['id' => $id, 'active' => (int)$row['status'] === 1];
+    }
+
+    /**
+     * Rào chắn hai bước: team phải được tắt (Inactive) trước khi xóa hoặc sáp nhập.
+     * Tắt team đã đá mọi thành viên ra và chặn API của họ, nên admin có cơ hội quan sát
+     * xem có gì vỡ không TRƯỚC khi thao tác không thể hoàn tác.
+     */
+    private static function require_inactive(array $in): ?array
+    {
+        if (!empty($in['active'])) {
+            return ['status' => 'error',
+                'message' => 'Deactivate this team first, then delete it. That way its members lose access '
+                    . 'before anything is removed.'];
+        }
+        return null;
     }
 
     /**
@@ -202,12 +218,70 @@ class Teams
                 : 0,
         ];
 
+        // Team khác để sáp nhập sang (thay vì xóa sạch)
+        $targets = [];
+        $rs = $conn->execute_query('SELECT ID, name FROM team WHERE ID <> ? ORDER BY name', [$id]);
+        while ($t = $rs->fetch_assoc()) {
+            $targets[] = ['id' => (int)$t['ID'], 'name' => $t['name']];
+        }
+
         return [
-            'status' => 'success',
-            'name'   => $name,
-            'counts' => $counts,
-            'total'  => array_sum($counts),
+            'status'  => 'success',
+            'name'    => $name,
+            'counts'  => $counts,
+            'total'   => array_sum($counts),
+            // Team còn Active thì chưa cho xóa/sáp nhập — UI dựa vào cờ này để khóa nút
+            'active'  => !empty($in['active']),
+            'targets' => $targets,
         ];
+    }
+
+    /**
+     * SÁP NHẬP team: chuyển toàn bộ thành viên, account và store riêng sang team khác rồi
+     * xóa team rỗng. Dùng khi tổ chức lại nhân sự — KHÔNG mất dữ liệu nào.
+     *
+     * Sản phẩm không phải đụng tới: phạm vi tính theo `authors.team_id` nên chúng đi theo
+     * chủ sở hữu. Đơn hàng cũng vậy vì bám theo `accounts.team_id`. Thành viên bị đổi team
+     * nên phiên đang mở của họ tự bị đá ra (xem access_block_reason).
+     *
+     * @return array{status:string,moved?:array,message?:string}
+     */
+    public static function merge_team(): array
+    {
+        $in = self::purge_input();
+        if (isset($in['error'])) {
+            return ['status' => 'error', 'message' => $in['error']];
+        }
+        if ($blocked = self::require_inactive($in)) {
+            return $blocked;
+        }
+        $id = $in['id'];
+        $to = (int)($_POST['target_team'] ?? 0);
+        if ($to <= 0 || $to === $id) {
+            return ['status' => 'error', 'message' => 'Choose a different team to merge into.'];
+        }
+
+        $conn = db();
+        if (!$conn->execute_query('SELECT ID FROM team WHERE ID = ? LIMIT 1', [$to])->fetch_row()) {
+            return ['status' => 'error', 'message' => 'The target team does not exist.'];
+        }
+
+        try {
+            $moved = [];
+            foreach (['authors' => 'members', 'accounts' => 'accounts', 'store' => 'stores'] as $table => $label) {
+                $conn->execute_query("UPDATE `$table` SET team_id = ? WHERE team_id = ?", [$to, $id]);
+                $moved[$label] = $conn->affected_rows;
+            }
+            // Thành viên đã sang team mới -> thu hồi token để họ đăng nhập lại đúng team
+            $conn->execute_query(
+                'DELETE FROM author_remember_tokens WHERE author_id IN (SELECT ID FROM authors WHERE team_id = ?)',
+                [$to]);
+            $conn->execute_query('DELETE FROM team WHERE ID = ?', [$id]);
+        } catch (\mysqli_sql_exception $e) {
+            return ['status' => 'error', 'message' => 'Merge failed: ' . $e->getMessage()];
+        }
+
+        return ['status' => 'success', 'moved' => $moved];
     }
 
     /**
@@ -225,6 +299,9 @@ class Teams
         $in = self::purge_input();
         if (isset($in['error'])) {
             return ['status' => 'error', 'message' => $in['error']];
+        }
+        if ($blocked = self::require_inactive($in)) {
+            return $blocked;
         }
         $id = $in['id'];
         $conn = db();

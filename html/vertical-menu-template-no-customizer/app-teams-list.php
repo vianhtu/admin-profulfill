@@ -93,6 +93,13 @@ if (!is_admin()) {
                     <span class="spinner-border spinner-border-sm me-2" role="status"></span>Checking data...
                 </div>
 
+                <!-- Rào chắn 2 bước: team còn Active thì không cho xóa/sáp nhập -->
+                <div id="deleteTeamActiveWarn" class="alert alert-warning d-flex d-none" role="alert">
+                    <i class="icon-base ti tabler-alert-triangle me-2"></i>
+                    <span>This team is still <strong>Active</strong>. Set it to Inactive first — its members
+                          lose access immediately, so you can check nothing breaks before removing anything.</span>
+                </div>
+
                 <div id="deleteTeamSummary" class="d-none">
                     <table class="table table-sm mb-4">
                         <tbody>
@@ -104,9 +111,19 @@ if (!is_admin()) {
                         <tr><td>Account files</td><td class="text-end fw-medium" id="cntFiles">0</td></tr>
                         </tbody>
                     </table>
-                    <div class="alert alert-info d-flex mb-0" role="alert">
+                    <div class="alert alert-info d-flex" role="alert">
                         <i class="icon-base ti tabler-info-circle me-2"></i>
                         <span>Shared data is kept: sites, categories and shared stores stay in place.</span>
+                    </div>
+
+                    <!-- Sáp nhập: giữ toàn bộ dữ liệu, chỉ đổi chủ sang team khác -->
+                    <div id="deleteTeamMergeBox">
+                        <hr class="my-4">
+                        <label class="form-label" for="deleteTeamTarget">
+                            Or move everything to another team instead of deleting
+                        </label>
+                        <select id="deleteTeamTarget" class="form-select"></select>
+                        <div class="form-text">Members, accounts and private stores move over; nothing is lost.</div>
                     </div>
                 </div>
 
@@ -119,6 +136,9 @@ if (!is_admin()) {
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-label-secondary waves-effect" data-bs-dismiss="modal" id="deleteTeamCancel">Cancel</button>
+                <button type="button" class="btn btn-label-primary waves-effect" id="deleteTeamMerge" disabled>
+                    <i class="icon-base ti tabler-arrow-move-right icon-xs me-1"></i>Move &amp; delete team
+                </button>
                 <button type="button" class="btn btn-danger waves-effect waves-light" id="deleteTeamConfirm" disabled>
                     <span class="spinner-border spinner-border-sm me-2 d-none" id="deleteTeamSpinner" role="status"></span>Delete everything
                 </button>

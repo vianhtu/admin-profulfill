@@ -119,6 +119,18 @@ function team_is_active(int $teamId): bool {
  * Tài khoản này có đang hoạt động không (authors.status = 2).
  * Trạng thái Pending/Inactive -> không cho đăng nhập và không cho dùng tiếp phiên đang mở.
  */
+/** Tài khoản còn tồn tại trong DB không (phân biệt "bị khóa" với "đã bị xóa"). */
+function user_exists(int $userId): bool {
+	if ($userId <= 0) {
+		return false;
+	}
+	try {
+		return db()->execute_query('SELECT 1 FROM authors WHERE ID = ? LIMIT 1', [$userId])->fetch_row() !== null;
+	} catch (mysqli_sql_exception) {
+		return true;
+	}
+}
+
 function user_is_active(int $userId): bool {
 	if ($userId <= 0) {
 		return false;
@@ -149,7 +161,8 @@ function access_block_reason(): ?string {
 	$team = (int)($_SESSION['auth']['team'] ?? 0);
 
 	if (!user_is_active($uid)) {
-		return USER_INACTIVE_MESSAGE;
+		// Không còn bản ghi = tài khoản đã bị xóa (vd. xóa cả team), khác với bị khóa
+		return user_exists($uid) ? USER_INACTIVE_MESSAGE : USER_DELETED_MESSAGE;
 	}
 	// Bị admin chuyển sang team khác trong lúc đang đăng nhập: session vẫn giữ team CŨ
 	// (login_user chụp team một lần lúc đăng nhập) nên vẫn thao tác được trên phạm vi cũ.
@@ -227,6 +240,8 @@ function user_team_changed(int $userId, int $sessionTeam): bool {
 const TEAM_INACTIVE_MESSAGE = 'Your team has been deactivated. Please contact an administrator.';
 /** Tài khoản chưa duyệt / đã khóa. */
 const USER_INACTIVE_MESSAGE = 'Your account is not active. Please contact an administrator.';
+/** Tài khoản đã bị xóa (vd. cả team bị xóa). */
+const USER_DELETED_MESSAGE = 'Your account no longer exists. Please contact an administrator.';
 /** Bị chuyển sang team khác trong lúc đang đăng nhập. */
 const TEAM_CHANGED_MESSAGE = 'Your team has changed. Please sign in again.';
 /** Nhóm quyền bị đổi hoặc bị sửa nội dung. */

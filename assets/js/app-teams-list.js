@@ -287,10 +287,12 @@ function openDeleteTeamModal(id, name) {
     // Reset trạng thái modal cho lần mở mới
     $('#deleteTeamLoading').removeClass('d-none');
     $('#deleteTeamSummary').addClass('d-none');
+    $('#deleteTeamActiveWarn').addClass('d-none');
     $('#deleteTeamProgress').addClass('d-none');
     $('#deleteTeamBar').css('width', '0%');
     $('#deleteTeamProgressText').text('');
     $('#deleteTeamConfirm').prop('disabled', true).show();
+    $('#deleteTeamMerge').prop('disabled', true).show();
     $('#deleteTeamSpinner').addClass('d-none');
     $('#deleteTeamCancel').text('Cancel').prop('disabled', false);
     $('#deleteTeamClose').prop('disabled', false);
@@ -318,6 +320,21 @@ function openDeleteTeamModal(id, name) {
         $('#cntFiles').text((c.files || 0).toLocaleString());
         $(modalEl).data('total', res.total || 0);
         $('#deleteTeamSummary').removeClass('d-none');
+
+        // Team còn Active -> khóa cả hai nút, bắt tắt team trước
+        if (res.active) {
+            $('#deleteTeamActiveWarn').removeClass('d-none');
+            return;
+        }
+
+        const $target = $('#deleteTeamTarget').empty();
+        (res.targets || []).forEach(t => $target.append(new Option(t.name, t.id, false, false)));
+        const canMerge = (res.targets || []).length > 0;
+        $('#deleteTeamMergeBox').toggleClass('d-none', !canMerge);
+        if (canMerge && !$target.hasClass('select2-hidden-accessible')) {
+            $target.select2({ dropdownParent: $(modalEl), minimumResultsForSearch: Infinity });
+        }
+        $('#deleteTeamMerge').prop('disabled', !canMerge);
         $('#deleteTeamConfirm').prop('disabled', false);
     }).fail(function () {
         $('#deleteTeamLoading').addClass('d-none');
@@ -328,6 +345,48 @@ function openDeleteTeamModal(id, name) {
 
 $(document).on('click', '.delete-team', function () {
     openDeleteTeamModal(parseInt($(this).data('id'), 10), String($(this).data('name') ?? ''));
+});
+
+// Sáp nhập: chuyển thành viên/account/store riêng sang team khác rồi xóa team rỗng
+$(document).on('click', '#deleteTeamMerge', function () {
+    const modalEl = document.getElementById('deleteTeamModal');
+    const id = $(modalEl).data('id');
+    const target = $('#deleteTeamTarget').val();
+    if (!id || !target) {
+        return;
+    }
+    const $btn = $(this).prop('disabled', true);
+    $('#deleteTeamConfirm').prop('disabled', true);
+    $('#deleteTeamProgress').removeClass('d-none');
+    $('#deleteTeamProgressText').text('Moving everything over...');
+
+    $.ajax({
+        url: '../../ajax.php?action=merge-team',
+        type: 'POST',
+        data: { id: id, target_team: target, csrf_token: window.csrfToken }
+    }).done(function (res) {
+        if (res?.status !== 'success') {
+            $('#deleteTeamBar').addClass('bg-warning');
+            $('#deleteTeamProgressText').text(res?.message || 'Merge failed.');
+            $btn.prop('disabled', false);
+            $('#deleteTeamConfirm').prop('disabled', false);
+            return;
+        }
+        const m = res.moved || {};
+        $('#deleteTeamBar').css('width', '100%');
+        $('#deleteTeamProgressText').text('Done — moved ' + (m.members || 0) + ' members, '
+            + (m.accounts || 0) + ' accounts, ' + (m.stores || 0) + ' stores.');
+        setTimeout(function () {
+            bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+            $(modalEl).removeData('id').removeData('total');
+            if (dtTeams) {
+                dtTeams.draw(false);
+            }
+        }, 1200);
+    }).fail(function () {
+        $('#deleteTeamProgressText').text('Server connection error.');
+        $btn.prop('disabled', false);
+    });
 });
 
 $(document).on('click', '#deleteTeamConfirm', async function () {
@@ -343,6 +402,7 @@ $(document).on('click', '#deleteTeamConfirm', async function () {
 
     // Khóa mọi đường thoát trong lúc chạy: đứt giữa chừng để lại dữ liệu dở dang
     $(this).prop('disabled', true);
+    $('#deleteTeamMerge').prop('disabled', true);
     $('#deleteTeamSpinner').removeClass('d-none');
     $('#deleteTeamCancel').prop('disabled', true);
     $('#deleteTeamClose').prop('disabled', true);

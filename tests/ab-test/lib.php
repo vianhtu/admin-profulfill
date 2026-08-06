@@ -198,9 +198,9 @@ final class AbFixtures
      *
      * @return array{0:int,1:int,2:int,3:int,4:int} [teamId, authorId, accountId, orderId, postId]
      */
-    public function new_team_with_data(): array
+    public function new_team_with_data(int $status = 1): array
     {
-        $teamId = $this->new_team();
+        $teamId = $this->new_team($status);
         $c = $this->conn;
 
         // Tiền tố ZZABFIX (không phải ZZABU): 'ZZABU%' khớp luôn tài khoản ZZABUSER của
@@ -264,13 +264,18 @@ final class AbFixtures
         return (int)$this->conn->insert_id;
     }
 
-    /** Tạo 1 team ZZAB rỗng (không thành viên) để test sửa/xóa. */
-    public function new_team(): int
+    /**
+     * Tạo 1 team ZZAB rỗng (không thành viên) để test sửa/xóa.
+     *
+     * @param int $status 1 = Active (mặc định), 0 = Inactive. Xóa/sáp nhập team chỉ chạy
+     *        khi team đã tắt, nên phép thử nào cần chạy tới đó phải truyền 0.
+     */
+    public function new_team(int $status = 1): int
     {
         $name = 'ZZAB Team ' . bin2hex(random_bytes(4));
         $this->conn->execute_query(
-            'INSERT INTO team (name, `key`, status) VALUES (?, ?, 1)',
-            [$name, 'zzab' . bin2hex(random_bytes(12))]
+            'INSERT INTO team (name, `key`, status) VALUES (?, ?, ?)',
+            [$name, 'zzab' . bin2hex(random_bytes(12)), $status]
         );
         return (int)$this->conn->insert_id;
     }

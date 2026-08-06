@@ -81,16 +81,59 @@ return function (AbRunner $r): void {
         return ($res['status'] ?? '') === 'error' ? $res : isset($res['counts']['members']);
     })->allow('ADMIN');
 
-    $r->add('Teams — xóa', 'Xóa team rỗng', function ($a, $fx) {
+    // Rào chắn 2 bước: phải tắt team trước khi xóa/sáp nhập
+    $r->add('Teams — xóa', 'CHẶN xóa team đang Active', function ($a, $fx) {
+        $id = $fx->new_team();   // new_team tạo status = 1 (Active)
+        $_POST = ['csrf_token' => 'ABTEST', 'id' => $id];
+        Teams::purge_team();
+        // ALLOW = xóa được dù team đang Active -> không ai được phép
+        return $fx->conn->query("SELECT ID FROM team WHERE ID = $id")->fetch_row() === null;
+    })->allow();
+
+    $r->add('Teams — xóa', 'Xóa team rỗng (đã tắt)', function ($a, $fx) {
         $id = $fx->new_team();
+        $fx->conn->query("UPDATE team SET status = 0 WHERE ID = $id");
         $_POST = ['csrf_token' => 'ABTEST', 'id' => $id];
         $res = Teams::purge_team();
         $gone = $fx->conn->query("SELECT ID FROM team WHERE ID = $id")->fetch_row() === null;
         return $gone ? $res : ['status' => 'error', 'message' => 'Team vẫn còn'];
     })->allow('ADMIN');
 
+    // ---------- Sáp nhập ----------
+    $r->add('Teams — sáp nhập', 'Chuyển thành viên/account/store sang team khác rồi xóa', function ($a, $fx) {
+        [$teamId, $authorId, $accountId] = $fx->new_team_with_data();
+        $store = $fx->new_store($teamId);
+        $fx->conn->query("UPDATE team SET status = 0 WHERE ID = $teamId");
+        $_POST = ['csrf_token' => 'ABTEST', 'id' => $teamId, 'target_team' => 2];
+        $res = Teams::merge_team();
+        if (($res['status'] ?? '') === 'error') {
+            return $res;
+        }
+        $au = (int)$fx->conn->query("SELECT team_id FROM authors WHERE ID = $authorId")->fetch_row()[0];
+        $ac = (int)$fx->conn->query("SELECT team_id FROM accounts WHERE ID = $accountId")->fetch_row()[0];
+        $st = (int)$fx->conn->query("SELECT team_id FROM store WHERE ID = $store")->fetch_row()[0];
+        $gone = $fx->conn->query("SELECT ID FROM team WHERE ID = $teamId")->fetch_row() === null;
+        return ($au === 2 && $ac === 2 && $st === 2 && $gone)
+            ? $res : ['status' => 'error', 'message' => "author=$au account=$ac store=$st gone=" . var_export($gone, true)];
+    })->allow('ADMIN');
+
+    $r->add('Teams — sáp nhập', 'CHẶN sáp nhập khi team còn Active', function ($a, $fx) {
+        $id = $fx->new_team();
+        $_POST = ['csrf_token' => 'ABTEST', 'id' => $id, 'target_team' => 2];
+        Teams::merge_team();
+        return $fx->conn->query("SELECT ID FROM team WHERE ID = $id")->fetch_row() === null;
+    })->allow();
+
+    $r->add('Teams — sáp nhập', 'CHẶN sáp nhập vào chính nó', function ($a, $fx) {
+        $id = $fx->new_team();
+        $fx->conn->query("UPDATE team SET status = 0 WHERE ID = $id");
+        $_POST = ['csrf_token' => 'ABTEST', 'id' => $id, 'target_team' => $id];
+        Teams::merge_team();
+        return $fx->conn->query("SELECT ID FROM team WHERE ID = $id")->fetch_row() === null;
+    })->allow();
+
     $r->add('Teams — xóa', 'Xóa team KÉO THEO user + account + đơn hàng của team đó', function ($a, $fx) {
-        [$teamId, $authorId, $accountId, $orderId, $postId] = $fx->new_team_with_data();
+        [$teamId, $authorId, $accountId, $orderId, $postId] = $fx->new_team_with_data(0);
         $_POST = ['csrf_token' => 'ABTEST', 'id' => $teamId];
         $res = Teams::purge_team();
         if (($res['status'] ?? '') === 'error') {
@@ -109,7 +152,7 @@ return function (AbRunner $r): void {
     // files dùng chung bảng cho cả tệp account lẫn logo site -> phải xóa đúng phần của
     // account, tuyệt đối không đụng file type='sites'.
     $r->add('Teams — xóa', 'Xóa tệp của account nhưng GIỮ logo site', function ($a, $fx) {
-        [$teamId, , $accountId] = $fx->new_team_with_data();
+        [$teamId, , $accountId] = $fx->new_team_with_data(0);
         $accFile  = $fx->new_file('accounts');
         $siteFile = $fx->new_file('sites');
         $fx->conn->execute_query(
@@ -128,7 +171,7 @@ return function (AbRunner $r): void {
     })->allow('ADMIN');
 
     $r->add('Teams — xóa', 'GIỮ dữ liệu dùng chung (site/category/store chung)', function ($a, $fx) {
-        [$teamId] = $fx->new_team_with_data();
+        [$teamId] = $fx->new_team_with_data(0);
         $_POST = ['csrf_token' => 'ABTEST', 'id' => $teamId];
         $res = Teams::purge_team();
         // Bị chặn -> trả nguyên lỗi để chấm DENY; nếu không, actor không có quyền sẽ
@@ -146,7 +189,7 @@ return function (AbRunner $r): void {
     // AN TOÀN: dùng team ZZAB nháp làm "team của tôi" thay vì team thật — nếu guard hỏng
     // thì chỉ mất bản ghi nháp, không đụng dữ liệu sống.
     $r->add('Teams — xóa', 'KHÔNG cho xóa team của chính mình', function ($a, $fx) {
-        $id = $fx->new_team();
+        $id = $fx->new_team(0);
         $save = $_SESSION['auth']['team'] ?? 0;
         $_SESSION['auth']['team'] = $id;
         $_POST = ['csrf_token' => 'ABTEST', 'id' => $id];
@@ -158,7 +201,7 @@ return function (AbRunner $r): void {
     })->allow();
 
     $r->add('Teams — xóa', 'Thiếu CSRF thì không xóa được', function ($a, $fx) {
-        $id = $fx->new_team();
+        $id = $fx->new_team(0);
         $_POST = ['id' => $id];
         Teams::purge_team();
         return $fx->conn->query("SELECT ID FROM team WHERE ID = $id")->fetch_row() === null;

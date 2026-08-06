@@ -49,7 +49,7 @@ return function (HackRunner $h): void {
     });
 
     $h->attack('Leo thang quyền', 'USER đủ 4 role xóa team (dây chuyền)', 'USR_OUT', function ($atk, $fx) {
-        $id = $fx->new_team();
+        $id = $fx->new_team(0);
         $_POST = ['csrf_token' => 'VICTIM_SECRET', 'id' => $id];
         Teams::purge_team();
         $gone = hack_count($fx->conn, "SELECT COUNT(*) FROM team WHERE ID = $id") === 0;
@@ -103,7 +103,7 @@ return function (HackRunner $h): void {
     // bản ghi nháp. Tuyệt đối KHÔNG trỏ đòn xóa dây chuyền vào team đang dùng.
     $h->attack('Toàn vẹn dữ liệu', 'Non-admin xóa dây chuyền team của người khác', 'MGR_OUT',
         function ($atk, $fx) {
-            [$teamId, $authorId] = $fx->new_team_with_data();
+            [$teamId, $authorId] = $fx->new_team_with_data(0);
             $_POST = ['csrf_token' => 'VICTIM_SECRET', 'id' => $teamId];
             Teams::purge_team();
             $gone = hack_count($fx->conn, "SELECT COUNT(*) FROM authors WHERE ID = $authorId") === 0;
@@ -118,7 +118,7 @@ return function (HackRunner $h): void {
             $sitesBefore = hack_count($fx->conn, 'SELECT COUNT(*) FROM site');
             $typesBefore = hack_count($fx->conn, 'SELECT COUNT(*) FROM `type`');
             $sharedBefore = hack_count($fx->conn, 'SELECT COUNT(*) FROM store WHERE team_id = 0');
-            [$teamId] = $fx->new_team_with_data();
+            [$teamId] = $fx->new_team_with_data(0);
             $_POST = ['csrf_token' => 'VICTIM_SECRET', 'id' => $teamId];
             Teams::purge_team();
             $_SESSION['auth'] = $save;
@@ -138,7 +138,7 @@ return function (HackRunner $h): void {
     $h->attack('SQL injection', 'Payload trong ID khi xóa dây chuyền', 'MGR_OUT', function ($atk, $fx) {
         // Payload bám vào ID team nháp: (int) phải cắt phần đuôi. Nếu injection lọt thì
         // số team tụt hơn 1 -> phát hiện được mà không nhắm vào team thật.
-        $id = $fx->new_team();
+        $id = $fx->new_team(0);
         $before = hack_count($fx->conn, 'SELECT COUNT(*) FROM team');
         $_POST = ['csrf_token' => 'VICTIM_SECRET', 'id' => $id . ' OR 1=1; DELETE FROM team;--'];
         Teams::purge_team();
