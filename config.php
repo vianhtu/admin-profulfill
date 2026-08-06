@@ -530,6 +530,23 @@ function check_csrf(): bool {
         && hash_equals((string)$_SESSION['csrf_token'], (string)$_POST['csrf_token']);
 }
 
+/**
+ * SUPER ADMIN — tài khoản tối cao (chốt 06/08/2026).
+ *
+ * Luật chung là "chỉ tạo/sửa/xóa được cấp THẤP HƠN mình", nên admin cũng không đụng được
+ * admin khác — nếu không có ngoại lệ này thì sẽ không còn đường nào qua UI để lập hay sửa
+ * một tài khoản admin. Super admin là lỗ khóa duy nhất: được xử lý cả admin khác và role
+ * cấp admin. Mọi admin còn lại vẫn bị luật ngang cấp chặn như thường.
+ *
+ * Ghi theo TÊN ĐĂNG NHẬP (so chữ thường) và vẫn bắt buộc đang ở cấp admin — hạ cấp
+ * fox1990 trong DB là quyền tối cao mất theo, không cần sửa code.
+ */
+const SUPER_ADMINS = ['fox1990'];
+function is_super_admin(): bool {
+    return is_admin()
+        && in_array(strtolower((string)($_SESSION['auth']['user'] ?? '')), SUPER_ADMINS, true);
+}
+
 function is_admin(): bool { return check_level('admin'); }
 function is_manager(): bool { return check_level('manager'); }
 function is_user(): bool { return check_level('user'); }

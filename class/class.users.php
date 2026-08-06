@@ -136,10 +136,11 @@ class Users
     public static function manageable_level_ids(mysqli $conn): array
     {
         $myRank = self::LEVEL_RANK[(string)($_SESSION['auth']['level'] ?? '')] ?? 0;
+        $sieu   = is_super_admin();   // super admin đụng được cả admin khác
         $ids = [];
         $rs = $conn->query('SELECT ID, slug FROM roles_permissions');
         while ($r = $rs->fetch_assoc()) {
-            if ((self::LEVEL_RANK[$r['slug']] ?? 9) < $myRank) {
+            if ($sieu || (self::LEVEL_RANK[$r['slug']] ?? 9) < $myRank) {
                 $ids[] = (int)$r['ID'];
             }
         }

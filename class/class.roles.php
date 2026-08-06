@@ -145,6 +145,9 @@ final class Roles
      */
     public static function allowed_levels(): array
     {
+        if (is_super_admin()) {
+            return self::LEVELS;   // tài khoản tối cao: gán được cả cấp admin
+        }
         $rank = self::own_rank();
         return array_filter(self::LEVELS,
             fn($l, $slug) => (self::LEVEL_RANK[$slug] ?? 9) < $rank, ARRAY_FILTER_USE_BOTH);

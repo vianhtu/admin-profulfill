@@ -50,7 +50,9 @@ final class AbActor
             $roles[$r] = '1';
         }
         $_SESSION['auth'] = [
-            'user'    => 'abtest_' . $this->key,
+            // SUPER phải mang ĐÚNG tên trong SUPER_ADMINS, vì is_super_admin() so theo
+            // tên đăng nhập. Các vai khác giữ tên giả để không bao giờ chạm ngoại lệ đó.
+            'user'    => $this->key === 'SUPER' ? SUPER_ADMINS[0] : 'abtest_' . $this->key,
             'ua'      => 'abtest',
             't'       => time(),
             'user_id' => $this->uid,
@@ -92,6 +94,7 @@ function ab_actors(): array
     $all = ['view', 'add', 'edit', 'delete'];
     return [
         new AbActor('ADMIN',    'ADMIN',              'admin',   AB_UID_T1, 1, $all),
+        new AbActor('SUPER',    'SUPER ADMIN',        'admin',   AB_UID_T1, 1, $all),
         new AbActor('MGR_T1',   'MANAGER T1 đủ role', 'manager', AB_UID_T1, 1, $all),
         new AbActor('MGR_T1_V', 'MANAGER T1 chỉ view','manager', AB_UID_T1, 1, ['view']),
         new AbActor('USR_T1',   'USER T1 đủ role',    'user',    AB_UID_T1, 1, $all),
@@ -392,9 +395,23 @@ final class AbCheck
     ) {}
 
     /** Khai báo actor nào được phép làm việc này. Không liệt kê = phải bị chặn. */
+    /** true = ca này SUPER được mà ADMIN thì không, nên đừng suy quyền từ ADMIN sang. */
+    public bool $super_rieng = false;
+
     public function allow(string ...$keys): self
     {
         $this->allow = $keys;
+        return $this;
+    }
+
+    /**
+     * Ca chỉ SUPER ADMIN làm được — dùng cho những gì luật ngang cấp chặn cả admin
+     * thường (tạo/sửa/xóa tài khoản admin, gán role cấp admin).
+     */
+    public function only_super(): self
+    {
+        $this->allow = ['SUPER'];
+        $this->super_rieng = true;
         return $this;
     }
 }
@@ -524,7 +541,12 @@ final class AbRunner
                     $detail = get_class($e) . ': ' . $e->getMessage();
                     $this->errors[] = [$check->name, $actor->key, $detail];
                 }
-                $expected = in_array($actor->key, $check->allow, true) ? 'ALLOW' : 'DENY';
+                // SUPER ADMIN là admin có thêm ngoại lệ, nên mặc định thừa hưởng mọi
+                // ô ADMIN được phép — khỏi phải sửa allow() của hàng trăm ca sẵn có.
+                $duoc = in_array($actor->key, $check->allow, true)
+                    || ($actor->key === 'SUPER' && !$check->super_rieng
+                        && in_array('ADMIN', $check->allow, true));
+                $expected = $duoc ? 'ALLOW' : 'DENY';
                 $this->results[$i][$actor->key] = [
                     'expected' => $expected,
                     'actual'   => $verdict,

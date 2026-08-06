@@ -99,9 +99,9 @@ return function (AbRunner $r): void {
         $slug = $fx->conn->execute_query(
             'SELECT slug FROM roles_permissions WHERE ID = ?', [$res['id']])->fetch_row()[0];
         return $slug === 'admin';
-        // Luật CẤP (chốt 06/08/2026): chỉ quản được cấp THẤP HƠN -> KHÔNG AI tạo được role
-        // cấp admin, kể cả admin.
-    })->allow();
+        // Luật CẤP (chốt 06/08/2026): chỉ quản được cấp THẤP HƠN -> admin thường KHÔNG
+        // tạo được role cấp admin. Chỉ SUPER ADMIN (fox1990) mới lập được.
+    })->only_super();
 
     $r->add('Roles — leo thang', 'KHÔNG sửa được role của CHÍNH MÌNH', function ($a, $fx) {
         $myLevel = (int)$fx->conn->execute_query(
@@ -147,6 +147,10 @@ return function (AbRunner $r): void {
             return ['status' => 'error', 'message' => 'không vào được menu'];
         }
         // Chỉ quản được cấp THẤP HƠN: admin không có 'admin', manager không có 'manager'.
+        // SUPER ADMIN là ngoại lệ duy nhất — được cả cấp admin.
+        if (is_super_admin()) {
+            return in_array('admin', $lv, true);
+        }
         $cam = is_admin() ? 'admin' : 'manager';
         return !in_array($cam, $lv, true) && $lv !== [];
     })->allow('ADMIN', 'MGR_T1', 'MGR_T1_V', 'MGR_T2');

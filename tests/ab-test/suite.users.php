@@ -104,8 +104,9 @@ return function (AbRunner $r): void {
         $_POST = ['csrf_token' => 'ABTEST', 'id' => 0, 'username' => $u, 'email' => $u . '@zzab.test',
             'password' => 'zzabzzab', 'level' => $fx->admin_level(), 'team_id' => (int)$a->team, 'status' => 2];
         return User::save_user();
-    // Không ai tạo được user NGANG CẤP mình -> admin cũng không tạo được admin (06/08/2026)
-    })->allow();
+    // Không ai tạo được user NGANG CẤP mình -> admin thường cũng không tạo được admin;
+    // chỉ SUPER ADMIN (fox1990) mới lập được tài khoản admin mới (06/08/2026).
+    })->only_super();
 
     $r->add('Users — ghi', 'Sửa user cùng team (không phải admin)', function ($a, $fx) {
         $id = $fx->new_user((int)$a->team);
@@ -137,8 +138,8 @@ return function (AbRunner $r): void {
             'email' => $row['email'], 'password' => '', 'level' => $fx->admin_level(),
             'team_id' => (int)$a->team, 'status' => 3];
         return User::save_user();
-    // Admin cũng không sửa được tài khoản admin khác — chỉ đụng được cấp thấp hơn
-    })->allow();
+    // Admin thường không sửa được tài khoản admin khác — chỉ SUPER ADMIN mới được
+    })->only_super();
 
     $r->add('Users — ghi', 'Nâng user thường lên ADMIN', function ($a, $fx) {
         $id = $fx->new_user((int)$a->team);
@@ -148,9 +149,9 @@ return function (AbRunner $r): void {
             'team_id' => (int)$a->team, 'status' => 2];
         User::save_user();
         $now = (int)$fx->conn->query("SELECT level FROM authors WHERE ID = $id")->fetch_row()[0];
-        // ALLOW = nâng được lên admin -> không ai được phép, kể cả admin
+        // ALLOW = nâng được lên admin -> chỉ SUPER ADMIN mới được
         return $now === $fx->admin_level();
-    })->allow();
+    })->only_super();
 
     $r->add('Users — ghi', 'Mật khẩu quá ngắn bị từ chối', function ($a, $fx) {
         $u = 'ZZABFIX' . bin2hex(random_bytes(4));
@@ -324,14 +325,15 @@ return function (AbRunner $r): void {
         return $gone ? $res : ['status' => 'error', 'message' => 'User vẫn còn'];
     })->allow('ADMIN', 'MGR_T2');
 
-    // Không ai xóa được tài khoản NGANG CẤP: manager không leo ngang, và admin cũng
-    // không xóa được admin khác (chốt 06/08/2026 — chỉ đụng được cấp thấp hơn mình).
+    // Không ai xóa được tài khoản NGANG CẤP: manager không leo ngang, admin thường cũng
+    // không xóa được admin khác. Riêng SUPER ADMIN (fox1990) thì được — nếu không sẽ
+    // không còn đường nào dọn một tài khoản admin qua UI (chốt 06/08/2026).
     $r->add('Users — xóa', 'Xóa tài khoản ADMIN cùng team', function ($a, $fx) {
         $id = $fx->new_user((int)$a->team, $fx->admin_level());
         $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$id]];
         Users::delete_users();
         return $fx->conn->query("SELECT ID FROM authors WHERE ID = $id")->fetch_row() === null;
-    })->allow();
+    })->only_super();
 
     $r->add('Users — xóa', 'CHẶN xóa user còn sản phẩm khi KHÔNG bàn giao', function ($a, $fx) {
         $id = $fx->new_user((int)$a->team);
