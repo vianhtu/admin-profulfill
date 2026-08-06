@@ -13,6 +13,7 @@ require_once __DIR__ . '/../../class/class.stores.php';
 require_once __DIR__ . '/../../class/class.store.php';
 // Fragment app-user-list.php dùng Users::can_add() / can_see_salary() để gate lớp UI
 require_once __DIR__ . '/../../class/class.users.php';
+require_once __DIR__ . '/../../class/class.account.php';
 // Fragment app-access-permission.php dùng Roles::can_manage() / Role::valid_menu_actions()
 require_once __DIR__ . '/../../class/class.roles.php';
 require_once __DIR__ . '/../../class/class.role.php';
@@ -226,12 +227,14 @@ if (empty($_SESSION['csrf_token'])) {
                       <div class="dropdown-divider my-1 mx-n2"></div>
                     </li>
                     <li>
-                      <a class="dropdown-item" href="#">
+                      <!-- Đường vào trang tài khoản: KHÔNG gắn với menu Users nên người
+                           không được cấp menu đó vẫn tự đổi được mật khẩu -->
+                      <a class="dropdown-item" href="index.php?menu=account">
                         <i class="icon-base ti tabler-user icon-md me-3"></i><span>My Profile</span>
                       </a>
                     </li>
                     <li>
-                      <a class="dropdown-item" href="#">
+                      <a class="dropdown-item" href="index.php?menu=account#tab-security">
                         <i class="icon-base ti tabler-settings icon-md me-3"></i><span>Settings</span>
                       </a>
                     </li>
@@ -332,6 +335,13 @@ if (empty($_SESSION['csrf_token'])) {
                       break;
                   case 'users':
                       include 'app-user-list.php';
+                      break;
+                  // Trang tài khoản: KHÔNG gác checkRoles ở đây — xem hồ sơ của chính mình
+                  // không phải là quản lý người dùng, và đây là đường duy nhất để người
+                  // không được cấp menu Users tự đổi mật khẩu. Fragment tự kiểm khi ?id=N
+                  // trỏ sang người khác.
+                  case 'account':
+                      include 'app-account.php';
                       break;
                   case 'roles-permissions':
                       include 'app-access-permission.php';
@@ -481,6 +491,9 @@ if (empty($_SESSION['csrf_token'])) {
         <?php break;
         case 'users': ?>
             <script src="../../assets/js/app-user-list.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-user-list.js') ?>"></script>
+        <?php break;
+        case 'account': ?>
+            <script src="../../assets/js/app-account.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-account.js') ?>"></script>
         <?php break;
         case 'roles-permissions': ?>
             <!-- modal-add-permission.js + modal-edit-permission.js đã gộp vào file dưới -->

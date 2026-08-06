@@ -20,6 +20,7 @@ require_once __DIR__ . '/class/class.teams.php';
 require_once __DIR__ . '/class/class.team.php';
 require_once __DIR__ . '/class/class.users.php';
 require_once __DIR__ . '/class/class.user.php';
+require_once __DIR__ . '/class/class.account.php';
 require_once __DIR__ . '/class/class.roles.php';
 require_once __DIR__ . '/class/class.role.php';
 require __DIR__ . '/model/functions-gemini.php';
@@ -245,6 +246,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             break;
         case 'upload-user-avatar':
             echo json_encode(User::upload_avatar());
+            break;
+        // --- Trang Account: KHÔNG endpoint nào ở đây nhận `id` của người bị ghi; đích luôn
+        // là người đang đăng nhập. Riêng get-account có `id` vì nó CHỈ ĐỌC hồ sơ người khác,
+        // và Account::viewable() tự kiểm đủ 3 trục.
+        case 'get-account':
+            echo json_encode(Account::get_profile());
+            break;
+        case 'save-account':
+            echo json_encode(Account::save_profile());
+            break;
+        case 'change-account-password':
+            echo json_encode(Account::change_password());
+            break;
+        case 'get-account-devices':
+            echo json_encode(Account::get_devices());
+            break;
+        case 'revoke-account-device':
+            echo json_encode(Account::revoke_device());
+            break;
+        case 'revoke-account-devices-all':
+            echo json_encode(Account::revoke_all_devices());
             break;
         case 'get-user-move-preview':
             echo json_encode(Users::get_move_preview());

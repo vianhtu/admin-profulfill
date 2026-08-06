@@ -94,7 +94,11 @@ class Users
      * thấy người cấp cao hơn. Danh sách lộ ai là admin là lộ luôn mục tiêu tấn công.
      * Lọc ngay trong SQL, KHÔNG lọc sau khi lấy về: lọc ở PHP làm sai số đếm phân trang.
      */
-    private static function scope_where(): string
+    /**
+     * Public vì trang Account (?menu=account&id=N) phải dùng ĐÚNG điều kiện này để quyết
+     * ai được xem hồ sơ ai — hai nơi tự viết luật riêng là kiểu gì cũng lệch.
+     */
+    public static function scope_where(): string
     {
         if (is_admin()) {
             return '';
