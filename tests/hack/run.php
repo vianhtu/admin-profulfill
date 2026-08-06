@@ -28,6 +28,7 @@ $suites = [
     'orders'     => ['file' => 'attacks.orders.php',     'menu' => 'orders',     'title' => 'Orders / Order'],
     'teams'      => ['file' => 'attacks.teams.php',      'menu' => 'teams',      'title' => 'Teams / Team (admin-only)'],
     'users'      => ['file' => 'attacks.users.php',     'menu' => 'users',      'title' => 'Users / User'],
+    'roles'      => ['file' => 'attacks.roles.php',     'menu' => 'roles-permissions', 'title' => 'Roles / Role (phân quyền)'],
     'upload'     => ['file' => 'attacks.upload.php',     'menu' => 'sites',      'title' => 'Upload file (logo site)'],
 ];
 $alias = ['product' => 'products', 'category' => 'categories', 'danhmuc' => 'categories',

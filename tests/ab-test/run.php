@@ -37,6 +37,7 @@ $suites = [
     'orders'     => ['file' => 'suite.orders.php',     'menu' => 'orders',     'title' => 'Orders / Order'],
     'teams'      => ['file' => 'suite.teams.php',      'menu' => 'teams',      'title' => 'Teams / Team (admin-only)'],
     'users'      => ['file' => 'suite.users.php',      'menu' => 'users',      'title' => 'Users / User'],
+    'roles'      => ['file' => 'suite.roles.php',      'menu' => 'roles-permissions', 'title' => 'Roles / Role (phân quyền)'],
 ];
 // Tên gọi tắt: số ít, tiếng Việt, tên menu
 $alias = [
