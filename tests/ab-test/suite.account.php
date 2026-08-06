@@ -88,11 +88,17 @@ return function (AbRunner $r) {
     $r->add('Account — sửa', 'Nhồi `id` để sửa người khác', function ($a, $fx) {
         $nan = $fx->new_user((int)$a->team);
         $row = $fx->conn->query("SELECT username, email FROM authors WHERE ID = $nan")->fetch_assoc();
-        // save_profile() KHÔNG đọc `id` -> tham số này phải rơi vào hư không
+        // save_profile() KHÔNG đọc `id`, nên nó ghi lên dòng của CHÍNH ACTOR — mà actor
+        // mượn author CÓ THẬT. Chụp và trả lại dòng đó, đừng chỉ lo cho nạn nhân
+        // (bỏ sót vế này đã đổi tên fox1990 ngày 06/08/2026).
+        $toi = $fx->conn->execute_query(
+            'SELECT username, email FROM authors WHERE ID = ? LIMIT 1', [$a->uid])->fetch_assoc();
         $_POST = ['csrf_token' => 'ABTEST', 'id' => $nan, 'user_id' => $nan,
                   'username' => 'ZZABTAKEN' . bin2hex(random_bytes(3)), 'email' => 'zzabtaken@zzab.test'];
         Account::save_profile();
         $now = (string)$fx->conn->query("SELECT username FROM authors WHERE ID = $nan")->fetch_row()[0];
+        $fx->conn->execute_query('UPDATE authors SET username = ?, email = ? WHERE ID = ?',
+            [$toi['username'], $toi['email'], $a->uid]);
         // ALLOW = tên nạn nhân đã đổi -> không ai được phép
         return $now !== $row['username'];
     })->allow();
