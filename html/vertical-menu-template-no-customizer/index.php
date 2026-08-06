@@ -519,6 +519,22 @@ if (empty($_SESSION['csrf_token'])) {
       })();
     </script>
 
+    <script>
+      /**
+       * Ô nhập bị đánh dấu lỗi (.is-invalid) phải TỰ GỠ ngay khi người dùng nhập lại.
+       * Trước đây mỗi trang chỉ gỡ lúc MỞ form, nên sửa xong ô vẫn đỏ — người dùng tưởng
+       * còn sai. UI TEST bắt được ở cả Roles lẫn Teams nên vá một chỗ ở layout cho MỌI form.
+       * Dùng capture + delegated để bắt được cả ô sinh ra sau khi trang đã dựng.
+       */
+      document.addEventListener('input', function (e) {
+        var el = e.target;
+        if (el && el.classList && el.classList.contains('is-invalid')
+            && String(el.value || '').trim() !== '') {
+          el.classList.remove('is-invalid');
+        }
+      }, true);
+    </script>
+
     <!-- Main JS -->
 
     <script src="../../assets/js/main.js?v=<?= filemtime(ROOT_DIR . '/assets/js/main.js') ?>"></script>
