@@ -93,9 +93,15 @@ function initTable() {
                 targets: 4,
                 render: function (d, t, full) {
                     const n = full['count'] ?? 0;
-                    // Bấm vào số người -> trang Users, giống cách Teams link sang members
-                    return `<a href="index.php?menu=users" title="View users">` +
-                        `<span class="badge ${n > 0 ? 'bg-label-primary' : 'bg-label-secondary'}">` +
+                    // Bấm vào số người -> trang Users LỌC SẴN theo role này, giống cách
+                    // Teams link sang members bằng ?UserTeam=. Không có người thì đừng
+                    // dựng link (bấm vào chỉ ra bảng rỗng).
+                    if (n === 0) {
+                        return '<span class="badge bg-label-secondary">' +
+                            '<i class="icon-base ti tabler-users icon-14px me-1"></i>0</span>';
+                    }
+                    return `<a href="index.php?menu=users&UserRole=${full['id']}" title="View users with this role">` +
+                        `<span class="badge bg-label-primary">` +
                         `<i class="icon-base ti tabler-users icon-14px me-1"></i>${n.toLocaleString()}</span></a>`;
                 }
             },

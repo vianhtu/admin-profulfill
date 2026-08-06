@@ -278,10 +278,21 @@ function buildFilters(api) {
         $('#UserTeam').select2({ dropdownParent: $team });
     }
 
-    // Vào từ trang Teams: index.php?menu=users&UserTeam=<id> -> lọc sẵn theo team đó
-    const urlTeam = new URLSearchParams(window.location.search).get('UserTeam');
+    // Vào từ trang khác kèm bộ lọc dựng sẵn:
+    //   Teams  -> index.php?menu=users&UserTeam=<id>
+    //   Roles  -> index.php?menu=users&UserRole=<id>   (cột "Assigned To")
+    // Ô lọc Team chỉ admin mới có, nên phải kiểm .length trước khi gán.
+    const params = new URLSearchParams(window.location.search);
+    const urlTeam = params.get('UserTeam');
+    const urlRole = params.get('UserRole');
+    let preset = false;
     if (urlTeam && $('#UserTeam').length) {
         $('#UserTeam').val(urlTeam).trigger('change.select2');
+        preset = true;
+    }
+    if (urlRole && $('#UserRole').length) {
+        $('#UserRole').val(urlRole).trigger('change.select2');
+        preset = true;
     }
 
     $('#UserRole, #UserStatus, #UserTeam').on('change', function () {
@@ -289,8 +300,9 @@ function buildFilters(api) {
         api.draw();
     });
 
-    initFilterCollapse(!!urlTeam);
-    if (urlTeam && $('#UserTeam').length) {
+    // Mở sẵn khối Filter khi có lọc dựng từ URL để người dùng thấy ngay mình đang bị lọc
+    initFilterCollapse(preset);
+    if (preset) {
         api.draw();
     }
 }
