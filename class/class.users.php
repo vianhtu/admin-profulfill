@@ -12,9 +12,10 @@
  * xem — endpoint KHÔNG trả field này cho level user (không chỉ ẩn ở giao diện).
  *
  * XÓA (chốt 05/08/2026): admin xóa mọi user; manager có role delete xóa người CÙNG TEAM
- * (trừ tài khoản admin); không ai tự xóa mình. Sản phẩm đứng tên user PHẢI bàn giao cho
- * người cùng team ngay trong luồng xóa (chạy theo lô, có tiến trình). Liên kết account
- * chỉ là phân công nên tự gỡ, KHÔNG chặn xóa.
+ * (trừ tài khoản admin); không ai tự xóa mình. Sản phẩm đứng tên user phải được xử lý dứt
+ * khoát ngay trong luồng xóa — bàn giao cho người cùng team, HOẶC chọn None để xóa luôn
+ * sản phẩm (chạy theo lô, có tiến trình). Liên kết account chỉ là phân công nên tự gỡ,
+ * KHÔNG chặn xóa.
  */
 class Users
 {
@@ -428,9 +429,11 @@ class Users
      * Xoa MOT user. Admin xoa duoc moi user; manager co role delete xoa duoc nguoi CUNG
      * TEAM (tru tai khoan admin). Khong ai tu xoa minh.
      *
-     * San pham dung ten user PHAI ban giao cho nguoi cung team (POST transfer_to) - chay
-     * theo lo, het ngan sach thi tra 'partial' de client goi tiep. Lien ket account chi
-     * la phan cong nguoi phu trach nen TU GO, khong chan xoa.
+     * San pham dung ten user phai duoc xu ly ro rang qua POST transfer_to:
+     *   - <id nguoi cung team> : ban giao lai cho ho;
+     *   - 'none'              : XOA LUON san pham (kem bang con cua san pham).
+     * Ca hai deu chay theo lo, het ngan sach thi tra 'partial' de client goi tiep.
+     * Lien ket account chi la phan cong nguoi phu trach nen TU GO, khong chan xoa.
      *
      * @return array{status:string,deleted?:int,transferred?:int,left?:int,message?:string}
      */
@@ -475,47 +478,81 @@ class Users
             'SELECT COUNT(*) FROM posts WHERE author_id = ?', [$id])->fetch_row()[0];
 
         $transferred = 0;
+        $removed = 0;
         if ($products > 0) {
-            $to = (int)($_POST['transfer_to'] ?? 0);
-            if ($to <= 0) {
+            // 'none' = khong ban giao, xoa luon san pham. Phai doc chuoi TRUOC khi ep (int)
+            // vi (int)'none' = 0 se lan sang nhanh "chua chon".
+            $toRaw = trim((string)($_POST['transfer_to'] ?? ''));
+            if ($toRaw === '' || $toRaw === '0') {
                 return ['status' => 'error',
                     'message' => 'This user still owns ' . number_format($products)
-                        . ' products. Choose someone to hand them over to.'];
-            }
-            if ($to === $id) {
-                return ['status' => 'error', 'message' => 'Choose a different user to hand over to.'];
-            }
-            // Nguoi nhan phai CUNG TEAM - neu khong, san pham nhay sang team khac va store
-            // rieng dang gan se thanh khong hop le voi chu moi.
-            $dest = $conn->execute_query(
-                'SELECT ID FROM authors WHERE ID = ? AND team_id = ? LIMIT 1',
-                [$to, (int)$row['team_id']])->fetch_row();
-            if (!$dest) {
-                return ['status' => 'error', 'message' => 'The chosen user is not in the same team.'];
+                        . ' products. Choose someone to hand them over to, or choose None to delete them.'];
             }
 
-            try {
-                $budget = self::TRANSFER_BUDGET;
-                while ($budget > 0) {
-                    $conn->execute_query(
-                        'UPDATE posts SET author_id = ? WHERE author_id = ? LIMIT ' . self::TRANSFER_CHUNK,
-                        [$to, $id]);
-                    $n = $conn->affected_rows;
-                    $transferred += $n;
-                    $budget -= max($n, 1);
-                    if ($n < self::TRANSFER_CHUNK) {
-                        break;
+            if ($toRaw === 'none') {
+                // Xoa san pham cua rieng user nay, theo lo, kem bang con cua san pham
+                try {
+                    $budget = self::TRANSFER_BUDGET;
+                    while ($budget > 0) {
+                        $ids = [];
+                        $rs = $conn->execute_query(
+                            'SELECT ID FROM posts WHERE author_id = ? LIMIT ' . self::TRANSFER_CHUNK, [$id]);
+                        while ($row2 = $rs->fetch_row()) {
+                            $ids[] = (int)$row2[0];
+                        }
+                        if (!$ids) {
+                            break;
+                        }
+                        $idsStr = implode(',', $ids);
+                        foreach (['accounts_relationships', 'download_relationships', 'amazon_listings'] as $child) {
+                            $conn->query("DELETE FROM `$child` WHERE post_id IN ($idsStr)");
+                        }
+                        $conn->query("DELETE FROM posts WHERE ID IN ($idsStr)");
+                        $n = $conn->affected_rows;
+                        $removed += $n;
+                        $budget -= max($n, 1);
                     }
+                } catch (\mysqli_sql_exception $e) {
+                    return ['status' => 'error', 'message' => 'Removing products failed: ' . $e->getMessage()];
                 }
-            } catch (\mysqli_sql_exception $e) {
-                return ['status' => 'error', 'message' => 'Hand-over failed: ' . $e->getMessage()];
+            } else {
+                $to = (int)$toRaw;
+                if ($to === $id) {
+                    return ['status' => 'error', 'message' => 'Choose a different user to hand over to.'];
+                }
+                // Nguoi nhan phai CUNG TEAM - neu khong, san pham nhay sang team khac va store
+                // rieng dang gan se thanh khong hop le voi chu moi.
+                $dest = $conn->execute_query(
+                    'SELECT ID FROM authors WHERE ID = ? AND team_id = ? LIMIT 1',
+                    [$to, (int)$row['team_id']])->fetch_row();
+                if (!$dest) {
+                    return ['status' => 'error', 'message' => 'The chosen user is not in the same team.'];
+                }
+
+                try {
+                    $budget = self::TRANSFER_BUDGET;
+                    while ($budget > 0) {
+                        $conn->execute_query(
+                            'UPDATE posts SET author_id = ? WHERE author_id = ? LIMIT ' . self::TRANSFER_CHUNK,
+                            [$to, $id]);
+                        $n = $conn->affected_rows;
+                        $transferred += $n;
+                        $budget -= max($n, 1);
+                        if ($n < self::TRANSFER_CHUNK) {
+                            break;
+                        }
+                    }
+                } catch (\mysqli_sql_exception $e) {
+                    return ['status' => 'error', 'message' => 'Hand-over failed: ' . $e->getMessage()];
+                }
             }
 
-            // Con san pham chua chuyen -> giu nguyen user, bao client goi tiep
+            // Con san pham chua xu ly -> giu nguyen user, bao client goi tiep
             $left = (int)$conn->execute_query(
                 'SELECT COUNT(*) FROM posts WHERE author_id = ?', [$id])->fetch_row()[0];
             if ($left > 0) {
-                return ['status' => 'partial', 'transferred' => $transferred, 'left' => $left];
+                return ['status' => 'partial', 'transferred' => $transferred,
+                    'removed' => $removed, 'left' => $left];
             }
         }
 
@@ -529,6 +566,7 @@ class Users
             return ['status' => 'error', 'message' => 'Delete failed: ' . $e->getMessage()];
         }
 
-        return ['status' => 'success', 'deleted' => $deleted, 'transferred' => $transferred];
+        return ['status' => 'success', 'deleted' => $deleted,
+            'transferred' => $transferred, 'removed' => $removed];
     }
 }

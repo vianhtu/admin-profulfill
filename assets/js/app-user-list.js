@@ -535,8 +535,22 @@ $(document).on('click', '#userSubmit', async function () {
         .always(() => $btn.prop('disabled', false));
 });
 
-// --- Xóa: chỉ TỪNG DÒNG một, kèm bàn giao sản phẩm theo lô ---
+// --- Xóa: chỉ TỪNG DÒNG một, kèm bàn giao (hoặc xóa) sản phẩm theo lô ---
 const DELETE_MAX_ROUNDS = 2000;   // chặn vòng lặp vô hạn nếu server cứ trả 'partial'
+
+// Chọn None thì sản phẩm bị xóa hẳn — nói rõ để admin không bấm nhầm
+function updateTransferHint() {
+    const isNone = $('#deleteUserTransfer').val() === 'none';
+    $('#deleteUserTransferHint')
+        .toggleClass('text-danger', isNone)
+        .text(isNone
+            ? 'Their products will be deleted permanently along with the account.'
+            : 'Only members of the same team can take them over.');
+    $('#deleteUserConfirm').text(isNone ? 'Delete user and products' : 'Delete')
+        .prepend($('#deleteUserSpinner'));
+}
+
+$(document).on('change', '#deleteUserTransfer', updateTransferHint);
 
 $(document).on('click', '.delete-user', function () {
     const modalEl = document.getElementById('deleteUserModal');
@@ -579,16 +593,16 @@ $(document).on('click', '.delete-user', function () {
         if (res.products > 0) {
             const $sel = $('#deleteUserTransfer').empty();
             (res.candidates || []).forEach(c => $sel.append(new Option(c.username, c.id, false, false)));
+            // 'none' = không bàn giao, xóa luôn sản phẩm. Để cuối danh sách để không thành
+            // lựa chọn mặc định — bàn giao mới là hành vi an toàn.
+            $sel.append(new Option('None — delete their products', 'none', false, false));
             $('#deleteUserTransferBox').removeClass('d-none');
-            if (!res.candidates || res.candidates.length === 0) {
-                // Không còn ai trong team để nhận -> không thể xóa
-                $('#deleteUserProgress').removeClass('d-none');
-                $('#deleteUserProgressText').text('No one else in this team can take over their products.');
-                return;
-            }
             if (!$sel.hasClass('select2-hidden-accessible')) {
                 $sel.select2({ dropdownParent: $(modalEl) });
             }
+            $sel.val((res.candidates || []).length ? String(res.candidates[0].id) : 'none')
+                .trigger('change.select2');
+            updateTransferHint();
         }
         $('#deleteUserConfirm').prop('disabled', false);
     }).fail(function () {
@@ -605,7 +619,8 @@ $(document).on('click', '#deleteUserConfirm', async function () {
     if (!id) {
         return;
     }
-    const transferTo = products > 0 ? ($('#deleteUserTransfer').val() || 0) : 0;
+    const transferTo = products > 0 ? ($('#deleteUserTransfer').val() || '') : '';
+    const removing = transferTo === 'none';
     const $bar = $('#deleteUserBar');
     const $text = $('#deleteUserProgressText');
 
@@ -613,7 +628,9 @@ $(document).on('click', '#deleteUserConfirm', async function () {
     $('#deleteUserSpinner').removeClass('d-none');
     $('#deleteUserCancel').prop('disabled', true);
     $('#deleteUserProgress').removeClass('d-none');
-    $text.text(products > 0 ? 'Handing over products...' : 'Deleting...');
+    $text.text(products > 0
+        ? (removing ? 'Deleting their products...' : 'Handing over products...')
+        : 'Deleting...');
 
     let done = 0;
     let rounds = 0;
@@ -628,19 +645,21 @@ $(document).on('click', '#deleteUserConfirm', async function () {
                 throw new Error(res.message || 'Delete failed');
             }
             if (res?.status === 'partial') {
-                done += res.transferred ?? 0;
+                done += (res.transferred ?? 0) + (res.removed ?? 0);
                 const pct = products > 0 ? Math.min(99, Math.round((done / products) * 100)) : 50;
                 $bar.css('width', pct + '%');
-                $text.text('Handed over ' + done.toLocaleString() + '/' + products.toLocaleString() + ' products...');
+                $text.text((removing ? 'Deleted ' : 'Handed over ') + done.toLocaleString()
+                    + '/' + products.toLocaleString() + ' products...');
                 if (++rounds > DELETE_MAX_ROUNDS) {
                     throw new Error('Too much data to process in one go. Please run the delete again.');
                 }
                 continue;
             }
-            done += res?.transferred ?? 0;
+            done += (res?.transferred ?? 0) + (res?.removed ?? 0);
             $bar.css('width', '100%');
             $text.text(done > 0
-                ? 'Done — handed over ' + done.toLocaleString() + ' products, user deleted.'
+                ? 'Done — ' + (removing ? 'deleted ' : 'handed over ') + done.toLocaleString()
+                    + ' products, user deleted.'
                 : 'User deleted.');
             break;
         }

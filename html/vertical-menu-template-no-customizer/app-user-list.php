@@ -201,7 +201,9 @@ $can_see_wage  = Users::can_see_salary();
                     <div id="deleteUserTransferBox" class="d-none">
                         <label class="form-label" for="deleteUserTransfer">Hand their products over to</label>
                         <select id="deleteUserTransfer" class="form-select"></select>
-                        <div class="form-text">Only members of the same team can take them over.</div>
+                        <div class="form-text" id="deleteUserTransferHint">
+                            Only members of the same team can take them over.
+                        </div>
                     </div>
                 </div>
 
