@@ -159,6 +159,9 @@ $acc_xem_luong = $acc_la_toi || Users::can_see_salary();
                         </button>
                     </div>
                     <div class="form-text" id="acc-key-hint"></div>
+                    <button type="button" class="btn btn-label-warning btn-sm mt-4" id="acc-key-new">
+                        <i class="icon-base ti tabler-refresh icon-xs me-1"></i>Generate new key
+                    </button>
                 </div>
             </div>
         <?php endif; ?>

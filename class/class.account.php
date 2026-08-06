@@ -251,6 +251,30 @@ final class Account
             : ['status' => 'error', 'message' => 'Device not found.'];
     }
 
+    /**
+     * Tạo lại API key của extension cho CHÍNH MÌNH.
+     *
+     * Có mặt vì dữ liệu thật đang có key dài 3–4 ký tự và cả key rỗng: `check_authors_key()`
+     * chỉ so `key` + `email`, nên key 3 ký tự là đoán xong trong vài giây và đẩy được dữ liệu
+     * dưới danh nghĩa người đó. 32 ký tự hex từ random_bytes() là mức tối thiểu tử tế.
+     *
+     * Đổi key làm extension đang chạy mất hiệu lực -> phía JS phải hỏi lại trước khi gọi.
+     */
+    public static function regenerate_key(): array
+    {
+        if (!check_csrf()) {
+            return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
+        }
+        $me = self::my_id();
+        if ($me <= 0) {
+            return ['status' => 'error', 'message' => 'You are not signed in.'];
+        }
+        $key = bin2hex(random_bytes(16));
+        db()->execute_query('UPDATE authors SET `key` = ? WHERE ID = ?', [$key, $me]);
+        return ['status' => 'success', 'key' => $key,
+                'message' => 'New API key generated. Update your extension with it.'];
+    }
+
     /** Thu hồi TẤT CẢ thiết bị đã ghi nhớ của chính mình. */
     public static function revoke_all_devices(): array
     {

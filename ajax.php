@@ -268,6 +268,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         case 'revoke-account-devices-all':
             echo json_encode(Account::revoke_all_devices());
             break;
+        case 'regenerate-account-key':
+            echo json_encode(Account::regenerate_key());
+            break;
         case 'get-user-move-preview':
             echo json_encode(Users::get_move_preview());
             break;

@@ -72,6 +72,7 @@ function fillForm(u) {
     }
     if ('api_key' in u) {
         $('#acc-api-key').val(u.api_key);
+        danhGiaKey(u.api_key);
     }
 }
 
@@ -261,6 +262,48 @@ $(document).on('click', '#acc-key-toggle', function () {
     $i.attr('type', hien ? 'text' : 'password');
     $(this).find('i').attr('class', hien ? 'icon-base ti tabler-eye-off' : 'icon-base ti tabler-eye');
 });
+
+$(document).on('click', '#acc-key-new', async function () {
+    // Đổi key làm extension đang chạy mất hiệu lực -> phải hỏi trước, đây là thao tác
+    // người dùng không lấy lại được (key cũ băm đâu mà khôi phục).
+    if (!window.confirm('Generate a new API key? Your extension will stop working until you '
+        + 'update it with the new key.')) {
+        return;
+    }
+    const $btn = $(this).prop('disabled', true);
+    try {
+        const res = await post('regenerate-account-key');
+        if (res?.status === 'success') {
+            $('#acc-api-key').val(res.key).attr('type', 'text');
+            $('#acc-key-toggle i').attr('class', 'icon-base ti tabler-eye-off');
+            danhGiaKey(res.key);
+        }
+        toast(res?.status === 'success' ? 'success' : 'error', res?.message || 'Failed.');
+    } catch (e) {
+        toast('error', 'Server connection error.');
+    } finally {
+        $btn.prop('disabled', false);
+    }
+});
+
+// Dữ liệu thật đang có key dài 3–4 ký tự và cả key rỗng — nói thẳng cho chủ tài khoản biết,
+// vì check_authors_key() chỉ so key + email nên key ngắn là đoán được trong vài giây.
+function danhGiaKey(key) {
+    const $h = $('#acc-key-hint');
+    if (!$h.length) {
+        return;
+    }
+    const n = String(key || '').length;
+    if (n === 0) {
+        $h.addClass('text-danger')
+          .text('You have no API key yet — generate one before using the extension.');
+    } else if (n < 32) {
+        $h.addClass('text-danger')
+          .text('This key is only ' + n + ' characters and can be guessed. Generate a new one.');
+    } else {
+        $h.removeClass('text-danger').text('');
+    }
+}
 
 $(document).on('click', '#acc-key-copy', function () {
     const v = String($('#acc-api-key').val() || '');
