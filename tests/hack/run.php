@@ -30,12 +30,14 @@ $suites = [
     'users'      => ['file' => 'attacks.users.php',     'menu' => 'users',      'title' => 'Users / User'],
     'roles'      => ['file' => 'attacks.roles.php',     'menu' => 'roles-permissions', 'title' => 'Roles / Role (phân quyền)'],
     'upload'     => ['file' => 'attacks.upload.php',     'menu' => 'sites',      'title' => 'Upload file (logo site)'],
+    'account'    => ['file' => 'attacks.account.php',   'menu' => 'account',    'title' => 'Account (hồ sơ cá nhân)'],
 ];
 $alias = ['product' => 'products', 'category' => 'categories', 'danhmuc' => 'categories',
     'site' => 'sites', 'store' => 'stores', 'shop' => 'stores', 'sanpham' => 'products',
     'order' => 'orders', 'donhang' => 'orders', 'team' => 'teams', 'nhom' => 'teams',
     'user' => 'users', 'nguoidung' => 'users', 'author' => 'users', 'authors' => 'users',
-    'uploadfile' => 'upload', 'file' => 'upload', 'logo' => 'upload'];
+    'uploadfile' => 'upload', 'file' => 'upload', 'logo' => 'upload',
+    'taikhoan' => 'account', 'profile' => 'account', 'hoso' => 'account'];
 
 $arg = strtolower(trim($argv[1] ?? 'all'));
 $arg = $alias[$arg] ?? $arg;
