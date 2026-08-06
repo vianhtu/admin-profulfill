@@ -342,8 +342,14 @@ final class Roles
                 continue;   // chỉ chuyển người sang role cùng cấp hoặc thấp hơn
             }
             $targets[] = ['id' => (int)$r['ID'], 'name' => $r['name'],
+                          'slug' => $r['slug'],
                           'level' => self::LEVELS[$r['slug']] ?? $r['slug']];
         }
+        // Xếp CẤP THẤP NHẤT LÊN ĐẦU: ô chọn mặc định lấy option đầu, để Admin đứng đầu thì
+        // ai bấm Delete mà không đổi là vô tình nâng cả nhóm người lên Admin.
+        usort($targets, fn($a, $b) =>
+            (self::LEVEL_RANK[$a['slug']] ?? 9) <=> (self::LEVEL_RANK[$b['slug']] ?? 9)
+            ?: strcasecmp($a['name'], $b['name']));
 
         return ['status' => 'success', 'name' => $t['row']['name'],
                 'users' => $users, 'targets' => $targets];
