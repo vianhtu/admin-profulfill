@@ -99,7 +99,9 @@ return function (AbRunner $r): void {
         $slug = $fx->conn->execute_query(
             'SELECT slug FROM roles_permissions WHERE ID = ?', [$res['id']])->fetch_row()[0];
         return $slug === 'admin';
-    })->allow('ADMIN');
+        // Luật CẤP (chốt 06/08/2026): chỉ quản được cấp THẤP HƠN -> KHÔNG AI tạo được role
+        // cấp admin, kể cả admin.
+    })->allow();
 
     $r->add('Roles — leo thang', 'KHÔNG sửa được role của CHÍNH MÌNH', function ($a, $fx) {
         $myLevel = (int)$fx->conn->execute_query(
@@ -119,7 +121,9 @@ return function (AbRunner $r): void {
             'UPDATE roles_permissions SET name = ?, roles = ? WHERE ID = ?',
             [$goc['name'], $goc['roles'], $myLevel]);
         return $res;
-    })->allow('ADMIN');
+        // Role của chính mình luôn NGANG CẤP với mình, mà luật chỉ cho quản cấp THẤP HƠN
+        // -> không ai sửa được role của mình, kể cả admin.
+    })->allow();
 
     $r->add('Roles — leo thang', 'KHÔNG cấp được quyền mà bản thân không có', function ($a, $fx) {
         $n = 'ZZABROLE' . bin2hex(random_bytes(4));
@@ -142,7 +146,9 @@ return function (AbRunner $r): void {
         if (!Roles::can_manage('view')) {
             return ['status' => 'error', 'message' => 'không vào được menu'];
         }
-        return is_admin() ? in_array('admin', $lv, true) : !in_array('admin', $lv, true);
+        // Chỉ quản được cấp THẤP HƠN: admin không có 'admin', manager không có 'manager'.
+        $cam = is_admin() ? 'admin' : 'manager';
+        return !in_array($cam, $lv, true) && $lv !== [];
     })->allow('ADMIN', 'MGR_T1', 'MGR_T1_V', 'MGR_T2');
 
     // ---------- Sửa ----------
