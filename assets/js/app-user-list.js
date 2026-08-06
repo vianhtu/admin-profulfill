@@ -613,6 +613,7 @@ $(document).on('click', '.delete-user', function () {
     $('#deleteUserLoading').removeClass('d-none');
     $('#deleteUserSummary').addClass('d-none');
     $('#deleteUserTransferBox').addClass('d-none');
+    $('#deleteUserOrphanNote').addClass('d-none');
     $('#deleteUserProgress').addClass('d-none');
     $('#deleteUserBar').css('width', '0%').removeClass('bg-warning');
     $('#deleteUserProgressText').text('');
@@ -636,9 +637,13 @@ $(document).on('click', '.delete-user', function () {
         $('#delCntProducts').text((res.products || 0).toLocaleString());
         $('#delCntAccounts').text((res.accounts || 0).toLocaleString());
         $(modalEl).data('products', res.products || 0);
+        // Customer: xóa thẳng, không bàn giao — server đã quyết, JS chỉ trình bày cho khớp.
+        $(modalEl).data('orphan', !!res.orphan);
         $('#deleteUserSummary').removeClass('d-none');
 
-        if (res.products > 0) {
+        if (res.orphan) {
+            $('#deleteUserOrphanNote').removeClass('d-none');
+        } else if (res.products > 0) {
             const $sel = $('#deleteUserTransfer').empty();
             (res.candidates || []).forEach(c => $sel.append(new Option(c.username, c.id, false, false)));
             // 'none' = không bàn giao, xóa luôn sản phẩm. Để cuối danh sách để không thành
@@ -667,7 +672,8 @@ $(document).on('click', '#deleteUserConfirm', async function () {
     if (!id) {
         return;
     }
-    const transferTo = products > 0 ? ($('#deleteUserTransfer').val() || '') : '';
+    const transferTo = (products > 0 && !$(modalEl).data('orphan'))
+        ? ($('#deleteUserTransfer').val() || '') : '';
     const removing = transferTo === 'none';
     const $bar = $('#deleteUserBar');
     const $text = $('#deleteUserProgressText');

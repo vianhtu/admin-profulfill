@@ -162,6 +162,9 @@ foreach (LINKS as $key => $meta) {
 }
 if ($orphans === 0) {
     echo "  (không có)\n";
+} else {
+    echo "  => LƯU Ý: dòng mồ côi trỏ vào `authors` có thể là HỢP LỆ — xóa tài khoản cấp\n"
+       . "     `customer` được phép bỏ lại liên kết (chốt 06/08/2026). Cột khác thì không.\n";
 }
 
 echo "\n";

@@ -201,6 +201,13 @@ $can_see_wage  = Users::can_see_salary();
                         <tr><td>Account assignments (removed)</td><td class="text-end fw-medium" id="delCntAccounts">0</td></tr>
                         </tbody>
                     </table>
+                    <!-- Customer là khách, xóa thẳng: không hỏi bàn giao, dữ liệu liên quan
+                         được phép mồ côi. Vẫn phải NÓI RÕ cho người bấm biết. -->
+                    <div id="deleteUserOrphanNote" class="alert alert-warning d-flex d-none" role="alert">
+                        <i class="icon-base ti tabler-alert-triangle me-2"></i>
+                        <span>Customer accounts are deleted outright. Anything linked to them is
+                              left behind and will no longer point to a real user.</span>
+                    </div>
                     <!-- Sản phẩm phải có người nhận: xóa user mà bỏ lại sản phẩm sẽ thành dữ liệu mồ côi -->
                     <div id="deleteUserTransferBox" class="d-none">
                         <label class="form-label" for="deleteUserTransfer">Hand their products over to</label>

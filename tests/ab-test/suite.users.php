@@ -521,6 +521,22 @@ return function (AbRunner $r): void {
         return $fx->conn->query("SELECT ID FROM authors WHERE ID = $id")->fetch_row() === null;
     })->allow('ADMIN', 'MGR_T1', 'MGR_T2', 'USR_T1', 'USR_T2', 'USR_T3');
 
+    // Customer con san pham van xoa duoc NGAY, khong hoi ban giao - nguoc han voi user
+    // thuong (ca 'CHAN xoa user con san pham khi KHONG ban giao' o tren).
+    $r->add('Users — cấp customer', 'Xóa CUSTOMER còn sản phẩm mà KHÔNG cần bàn giao',
+        function ($a, $fx) {
+            $id = $fx->new_user((int)$a->team, $fx->customer_level());
+            $pid = $fx->new_post($id, 'ZZAB-P-CUST');
+            $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$id]];   // cố ý thiếu transfer_to
+            Users::delete_users();
+            if ($fx->conn->query("SELECT ID FROM authors WHERE ID = $id")->fetch_row() !== null) {
+                return false;   // chưa xóa được -> DENY
+            }
+            // Và sản phẩm phải được BỎ LẠI mồ côi: không xóa theo, không chuyển ai
+            $post = $fx->conn->query("SELECT author_id FROM posts WHERE ID = $pid")->fetch_row();
+            return $post !== null && (int)$post[0] === $id;
+        })->allow('ADMIN', 'MGR_T1', 'MGR_T2', 'USR_T1', 'USR_T2', 'USR_T3');
+
     $r->add('Users — cấp customer', 'KHÔNG xóa được user NGANG CẤP cùng team', function ($a, $fx) {
         $id = $fx->new_user((int)$a->team, $fx->user_level());
         $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$id]];

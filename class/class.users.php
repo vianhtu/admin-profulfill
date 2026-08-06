@@ -197,6 +197,20 @@ class Users
         return $teamId === self::own_team();
     }
 
+    /**
+     * Dòng này có phải tài khoản cấp `customer` không.
+     * Customer là cấp THẤP NHẤT và chỉ là khách, không phải người làm việc trong hệ thống,
+     * nên xóa thì xóa thẳng — không chặn vì còn liên kết, không bàn giao, không dọn tham
+     * chiếu (chốt 06/08/2026). Đây là NGOẠI LỆ có chủ ý của luật "quét hết liên kết trước
+     * khi xóa": các bảng trỏ vào họ được phép mồ côi.
+     */
+    private static function la_customer(int $level, mysqli $conn): bool
+    {
+        $slug = $conn->execute_query(
+            'SELECT slug FROM roles_permissions WHERE ID = ? LIMIT 1', [$level])->fetch_row();
+        return $slug !== null && (string)$slug[0] === 'customer';
+    }
+
     /** Còn ai xóa được không — dùng để quyết định có render modal xóa hay không. */
     public static function can_delete_any(): bool
     {
@@ -460,6 +474,9 @@ class Users
             return ['status' => 'error', 'message' => 'You do not have permission to delete this user.'];
         }
 
+        // Customer: xoa thang, khong hoi ban giao -> khong can danh sach nguoi nhan.
+        $orphan = self::la_customer((int)$row['level'], $conn);
+
         // Nguoi nhan ban giao phai CUNG TEAM de du lieu o lai dung team da lam ra no.
         // Truc CAP: non-admin khong duoc nhin thay tai khoan admin nen cung khong duoc thay
         // ho trong danh sach nhan ban giao (xem scope_where).
@@ -471,11 +488,13 @@ class Users
             }
         }
         $candidates = [];
-        $rs = $conn->execute_query(
-            "SELECT ID, username FROM authors WHERE team_id = ? AND ID <> ?$hideAdmin ORDER BY username",
-            [(int)$row['team_id'], $id]);
-        while ($c = $rs->fetch_assoc()) {
-            $candidates[] = ['id' => (int)$c['ID'], 'username' => $c['username']];
+        if (!$orphan) {
+            $rs = $conn->execute_query(
+                "SELECT ID, username FROM authors WHERE team_id = ? AND ID <> ?$hideAdmin ORDER BY username",
+                [(int)$row['team_id'], $id]);
+            while ($c = $rs->fetch_assoc()) {
+                $candidates[] = ['id' => (int)$c['ID'], 'username' => $c['username']];
+            }
         }
 
         return [
@@ -486,6 +505,9 @@ class Users
             'accounts'   => (int)$conn->execute_query(
                 'SELECT COUNT(*) FROM accounts_authors WHERE author_id = ?', [$id])->fetch_row()[0],
             'candidates' => $candidates,
+            // Customer: xoa thang, khong hoi ban giao. JS doc co nay de an o chon nguoi nhan
+            // va hien canh bao du lieu se thanh mo coi.
+            'orphan'     => $orphan,
         ];
     }
 
@@ -621,7 +643,12 @@ class Users
                 'message' => 'This user is in another team or is an admin account. Only an admin can delete them.'];
         }
 
-        $products = (int)$conn->execute_query(
+        // Customer la khach, khong phai nguoi lam viec: xoa thang, KHONG chan vi con lien
+        // ket, KHONG hoi ban giao, KHONG don tham chieu — cac bang tro vao ho duoc phep mo
+        // coi (chot 06/08/2026). Ngoai le CO CHU Y cua luat "quet het lien ket truoc khi xoa".
+        $orphan = self::la_customer((int)$row['level'], $conn);
+
+        $products = $orphan ? 0 : (int)$conn->execute_query(
             'SELECT COUNT(*) FROM posts WHERE author_id = ?', [$id])->fetch_row()[0];
 
         $transferred = 0;
@@ -704,10 +731,14 @@ class Users
         }
 
         try {
-            // Lien ket account chi la phan cong -> go, khong chan xoa
+            // Token dang nhap luon phai di theo: do la thong tin xac thuc, khong phai lien
+            // ket du lieu — giu lai chi de rac va roi ro, ke ca voi customer.
             $conn->execute_query('DELETE FROM author_remember_tokens WHERE author_id = ?', [$id]);
-            $conn->execute_query('DELETE FROM accounts_authors WHERE author_id = ?', [$id]);
-            self::cleanup_user_refs($conn, $id);
+            if (!$orphan) {
+                // Lien ket account chi la phan cong -> go, khong chan xoa
+                $conn->execute_query('DELETE FROM accounts_authors WHERE author_id = ?', [$id]);
+                self::cleanup_user_refs($conn, $id);
+            }
             $conn->execute_query('DELETE FROM authors WHERE ID = ?', [$id]);
             $deleted = $conn->affected_rows;
         } catch (\mysqli_sql_exception $e) {
