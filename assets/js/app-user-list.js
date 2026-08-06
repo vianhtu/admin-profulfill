@@ -441,6 +441,15 @@ function openUserForm(row) {
     $('#user-email').val(row?.email ?? '').removeClass('is-invalid');
     $('#user-password').val('').removeClass('is-invalid');
     $('#user-password-hint').text(row ? 'Leave blank to keep the current password.' : 'At least 8 characters.');
+    // Select Role chỉ liệt kê cấp THẤP HƠN mình, nên khi sửa một dòng có cấp không nằm
+    // trong đó (rõ nhất là sửa CHÍNH MÌNH) thì không có option nào để hiện -> ô trống trơ.
+    // Bơm tạm một option cho đúng cấp của dòng đang sửa, chỉ để HIỂN THỊ: select đã bị
+    // khóa nên không chọn được gì khác, và server vẫn từ chối mọi thay đổi cấp.
+    $('#user-level option.level-readonly').remove();
+    if (row && row.level && !$('#user-level option[value="' + row.level + '"]').length) {
+        $('#user-level').append(
+            $('<option class="level-readonly">').val(String(row.level)).text(row.role_name || ''));
+    }
     // Thêm mới: chọn sẵn giá trị đầu tiên (và team của chính mình) — để trống thì
     // select2 hiện ô rỗng và lưu sẽ báo "Invalid role".
     const firstLevel = $('#user-level option').first().val() ?? '';
@@ -463,7 +472,10 @@ function openUserForm(row) {
             .attr('title', isSelf ? 'You cannot move yourself to another team' : null);
     }
     $('#user-level, #user-team, #user-status').trigger('change.select2');
-    $('#user-self-hint').toggleClass('d-none', !isSelf);
+    $('#user-self-hint').toggleClass('d-none', !isSelf)
+        .find('.self-hint-text').text(userPerms.see_salary
+            ? 'You are editing your own account, so role, team, status and salary are locked.'
+            : 'You are editing your own account, so role, team and status are locked.');
 
     if (userPerms.see_salary) {
         // wage trả về đã format tiền tệ -> lấy lại phần số để đưa vào ô nhập
