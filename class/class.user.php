@@ -207,10 +207,12 @@ class User
         if (!is_admin()) {
             // Non-admin luôn thao tác trong team của chính mình
             $teamId = (int)($_SESSION['auth']['team'] ?? 0);
-            // và tuyệt đối không được tạo/nâng ai lên quyền admin
-            if (in_array($level, $adminLevels, true)) {
-                return ['status' => 'error', 'message' => 'You cannot assign the admin role.'];
-            }
+        }
+        // Chỉ gán được role có cấp THẤP HƠN mình (chốt 06/08/2026) — không tạo/nâng ai lên
+        // NGANG CẤP với mình, vì người ngang cấp lại quản được người khác cùng vai.
+        if (!in_array($level, Users::manageable_level_ids($conn), true)) {
+            return ['status' => 'error',
+                    'message' => 'You can only assign a role below your own level.'];
         }
         if ($teamId > 0 && !$conn->execute_query('SELECT ID FROM team WHERE ID = ? LIMIT 1', [$teamId])->fetch_row()) {
             return ['status' => 'error', 'message' => 'Team does not exist.'];

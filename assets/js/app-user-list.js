@@ -367,10 +367,12 @@ function initFilterCollapse(keepOpen) {
 function buildFormSelects() {
     // Role admin là MỤC trong nhóm lựa chọn -> non-admin thì ẨN hẳn mục đó (save_user() từ
     // chối "You cannot assign the admin role", để lại chỉ tổ cho người dùng chọn rồi báo lỗi).
+    // Chỉ liệt kê role có cấp THẤP HƠN mình — server cũng từ chối role ngang/cao hơn,
+    // để lại trong select chỉ tổ cho người dùng chọn rồi báo lỗi.
     let roles = rolesObj;
-    if (!userPerms.is_admin && Array.isArray(userPerms.admin_roles)) {
-        const banned = userPerms.admin_roles.map(String);
-        roles = Object.fromEntries(Object.entries(rolesObj).filter(([id]) => !banned.includes(String(id))));
+    if (Array.isArray(userPerms.assignable_roles)) {
+        const cho_phep = userPerms.assignable_roles.map(String);
+        roles = Object.fromEntries(Object.entries(rolesObj).filter(([id]) => cho_phep.includes(String(id))));
     }
     fillSelect($('#user-level'), roles, null);
     fillSelect($('#user-team'), teamsObj, null);

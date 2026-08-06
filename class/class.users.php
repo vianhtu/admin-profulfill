@@ -128,6 +128,24 @@ class Users
         return $ids;
     }
 
+    /**
+     * ID các role có cấp THẤP HƠN mình — điều kiện để được tạo/sửa/xóa một user
+     * (chốt 06/08/2026, cùng luật với menu Roles): không đụng người NGANG CẤP.
+     * Admin quản manager/user/customer; manager quản user/customer.
+     */
+    public static function manageable_level_ids(mysqli $conn): array
+    {
+        $myRank = self::LEVEL_RANK[(string)($_SESSION['auth']['level'] ?? '')] ?? 0;
+        $ids = [];
+        $rs = $conn->query('SELECT ID, slug FROM roles_permissions');
+        while ($r = $rs->fetch_assoc()) {
+            if ((self::LEVEL_RANK[$r['slug']] ?? 9) < $myRank) {
+                $ids[] = (int)$r['ID'];
+            }
+        }
+        return $ids;
+    }
+
     /** Danh sách ID của các nhóm quyền cấp admin — dùng chặn leo thang quyền. */
     public static function admin_level_ids(mysqli $conn): array
     {
@@ -157,13 +175,17 @@ class Users
      */
     public static function can_edit_row(int $teamId, int $level, mysqli $conn): bool
     {
+        // Chỉ sửa được người có cấp THẤP HƠN mình — người ngang cấp cũng không đụng được
+        if (!in_array($level, self::manageable_level_ids($conn), true)) {
+            return false;
+        }
         if (is_admin()) {
             return true;
         }
         if (!is_manager() || !checkRoles('edit', 'users')) {
             return false;
         }
-        return $teamId === self::own_team() && !in_array($level, self::admin_level_ids($conn), true);
+        return $teamId === self::own_team();
     }
 
     /**
@@ -178,13 +200,16 @@ class Users
         if ($userId === self::own_id()) {
             return false;
         }
+        if (!in_array($level, self::manageable_level_ids($conn), true)) {
+            return false;   // ngang cấp hoặc cao hơn -> không đụng
+        }
         if (is_admin()) {
             return true;
         }
         if (!is_manager() || !checkRoles('delete', 'users')) {
             return false;
         }
-        return $teamId === self::own_team() && !in_array($level, self::admin_level_ids($conn), true);
+        return $teamId === self::own_team();
     }
 
     /** Còn ai xóa được không — dùng để quyết định có render modal xóa hay không. */
@@ -330,7 +355,8 @@ class Users
                 // JS khóa Role/Team/Status khi mở form sửa CHÍNH MÌNH — save_user() từ chối
                 // đổi 3 trường đó của bản thân, khóa trước cho khỏi bấm Save mới báo lỗi.
                 'my_id'       => self::own_id(),
-                'admin_roles' => array_values(self::admin_level_ids(db())),
+                // Role được phép GÁN: chỉ cấp thấp hơn mình. JS lọc select Role theo đây.
+                'assignable_roles' => array_values(self::manageable_level_ids(db())),
             ],
         ];
     }
