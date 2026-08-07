@@ -42,7 +42,7 @@ const LINKS = [
     'type.team_id'      => ['ref' => 'team',    'rule' => 'luôn = 0, category là dùng chung — không đụng khi xóa team'],
 
     // ---- trỏ tới authors (user) ----
-    'posts.author_id'                  => ['ref' => 'authors', 'rule' => 'xóa user: bàn giao cho người khác, hoặc chọn None thì xóa sạch'],
+    'posts.author_id'                  => ['ref' => 'authors', 'rule' => 'xóa user: BÀN GIAO BẮT BUỘC cho người cùng team, không còn đường xóa theo (chốt 06/08/2026)'],
     'accounts_authors.author_id'       => ['ref' => 'authors', 'rule' => 'xóa user: BÀN GIAO BẮT BUỘC cho người cùng team, chặn xóa nếu chưa chọn (chốt 06/08/2026)'],
     'author_remember_tokens.author_id' => ['ref' => 'authors', 'rule' => 'xóa user: xóa theo'],
     'download.author_id'               => ['ref' => 'authors', 'rule' => 'GIỮ — lịch sử công việc, không phải sở hữu'],

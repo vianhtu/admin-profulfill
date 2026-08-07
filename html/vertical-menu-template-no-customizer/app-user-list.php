@@ -203,6 +203,7 @@ $can_see_wage  = Users::can_see_salary();
                         <tbody id="delStatsRows"></tbody>
                     </table>
                     <div class="d-flex flex-wrap gap-3 mb-4 small text-body-secondary">
+                        <span><span class="badge bg-label-info">Handed over</span> moves to the person you pick</span>
                         <span><span class="badge bg-label-danger">Deleted</span> removed with the user</span>
                         <span><span class="badge bg-label-warning">Unlinked</span> record stays, owner cleared</span>
                         <span><span class="badge bg-label-secondary">Kept</span> left untouched</span>

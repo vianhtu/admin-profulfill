@@ -606,16 +606,13 @@ $(document).on('click', '#userSubmit', async function () {
 // --- Xóa: chỉ TỪNG DÒNG một, kèm bàn giao (hoặc xóa) sản phẩm theo lô ---
 const DELETE_MAX_ROUNDS = 2000;   // chặn vòng lặp vô hạn nếu server cứ trả 'partial'
 
-// Chọn None thì sản phẩm bị xóa hẳn — nói rõ để admin không bấm nhầm
+// Không còn lựa chọn None: chưa chọn được người nhận thì không cho bấm Delete, vì server
+// sẽ từ chối ngay — khóa trước cho khỏi bấm rồi mới biết.
 function updateTransferHint() {
-    const isNone = $('#deleteUserTransfer').val() === 'none';
-    $('#deleteUserTransferHint')
-        .toggleClass('text-danger', isNone)
-        .text(isNone
-            ? 'Their products will be deleted permanently along with the account.'
-            : 'Only members of the same team can take them over.');
-    $('#deleteUserConfirm').text(isNone ? 'Delete user and products' : 'Delete')
-        .prepend($('#deleteUserSpinner'));
+    const co = $('#deleteUserTransferBox').hasClass('d-none');
+    const chon = String($('#deleteUserTransfer').val() || '');
+    $('#deleteUserConfirm').prop('disabled', !co && chon === '')
+        .text('Delete').prepend($('#deleteUserSpinner'));
 }
 
 $(document).on('change', '#deleteUserTransfer', updateTransferHint);
@@ -669,17 +666,17 @@ $(document).on('click', '.delete-user', function () {
         } else if (res.products > 0 || res.accounts > 0) {
             const $sel = $('#deleteUserTransfer').empty();
             (res.candidates || []).forEach(c => $sel.append(new Option(c.username, c.id, false, false)));
-            // 'none' = không bàn giao, xóa luôn sản phẩm. Để cuối danh sách để không thành
-            // lựa chọn mặc định — bàn giao mới là hành vi an toàn.
-            // KHÔNG có 'none' khi còn liên kết account: một account sàn không còn ai phụ
-            // trách là mất đường vào nó, nên account BẮT BUỘC phải có người nhận thật.
-            if (res.accounts === 0) {
-                $sel.append(new Option('None — delete their products', 'none', false, false));
+            // KHÔNG còn lựa chọn 'None' (chốt 06/08/2026): cả sản phẩm lẫn liên kết account
+            // đều BẮT BUỘC bàn giao, nên xóa một user không bao giờ làm mất dữ liệu.
+            const doiTuong = [];
+            if (res.products > 0) {
+                doiTuong.push('products');
             }
-            $('#deleteUserTransferLabel').text(res.products > 0 && res.accounts > 0
-                ? 'Hand their products and account assignments over to'
-                : (res.accounts > 0 ? 'Hand their account assignments over to'
-                                    : 'Hand their products over to'));
+            if (res.accounts > 0) {
+                doiTuong.push('account assignments');
+            }
+            $('#deleteUserTransferLabel')
+                .text('Hand their ' + doiTuong.join(' and ') + ' over to');
             // Không còn ai cùng team để nhận -> nói thẳng thay vì để select rỗng
             if (!(res.candidates || []).length) {
                 $('#deleteUserTransferHint').addClass('text-danger')
@@ -691,7 +688,7 @@ $(document).on('click', '.delete-user', function () {
             if (!$sel.hasClass('select2-hidden-accessible')) {
                 $sel.select2({ dropdownParent: $(modalEl) });
             }
-            $sel.val((res.candidates || []).length ? String(res.candidates[0].id) : 'none')
+            $sel.val((res.candidates || []).length ? String(res.candidates[0].id) : '')
                 .trigger('change.select2');
             updateTransferHint();
         }
@@ -706,6 +703,7 @@ $(document).on('click', '.delete-user', function () {
 // Số phận từng bảng -> nhãn + màu. 'choice' để trống vì ô chọn bàn giao ngay bên dưới
 // đã nói rõ hơn bất kỳ nhãn nào.
 const FATE_BADGE = {
+    transfer: ['Handed over', 'bg-label-info'],
     removed: ['Deleted', 'bg-label-danger'],
     unlink:  ['Unlinked', 'bg-label-warning'],
     kept:    ['Kept', 'bg-label-secondary'],
@@ -738,7 +736,7 @@ $(document).on('click', '#deleteUserConfirm', async function () {
     const accounts = $(modalEl).data('accounts') || 0;
     const transferTo = ((products > 0 || accounts > 0) && !$(modalEl).data('orphan'))
         ? ($('#deleteUserTransfer').val() || '') : '';
-    const removing = transferTo === 'none';
+    const removing = false;   // không còn đường xóa sản phẩm khi xóa user
     const $bar = $('#deleteUserBar');
     const $text = $('#deleteUserProgressText');
 

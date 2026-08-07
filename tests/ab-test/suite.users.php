@@ -359,24 +359,22 @@ return function (AbRunner $r): void {
             ? $res : ['status' => 'error', 'message' => "gone=" . var_export($gone, true) . " owner=$owner"];
     })->allow('ADMIN', 'MGR_T1', 'MGR_T2');
 
-    // transfer_to = 'none' -> không bàn giao, xóa luôn sản phẩm kèm bảng con
-    $r->add('Users — xóa', 'Chọn None thì xóa luôn sản phẩm', function ($a, $fx) {
-        $id = $fx->new_user((int)$a->team);
-        $post = $fx->new_post($id, 'ZZAB-P-NONE');
-        $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$id], 'transfer_to' => 'none'];
-        $res = Users::delete_users();
-        if (($res['status'] ?? '') === 'error') {
-            return $res;
-        }
-        $userGone = $fx->conn->query("SELECT ID FROM authors WHERE ID = $id")->fetch_row() === null;
-        $postGone = $fx->conn->query("SELECT ID FROM posts WHERE ID = $post")->fetch_row() === null;
-        return ($userGone && $postGone)
-            ? $res : ['status' => 'error', 'message' => 'user=' . var_export($userGone, true)
-                . ' post=' . var_export($postGone, true)];
-    })->allow('ADMIN', 'MGR_T1', 'MGR_T2');
+    // Luật ĐÃ ĐỔI 06/08/2026: KHÔNG còn đường xóa sản phẩm khi xóa user. Gửi 'none' phải bị
+    // từ chối như mọi giá trị rỗng khác, và sản phẩm phải CÒN NGUYÊN sau khi bị chặn.
+    $r->add('Users — xóa', "Gửi transfer_to='none' bị từ chối, sản phẩm còn nguyên",
+        function ($a, $fx) {
+            $id = $fx->new_user((int)$a->team);
+            $post = $fx->new_post($id, 'ZZAB-P-NONE');
+            $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$id], 'transfer_to' => 'none'];
+            Users::delete_users();
+            $userGone = $fx->conn->query("SELECT ID FROM authors WHERE ID = $id")->fetch_row() === null;
+            $postGone = $fx->conn->query("SELECT ID FROM posts WHERE ID = $post")->fetch_row() === null;
+            // ALLOW = xóa được (hoặc mất sản phẩm) -> không ai được phép
+            return $userGone || $postGone;
+        })->allow();
 
-    // 'none' phải là lựa chọn CÓ Ý THỨC — gửi rỗng/0 vẫn phải bị chặn
-    $r->add('Users — xóa', 'transfer_to rỗng vẫn bị chặn (None phải chọn rõ)', function ($a, $fx) {
+    // Người nhận phải là lựa chọn CÓ Ý THỨC — gửi rỗng/0 vẫn phải bị chặn
+    $r->add('Users — xóa', 'transfer_to rỗng vẫn bị chặn', function ($a, $fx) {
         $id = $fx->new_user((int)$a->team);
         $fx->new_post($id, 'ZZAB-P-EMPTY');
         $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$id], 'transfer_to' => ''];

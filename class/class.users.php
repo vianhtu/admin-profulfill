@@ -535,7 +535,7 @@ class Users
      * co cot tro toi authors thi khai ca o day, o cleanup_user_refs() va o tests/schema-links.php
      * — thieu mot noi la nguoi dung khong thay duoc thu ho sap mat.
      *
-     * fate: 'choice'  = nguoi dung tu chon (ban giao hay xoa)
+     * fate: 'transfer' = BAT BUOC ban giao cho nguoi cung team (khong co duong xoa theo)
      *       'removed' = xoa theo
      *       'unlink'  = giu ban ghi, go lien ket ve 0
      *       'kept'    = giu nguyen (lich su cong viec / ke toan)
@@ -561,9 +561,9 @@ class Users
 
         $rows = [
             ['posts', 'Products they own',
-                $dem('SELECT COUNT(*) FROM posts WHERE author_id = ?'), 'choice'],
+                $dem('SELECT COUNT(*) FROM posts WHERE author_id = ?'), 'transfer'],
             ['accounts_authors', 'Account assignments',
-                $dem('SELECT COUNT(*) FROM accounts_authors WHERE author_id = ?'), 'choice'],
+                $dem('SELECT COUNT(*) FROM accounts_authors WHERE author_id = ?'), 'transfer'],
             ['author_remember_tokens', 'Remembered devices',
                 $dem('SELECT COUNT(*) FROM author_remember_tokens WHERE author_id = ?'), 'removed'],
             ['files_own', 'Files only they use',
@@ -752,55 +752,31 @@ class Users
             'SELECT COUNT(*) FROM accounts_authors WHERE author_id = ?', [$id])->fetch_row()[0];
         $nguoiNhan = 0;   // >0 khi da chon duoc nguoi nhan hop le
 
-        if ($accounts > 0) {
+        // BAN GIAO BAT BUOC cho CA HAI (chot 06/08/2026 — truoc do san pham con co lua
+        // chon 'None' de xoa luon). Xoa mot user gio khong bao gio lam mat du lieu: moi thu
+        // cua ho sang nguoi khac. Muon don san pham rac thi nhan het roi xoa o menu Products.
+        if ($products > 0 || $accounts > 0) {
             $raw = trim((string)($_POST['transfer_to'] ?? ''));
             if ($raw === '' || $raw === '0' || $raw === 'none') {
+                $co = [];
+                if ($products > 0) {
+                    $co[] = number_format($products) . ' product(s)';
+                }
+                if ($accounts > 0) {
+                    $co[] = number_format($accounts) . ' account assignment(s)';
+                }
                 return ['status' => 'error',
-                    'message' => 'This user still has ' . number_format($accounts)
-                        . ' account assignment(s). Choose someone in the same team to take them over.'];
+                    'message' => 'This user still has ' . implode(' and ', $co)
+                        . '. Choose someone in the same team to take them over.'];
             }
         }
 
         $transferred = 0;
         $removed = 0;
         if ($products > 0) {
-            // 'none' = khong ban giao, xoa luon san pham. Phai doc chuoi TRUOC khi ep (int)
-            // vi (int)'none' = 0 se lan sang nhanh "chua chon".
-            $toRaw = trim((string)($_POST['transfer_to'] ?? ''));
-            if ($toRaw === '' || $toRaw === '0') {
-                return ['status' => 'error',
-                    'message' => 'This user still owns ' . number_format($products)
-                        . ' products. Choose someone to hand them over to, or choose None to delete them.'];
-            }
-
-            if ($toRaw === 'none') {
-                // Xoa san pham cua rieng user nay, theo lo, kem bang con cua san pham
-                try {
-                    $budget = self::TRANSFER_BUDGET;
-                    while ($budget > 0) {
-                        $ids = [];
-                        $rs = $conn->execute_query(
-                            'SELECT ID FROM posts WHERE author_id = ? LIMIT ' . self::TRANSFER_CHUNK, [$id]);
-                        while ($row2 = $rs->fetch_row()) {
-                            $ids[] = (int)$row2[0];
-                        }
-                        if (!$ids) {
-                            break;
-                        }
-                        $idsStr = implode(',', $ids);
-                        foreach (['accounts_relationships', 'download_relationships', 'amazon_listings'] as $child) {
-                            $conn->query("DELETE FROM `$child` WHERE post_id IN ($idsStr)");
-                        }
-                        $conn->query("DELETE FROM posts WHERE ID IN ($idsStr)");
-                        $n = $conn->affected_rows;
-                        $removed += $n;
-                        $budget -= max($n, 1);
-                    }
-                } catch (\mysqli_sql_exception $e) {
-                    return ['status' => 'error', 'message' => 'Removing products failed: ' . $e->getMessage()];
-                }
-            } else {
-                $to = (int)$toRaw;
+            $to = (int)trim((string)($_POST['transfer_to'] ?? ''));
+            // Nguoi nhan da bat buoc co o chot tren, day chi con xac minh danh tinh
+            if ($to > 0) {
                 if ($to === $id) {
                     return ['status' => 'error', 'message' => 'Choose a different user to hand over to.'];
                 }
