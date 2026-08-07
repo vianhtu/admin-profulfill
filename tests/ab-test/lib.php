@@ -22,6 +22,7 @@ require_once AB_ROOT . '/config.php';
 require_once AB_ROOT . '/functions.php';
 // deletePhysicalFile() — Teams::purge_team() dùng để xóa tệp riêng của account
 require_once AB_ROOT . '/functions/functions-upload-files.php';
+require_once AB_ROOT . '/functions/functions-telnyx.php';
 foreach (['products', 'product', 'categories', 'category', 'sites', 'site', 'stores', 'store',
           'orders', 'order', 'teams', 'team', 'users', 'user', 'roles', 'role', 'extension', 'account'] as $abClass) {
     require_once AB_ROOT . "/class/class.$abClass.php";
@@ -351,9 +352,36 @@ final class AbFixtures
     }
 
     /** Xóa toàn bộ dữ liệu ZZAB — gọi cả khi chạy lỗi giữa chừng. */
+    /**
+     * Số điện thoại dùng một lần. `phones` thuộc TEAM (không thuộc người), nên chỉ cần team.
+     * Tiền tố ZZAB nằm trong chính `number` để cleanup vét được.
+     */
+    public function new_phone(int $teamId, string $status = 'active'): int
+    {
+        $car = (int)$this->conn->query('SELECT ID FROM phone_carrier LIMIT 1')->fetch_row()[0];
+        $this->conn->execute_query(
+            'INSERT INTO phones (team_id, carrier_id, status, number) VALUES (?, ?, ?, ?)',
+            [$teamId, $car, $status, '+1900ZZAB' . substr(bin2hex(random_bytes(3)), 0, 5)]);
+        return (int)$this->conn->insert_id;
+    }
+
+    /** Tin nhắn dùng một lần cho một số. */
+    public function new_sms(int $phoneId, string $status = 'pending'): int
+    {
+        $this->conn->execute_query(
+            "INSERT INTO sms (phone_id, status, text, from_number, date)
+             VALUES (?, ?, 'ZZAB test message', '+15550000', NOW())", [$phoneId, $status]);
+        return (int)$this->conn->insert_id;
+    }
+
     public function cleanup(): void
     {
         $c = $this->conn;
+        // Số điện thoại ZZAB: tin nhắn và liên kết account phải xóa TRƯỚC (con -> cha),
+        // nếu không chúng trơ lại trỏ vào bản ghi không còn tồn tại.
+        $c->query("DELETE FROM sms WHERE phone_id IN (SELECT ID FROM phones WHERE number LIKE '+1900ZZAB%')");
+        $c->query("DELETE FROM accounts_phones WHERE phone_id IN (SELECT ID FROM phones WHERE number LIKE '+1900ZZAB%')");
+        $c->query("DELETE FROM phones WHERE number LIKE '+1900ZZAB%'");
         $c->query("DELETE FROM accounts_relationships WHERE post_id IN (SELECT ID FROM posts WHERE sku LIKE 'ZZAB%')");
         $c->query("DELETE FROM posts WHERE sku LIKE 'ZZAB%'");
         $c->query("DELETE FROM `type` WHERE name LIKE 'ZZAB%'");

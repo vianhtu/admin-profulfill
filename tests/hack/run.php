@@ -31,13 +31,15 @@ $suites = [
     'roles'      => ['file' => 'attacks.roles.php',     'menu' => 'roles-permissions', 'title' => 'Roles / Role (phân quyền)'],
     'upload'     => ['file' => 'attacks.upload.php',     'menu' => 'sites',      'title' => 'Upload file (logo site)'],
     'account'    => ['file' => 'attacks.account.php',   'menu' => 'account',    'title' => 'Account (hồ sơ cá nhân)'],
+    'phones'     => ['file' => 'attacks.phones.php',    'menu' => 'phones_numbers', 'title' => 'Phones ▸ Numbers'],
 ];
 $alias = ['product' => 'products', 'category' => 'categories', 'danhmuc' => 'categories',
     'site' => 'sites', 'store' => 'stores', 'shop' => 'stores', 'sanpham' => 'products',
     'order' => 'orders', 'donhang' => 'orders', 'team' => 'teams', 'nhom' => 'teams',
     'user' => 'users', 'nguoidung' => 'users', 'author' => 'users', 'authors' => 'users',
     'uploadfile' => 'upload', 'file' => 'upload', 'logo' => 'upload',
-    'taikhoan' => 'account', 'profile' => 'account', 'hoso' => 'account'];
+    'taikhoan' => 'account', 'profile' => 'account', 'hoso' => 'account',
+    'phone' => 'phones', 'numbers' => 'phones', 'sodienthoai' => 'phones'];
 
 // Chụp tài khoản thật TRƯỚC khi chạy — xem ab_snapshot_authors() để biết vì sao.
 $abCanary = ab_snapshot_authors();
