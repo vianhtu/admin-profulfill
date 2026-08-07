@@ -402,6 +402,7 @@ function openDeleteTeamModal(id, name) {
         $('#cntSettings').text((c.settings || 0).toLocaleString());
         $('#cntPhones').text((c.phones || 0).toLocaleString());
         $('#cntMessages').text((c.messages || 0).toLocaleString());
+        $('#cntPhoneLinks').text((c.phone_links || 0).toLocaleString());
         $(modalEl).data('total', res.total || 0);
         $('#deleteTeamSummary').removeClass('d-none');
 

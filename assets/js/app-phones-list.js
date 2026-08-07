@@ -145,13 +145,25 @@ function initTable(){
                     }
                 },
                 {
-                    // account
+                    // Account đang dùng số này. Quan hệ nhiều-nhiều nên là một danh sách;
+                    // hiện tối đa 3 cái rồi gộp phần dư thành "+N" để không phá cột.
                     targets: 6,
                     orderable: false,
                     searchable: false,
                     render: function (data, type, full, meta) {
-                        const account = full['account'];
-                        return '';
+                        const list = Array.isArray(full['accounts']) ? full['accounts'] : [];
+                        if (!list.length) {
+                            return '<span class="text-body-secondary">—</span>';
+                        }
+                        const hien = list.slice(0, 3).map(a =>
+                            `<a href="index.php?menu=stores&id=${Number(a.id)}"` +
+                            ` class="badge bg-label-primary text-decoration-none">${esc(a.label)}</a>`
+                        ).join(' ');
+                        const du = list.length - 3;
+                        return '<div class="d-flex flex-wrap gap-1">' + hien +
+                            (du > 0 ? `<span class="badge bg-label-secondary" title="${esc(
+                                list.slice(3).map(a => a.label).join(', '))}">+${du}</span>` : '') +
+                            '</div>';
                     }
                 },
                 {
@@ -322,8 +334,70 @@ function initTable(){
             $len.select2({ minimumResultsForSearch: Infinity, width: '100%' });
         }
         urlState.bind(dtPhones, PHONE_COLS);
+        dtPhones.on('select deselect draw', phonesBulkRefresh);
     }, 100);
 }
+/* ---------------- Thao tác hàng loạt ---------------- */
+
+// ID các dòng đang được tick. Cột checkbox dùng DataTables Select nên đọc từ API của nó.
+function phonesSelected() {
+    if (!dtPhones) {
+        return [];
+    }
+    return dtPhones.rows({ selected: true }).data().toArray().map(r => Number(r.id));
+}
+
+function phonesBulkRefresh() {
+    const n = phonesSelected().length;
+    $('#phonesBulkCount').text(n);
+    $('#phonesBulkBar').toggleClass('d-none', n === 0);
+}
+
+function phonesBulkPost(action, data, onDone) {
+    return $.ajax({
+        url: '../../ajax.php?action=' + action,
+        type: 'POST',
+        dataType: 'json',
+        data: Object.assign({ csrf_token: window.csrfToken, ids: phonesSelected() }, data || {})
+    }).done(onDone).fail(() => onDone({ status: 'error', message: 'Server connection error.' }));
+}
+
+// Đổi trạng thái: không hỏi lại vì đảo ngược được bằng đúng nút bên cạnh
+$(document).on('click', '#phonesBulkBar button[data-status]', function () {
+    const $b = $(this).prop('disabled', true);
+    phonesBulkPost('update-phones-status', { status: $(this).data('status') }, res => {
+        $b.prop('disabled', false);
+        if (res?.status === 'success') {
+            dtPhones.ajax.reload(null, false);
+        } else {
+            window.alert(res?.message || 'Failed.');
+        }
+    });
+});
+
+// Xóa: hỏi lại trong modal của app, KHÔNG dùng window.confirm (trình duyệt chặn được nó)
+$(document).on('click', '#phonesBulkDelete', function () {
+    $('#phonesDeleteCount').text(phonesSelected().length);
+    $('#phonesDeleteResult').addClass('d-none').empty();
+    $('#phonesDeleteConfirm').prop('disabled', false);
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('phonesDeleteModal')).show();
+});
+
+$(document).on('click', '#phonesDeleteConfirm', function () {
+    const $b = $(this).prop('disabled', true);
+    phonesBulkPost('delete-phones', {}, res => {
+        if (res?.status === 'success') {
+            bootstrap.Modal.getInstance(document.getElementById('phonesDeleteModal')).hide();
+            dtPhones.ajax.reload(null, false);
+            phonesBulkRefresh();
+        } else {
+            $b.prop('disabled', false);
+            $('#phonesDeleteResult').removeClass('d-none')
+                .html(`<div class="alert alert-danger mb-0">${esc(res?.message || 'Failed.')}</div>`);
+        }
+    });
+});
+
 document.addEventListener('DOMContentLoaded', function (e) {
     init();
 });

@@ -87,6 +87,8 @@ const LINKS = [
     'accounts_proxy.proxys_id'         => ['ref' => 'proxys',        'rule' => 'xóa proxy: gỡ liên kết'],
     'accounts_links.link_id'           => ['ref' => null,            'rule' => 'id nội bộ của bản ghi link, không trỏ bảng khác'],
     'sms.phone_id'                     => ['ref' => 'phones',        'rule' => 'xóa phone (kể cả khi purge team): xóa tin nhắn theo'],
+    'accounts_phones.phone_id'         => ['ref' => 'phones',   'rule' => 'xóa phone: xóa liên kết theo (số dùng cho nhiều account)'],
+    'accounts_phones.account_id'       => ['ref' => 'accounts', 'rule' => 'xóa account: xóa liên kết theo (account dùng nhiều số)'],
     'phones.carrier_id'                => ['ref' => 'phone_carrier', 'rule' => 'nhà mạng là danh mục tĩnh, không xóa'],
     'download.exports_id'              => ['ref' => 'exports',       'rule' => 'xóa bản export: xóa download theo'],
     'download_relationships.download_id'=> ['ref' => 'download',     'rule' => 'xóa download: xóa theo'],

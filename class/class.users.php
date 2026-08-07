@@ -524,6 +524,18 @@ class Users
              WHERE p.author_id = ? AND s.team_id <> 0 AND s.team_id <> ?', [$userId, $to]);
         $stores = $conn->affected_rows;
 
+        // Account đi theo người sang team mới, nhưng SỐ ĐIỆN THOẠI ở lại team cũ (phones
+        // thuộc team, không thuộc người) -> liên kết thành chéo team. Gỡ những liên kết trỏ
+        // tới số KHÔNG thuộc team đích, đúng luật đang áp cho account và store.
+        if (db_table_exists('accounts_phones', $conn)) {
+            $conn->execute_query(
+                'DELETE ap FROM accounts_phones ap
+                 INNER JOIN accounts ac ON ac.ID = ap.account_id
+                 INNER JOIN phones  ph ON ph.ID = ap.phone_id
+                 WHERE ac.ID IN (SELECT account_id FROM accounts_authors WHERE author_id = ?)
+                   AND ph.team_id <> ?', [$userId, $to]);
+        }
+
         // Cau hinh RIENG cua nguoi nay gan voi team cu -> di theo. Hom nay options.authors_id
         // toan 0 nen cau nay khong dung gi; de san cho ngay co.
         $conn->execute_query('UPDATE options SET team_id = ? WHERE authors_id = ?', [$to, $userId]);

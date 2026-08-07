@@ -215,9 +215,36 @@ function getPhonesTable(): array
         LIMIT {$params['start']}, {$params['length']}";
     $rs  = $conn->query($sql);
 
+    // Account gắn với từng số. Quan hệ NHIỀU-NHIỀU (1 số dùng cho nhiều account, 1 account
+    // dùng nhiều số) nên đi qua bảng nối `accounts_phones`. Lấy một lượt cho cả trang thay
+    // vì mỗi dòng một truy vấn.
+    //
+    // LƯU Ý: `accounts.phone` (varchar) KHÔNG phải mối liên kết này — đó là số đăng ký trên
+    // sàn, nhập tay, đủ định dạng; đối chiếu với phones.number chỉ khớp 5/125. Đừng dùng nó.
+    $rows = [];
+    while ($row = $rs->fetch_assoc()) {
+        $rows[] = $row;
+    }
+    $accByPhone = [];
+    if ($rows && db_table_exists('accounts_phones', $conn)) {
+        $ids = implode(',', array_map(fn($r) => (int)$r['ID'], $rows));
+        $ar = $conn->query(
+            "SELECT ap.phone_id, a.ID, a.name, a.email
+             FROM accounts_phones ap
+             INNER JOIN accounts a ON a.ID = ap.account_id
+             WHERE ap.phone_id IN ($ids)
+             ORDER BY a.name");
+        while ($x = $ar->fetch_assoc()) {
+            $accByPhone[(int)$x['phone_id']][] = [
+                'id'    => (int)$x['ID'],
+                'label' => (string)($x['name'] !== '' ? $x['name'] : $x['email']),
+            ];
+        }
+    }
+
     // Chuẩn bị dữ liệu trả về
     $data = [];
-    while ($row = $rs->fetch_assoc()) {
+    foreach ($rows as $row) {
         $data[] = [
             "id"      => $row['ID'],
             "number"  => $row['number'],
@@ -227,12 +254,12 @@ function getPhonesTable(): array
                 'sms_count' => $row['sms_count'],
             ],
             'latest_sms_text' => $row['latest_sms_text'],
-            "account" => '',
-            // Cờ quyền theo TỪNG DÒNG đúng quy ước chung. Chưa có endpoint sửa/xóa số điện
-            // thoại nào, nên hai nút này luôn khóa kèm lý do — thà nói thẳng còn hơn để nút
-            // trông bấm được mà không làm gì (xem app-phones-list.js).
+            // Danh sách account đang dùng số này (rỗng khi chưa có bảng nối)
+            'accounts' => $accByPhone[(int)$row['ID']] ?? [],
+            // Cờ quyền theo TỪNG DÒNG. Số và nhà mạng do Telnyx cấp nên KHÔNG sửa được ở
+            // đây (can_edit luôn false); đổi trạng thái đi qua thao tác hàng loạt.
             'can_edit'   => false,
-            'can_delete' => false,
+            'can_delete' => checkRoles('delete', 'phones_numbers'),
         ];
     }
 
@@ -243,4 +270,104 @@ function getPhonesTable(): array
         "recordsFiltered" => $totalFiltered,
         "data"            => $data
     ];
+}
+
+/**
+ * Lọc danh sách ID số điện thoại về đúng những dòng người gọi được phép đụng.
+ *
+ * ID gửi lên là dữ liệu người dùng — non-admin chỉ được đụng số của team mình. Lọc ở đây
+ * một lần rồi mọi thao tác hàng loạt dùng chung, thay vì mỗi chỗ tự kiểm một kiểu.
+ *
+ * @param int[] $ids
+ * @return int[] ID hợp lệ
+ */
+function phonesInScope(mysqli $conn, array $ids): array
+{
+    $ids = array_values(array_unique(array_filter(array_map('intval', $ids), fn($v) => $v > 0)));
+    if (!$ids) {
+        return [];
+    }
+    $in = implode(',', $ids);
+    $where = "phones.ID IN ($in)";
+    if (!is_admin()) {
+        $where .= ' AND phones.team_id = ' . (int)($_SESSION['auth']['team'] ?? 0);
+    }
+    $ok = [];
+    $rs = $conn->query("SELECT ID FROM phones WHERE $where");
+    while ($r = $rs->fetch_row()) {
+        $ok[] = (int)$r[0];
+    }
+    return $ok;
+}
+
+/**
+ * XÓA HÀNG LOẠT số điện thoại.
+ *
+ * LƯU Ý QUAN TRỌNG: việc này CHỈ xóa bản ghi trong DB. Số vẫn đang thuê bên Telnyx và VẪN
+ * BỊ TÍNH PHÍ — muốn thôi trả tiền thì phải release số trong bảng điều khiển Telnyx. Cố ý
+ * không gọi API hủy từ đây: đó là thao tác tốn tiền/không lấy lại được, phải do người quyết.
+ *
+ * Thứ tự con -> cha: sms và liên kết account phải xóa TRƯỚC phones, nếu không chúng trơ lại
+ * trỏ vào bản ghi không còn tồn tại (đúng lỗi đã dính khi thêm 'xóa phones khi purge team').
+ */
+function deletePhonesBulk(): array
+{
+    if (!check_csrf()) {
+        return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
+    }
+    if (!checkRoles('delete', 'phones_numbers')) {
+        return ['status' => 'error', 'message' => 'You do not have permission to delete phone numbers.'];
+    }
+    $conn = db();
+    $ids = phonesInScope($conn, (array)($_POST['ids'] ?? []));
+    if (!$ids) {
+        return ['status' => 'error', 'message' => 'No phone number you can delete was selected.'];
+    }
+    $in = implode(',', $ids);
+    try {
+        $conn->query("DELETE FROM sms WHERE phone_id IN ($in)");
+        $sms = $conn->affected_rows;
+        $links = 0;
+        if (db_table_exists('accounts_phones', $conn)) {
+            $conn->query("DELETE FROM accounts_phones WHERE phone_id IN ($in)");
+            $links = $conn->affected_rows;
+        }
+        $conn->query("DELETE FROM phones WHERE ID IN ($in)");
+        $deleted = $conn->affected_rows;
+    } catch (\mysqli_sql_exception $e) {
+        return ['status' => 'error', 'message' => 'Delete failed: ' . $e->getMessage()];
+    }
+    return ['status' => 'success', 'deleted' => $deleted, 'sms' => $sms, 'links' => $links,
+            'message' => 'Deleted ' . number_format($deleted) . ' number(s). They are still '
+                . 'rented at Telnyx — release them there to stop being billed.'];
+}
+
+/** Trạng thái hợp lệ của một số điện thoại. */
+const PHONE_STATUSES = ['active', 'suspend'];
+
+/**
+ * ĐỔI TRẠNG THÁI HÀNG LOẠT. Chỉ nhận giá trị trong whitelist — trạng thái là dữ liệu người
+ * dùng gửi lên, không ghi thẳng vào cột.
+ */
+function updatePhonesStatusBulk(): array
+{
+    if (!check_csrf()) {
+        return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
+    }
+    if (!checkRoles('edit', 'phones_numbers')) {
+        return ['status' => 'error', 'message' => 'You do not have permission to change phone numbers.'];
+    }
+    $status = (string)($_POST['status'] ?? '');
+    if (!in_array($status, PHONE_STATUSES, true)) {
+        return ['status' => 'error', 'message' => 'Invalid status.'];
+    }
+    $conn = db();
+    $ids = phonesInScope($conn, (array)($_POST['ids'] ?? []));
+    if (!$ids) {
+        return ['status' => 'error', 'message' => 'No phone number you can change was selected.'];
+    }
+    $conn->query("UPDATE phones SET status = '" . $conn->real_escape_string($status)
+        . "' WHERE ID IN (" . implode(',', $ids) . ')');
+    return ['status' => 'success', 'updated' => $conn->affected_rows,
+            'message' => 'Updated ' . number_format(count($ids)) . ' number(s).'];
 }

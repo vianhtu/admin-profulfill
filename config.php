@@ -561,6 +561,26 @@ function own_level_rank(): int
  * nhận bàn giao, select người phụ trách. Ô lọc phải dùng CHUNG hàm này với câu WHERE,
  * nếu không sẽ có lựa chọn luôn ra 0 kết quả và lộ đang tồn tại cấp nào ở trên.
  */
+/**
+ * Bảng đã có trên DB chưa. Quy ước triển khai của dự án là DEPLOY CODE TRƯỚC, ĐỔI DB SAU,
+ * nên code mới phải chạy được với cả schema cũ lẫn mới trong lúc chuyển.
+ */
+function db_table_exists(string $table, ?mysqli $conn = null): bool
+{
+    static $cache = [];
+    if (isset($cache[$table])) {
+        return $cache[$table];
+    }
+    try {
+        $rs = ($conn ?? db())->execute_query(
+            'SELECT 1 FROM information_schema.TABLES
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? LIMIT 1', [$table]);
+        return $cache[$table] = $rs->fetch_row() !== null;
+    } catch (mysqli_sql_exception) {
+        return $cache[$table] = false;
+    }
+}
+
 function levels_above_ids(?mysqli $conn = null): array
 {
     $rank = own_level_rank();

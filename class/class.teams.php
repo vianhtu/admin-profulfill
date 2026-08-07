@@ -148,6 +148,9 @@ class Teams
     private const ACCOUNT_CHILDREN = [
         'accounts_finance', 'accounts_seller', 'accounts_links', 'accounts_proxy',
         'accounts_files', 'accounts_authors', 'accounts_relationships',
+        // Liên kết số điện thoại <-> account (nhiều-nhiều). Bảng có thể CHƯA tồn tại —
+        // table_exists lo phần đó, nên khai sẵn ở đây là an toàn.
+        'accounts_phones',
     ];
 
     /** Bảng con của SẢN PHẨM — xóa theo post_id. */
@@ -360,6 +363,10 @@ class Teams
             'messages' => self::table_exists($conn, 'sms') && self::col_exists($conn, 'phones', 'team_id')
                 ? $one('SELECT COUNT(*) FROM sms s INNER JOIN phones p ON p.ID = s.phone_id
                         WHERE p.team_id = ?') : 0,
+            // Liên kết account <-> số điện thoại (nhiều-nhiều)
+            'phone_links' => self::table_exists($conn, 'accounts_phones')
+                ? $one('SELECT COUNT(*) FROM accounts_phones ap
+                        INNER JOIN phones p ON p.ID = ap.phone_id WHERE p.team_id = ?') : 0,
         ];
     }
 
@@ -697,6 +704,16 @@ class Teams
                     return ['status' => 'partial', 'stage' => 'Messages', 'deleted' => $deleted];
                 }
             }
+            // Liên kết account <-> số điện thoại phải gỡ TRƯỚC khi xóa `phones`, cùng lý do
+            // với sms: xóa số trước thì liên kết trơ lại, trỏ vào bản ghi không còn tồn tại.
+            if (self::table_exists($conn, 'accounts_phones')) {
+                $conn->execute_query(
+                    'DELETE ap FROM accounts_phones ap
+                     INNER JOIN phones p ON p.ID = ap.phone_id
+                     WHERE p.team_id = ?', [$id]);
+                $deleted += $conn->affected_rows;
+            }
+
             foreach (['options', 'phones'] as $table) {
                 if (self::col_exists($conn, $table, 'team_id')) {
                     $conn->execute_query("DELETE FROM `$table` WHERE team_id = ?", [$id]);

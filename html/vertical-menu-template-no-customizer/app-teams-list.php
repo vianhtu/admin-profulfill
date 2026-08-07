@@ -142,6 +142,7 @@ if (!is_admin()) {
                         <tr><td>API keys &amp; settings</td><td class="text-end fw-medium" id="cntSettings">0</td></tr>
                         <tr><td>Phone numbers</td><td class="text-end fw-medium" id="cntPhones">0</td></tr>
                         <tr><td>SMS messages</td><td class="text-end fw-medium" id="cntMessages">0</td></tr>
+                    <tr><td>Phone ↔ account links</td><td class="text-end fw-medium" id="cntPhoneLinks">0</td></tr>
                         </tbody>
                     </table>
                     <div class="alert alert-info d-flex" role="alert">
