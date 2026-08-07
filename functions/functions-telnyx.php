@@ -425,3 +425,41 @@ function savePhone(): array
     $conn->execute_query('UPDATE phones SET ' . implode(', ', $sets) . ' WHERE ID = ?', $args);
     return ['status' => 'success', 'id' => $id, 'message' => 'Phone number updated.'];
 }
+
+/**
+ * Tin nhắn của MỘT số điện thoại — dùng cho modal ở cột Notices.
+ *
+ * Chỉ ĐỌC, nhưng vẫn phải qua đúng hai chốt như mọi nơi khác: role `view` và phạm vi team
+ * (phonesInScope). Nội dung tin nhắn là dữ liệu do người lạ gửi tới nên KHÔNG được tin —
+ * phía JS bọc esc() khi render.
+ *
+ * @return array{status:string,messages?:array,number?:string,message?:string}
+ */
+function getPhoneMessages(): array
+{
+    if (!checkRoles('view', 'phones_numbers')) {
+        return ['status' => 'error', 'message' => 'You do not have permission to view messages.'];
+    }
+    $conn = db();
+    $id = (int)($_POST['id'] ?? 0);
+    if (!in_array($id, phonesInScope($conn, [$id]), true)) {
+        return ['status' => 'error', 'message' => 'Phone number not found.'];
+    }
+    $number = (string)$conn->execute_query(
+        'SELECT number FROM phones WHERE ID = ?', [$id])->fetch_row()[0];
+
+    $out = [];
+    $rs = $conn->execute_query(
+        'SELECT ID, status, text, from_number, date FROM sms
+         WHERE phone_id = ? ORDER BY date DESC, ID DESC LIMIT 100', [$id]);
+    while ($r = $rs->fetch_assoc()) {
+        $out[] = [
+            'id'     => (int)$r['ID'],
+            'status' => (string)$r['status'],
+            'text'   => (string)$r['text'],
+            'from'   => (string)$r['from_number'],
+            'date'   => (string)$r['date'],
+        ];
+    }
+    return ['status' => 'success', 'number' => $number, 'messages' => $out];
+}

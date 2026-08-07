@@ -140,13 +140,19 @@ function initTable(){
                     orderable: false,
                     searchable: false,
                     render: function (data, type, full, meta) {
-                        const notice = full['notice'];
-                        return '<div class="position-relative d-inline-block">' +
-                            '  <i class="icon-base ti tabler-mail icon-22px"></i>' +
-                            '  <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">' +
-                                 Number(notice['sms_count'] || 0) +
-                            '  </span>' +
-                            '</div>';
+                        const n = Number(full['notice']?.['sms_count'] || 0);
+                        // Bấm vào để mở tin nhắn của số này. Số 0 thì icon mờ và không kèm
+                        // huy hiệu — trước đây luôn hiện "0" đỏ chóe trông như có việc gấp.
+                        return '<button type="button" class="btn btn-text-secondary btn-icon' +
+                            ' rounded-pill position-relative phone-notices" data-id="' +
+                            Number(full['id']) + '" title="' +
+                            (n ? n + ' pending message(s)' : 'View messages') + '">' +
+                            '<i class="icon-base ti tabler-mail icon-22px' +
+                            (n ? '' : ' text-body-secondary') + '"></i>' +
+                            (n ? '<span class="position-absolute top-0 start-100 translate-middle' +
+                                ' badge rounded-pill bg-danger" style="font-size:0.6rem">' + n +
+                                '</span>' : '') +
+                            '</button>';
                     }
                 },
                 {
@@ -182,16 +188,15 @@ function initTable(){
                         // Trước đây hai nút này luôn hiện nhưng KHÔNG nối vào đâu cả: Edit
                         // không có handler, Delete không có endpoint. Nút bấm được mà không
                         // xảy ra gì là tệ hơn nút khóa. Dựng từ cờ theo dòng như mọi trang.
-                        const smsBtn = `<a href="index.php?menu=phones_sms&id=${Number(full['id'])}"` +
-                            ` class="btn btn-text-secondary rounded-pill waves-effect btn-icon"` +
-                            ` title="View messages"><i class="icon-base ti tabler-message icon-22px"></i></a>`;
                         const editBtn = full['can_edit']
                             ? `<button type="button" class="btn btn-text-secondary rounded-pill waves-effect btn-icon edit-phone" data-id="${Number(full['id'])}" title="Edit"><i class="icon-base ti tabler-edit icon-22px"></i></button>`
                             : lockedBtn('tabler-edit', 'Phone numbers come from Telnyx and cannot be edited here.');
                         const delBtn = full['can_delete']
                             ? `<button type="button" class="btn btn-text-danger rounded-pill waves-effect btn-icon delete-phone" data-id="${Number(full['id'])}" title="Delete"><i class="icon-base ti tabler-trash icon-22px"></i></button>`
                             : lockedBtn('tabler-trash', 'Releasing a number must be done in Telnyx — deleting it here would keep billing it.');
-                        return `<div class="d-inline-block text-nowrap">${smsBtn}${editBtn}${delBtn}</div>`;
+                        // KHÔNG có nút "View messages": chính số điện thoại ở cột Numbers đã
+                        // là link sang trang SMS rồi, thêm nút nữa chỉ tốn chỗ cột Actions.
+                        return `<div class="d-inline-block text-nowrap">${editBtn}${delBtn}</div>`;
                     }
                 }
             ],
@@ -320,6 +325,54 @@ function initTable(){
         dtPhones.on('select deselect draw', phonesBulkRefresh);
     }, 100);
 }
+/* ---------------- Tin nhắn của một số (cột Notices) ---------------- */
+
+function fmtSmsDate(s) {
+    if (!s) {
+        return '—';
+    }
+    const d = new Date(String(s).replace(' ', 'T'));
+    return isNaN(d) ? esc(s) : d.toLocaleString('en-GB',
+        { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
+$(document).on('click', '.phone-notices', function () {
+    const id = Number($(this).data('id'));
+    $('#phoneSmsNumber').text('');
+    $('#phoneSmsRows').empty();
+    $('#phoneSmsWrap').addClass('d-none');
+    $('#phoneSmsLoading').removeClass('d-none');
+    $('#phoneSmsOpenPage').addClass('d-none').attr('href', 'index.php?menu=phones_sms&id=' + id);
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('phoneSmsModal')).show();
+
+    $.post('../../ajax.php?action=get-phone-messages',
+        { csrf_token: window.csrfToken, id: id }, null, 'json')
+        .done(res => {
+            $('#phoneSmsLoading').addClass('d-none');
+            if (res?.status !== 'success') {
+                $('#phoneSmsRows').html(`<tr><td colspan="3" class="text-danger">${
+                    esc(res?.message || 'Failed to load messages.')}</td></tr>`);
+                $('#phoneSmsWrap').removeClass('d-none');
+                return;
+            }
+            $('#phoneSmsNumber').text(res.number || '');
+            $('#phoneSmsOpenPage').removeClass('d-none');
+            const list = res.messages || [];
+            $('#phoneSmsRows').html(list.length
+                ? list.map(m => `<tr${m.status === 'pending' ? ' class="table-warning"' : ''}>
+                    <td class="text-nowrap">${esc(m.from)}</td>
+                    <td>${esc(m.text)}</td>
+                    <td class="text-nowrap">${esc(fmtSmsDate(m.date))}</td></tr>`).join('')
+                : '<tr><td colspan="3" class="text-center text-body-secondary">No messages yet.</td></tr>');
+            $('#phoneSmsWrap').removeClass('d-none');
+        })
+        .fail(() => {
+            $('#phoneSmsLoading').addClass('d-none');
+            $('#phoneSmsRows').html('<tr><td colspan="3" class="text-danger">Server connection error.</td></tr>');
+            $('#phoneSmsWrap').removeClass('d-none');
+        });
+});
+
 /* ---------------- Sửa MỘT số ---------------- */
 
 // Danh sách team cho ô chọn (chỉ admin mới có ô này). Nạp một lần rồi dùng lại.

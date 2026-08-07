@@ -48,6 +48,38 @@ if(!checkRoles('view', 'phones_numbers')){
     </div>
 </div>
 
+<!-- Tin nhắn của một số — mở từ cột Notices. Cuộn TRONG thân modal (modal-dialog-scrollable)
+     để danh sách dài không đẩy tràn ra ngoài. -->
+<div class="modal fade" id="phoneSmsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Messages — <span id="phoneSmsNumber"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="phoneSmsLoading" class="text-center py-4">
+                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>Loading…
+                </div>
+                <div class="table-responsive d-none" id="phoneSmsWrap">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                        <tr><th>From</th><th>Message</th><th class="text-nowrap">Received</th></tr>
+                        </thead>
+                        <tbody id="phoneSmsRows"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="btn btn-label-primary me-auto d-none" id="phoneSmsOpenPage">
+                    <i class="icon-base ti tabler-external-link icon-xs me-1"></i>Open full page
+                </a>
+                <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Sửa MỘT số điện thoại. `number` và `carrier` do Telnyx cấp nên chỉ hiển thị, không sửa;
      ô Team chỉ render cho admin (chuyển số sang nhóm khác là việc của admin).
      data-bs-scroll để mở form không khóa scroll body và xô bảng sang trái. -->
