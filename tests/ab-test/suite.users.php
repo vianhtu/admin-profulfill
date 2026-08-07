@@ -634,8 +634,12 @@ return function (AbRunner $r): void {
                 return User::save_user();
             };
             $r1 = $chuyen(2);                       // 1 -> 2
-            if (($r1['status'] ?? '') !== 'success') {
-                return $r1;                         // vai nay khong duoc doi team -> DENY
+            // KHONG tin response: save_user() tra 'success' cho ca non-admin, no chi am tham
+            // ep team_id ve team cua chinh nguoi gui. Phai DOC LAI DB moi biet co chuyen that.
+            $sau = (int)$fx->conn->execute_query(
+                'SELECT team_id FROM authors WHERE ID = ?', [$id])->fetch_row()[0];
+            if ($sau !== 2) {
+                return false;                       // khong doi duoc team -> DENY
             }
             $chuyen(3);                             // 2 -> 3 (ban cu bo sot lien ket team 1)
             $cheo = (int)$fx->conn->execute_query(
