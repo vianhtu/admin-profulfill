@@ -465,14 +465,51 @@ function getPhoneMessages(): array
             'date'   => (string)$r['date'],
         ];
     }
-    // ĐÁNH DẤU ĐÃ ĐỌC sau khi đã lấy dữ liệu: mở ra xem rồi thì huy hiệu đỏ phải tắt.
-    // Đọc trước rồi mới cập nhật, nên danh sách trả về vẫn giữ trạng thái CŨ — modal còn tô
-    // vàng đúng những tin vừa mới là chưa đọc. `viewed` là giá trị đã có sẵn trong dữ liệu
-    // (di sản, chưa code nào dùng); dùng lại thay vì đẻ thêm một trạng thái mới.
-    $conn->execute_query(
-        "UPDATE sms SET status = 'viewed' WHERE phone_id = ? AND status = 'pending'", [$id]);
-    $daDanhDau = $conn->affected_rows;
-
+    // KHÔNG đánh dấu đã đọc ở đây. Mở modal ra không có nghĩa là đã đọc hết — danh sách có
+    // thể dài hơn màn hình. Việc đánh dấu do markSmsRead() làm, theo đúng những tin người
+    // dùng CUỘN TỚI (xem app-phones-list.js).
     return ['status' => 'success', 'number' => $number, 'messages' => $out,
-            'marked_read' => $daDanhDau];
+            'unread' => $conn->execute_query(
+                "SELECT COUNT(*) FROM sms WHERE phone_id = ? AND status = 'pending'",
+                [$id])->fetch_row()[0]];
+}
+
+/**
+ * Đánh dấu ĐÃ ĐỌC một số tin cụ thể — những tin người dùng đã cuộn tới trong modal.
+ *
+ * Nhận danh sách ID tin nhắn, nhưng KHÔNG tin: chỉ cập nhật tin thuộc về số điện thoại nằm
+ * trong phạm vi của người gọi (phonesInScope). Trả về số tin CÒN chưa đọc của số đó để phía
+ * JS chỉnh huy hiệu cho khớp, và tắt hẳn khi về 0.
+ *
+ * @return array{status:string,unread?:int,marked?:int,message?:string}
+ */
+function markSmsRead(): array
+{
+    if (!check_csrf()) {
+        return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
+    }
+    if (!checkRoles('view', 'phones_numbers')) {
+        return ['status' => 'error', 'message' => 'You do not have permission to view messages.'];
+    }
+    $conn = db();
+    $phoneId = (int)($_POST['phone_id'] ?? 0);
+    if (!in_array($phoneId, phonesInScope($conn, [$phoneId]), true)) {
+        return ['status' => 'error', 'message' => 'Phone number not found.'];
+    }
+    $ids = array_values(array_unique(array_filter(
+        array_map('intval', (array)($_POST['ids'] ?? [])), fn($v) => $v > 0)));
+    $marked = 0;
+    if ($ids) {
+        // Ràng cả phone_id vào câu UPDATE: ID tin nhắn là dữ liệu người dùng gửi lên,
+        // không được phép đánh dấu tin của số khác.
+        $conn->execute_query(
+            "UPDATE sms SET status = 'viewed'
+             WHERE ID IN (" . implode(',', $ids) . ") AND phone_id = ? AND status = 'pending'",
+            [$phoneId]);
+        $marked = $conn->affected_rows;
+    }
+    return ['status' => 'success', 'marked' => $marked,
+            'unread' => (int)$conn->execute_query(
+                "SELECT COUNT(*) FROM sms WHERE phone_id = ? AND status = 'pending'",
+                [$phoneId])->fetch_row()[0]];
 }

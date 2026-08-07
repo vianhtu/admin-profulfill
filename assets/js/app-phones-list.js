@@ -327,6 +327,78 @@ function initTable(){
 }
 /* ---------------- Tin nhắn của một số (cột Notices) ---------------- */
 
+// Theo dõi CUỘN: tin nào lọt vào tầm nhìn trong modal thì mới coi là đã đọc. Mở modal ra
+// không có nghĩa là đọc hết — danh sách dài hơn màn hình là chuyện thường.
+let smsQuanSat = null;   // IntersectionObserver hiện hành
+let smsChoGui = new Set();
+let smsHenGui = null;
+
+function smsHuyTheoDoi() {
+    if (smsQuanSat) {
+        smsQuanSat.disconnect();
+        smsQuanSat = null;
+    }
+    clearTimeout(smsHenGui);
+    smsChoGui.clear();
+}
+
+function smsGuiDanhDau(phoneId) {
+    if (!smsChoGui.size) {
+        return;
+    }
+    const ids = [...smsChoGui];
+    smsChoGui.clear();
+    $.post('../../ajax.php?action=mark-sms-read',
+        { csrf_token: window.csrfToken, phone_id: phoneId, ids: ids }, null, 'json')
+        .done(res => {
+            if (res?.status !== 'success') {
+                return;
+            }
+            // Chỉnh thẳng huy hiệu trên bảng thay vì nạp lại — nạp lại sẽ cuốn mất vị trí
+            // cuộn và nhấp nháy trong lúc người dùng vẫn đang đọc.
+            const $btn = $(`.phone-notices[data-id="${Number(phoneId)}"]`);
+            const con = Number(res.unread || 0);
+            $btn.find('.badge').remove();
+            $btn.attr('title', con ? con + ' pending message(s)' : 'View messages');
+            $btn.find('i').toggleClass('text-body-secondary', con === 0);
+            if (con > 0) {
+                $btn.append('<span class="position-absolute top-0 start-100 translate-middle'
+                    + ' badge rounded-pill bg-danger" style="font-size:0.6rem">' + con + '</span>');
+            }
+        });
+}
+
+function smsTheoDoiCuon(phoneId) {
+    smsHuyTheoDoi();
+    const root = document.querySelector('#phoneSmsModal .modal-body');
+    const chuaDoc = document.querySelectorAll('#phoneSmsRows tr.sms-unread');
+    if (!root || !chuaDoc.length || !('IntersectionObserver' in window)) {
+        return;
+    }
+    smsQuanSat = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+            // Phải thấy quá nửa dòng mới tính là đã đọc, tránh dòng vừa ló ra đã bị đánh dấu
+            if (e.isIntersecting && e.intersectionRatio >= 0.5) {
+                smsChoGui.add(Number(e.target.dataset.smsId));
+                e.target.classList.remove('sms-unread');
+                smsQuanSat.unobserve(e.target);
+            }
+        });
+        // Gom lại rồi gửi một lượt, không mỗi dòng một request
+        clearTimeout(smsHenGui);
+        smsHenGui = setTimeout(() => smsGuiDanhDau(phoneId), 500);
+    }, { root: root, threshold: [0.5] });
+    chuaDoc.forEach(tr => smsQuanSat.observe(tr));
+}
+
+// Đóng modal: gửi nốt phần còn treo rồi thôi theo dõi
+$(document).on('hidden.bs.modal', '#phoneSmsModal', function () {
+    const id = Number($(this).data('phone-id') || 0);
+    clearTimeout(smsHenGui);
+    smsGuiDanhDau(id);
+    smsHuyTheoDoi();
+});
+
 function fmtSmsDate(s) {
     if (!s) {
         return '—';
@@ -343,6 +415,7 @@ $(document).on('click', '.phone-notices', function () {
     $('#phoneSmsWrap').addClass('d-none');
     $('#phoneSmsLoading').removeClass('d-none');
     $('#phoneSmsOpenPage').addClass('d-none').attr('href', 'index.php?menu=phones_sms&id=' + id);
+    $('#phoneSmsModal').data('phone-id', id);
     bootstrap.Modal.getOrCreateInstance(document.getElementById('phoneSmsModal')).show();
 
     $.post('../../ajax.php?action=get-phone-messages',
@@ -359,17 +432,14 @@ $(document).on('click', '.phone-notices', function () {
             $('#phoneSmsOpenPage').removeClass('d-none');
             const list = res.messages || [];
             $('#phoneSmsRows').html(list.length
-                ? list.map(m => `<tr${m.status === 'pending' ? ' class="table-warning"' : ''}>
+                ? list.map(m => `<tr data-sms-id="${Number(m.id)}"${
+                    m.status === 'pending' ? ' class="table-warning sms-unread"' : ''}>
                     <td class="text-nowrap">${esc(m.from)}</td>
                     <td>${esc(m.text)}</td>
                     <td class="text-nowrap">${esc(fmtSmsDate(m.date))}</td></tr>`).join('')
                 : '<tr><td colspan="3" class="text-center text-body-secondary">No messages yet.</td></tr>');
             $('#phoneSmsWrap').removeClass('d-none');
-            // Đã đọc thì huy hiệu đỏ phải tắt -> vẽ lại bảng. Chỉ nạp lại khi thật sự có
-            // tin vừa chuyển sang đã đọc, tránh gọi thừa mỗi lần mở modal.
-            if (Number(res.marked_read || 0) > 0) {
-                dtPhones.ajax.reload(null, false);
-            }
+            smsTheoDoiCuon(id);
         })
         .fail(() => {
             $('#phoneSmsLoading').addClass('d-none');
