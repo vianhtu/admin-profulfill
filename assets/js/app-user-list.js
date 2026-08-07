@@ -654,8 +654,7 @@ $(document).on('click', '.delete-user', function () {
             $('#deleteUserProgressText').text(res?.message || 'Failed to load user data.');
             return;
         }
-        $('#delCntProducts').text((res.products || 0).toLocaleString());
-        $('#delCntAccounts').text((res.accounts || 0).toLocaleString());
+        renderDeleteStats(res);
         $(modalEl).data('products', res.products || 0);
         // Customer: xóa thẳng, không bàn giao — server đã quyết, JS chỉ trình bày cho khớp.
         $(modalEl).data('orphan', !!res.orphan);
@@ -684,6 +683,31 @@ $(document).on('click', '.delete-user', function () {
         $('#deleteUserProgressText').text('Server connection error.');
     });
 });
+
+// Số phận từng bảng -> nhãn + màu. 'choice' để trống vì ô chọn bàn giao ngay bên dưới
+// đã nói rõ hơn bất kỳ nhãn nào.
+const FATE_BADGE = {
+    removed: ['Deleted', 'bg-label-danger'],
+    unlink:  ['Unlinked', 'bg-label-warning'],
+    kept:    ['Kept', 'bg-label-secondary'],
+    orphan:  ['Left behind', 'bg-label-warning'],
+    choice:  ['', '']
+};
+
+function renderDeleteStats(res) {
+    const rows = Array.isArray(res.stats) ? res.stats : [];
+    const $tb = $('#delStatsRows');
+    if (!rows.length) {
+        $tb.html('<tr><td class="text-body-secondary">Nothing else is linked to this user.</td></tr>');
+        return;
+    }
+    $tb.html(rows.map(r => {
+        const [label, cls] = FATE_BADGE[r.fate] || ['', ''];
+        const badge = label ? `<span class="badge ${cls} ms-2">${esc(label)}</span>` : '';
+        return `<tr><td>${esc(r.label)}${badge}</td>` +
+            `<td class="text-end fw-medium">${Number(r.n).toLocaleString()}</td></tr>`;
+    }).join(''));
+}
 
 $(document).on('click', '#deleteUserConfirm', async function () {
     const modalEl = document.getElementById('deleteUserModal');

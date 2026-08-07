@@ -521,7 +521,81 @@ class Users
             // Customer: xoa thang, khong hoi ban giao. JS doc co nay de an o chon nguoi nhan
             // va hien canh bao du lieu se thanh mo coi.
             'orphan'     => $orphan,
+            // Thong ke DAY DU moi bang tro toi nguoi nay + so phan cua tung bang
+            'stats'      => self::delete_stats($id, $conn, $orphan),
         ];
+    }
+
+    /**
+     * Thong ke MOI bang tro toi user sap bi xoa, kem SO PHAN cua tung bang.
+     *
+     * De nguoi bam Delete thay het thu sap mat, thay vi chi 2 con so nhu truoc. Danh sach
+     * nay lay tu lan quet information_schema 06/08/2026 (moi cot ten %author%/%user%/
+     * created_by/%_by) va PHAI khop voi cleanup_user_refs() + delete_users(). Them bang moi
+     * co cot tro toi authors thi khai ca o day, o cleanup_user_refs() va o tests/schema-links.php
+     * — thieu mot noi la nguoi dung khong thay duoc thu ho sap mat.
+     *
+     * fate: 'choice'  = nguoi dung tu chon (ban giao hay xoa)
+     *       'removed' = xoa theo
+     *       'unlink'  = giu ban ghi, go lien ket ve 0
+     *       'kept'    = giu nguyen (lich su cong viec / ke toan)
+     *       'orphan'  = bo lai, khong don (chi voi cap customer)
+     *
+     * @return list<array{key:string,label:string,n:int,fate:string}>
+     */
+    private static function delete_stats(int $id, mysqli $conn, bool $orphan): array
+    {
+        $dem = static function (string $sql) use ($conn, $id): int {
+            try {
+                return (int)$conn->execute_query($sql, [$id])->fetch_row()[0];
+            } catch (\mysqli_sql_exception) {
+                return 0;   // bang chua ton tai tren moi truong nay -> coi nhu 0
+            }
+        };
+
+        // File cua nguoi nay: cai con duoc dung o cho khac thi GIU, chi go nguoi upload
+        $fileDung = $dem('SELECT COUNT(*) FROM files f WHERE f.user_id = ?
+            AND (EXISTS (SELECT 1 FROM accounts_files af WHERE af.file_id = f.ID)
+                 OR EXISTS (SELECT 1 FROM site s WHERE s.logo = f.storage_path))');
+        $fileRieng = $dem('SELECT COUNT(*) FROM files WHERE user_id = ?') - $fileDung;
+
+        $rows = [
+            ['posts', 'Products they own',
+                $dem('SELECT COUNT(*) FROM posts WHERE author_id = ?'), 'choice'],
+            ['accounts_authors', 'Account assignments',
+                $dem('SELECT COUNT(*) FROM accounts_authors WHERE author_id = ?'), 'removed'],
+            ['author_remember_tokens', 'Remembered devices',
+                $dem('SELECT COUNT(*) FROM author_remember_tokens WHERE author_id = ?'), 'removed'],
+            ['files_own', 'Files only they use',
+                max($fileRieng, 0), 'removed'],
+            ['options', 'Personal API settings',
+                $dem('SELECT COUNT(*) FROM options WHERE authors_id = ?'), 'removed'],
+            ['files_shared', 'Files still used elsewhere',
+                $fileDung, 'unlink'],
+            ['site', 'Sites they added',
+                $dem('SELECT COUNT(*) FROM site WHERE created_by = ?'), 'unlink'],
+            ['type', 'Categories they added',
+                $dem('SELECT COUNT(*) FROM type WHERE created_by = ?'), 'unlink'],
+            ['salary', 'Salary records',
+                $dem('SELECT COUNT(*) FROM salary WHERE authors = ?'), 'kept'],
+            ['exports', 'Export jobs',
+                $dem('SELECT COUNT(*) FROM exports WHERE authors_id = ?'), 'kept'],
+            ['download', 'Downloads',
+                $dem('SELECT COUNT(*) FROM download WHERE author_id = ?'), 'kept'],
+        ];
+
+        $out = [];
+        foreach ($rows as [$key, $label, $n, $fate]) {
+            if ($n === 0 && $fate !== 'choice') {
+                continue;   // khong co gi thi khong lam ron mat nguoi doc
+            }
+            // Cap customer: xoa thang, moi lien ket deu bo lai (tru phien dang nhap)
+            if ($orphan && $key !== 'author_remember_tokens') {
+                $fate = 'orphan';
+            }
+            $out[] = ['key' => $key, 'label' => $label, 'n' => $n, 'fate' => $fate];
+        }
+        return $out;
     }
 
     /**
@@ -567,6 +641,13 @@ class Users
         $keptFiles = $conn->affected_rows;
 
         // Du lieu dung chung: nguoi tao mat -> ve 0, ban ghi thanh chi admin sua duoc
+        // Cau hinh RIENG cua nguoi nay (options.authors_id > 0). Hom nay moi dong options
+        // deu co authors_id = 0 (cau hinh thuoc team) nen cau nay khong dung gi ca — nhung
+        // cot van ton tai, va bang nay chua openai_key/gemini_key dang PLAINTEXT. Bo sot
+        // dung kieu nay tung lam xoa team xong secret van nam lai trong DB (06/08/2026).
+        // Xoa phong thu o day de khong bao gio phai phat hien lai bang cach do.
+        $conn->execute_query('DELETE FROM options WHERE authors_id = ?', [$id]);
+
         foreach (['site', 'type'] as $table) {
             $conn->execute_query("UPDATE `$table` SET created_by = 0 WHERE created_by = ?", [$id]);
         }

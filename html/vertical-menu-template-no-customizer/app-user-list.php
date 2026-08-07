@@ -196,12 +196,17 @@ $can_see_wage  = Users::can_see_salary();
                 </div>
 
                 <div id="deleteUserSummary" class="d-none">
-                    <table class="table table-sm mb-4">
-                        <tbody>
-                        <tr><td>Products they own</td><td class="text-end fw-medium" id="delCntProducts">0</td></tr>
-                        <tr><td>Account assignments (removed)</td><td class="text-end fw-medium" id="delCntAccounts">0</td></tr>
-                        </tbody>
+                    <!-- Thống kê ĐẦY ĐỦ mọi bảng trỏ tới người này + số phận từng bảng.
+                         Trước đây chỉ có 2 dòng, người bấm Delete không thấy được thứ họ
+                         sắp mất (file, site/category họ tạo, lương, lịch sử export...). -->
+                    <table class="table table-sm mb-2">
+                        <tbody id="delStatsRows"></tbody>
                     </table>
+                    <div class="d-flex flex-wrap gap-3 mb-4 small text-body-secondary">
+                        <span><span class="badge bg-label-danger">Deleted</span> removed with the user</span>
+                        <span><span class="badge bg-label-warning">Unlinked</span> record stays, owner cleared</span>
+                        <span><span class="badge bg-label-secondary">Kept</span> left untouched</span>
+                    </div>
                     <!-- Customer là khách, xóa thẳng: không hỏi bàn giao, dữ liệu liên quan
                          được phép mồ côi. Vẫn phải NÓI RÕ cho người bấm biết. -->
                     <div id="deleteUserOrphanNote" class="alert alert-warning d-flex d-none" role="alert">
