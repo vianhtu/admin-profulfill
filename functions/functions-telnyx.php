@@ -69,11 +69,20 @@ function hookTelnyx(): array
     }
 
     // --- Lấy phone_id ---
-    $stmt = $conn->prepare("SELECT id FROM phones WHERE number = ? LIMIT 1");
+    $stmt = $conn->prepare("SELECT id, status FROM phones WHERE number = ? LIMIT 1");
     $stmt->bind_param("s", $toNumber);
     $stmt->execute();
     $result = $stmt->get_result();
     if ($row = $result->fetch_assoc()) {
+        // SỐ ĐANG SUSPEND thì KHÔNG nhận tin nữa (chốt 07/08/2026). Suspend là "thôi dùng
+        // số này", nên tiếp tục ghi tin vào chỉ làm dữ liệu phình ra và huy hiệu chưa đọc
+        // nhảy số cho một số không ai còn theo dõi. Tin cũ vẫn đọc được như thường —
+        // chặn ở đây là chặn ĐẦU VÀO, không phải giấu lịch sử.
+        if ((string)$row['status'] !== 'active') {
+            $stmt->close();
+            return ['status' => 'ignored',
+                    'message' => 'Number is suspended; message not recorded.'];
+        }
         $phoneId = $row['id'];
     } else {
         // Thêm mới phone
@@ -113,11 +122,10 @@ function getSMS(): array
         $whereClauses[] = "sms.phone_id = ?";
     }
 
-    if(!is_admin()){
-        $teamId = $_SESSION['auth']['team'] ?? null;
-        if($teamId){
-            $whereClauses[] = "p.team_id = $teamId";
-        }
+    // PHẠM VI THEO TEAM. Bản cũ viết `if($teamId)` nên tài khoản có team_id = 0 rơi vào
+    // nhánh KHÔNG lọc gì -> đọc được tin nhắn của MỌI team. Cùng lỗi đã vá ở getPhonesTable.
+    if (!is_admin()) {
+        $whereClauses[] = 'p.team_id = ' . (int)($_SESSION['auth']['team'] ?? 0);
     }
     $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
     $sql .= "$where ORDER BY sms.date DESC LIMIT 20";
