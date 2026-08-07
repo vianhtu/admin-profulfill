@@ -204,13 +204,15 @@ function getPhonesTable(): array
             phones.ID, 
             phones.status, 
             phones.number, 
+            phones.team_id, 
             phone_carrier.name, 
             COUNT(sms.ID) AS sms_count,
             s_latest.text AS latest_sms_text
         FROM phones
         $join
         $where
-        GROUP BY phones.ID, phones.status, phones.number, phone_carrier.name, s_latest.text
+        GROUP BY phones.ID, phones.status, phones.number, phones.team_id,
+                 phone_carrier.name, s_latest.text
         ORDER BY phones.{$params['orderColumn']} {$params['orderDir']}, phones.ID DESC
         LIMIT {$params['start']}, {$params['length']}";
     $rs  = $conn->query($sql);
@@ -258,7 +260,10 @@ function getPhonesTable(): array
             'accounts' => $accByPhone[(int)$row['ID']] ?? [],
             // Cờ quyền theo TỪNG DÒNG. Số và nhà mạng do Telnyx cấp nên KHÔNG sửa được ở
             // đây (can_edit luôn false); đổi trạng thái đi qua thao tác hàng loạt.
-            'can_edit'   => false,
+            'team_id'    => (int)$row['team_id'],
+            // Số và nhà mạng do Telnyx cấp -> không sửa ở đây. Sửa được là trạng thái, và
+            // team (chỉ admin) khi cần chuyển số sang nhóm khác.
+            'can_edit'   => checkRoles('edit', 'phones_numbers'),
             'can_delete' => checkRoles('delete', 'phones_numbers'),
         ];
     }
@@ -370,4 +375,53 @@ function updatePhonesStatusBulk(): array
         . "' WHERE ID IN (" . implode(',', $ids) . ')');
     return ['status' => 'success', 'updated' => $conn->affected_rows,
             'message' => 'Updated ' . number_format(count($ids)) . ' number(s).'];
+}
+
+/**
+ * Sửa MỘT số điện thoại. Chỉ đổi được những gì thuộc về mình:
+ *   - `status`  : whitelist, không ghi thẳng giá trị người dùng gửi lên;
+ *   - `team_id` : CHỈ admin — đây là chuyển số sang nhóm khác, non-admin không được đụng.
+ * `number` và `carrier_id` do Telnyx cấp nên không nhận từ form.
+ */
+function savePhone(): array
+{
+    if (!check_csrf()) {
+        return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
+    }
+    if (!checkRoles('edit', 'phones_numbers')) {
+        return ['status' => 'error', 'message' => 'You do not have permission to edit phone numbers.'];
+    }
+    $conn = db();
+    $id = (int)($_POST['id'] ?? 0);
+    // Lọc qua đúng helper phạm vi: non-admin chỉ đụng được số của team mình
+    if (!in_array($id, phonesInScope($conn, [$id]), true)) {
+        return ['status' => 'error', 'message' => 'Phone number not found.'];
+    }
+    $status = (string)($_POST['status'] ?? '');
+    if (!in_array($status, PHONE_STATUSES, true)) {
+        return ['status' => 'error', 'message' => 'Invalid status.'];
+    }
+
+    $sets = ['status = ?'];
+    $args = [$status];
+    if (is_admin() && array_key_exists('team_id', $_POST)) {
+        $teamId = (int)$_POST['team_id'];
+        if ($teamId > 0 && !$conn->execute_query(
+                'SELECT ID FROM team WHERE ID = ? LIMIT 1', [$teamId])->fetch_row()) {
+            return ['status' => 'error', 'message' => 'Team does not exist.'];
+        }
+        // Chuyển số sang team khác thì liên kết tới account của team CŨ thành chéo team ->
+        // gỡ, đúng luật đang áp khi chuyển user sang team khác.
+        if (db_table_exists('accounts_phones', $conn)) {
+            $conn->execute_query(
+                'DELETE ap FROM accounts_phones ap
+                 INNER JOIN accounts ac ON ac.ID = ap.account_id
+                 WHERE ap.phone_id = ? AND ac.team_id <> ?', [$id, $teamId]);
+        }
+        $sets[] = 'team_id = ?';
+        $args[] = $teamId;
+    }
+    $args[] = $id;
+    $conn->execute_query('UPDATE phones SET ' . implode(', ', $sets) . ' WHERE ID = ?', $args);
+    return ['status' => 'success', 'id' => $id, 'message' => 'Phone number updated.'];
 }

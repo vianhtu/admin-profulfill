@@ -48,6 +48,49 @@ if(!checkRoles('view', 'phones_numbers')){
     </div>
 </div>
 
+<!-- Sửa MỘT số điện thoại. `number` và `carrier` do Telnyx cấp nên chỉ hiển thị, không sửa;
+     ô Team chỉ render cho admin (chuyển số sang nhóm khác là việc của admin).
+     data-bs-scroll để mở form không khóa scroll body và xô bảng sang trái. -->
+<div class="offcanvas offcanvas-end" data-bs-scroll="true" tabindex="-1" id="offcanvasPhone">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title">Edit Phone Number</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body p-6">
+        <form id="phoneForm" onsubmit="return false">
+            <input type="hidden" id="phone-id" value="0">
+            <div class="mb-6">
+                <label class="form-label" for="phone-number">Number</label>
+                <input type="text" class="form-control" id="phone-number" disabled>
+                <div class="form-text">Numbers come from Telnyx and cannot be changed here.</div>
+            </div>
+            <div class="mb-6">
+                <label class="form-label" for="phone-carrier">Carrier</label>
+                <input type="text" class="form-control" id="phone-carrier" disabled>
+            </div>
+            <div class="mb-6">
+                <label class="form-label" for="phone-status">Status</label>
+                <select id="phone-status" class="form-select">
+                    <option value="active">Active</option>
+                    <option value="suspend">Suspend</option>
+                </select>
+            </div>
+            <?php if (is_admin()) : ?>
+                <div class="mb-6">
+                    <label class="form-label" for="phone-team">Team</label>
+                    <select id="phone-team" class="form-select"></select>
+                    <div class="form-text text-warning">
+                        <i class="icon-base ti tabler-alert-triangle icon-14px me-1"></i>
+                        Moving a number to another team drops its links to accounts of the old team.
+                    </div>
+                </div>
+            <?php endif; ?>
+            <button type="button" class="btn btn-primary me-3" id="phoneSubmit">Save</button>
+            <button type="button" class="btn btn-label-secondary" data-bs-dismiss="offcanvas">Cancel</button>
+        </form>
+    </div>
+</div>
+
 <!-- Xác nhận xóa hàng loạt. Dùng modal trong app chứ KHÔNG dùng window.confirm: trình duyệt
      được phép chặn hộp thoại đó và khi bị chặn nó trả false, nút bấm xong im lặng không làm
      gì (đã dính đúng vậy ở nút tạo key của Teams, 07/08/2026). -->
@@ -55,7 +98,7 @@ if(!checkRoles('view', 'phones_numbers')){
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Delete phone numbers</h5>
+                <h5 class="modal-title" id="phonesDeleteTitle">Delete phone numbers</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">

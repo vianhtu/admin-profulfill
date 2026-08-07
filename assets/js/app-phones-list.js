@@ -337,15 +337,89 @@ function initTable(){
         dtPhones.on('select deselect draw', phonesBulkRefresh);
     }, 100);
 }
+/* ---------------- Sửa MỘT số ---------------- */
+
+// Danh sách team cho ô chọn (chỉ admin mới có ô này). Nạp một lần rồi dùng lại.
+let phoneTeams = null;
+
+async function loadPhoneTeams() {
+    if (phoneTeams || !$('#phone-team').length) {
+        return;
+    }
+    const res = await $.post('../../ajax.php?action=get-teams-table',
+        { csrf_token: window.csrfToken, start: 0, length: 500, draw: 1 }, null, 'json')
+        .catch(() => null);
+    phoneTeams = (res && Array.isArray(res.data)) ? res.data : [];
+    const $sel = $('#phone-team').empty();
+    phoneTeams.forEach(t => $sel.append(new Option(t.name, t.id, false, false)));
+    if (!$sel.hasClass('select2-hidden-accessible')) {
+        $sel.select2({ dropdownParent: $('#offcanvasPhone'), width: '100%' });
+    }
+}
+
+$(document).on('click', '.edit-phone', async function () {
+    const id = Number($(this).data('id'));
+    const row = dtPhones.rows().data().toArray().find(r => Number(r.id) === id);
+    if (!row) {
+        return;
+    }
+    await loadPhoneTeams();
+    $('#phone-id').val(id);
+    $('#phone-number').val(row.number);
+    $('#phone-carrier').val(row.carrier || '');
+    $('#phone-status').val(row.status).trigger('change.select2');
+    if ($('#phone-team').length) {
+        $('#phone-team').val(String(row.team_id || '')).trigger('change.select2');
+    }
+    bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('offcanvasPhone')).show();
+});
+
+$(document).on('click', '#phoneSubmit', function () {
+    const $btn = $(this).prop('disabled', true);
+    const data = { csrf_token: window.csrfToken, id: $('#phone-id').val(),
+        status: $('#phone-status').val() };
+    if ($('#phone-team').length) {
+        data.team_id = $('#phone-team').val();
+    }
+    $.post('../../ajax.php?action=save-phone', data, null, 'json')
+        .done(res => {
+            if (res?.status === 'success') {
+                bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasPhone')).hide();
+                dtPhones.ajax.reload(null, false);
+            } else {
+                window.alert(res?.message || 'Failed to save.');
+            }
+        })
+        .fail(() => window.alert('Server connection error.'))
+        .always(() => $btn.prop('disabled', false));
+});
+
 /* ---------------- Thao tác hàng loạt ---------------- */
 
 // ID các dòng đang được tick. Cột checkbox dùng DataTables Select nên đọc từ API của nó.
+// ID sẽ bị xóa: bình thường là các dòng đang tick, nhưng khi bấm Delete ở MỘT dòng thì
+// chỉ đúng dòng đó — dùng chung một modal xác nhận cho cả hai đường.
+let phonesDeleteIds = null;
+
 function phonesSelected() {
     if (!dtPhones) {
         return [];
     }
     return dtPhones.rows({ selected: true }).data().toArray().map(r => Number(r.id));
 }
+
+function phonesOpenDelete(ids, tieuDe) {
+    phonesDeleteIds = ids;
+    $('#phonesDeleteTitle').text(tieuDe);
+    $('#phonesDeleteCount').text(ids.length);
+    $('#phonesDeleteResult').addClass('d-none').empty();
+    $('#phonesDeleteConfirm').prop('disabled', false);
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('phonesDeleteModal')).show();
+}
+
+$(document).on('click', '.delete-phone', function () {
+    phonesOpenDelete([Number($(this).data('id'))], 'Delete phone number');
+});
 
 function phonesBulkRefresh() {
     const n = phonesSelected().length;
@@ -358,13 +432,15 @@ function phonesBulkPost(action, data, onDone) {
         url: '../../ajax.php?action=' + action,
         type: 'POST',
         dataType: 'json',
-        data: Object.assign({ csrf_token: window.csrfToken, ids: phonesSelected() }, data || {})
+        data: Object.assign({ csrf_token: window.csrfToken,
+            ids: phonesDeleteIds || phonesSelected() }, data || {})
     }).done(onDone).fail(() => onDone({ status: 'error', message: 'Server connection error.' }));
 }
 
 // Đổi trạng thái: không hỏi lại vì đảo ngược được bằng đúng nút bên cạnh
 $(document).on('click', '#phonesBulkBar button[data-status]', function () {
     const $b = $(this).prop('disabled', true);
+    phonesDeleteIds = null;   // thao tác này luôn theo các dòng đang tick
     phonesBulkPost('update-phones-status', { status: $(this).data('status') }, res => {
         $b.prop('disabled', false);
         if (res?.status === 'success') {
@@ -377,10 +453,7 @@ $(document).on('click', '#phonesBulkBar button[data-status]', function () {
 
 // Xóa: hỏi lại trong modal của app, KHÔNG dùng window.confirm (trình duyệt chặn được nó)
 $(document).on('click', '#phonesBulkDelete', function () {
-    $('#phonesDeleteCount').text(phonesSelected().length);
-    $('#phonesDeleteResult').addClass('d-none').empty();
-    $('#phonesDeleteConfirm').prop('disabled', false);
-    bootstrap.Modal.getOrCreateInstance(document.getElementById('phonesDeleteModal')).show();
+    phonesOpenDelete(phonesSelected(), 'Delete phone numbers');
 });
 
 $(document).on('click', '#phonesDeleteConfirm', function () {
@@ -388,6 +461,7 @@ $(document).on('click', '#phonesDeleteConfirm', function () {
     phonesBulkPost('delete-phones', {}, res => {
         if (res?.status === 'success') {
             bootstrap.Modal.getInstance(document.getElementById('phonesDeleteModal')).hide();
+            phonesDeleteIds = null;
             dtPhones.ajax.reload(null, false);
             phonesBulkRefresh();
         } else {

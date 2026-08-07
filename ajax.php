@@ -217,6 +217,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         case 'get-files-table':
             echo json_encode(getFilesTable());
             break;
+        case 'save-phone':
+            echo json_encode(savePhone());
+            break;
         case 'delete-phones':
             echo json_encode(deletePhonesBulk());
             break;
