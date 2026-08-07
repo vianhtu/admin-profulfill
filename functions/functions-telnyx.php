@@ -149,10 +149,18 @@ function getSMS(): array
 
 function getPhonesTable(): array
 {
-    // Cột sắp xếp được. LUÔN kèm khóa phụ ID ở ORDER BY: số điện thoại/status trùng nhau
-    // nhiều nên thiếu khóa phụ là phân trang nhảy dòng.
-    $allowedCols = ['ID', 'number', 'status'];
-    $params = get_datatable_params($allowedCols, 'ID');
+    // Cột sắp xếp được: khóa DataTables (`data` bên JS) => biểu thức SQL.
+    // Cột hiển thị TÊN thì sort theo tên (phone_carrier.name), không theo id.
+    // `notice` sort theo số tin chưa đọc — dùng alias của hàm đếm, hợp lệ trong ORDER BY
+    // sau GROUP BY.
+    $sortMap = [
+        'ID'      => 'phones.ID',
+        'number'  => 'phones.number',
+        'status'  => 'phones.status',
+        'carrier' => 'phone_carrier.name',
+        'notice'  => 'sms_count',
+    ];
+    $params = get_datatable_params(array_keys($sortMap), 'number');
     if(!checkRoles('view', 'phones_numbers')){
         return [
             "draw"            => $params['draw'],
@@ -226,7 +234,7 @@ function getPhonesTable(): array
         $where
         GROUP BY phones.ID, phones.status, phones.number, phones.team_id,
                  phone_carrier.name, s_latest.text
-        ORDER BY phones.{$params['orderColumn']} {$params['orderDir']}, phones.ID DESC
+        ORDER BY " . build_order_by($params, $sortMap, 'phones.ID') . "
         LIMIT {$params['start']}, {$params['length']}";
     $rs  = $conn->query($sql);
 

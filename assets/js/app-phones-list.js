@@ -21,7 +21,7 @@ function lockedBtn(icon, why) {
 
 // Cột theo THỨ TỰ trong bảng, dùng để dịch giữa chỉ số cột và tên khóa trên URL.
 // Cột nào không sort được thì để null.
-const PHONE_COLS = [null, null, 'number', 'status', null, null, null, null];
+const PHONE_COLS = [null, null, 'number', 'status', 'carrier', 'notice', null, null];
 
 let urlState = null;
 let dtPhones = null;
@@ -126,9 +126,9 @@ function initTable(){
                     }
                 },
                 {
-                    // Carrier
+                    // Carrier — sort theo TÊN nhà mạng (phone_carrier.name), không theo id
                     targets: 4,
-                    orderable: false,
+                    orderable: true,
                     searchable: false,
                     render: function (data, type, full, meta) {
                         return '<span>' + esc(full['carrier']) + '</span>';
@@ -137,7 +137,8 @@ function initTable(){
                 {
                     // notice
                     targets: 5,
-                    orderable: false,
+                    // Sort theo SỐ TIN CHƯA ĐỌC — để dồn số đang có việc lên đầu
+                    orderable: true,
                     searchable: false,
                     render: function (data, type, full, meta) {
                         const n = Number(full['notice']?.['sms_count'] || 0);
