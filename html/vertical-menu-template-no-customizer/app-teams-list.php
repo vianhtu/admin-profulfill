@@ -67,7 +67,19 @@ if (!is_admin()) {
             <div class="modal-body">
                 <div class="input-group">
                     <input type="text" class="form-control font-monospace" id="viewKeyValue" readonly>
-                    <button type="button" class="btn btn-label-primary" id="copyKeyBtn">Copy</button>
+                    <!-- Nút icon cho gọn, cùng khuôn với ô API key ở trang Account -->
+                    <button type="button" class="btn btn-outline-secondary" id="copyKeyBtn"
+                            title="Copy key">
+                        <i class="icon-base ti tabler-copy"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-warning" id="newKeyBtn"
+                            title="Generate new key">
+                        <i class="icon-base ti tabler-refresh"></i>
+                    </button>
+                </div>
+                <div class="form-text" id="viewKeyHint">
+                    The extension authenticates with this key. Generating a new one stops the
+                    old key working immediately.
                 </div>
             </div>
         </div>

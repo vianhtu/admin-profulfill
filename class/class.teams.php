@@ -153,6 +153,37 @@ class Teams
         ];
     }
 
+    /**
+     * Tạo lại khóa API của một team.
+     *
+     * `team.key` là credential mà extension dùng để xác thực (`check_team_key` so
+     * `team.key` + `status = 1`), nên đây là thao tác thu hồi quyền: extension nào còn giữ
+     * khóa cũ sẽ mất hiệu lực NGAY. Chỉ admin — cả menu Teams vốn admin-only.
+     *
+     * @return array{status:string,key?:string,message?:string}
+     */
+    public static function regenerate_key(): array
+    {
+        if (!check_csrf()) {
+            return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
+        }
+        if (!is_admin()) {
+            return ['status' => 'error', 'message' => 'Only an admin can change team keys.'];
+        }
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id <= 0) {
+            return ['status' => 'error', 'message' => 'Missing team.'];
+        }
+        $conn = db();
+        if (!$conn->execute_query('SELECT ID FROM team WHERE ID = ? LIMIT 1', [$id])->fetch_row()) {
+            return ['status' => 'error', 'message' => 'Team not found.'];
+        }
+        $key = bin2hex(random_bytes(16));
+        $conn->execute_query('UPDATE team SET `key` = ? WHERE ID = ?', [$key, $id]);
+        return ['status' => 'success', 'key' => $key,
+                'message' => 'New team key generated. Update the extension with it.'];
+    }
+
     /** Đọc team_id từ request, kèm kiểm quyền + CSRF. Trả lỗi hoặc id hợp lệ. */
     private static function purge_input(): array
     {

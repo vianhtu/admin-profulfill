@@ -90,7 +90,7 @@ function initTable() {
                 targets: -1, title: 'Actions', searchable: false, orderable: false,
                 render: function (d, t, full) {
                     // Quyền theo từng dòng đúng quy ước chung (trang này admin-only nên luôn true)
-                    const viewBtn = `<button type="button" class="btn btn-text-secondary rounded-pill waves-effect btn-icon view-key" data-name="${esc(full['name'])}" data-key="${esc(full['key'])}" title="View key"><i class="icon-base ti tabler-key icon-22px"></i></button>`;
+                    const viewBtn = `<button type="button" class="btn btn-text-secondary rounded-pill waves-effect btn-icon view-key" data-id="${Number(full['id'])}" data-name="${esc(full['name'])}" data-key="${esc(full['key'])}" title="View key"><i class="icon-base ti tabler-key icon-22px"></i></button>`;
                     const editBtn = full['can_edit']
                         ? `<button type="button" class="btn btn-text-secondary rounded-pill waves-effect btn-icon edit-team" data-id="${full['id']}" data-name="${esc(full['name'])}" data-status="${full['status']}" title="Edit"><i class="icon-base ti tabler-edit icon-22px"></i></button>`
                         : lockedBtn('tabler-edit', 'You cannot edit this team');
@@ -220,22 +220,63 @@ function initTable() {
 }
 
 // --- Xem key của team (credential extension) ---
+const KEY_HINT = 'The extension authenticates with this key. Generating a new one stops the '
+    + 'old key working immediately.';
+
 $(document).on('click', '.view-key', function () {
     $('#viewKeyTeamName').text(String($(this).data('name') ?? ''));
     $('#viewKeyValue').val(String($(this).data('key') ?? ''));
+    // Nhớ team đang mở để nút tạo key mới biết gửi id nào
+    $('#viewKeyModal').data('id', parseInt($(this).data('id'), 10) || 0);
+    $('#viewKeyHint').removeClass('text-danger text-success').text(KEY_HINT);
     bootstrap.Modal.getOrCreateInstance(document.getElementById('viewKeyModal')).show();
 });
 
 $(document).on('click', '#copyKeyBtn', function () {
-    const $btn = $(this);
+    const $i = $(this).find('i');
     const key = $('#viewKeyValue').val();
     navigator.clipboard?.writeText(key).then(() => {
-        $btn.text('Copied!');
-        setTimeout(() => $btn.text('Copy'), 1500);
+        // Nút chỉ có icon -> báo bằng cách đổi icon, không đổi chữ
+        $i.attr('class', 'icon-base ti tabler-check');
+        setTimeout(() => $i.attr('class', 'icon-base ti tabler-copy'), 1500);
     }).catch(() => {
         // Fallback: bôi đen sẵn cho user tự Ctrl+C (clipboard API cần HTTPS)
         $('#viewKeyValue').trigger('select');
     });
+});
+
+// Tạo key mới: thu hồi key cũ NGAY, extension đang chạy sẽ hỏng tới khi được cập nhật ->
+// phải hỏi trước, và đây là thao tác không lấy lại được.
+$(document).on('click', '#newKeyBtn', function () {
+    const id = $('#viewKeyModal').data('id');
+    const ten = $('#viewKeyTeamName').text();
+    if (!id || !window.confirm('Generate a new key for "' + ten + '"? The extension will stop '
+        + 'working with the old key immediately.')) {
+        return;
+    }
+    const $btn = $(this).prop('disabled', true);
+    $.ajax({
+        url: '../../ajax.php?action=regenerate-team-key',
+        type: 'POST',
+        dataType: 'json',
+        data: { id: id, csrf_token: window.csrfToken }
+    }).done(function (res) {
+        if (res?.status === 'success') {
+            $('#viewKeyValue').val(res.key);
+            $('#viewKeyHint').removeClass('text-danger').addClass('text-success').text(res.message);
+            // Nút View key của dòng đó vẫn giữ key CŨ trong data-key -> vẽ lại bảng,
+            // nếu không lần mở sau sẽ hiện key đã hết hiệu lực.
+            if (dtTeams) {
+                dtTeams.ajax.reload(null, false);
+            }
+        } else {
+            $('#viewKeyHint').removeClass('text-success').addClass('text-danger')
+                .text(res?.message || 'Failed to generate a new key.');
+        }
+    }).fail(function () {
+        $('#viewKeyHint').removeClass('text-success').addClass('text-danger')
+            .text('Server connection error.');
+    }).always(() => $btn.prop('disabled', false));
 });
 
 // --- Add/Edit qua offcanvas ---

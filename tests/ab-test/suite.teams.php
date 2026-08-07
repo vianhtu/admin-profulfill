@@ -325,4 +325,16 @@ return function (AbRunner $r): void {
         $html = (string)ob_get_clean();
         return str_contains($html, 'menu=teams');
     })->allow('ADMIN');
+
+    // Doi khoa API cua team: chi admin (menu Teams von admin-only)
+    $r->add('Teams — key', 'Tạo lại khóa API của team', function ($a, $fx) {
+        $cu = (string)$fx->conn->query('SELECT `key` FROM team WHERE ID = 3')->fetch_row()[0];
+        $_POST = ['csrf_token' => 'ABTEST', 'id' => 3];
+        $res = Teams::regenerate_key();
+        $now = (string)$fx->conn->query('SELECT `key` FROM team WHERE ID = 3')->fetch_row()[0];
+        // Team THẬT -> trả key cũ về ngay trong cùng phép thử
+        $fx->conn->execute_query('UPDATE team SET `key` = ? WHERE ID = 3', [$cu]);
+        return (($res['status'] ?? '') === 'success' && strlen($now) === 32 && $now !== $cu)
+            ? $res : ['status' => 'error', 'message' => 'key không đổi'];
+    })->allow('ADMIN', 'SUPER');
 };

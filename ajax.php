@@ -232,6 +232,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         case 'purge-team':
             echo json_encode(Teams::purge_team());
             break;
+        case 'regenerate-team-key':
+            echo json_encode(Teams::regenerate_key());
+            break;
         case 'merge-team':
             echo json_encode(Teams::merge_team());
             break;

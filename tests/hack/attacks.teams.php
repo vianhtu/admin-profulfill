@@ -254,4 +254,30 @@ return function (HackRunner $h): void {
                 && str_contains($js, 'data-key="${esc(full[\'key\'])}"');
             return ['breach' => !$ok, 'note' => 'data-name/data-key chưa bọc esc() -> thoát được thuộc tính HTML'];
         });
+
+    // ---------- Doi khoa API cua team ----------
+    // team.key la credential extension (check_team_key so key + status=1). Doi duoc key cua
+    // team khac = vua chiem quyen day du lieu, vua lam extension cua ho chet -> DoS.
+    $h->attack('Teams', 'Doi khoa API cua team khac', 'MGR_OUT', function ($atk, $fx) {
+        $cu = (string)$fx->conn->query('SELECT `key` FROM team WHERE ID = 1')->fetch_row()[0];
+        $_POST = ['csrf_token' => $_SESSION['csrf_token'], 'id' => 1];
+        Teams::regenerate_key();
+        $now = (string)$fx->conn->query('SELECT `key` FROM team WHERE ID = 1')->fetch_row()[0];
+        if ($now !== $cu) {   // team THAT -> tra key cu ve ngay
+            $fx->conn->execute_query('UPDATE team SET `key` = ? WHERE ID = 1', [$cu]);
+        }
+        return ['breach' => $now !== $cu, 'note' => 'Doi duoc key cua team 1'];
+    }, 'NGHIEM TRONG');
+
+    $h->attack('Teams', 'Doi khoa API bang CSRF (khong biet token)', 'MGR_OUT',
+        function ($atk, $fx) {
+            $cu = (string)$fx->conn->query('SELECT `key` FROM team WHERE ID = 1')->fetch_row()[0];
+            $_POST = ['csrf_token' => 'DOAN-BUA', 'id' => 1];
+            Teams::regenerate_key();
+            $now = (string)$fx->conn->query('SELECT `key` FROM team WHERE ID = 1')->fetch_row()[0];
+            if ($now !== $cu) {
+                $fx->conn->execute_query('UPDATE team SET `key` = ? WHERE ID = 1', [$cu]);
+            }
+            return ['breach' => $now !== $cu, 'note' => 'Doi duoc key ma khong co CSRF token'];
+        }, 'NGHIEM TRONG');
 };
