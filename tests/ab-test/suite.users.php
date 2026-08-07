@@ -396,17 +396,25 @@ return function (AbRunner $r): void {
         return $fx->conn->query("SELECT ID FROM authors WHERE ID = $id")->fetch_row() === null;
     })->allow();
 
-    $r->add('Users — xóa', 'Liên kết account KHÔNG chặn xóa (tự gỡ)', function ($a, $fx) {
-        $id  = $fx->new_user((int)$a->team);
-        $acc = $fx->new_account((int)$a->team, $id);
-        $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$id]];
+    // Luật ĐÃ ĐỔI 06/08/2026: liên kết account không còn "tự gỡ" mà phải BÀN GIAO —
+    // account sàn không còn ai phụ trách là mất đường vào nó. Ca này nay đo: bàn giao
+    // xong thì xóa được, và liên kết phải nằm ở NGƯỜI NHẬN chứ không biến mất.
+    $r->add('Users — xóa', 'Bàn giao liên kết account rồi xóa được', function ($a, $fx) {
+        $id   = $fx->new_user((int)$a->team);
+        $nhan = $fx->new_user((int)$a->team);
+        $acc  = $fx->new_account((int)$a->team, $id);
+        $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$id], 'transfer_to' => (string)$nhan];
         $res = Users::delete_users();
         if (($res['status'] ?? '') === 'error') {
             return $res;
         }
-        $links = (int)$fx->conn->query(
+        $conCu = (int)$fx->conn->query(
             "SELECT COUNT(*) FROM accounts_authors WHERE author_id = $id")->fetch_row()[0];
-        return $links === 0 ? $res : ['status' => 'error', 'message' => "còn $links liên kết"];
+        $sangMoi = (int)$fx->conn->query(
+            "SELECT COUNT(*) FROM accounts_authors WHERE author_id = $nhan")->fetch_row()[0];
+        return ($conCu === 0 && $sangMoi > 0)
+            ? $res
+            : ['status' => 'error', 'message' => "cũ=$conCu mới=$sangMoi"];
     })->allow('ADMIN', 'MGR_T1', 'MGR_T2');
 
     // Dọn tham chiếu còn lại: file không ai dùng thì xóa, file đang dùng thì GIỮ và chỉ
@@ -419,7 +427,10 @@ return function (AbRunner $r): void {
         $fx->conn->execute_query('UPDATE files SET user_id = ? WHERE ID IN (?, ?)', [$id, $orphan, $inUse]);
         $fx->conn->execute_query('INSERT IGNORE INTO accounts_files (account_id, file_id) VALUES (?, ?)', [$acc, $inUse]);
 
-        $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$id]];
+        // Ca này đo luật FILE, nhưng user có liên kết account nên phải kèm người nhận —
+        // nếu không sẽ bị chốt bàn giao chặn trước khi tới được phần file.
+        $nhan = $fx->new_user((int)$a->team);
+        $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$id], 'transfer_to' => (string)$nhan];
         $res = Users::delete_users();
         if (($res['status'] ?? '') === 'error') {
             return $res;
