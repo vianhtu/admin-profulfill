@@ -437,6 +437,10 @@ function savePhone(): array
  */
 function getPhoneMessages(): array
 {
+    // Hàm này GHI (đánh dấu đã đọc) nên phải có CSRF, không còn là endpoint chỉ đọc nữa.
+    if (!check_csrf()) {
+        return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
+    }
     if (!checkRoles('view', 'phones_numbers')) {
         return ['status' => 'error', 'message' => 'You do not have permission to view messages.'];
     }
@@ -461,5 +465,14 @@ function getPhoneMessages(): array
             'date'   => (string)$r['date'],
         ];
     }
-    return ['status' => 'success', 'number' => $number, 'messages' => $out];
+    // ĐÁNH DẤU ĐÃ ĐỌC sau khi đã lấy dữ liệu: mở ra xem rồi thì huy hiệu đỏ phải tắt.
+    // Đọc trước rồi mới cập nhật, nên danh sách trả về vẫn giữ trạng thái CŨ — modal còn tô
+    // vàng đúng những tin vừa mới là chưa đọc. `viewed` là giá trị đã có sẵn trong dữ liệu
+    // (di sản, chưa code nào dùng); dùng lại thay vì đẻ thêm một trạng thái mới.
+    $conn->execute_query(
+        "UPDATE sms SET status = 'viewed' WHERE phone_id = ? AND status = 'pending'", [$id]);
+    $daDanhDau = $conn->affected_rows;
+
+    return ['status' => 'success', 'number' => $number, 'messages' => $out,
+            'marked_read' => $daDanhDau];
 }

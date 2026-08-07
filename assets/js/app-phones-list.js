@@ -365,6 +365,11 @@ $(document).on('click', '.phone-notices', function () {
                     <td class="text-nowrap">${esc(fmtSmsDate(m.date))}</td></tr>`).join('')
                 : '<tr><td colspan="3" class="text-center text-body-secondary">No messages yet.</td></tr>');
             $('#phoneSmsWrap').removeClass('d-none');
+            // Đã đọc thì huy hiệu đỏ phải tắt -> vẽ lại bảng. Chỉ nạp lại khi thật sự có
+            // tin vừa chuyển sang đã đọc, tránh gọi thừa mỗi lần mở modal.
+            if (Number(res.marked_read || 0) > 0) {
+                dtPhones.ajax.reload(null, false);
+            }
         })
         .fail(() => {
             $('#phoneSmsLoading').addClass('d-none');
