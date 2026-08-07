@@ -98,12 +98,17 @@ function initTable(){
                     searchable: true,
                     responsivePriority: 3,
                     render: function (data, type, full, meta) {
-                        return '<div class="d-flex flex-column">' +
+                        // max-width BẮT BUỘC: nội dung SMS là chuỗi dài không có chỗ ngắt,
+                        // mà table-layout:auto sẽ cho ô này chiếm hết chỗ và bóp 4 cột cuối
+                        // (Carriers/Notices/Accounts/Actions) về 0px. `text-truncate` một
+                        // mình không cứu được — nó cần một mốc bề rộng mới cắt được.
+                        return '<div class="d-flex flex-column" style="max-width:260px">' +
                             '<a href="index.php?menu=phones_sms&id=' + Number(full['id']) +
                             '" class="text-heading text-truncate">' +
                             '<span class="fw-medium">' + esc(full['number']) + '</span>' +
                             '</a>' +
-                            '<small class="text-truncate">' + esc(full['latest_sms_text']) + '</small>' +
+                            '<small class="text-truncate" title="' + esc(full['latest_sms_text']) +
+                            '">' + esc(full['latest_sms_text']) + '</small>' +
                             '</div>';
                     }
                 },
