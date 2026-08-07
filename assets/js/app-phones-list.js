@@ -1,8 +1,30 @@
 /**
- * Page User List
+ * Page Phones — Numbers
  */
 
 'use strict';
+
+// Escape MỌI field free-text trước khi nhét vào HTML. Ở trang này nguy hiểm hơn các trang
+// khác: `latest_sms_text` là nội dung TIN NHẮN ĐẾN, tức là do bất kỳ ai nhắn tới số đó soạn
+// ra — nhét thẳng vào HTML là stored XSS mà kẻ tấn công không cần tài khoản nào.
+function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// Nút LẺ ở cột Actions: thiếu quyền/chưa có chức năng thì KHÓA kèm lý do, không ẩn —
+// ẩn làm các nút còn lại xô lệch giữa các dòng.
+function lockedBtn(icon, why) {
+    return `<button type="button" class="btn btn-text-secondary rounded-pill btn-icon" disabled` +
+        ` title="${esc(why)}"><i class="icon-base ti ${icon} icon-22px"></i></button>`;
+}
+
+// Cột theo THỨ TỰ trong bảng, dùng để dịch giữa chỉ số cột và tên khóa trên URL.
+// Cột nào không sort được thì để null.
+const PHONE_COLS = [null, null, 'number', 'status', null, null, null, null];
+
+let urlState = null;
+let dtPhones = null;
 
 async function init() {
     initTable();
@@ -15,11 +37,14 @@ function initTable(){
         suspend: { title: 'suspend', class: 'bg-label-danger' }
     }
 
+    // Đọc tham số URL TRƯỚC khi dựng bảng rồi nhét vào config, để bảng không phải vẽ hai lần
+    urlState = dtUrlState({}, 10);
+
     // Variable declaration for table
-    const dt_user_table = document.querySelector('.datatables-users');
+    const dt_user_table = document.querySelector('.datatables-phones');
     // Users datatable
     if (dt_user_table) {
-        const dt_user = new DataTable(dt_user_table, {
+        const dt_user = dtPhones = new DataTable(dt_user_table, {
             serverSide: true,
             processing: true,
             ajax: {
@@ -73,12 +98,12 @@ function initTable(){
                     searchable: true,
                     responsivePriority: 3,
                     render: function (data, type, full, meta) {
-                        var name = full['number'];
                         return '<div class="d-flex flex-column">' +
-                            '<a href="index.php?menu=phones_sms&id='+full['id']+'" class="text-heading text-truncate">' +
-                            '<span class="fw-medium">' + name + '</span>' +
+                            '<a href="index.php?menu=phones_sms&id=' + Number(full['id']) +
+                            '" class="text-heading text-truncate">' +
+                            '<span class="fw-medium">' + esc(full['number']) + '</span>' +
                             '</a>' +
-                            '<small>'+ full['latest_sms_text'] +'</small>' +
+                            '<small class="text-truncate">' + esc(full['latest_sms_text']) + '</small>' +
                             '</div>';
                     }
                 },
@@ -88,14 +113,11 @@ function initTable(){
                     orderable: true,
                     searchable: false,
                     render: function (data, type, full, meta) {
-                        const status = full['status'];
-                        return (
-                            '<span class="file-status badge ' +
-                            statusObj[status].class +
-                            '" text-capitalized>' +
-                            statusObj[status].title +
-                            '</span>'
-                        );
+                        // Giá trị lạ (schema đổi, dữ liệu bẩn) thì statusObj[status] là
+                        // undefined -> bản cũ ném lỗi và bảng chết giữa chừng.
+                        const st = statusObj[full['status']]
+                            || { title: full['status'] || '—', class: 'bg-label-secondary' };
+                        return '<span class="badge ' + st.class + '">' + esc(st.title) + '</span>';
                     }
                 },
                 {
@@ -104,8 +126,7 @@ function initTable(){
                     orderable: false,
                     searchable: false,
                     render: function (data, type, full, meta) {
-                        const carrier = full['carrier'];
-                        return '<span>' + carrier + '</span>';
+                        return '<span>' + esc(full['carrier']) + '</span>';
                     }
                 },
                 {
@@ -118,7 +139,7 @@ function initTable(){
                         return '<div class="position-relative d-inline-block">' +
                             '  <i class="icon-base ti tabler-mail icon-22px"></i>' +
                             '  <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">' +
-                                 notice['sms_count'] +
+                                 Number(notice['sms_count'] || 0) +
                             '  </span>' +
                             '</div>';
                     }
@@ -134,21 +155,26 @@ function initTable(){
                     }
                 },
                 {
-                    targets: 7,
+                    // -1 = cột CUỐI. Dùng chỉ số tuyệt đối (7) sẽ trỏ nhầm ngay khi thêm
+                    // hoặc bớt một cột — mọi trang chuẩn đều dùng -1.
+                    targets: -1,
                     title: 'Actions',
                     searchable: false,
                     orderable: false,
                     render: (data, type, full, meta) => {
-                        return `
-                          <div class="d-flex align-items-center">
-                            <a href="javascript:;" class="btn btn-text-secondary rounded-pill waves-effect btn-icon">
-                              <i class="icon-base ti tabler-edit icon-22px"></i>
-                            </a>
-                            <a href="javascript:;" data-id="${full['id']}" class="btn btn-text-secondary rounded-pill waves-effect btn-icon delete-record">
-                              <i class="icon-base ti tabler-trash icon-22px"></i>
-                            </a>
-                          </div>
-                        `;
+                        // Trước đây hai nút này luôn hiện nhưng KHÔNG nối vào đâu cả: Edit
+                        // không có handler, Delete không có endpoint. Nút bấm được mà không
+                        // xảy ra gì là tệ hơn nút khóa. Dựng từ cờ theo dòng như mọi trang.
+                        const smsBtn = `<a href="index.php?menu=phones_sms&id=${Number(full['id'])}"` +
+                            ` class="btn btn-text-secondary rounded-pill waves-effect btn-icon"` +
+                            ` title="View messages"><i class="icon-base ti tabler-message icon-22px"></i></a>`;
+                        const editBtn = full['can_edit']
+                            ? `<button type="button" class="btn btn-text-secondary rounded-pill waves-effect btn-icon edit-phone" data-id="${Number(full['id'])}" title="Edit"><i class="icon-base ti tabler-edit icon-22px"></i></button>`
+                            : lockedBtn('tabler-edit', 'Phone numbers come from Telnyx and cannot be edited here.');
+                        const delBtn = full['can_delete']
+                            ? `<button type="button" class="btn btn-text-danger rounded-pill waves-effect btn-icon delete-phone" data-id="${Number(full['id'])}" title="Delete"><i class="icon-base ti tabler-trash icon-22px"></i></button>`
+                            : lockedBtn('tabler-trash', 'Releasing a number must be done in Telnyx — deleting it here would keep billing it.');
+                        return `<div class="d-inline-block text-nowrap">${smsBtn}${editBtn}${delBtn}</div>`;
                     }
                 }
             ],
@@ -157,6 +183,8 @@ function initTable(){
                 selector: 'td:nth-child(2)'
             },
             order: [[2, 'desc']],
+            // Trạng thái xem (sort/trang/số dòng/tìm kiếm) phải nằm trên URL như mọi bảng khác
+            ...urlState.tableOptions(PHONE_COLS),
             layout: {
                 topStart: {
                     rowClass: 'row m-3 my-0 justify-content-between',
@@ -261,6 +289,7 @@ function initTable(){
     // ? setTimeout used for user-list table initialization
     setTimeout(() => {
         const elementsToModify = [
+            { selector: '.dt-buttons', classToRemove: 'btn-group' },
             { selector: '.dt-buttons .btn', classToRemove: 'btn-secondary' },
             { selector: '.dt-search .form-control', classToRemove: 'form-control-sm' },
             { selector: '.dt-length .form-select', classToRemove: 'form-select-sm', classToAdd: 'ms-0' },
@@ -286,6 +315,13 @@ function initTable(){
                 }
             });
         });
+        // Ô chọn số dòng/trang bọc select2 cho khớp các trang khác
+        const $len = $('.dt-length select');
+        if ($len.length && !$len.hasClass('select2-hidden-accessible')) {
+            $len.closest('.dt-length').css('min-width', '7rem');
+            $len.select2({ minimumResultsForSearch: Infinity, width: '100%' });
+        }
+        urlState.bind(dtPhones, PHONE_COLS);
     }, 100);
 }
 document.addEventListener('DOMContentLoaded', function (e) {

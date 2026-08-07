@@ -141,8 +141,10 @@ function getSMS(): array
 
 function getPhonesTable(): array
 {
+    // Cột sắp xếp được. LUÔN kèm khóa phụ ID ở ORDER BY: số điện thoại/status trùng nhau
+    // nhiều nên thiếu khóa phụ là phân trang nhảy dòng.
     $allowedCols = ['ID', 'number', 'status'];
-    $params = get_datatable_params($allowedCols);
+    $params = get_datatable_params($allowedCols, 'ID');
     if(!checkRoles('view', 'phones_numbers')){
         return [
             "draw"            => $params['draw'],
@@ -158,14 +160,14 @@ function getPhonesTable(): array
         $searchEsc      = $conn->real_escape_string($params['searchValue']);
         $whereClauses[] = "phones.number LIKE '%$searchEsc%'";
     }
-    // team
+    // PHẠM VI THEO TEAM. Bản cũ viết `if($teamId)` nên tài khoản có team_id = 0 rơi vào
+    // nhánh KHÔNG lọc gì -> thấy số điện thoại của MỌI team. Nay non-admin luôn bị ràng,
+    // team_id = 0 thì chỉ thấy đúng nhóm team_id = 0 chứ không thấy hết.
     $totalTeam = '';
-    if(!is_admin()){
-        $teamId = $_SESSION['auth']['team'] ?? null;
-        if($teamId){
-            $whereClauses[] = "phones.team_id = $teamId";
-            $totalTeam = "WHERE phones.team_id = $teamId";
-        }
+    if (!is_admin()) {
+        $teamId = (int)($_SESSION['auth']['team'] ?? 0);
+        $whereClauses[] = "phones.team_id = $teamId";
+        $totalTeam = "WHERE phones.team_id = $teamId";
     }
 
     // Tổng số bản ghi
@@ -209,7 +211,7 @@ function getPhonesTable(): array
         $join
         $where
         GROUP BY phones.ID, phones.status, phones.number, phone_carrier.name, s_latest.text
-        ORDER BY phones.{$params['orderColumn']} {$params['orderDir']}
+        ORDER BY phones.{$params['orderColumn']} {$params['orderDir']}, phones.ID DESC
         LIMIT {$params['start']}, {$params['length']}";
     $rs  = $conn->query($sql);
 
@@ -226,6 +228,11 @@ function getPhonesTable(): array
             ],
             'latest_sms_text' => $row['latest_sms_text'],
             "account" => '',
+            // Cờ quyền theo TỪNG DÒNG đúng quy ước chung. Chưa có endpoint sửa/xóa số điện
+            // thoại nào, nên hai nút này luôn khóa kèm lý do — thà nói thẳng còn hơn để nút
+            // trông bấm được mà không làm gì (xem app-phones-list.js).
+            'can_edit'   => false,
+            'can_delete' => false,
         ];
     }
 
