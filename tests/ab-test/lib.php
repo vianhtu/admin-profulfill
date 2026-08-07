@@ -498,7 +498,11 @@ function ab_render(string $fragment, array $get = []): string
 function ab_snapshot_authors(): array
 {
     $snap = [];
-    $rs = db()->query('SELECT ID, username, email, level, team_id, status, wage, insurance
+    // `pass` NẰM TRONG DANH SÁCH: hash mật khẩu bị ghi đè thì không có đường nào tính
+    // ngược lại được — canary giữ hash cũ chính là bản sao lưu duy nhất. Đã dính
+    // 06/08/2026: một ca gửi 'password' => 'zzabzzab' lên dòng của chính actor và chỉ
+    // trả lại email -> chủ tài khoản fox1990 không đăng nhập được nữa.
+    $rs = db()->query('SELECT ID, username, email, level, team_id, status, wage, insurance, pass
                        FROM authors');
     while ($r = $rs->fetch_assoc()) {
         $snap[(int)$r['ID']] = $r;
@@ -513,25 +517,26 @@ function ab_verify_authors(array $snap): array
     $loi  = [];
     foreach ($snap as $id => $cu) {
         $now = $conn->execute_query(
-            'SELECT ID, username, email, level, team_id, status, wage, insurance
+            'SELECT ID, username, email, level, team_id, status, wage, insurance, pass
              FROM authors WHERE ID = ? LIMIT 1', [$id])->fetch_assoc();
         if (!$now) {
             $loi[] = "authors.$id ({$cu['username']}) đã BỊ XÓA — không tự dựng lại được";
             continue;
         }
         $lech = [];
-        foreach (['username', 'email', 'level', 'team_id', 'status', 'wage', 'insurance'] as $c) {
+        foreach (['username', 'email', 'level', 'team_id', 'status', 'wage', 'insurance', 'pass'] as $c) {
             if ((string)$now[$c] !== (string)$cu[$c]) {
-                $lech[] = "$c: {$cu[$c]} -> {$now[$c]}";
+                // Không in hash ra màn hình, chỉ nói là đã đổi
+                $lech[] = $c === 'pass' ? 'pass: MẬT KHẨU BỊ GHI ĐÈ' : "$c: {$cu[$c]} -> {$now[$c]}";
             }
         }
         if ($lech) {
             $loi[] = "authors.$id ({$cu['username']}) bị sửa — " . implode(', ', $lech);
             $conn->execute_query(
                 'UPDATE authors SET username = ?, email = ?, level = ?, team_id = ?,
-                        status = ?, wage = ?, insurance = ? WHERE ID = ?',
+                        status = ?, wage = ?, insurance = ?, pass = ? WHERE ID = ?',
                 [$cu['username'], $cu['email'], $cu['level'], $cu['team_id'],
-                 $cu['status'], $cu['wage'], $cu['insurance'], $id]);
+                 $cu['status'], $cu['wage'], $cu['insurance'], $cu['pass'], $id]);
         }
     }
     return $loi;

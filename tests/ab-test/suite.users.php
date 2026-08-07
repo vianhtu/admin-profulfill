@@ -486,8 +486,11 @@ return function (AbRunner $r): void {
     // chính mình -> phải mở cho MỌI cấp và KHÔNG đòi role `edit`. Bù lại, 4 trường tự ban
     // phát cho bản thân được (role / team / status / lương) phải bị chặn.
     $r->add('Users — tự sửa mình', 'Đổi email + mật khẩu của chính mình', function ($a, $fx) {
+        // `pass` phải nằm trong bản chụp: ca này gửi mật khẩu mới lên dòng của CHÍNH ACTOR,
+        // mà actor mượn author có thật. Ghi đè hash rồi không trả lại = khoá luôn chủ tài
+        // khoản ra ngoài, và hash cũ thì không tính ngược được (đã dính 06/08/2026).
         $me = $fx->conn->execute_query(
-            'SELECT username, email, level, team_id, status FROM authors WHERE ID = ? LIMIT 1',
+            'SELECT username, email, level, team_id, status, pass FROM authors WHERE ID = ? LIMIT 1',
             [$a->uid])->fetch_assoc();
         $moi = 'zzabself' . bin2hex(random_bytes(3)) . '@zzab.test';
         $_POST = ['csrf_token' => 'ABTEST', 'id' => $a->uid, 'username' => $me['username'],
@@ -496,8 +499,9 @@ return function (AbRunner $r): void {
         $res = User::save_user();
         $now = (string)$fx->conn->execute_query(
             'SELECT email FROM authors WHERE ID = ?', [$a->uid])->fetch_row()[0];
-        // Trả email cũ về ngay: đây là tài khoản THẬT, không được để lại dấu vết
-        $fx->conn->execute_query('UPDATE authors SET email = ? WHERE ID = ?', [$me['email'], $a->uid]);
+        // Trả email VÀ hash mật khẩu cũ về ngay: đây là tài khoản THẬT
+        $fx->conn->execute_query('UPDATE authors SET email = ?, pass = ? WHERE ID = ?',
+            [$me['email'], $me['pass'], $a->uid]);
         return $now === $moi ? $res : ['status' => 'error', 'message' => 'DB không đổi'];
     })->allow('ADMIN', 'SUPER', 'MGR_T1', 'MGR_T1_V', 'MGR_T2', 'USR_T1', 'USR_T1_V',
               'USR_T2', 'USR_T3', 'NOROLE');
