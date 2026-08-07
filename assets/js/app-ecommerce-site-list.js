@@ -60,7 +60,7 @@ function initSiteTable() {
             { data: 'id' }
         ],
         columnDefs: [
-            { className: 'control', searchable: false, orderable: false, responsivePriority: 2, targets: 0, render: () => '' },
+            { className: 'control dtr-control', searchable: false, orderable: false, responsivePriority: 2, targets: 0, render: () => '' },
             {
                 targets: 1, orderable: false, searchable: false, responsivePriority: 3,
                 checkboxes: { selectAllRender: '<input type="checkbox" class="form-check-input">' },

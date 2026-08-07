@@ -69,7 +69,7 @@ function initTable() {
     const iDate   = userPerms.see_salary ? 6 : 5;
 
     const columnDefs = [
-        { className: 'control', searchable: false, orderable: false, responsivePriority: 2, targets: 0, render: () => '' },
+        { className: 'control dtr-control', searchable: false, orderable: false, responsivePriority: 2, targets: 0, render: () => '' },
         {
             targets: 1,
             responsivePriority: 1,

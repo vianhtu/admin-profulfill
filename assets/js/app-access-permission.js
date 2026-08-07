@@ -76,7 +76,7 @@ function initTable() {
             { data: 'id' }
         ],
         columnDefs: [
-            { className: 'control', searchable: false, orderable: false, responsivePriority: 2, targets: 0, render: () => '' },
+            { className: 'control dtr-control', searchable: false, orderable: false, responsivePriority: 2, targets: 0, render: () => '' },
             {
                 targets: 1,
                 render: (d, t, full) => `<span class="text-nowrap text-heading fw-medium">${esc(full['name'])}</span>`

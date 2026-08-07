@@ -61,7 +61,7 @@ function initCategoryTable() {
         ],
         columnDefs: [
             {
-                className: 'control', searchable: false, orderable: false,
+                className: 'control dtr-control', searchable: false, orderable: false,
                 responsivePriority: 2, targets: 0, render: () => ''
             },
             {

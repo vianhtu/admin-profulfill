@@ -112,7 +112,7 @@ function initTable(){
             columnDefs: [
                 {
                     // For Responsive
-                    className: 'control',
+                    className: 'control dtr-control',
                     searchable: false,
                     orderable: false,
                     responsivePriority: 2,
