@@ -299,7 +299,7 @@ class User
             $oldTeam = (int)$current['team_id'];
             $moved = [];
             if ($oldTeam !== $teamId) {
-                $moved = Users::cleanup_after_move($conn, $id, $oldTeam);
+                $moved = Users::cleanup_after_move($conn, $id, $teamId);   // lọc theo team ĐÍCH
             }
             return ['status' => 'success', 'id' => $id] + ($moved ? ['moved' => $moved] : []);
         } catch (\mysqli_sql_exception $e) {

@@ -618,6 +618,34 @@ return function (AbRunner $r): void {
         return $fx->conn->query("SELECT ID FROM authors WHERE ID = $id")->fetch_row() === null;
     })->allow('ADMIN', 'MGR_T1', 'MGR_T2', 'USR_T1', 'USR_T2', 'USR_T3');
 
+    // ---------- Chuyen team: loc theo team DICH ----------
+    // Ban cu loc theo team dang ROI nen chuyen vong A->B->C lam lien ket voi A song sot.
+    // Ca nay dung chinh kich ban do: dua user di mot vong roi kiem con lien ket cheo khong.
+    $r->add('Users — chuyển team', 'Chuyển vòng A->B->C không để sót liên kết account',
+        function ($a, $fx) {
+            $id  = $fx->new_user(1);
+            $acc = $fx->new_account(1, $id);       // account cua team 1
+            $me  = $fx->conn->execute_query(
+                'SELECT username, email, level FROM authors WHERE ID = ? LIMIT 1', [$id])->fetch_assoc();
+            $chuyen = function (int $team) use ($id, $me) {
+                $_POST = ['csrf_token' => 'ABTEST', 'id' => $id, 'username' => $me['username'],
+                    'email' => $me['email'], 'password' => '', 'level' => (int)$me['level'],
+                    'team_id' => $team, 'status' => 2];
+                return User::save_user();
+            };
+            $r1 = $chuyen(2);                       // 1 -> 2
+            if (($r1['status'] ?? '') !== 'success') {
+                return $r1;                         // vai nay khong duoc doi team -> DENY
+            }
+            $chuyen(3);                             // 2 -> 3 (ban cu bo sot lien ket team 1)
+            $cheo = (int)$fx->conn->execute_query(
+                'SELECT COUNT(*) FROM accounts_authors aa
+                 JOIN accounts ac ON ac.ID = aa.account_id
+                 JOIN authors  au ON au.ID = aa.author_id
+                 WHERE aa.author_id = ? AND ac.team_id <> au.team_id', [$id])->fetch_row()[0];
+            return $cheo === 0 ? $r1 : ['status' => 'error', 'message' => "con $cheo lien ket cheo"];
+        })->allow('ADMIN', 'SUPER');   // chi admin doi duoc team
+
     // ---------- Lien ket account: BAN GIAO BAT BUOC (chot 06/08/2026) ----------
     $r->add('Users — xóa', 'CHẶN xóa user còn liên kết ACCOUNT khi chưa bàn giao', function ($a, $fx) {
         $id  = $fx->new_user((int)$a->team);

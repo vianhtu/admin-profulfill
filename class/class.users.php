@@ -413,15 +413,16 @@ class Users
                 // Sản phẩm đi theo tác giả -> đổi luôn tầm nhìn của cả 2 team
                 'products' => (int)$conn->execute_query(
                     'SELECT COUNT(*) FROM posts WHERE author_id = ?', [$id])->fetch_row()[0],
-                // Liên kết tới account của team CŨ sẽ bị gỡ
+                // Liên kết tới account KHÔNG thuộc team đích sẽ bị gỡ — đếm theo đúng
+                // điều kiện mà cleanup_after_move() dùng, nếu không con số hiện ra sẽ dối.
                 'accounts' => (int)$conn->execute_query(
                     'SELECT COUNT(*) FROM accounts_authors aa
                      INNER JOIN accounts ac ON ac.ID = aa.account_id
-                     WHERE aa.author_id = ? AND ac.team_id = ?', [$id, $from])->fetch_row()[0],
-                // Sản phẩm đang trỏ store RIÊNG của team cũ -> sẽ bị gỡ liên kết store
+                     WHERE aa.author_id = ? AND ac.team_id <> ?', [$id, $to])->fetch_row()[0],
+                // Sản phẩm đang trỏ store RIÊNG không thuộc team đích -> gỡ liên kết store
                 'stores'   => (int)$conn->execute_query(
                     'SELECT COUNT(*) FROM posts p INNER JOIN store s ON s.ID = p.store_id
-                     WHERE p.author_id = ? AND s.team_id <> 0 AND s.team_id = ?', [$id, $from])->fetch_row()[0],
+                     WHERE p.author_id = ? AND s.team_id <> 0 AND s.team_id <> ?', [$id, $to])->fetch_row()[0],
             ],
         ];
     }
@@ -438,19 +439,31 @@ class Users
      *
      * @return array{accounts:int,stores:int}
      */
-    public static function cleanup_after_move(mysqli $conn, int $userId, int $from): array
+    public static function cleanup_after_move(mysqli $conn, int $userId, int $to): array
     {
+        // Loc theo team DICH, KHONG theo team dang roi (chot 06/08/2026).
+        //
+        // Ban cu chi go lien ket toi account cua $from, nen chuyen vong A->B->C lam lien ket
+        // voi A song sot qua lan chuyen thu hai — va du lieu that DA dinh: mot user o team 2
+        // van giu account cua team 1. Hoi "co thuoc team dich khong" moi la cau hoi dung:
+        // no dung ke ca khi du lieu da lech san tu truoc.
         $conn->execute_query(
             'DELETE aa FROM accounts_authors aa
              INNER JOIN accounts ac ON ac.ID = aa.account_id
-             WHERE aa.author_id = ? AND ac.team_id = ?', [$userId, $from]);
+             WHERE aa.author_id = ? AND ac.team_id <> ?', [$userId, $to]);
         $accounts = $conn->affected_rows;
 
+        // Store team_id = 0 la dung chung -> moi team deu dung duoc, khong go.
         $conn->execute_query(
             'UPDATE posts p INNER JOIN store s ON s.ID = p.store_id
              SET p.store_id = 0
-             WHERE p.author_id = ? AND s.team_id <> 0 AND s.team_id = ?', [$userId, $from]);
+             WHERE p.author_id = ? AND s.team_id <> 0 AND s.team_id <> ?', [$userId, $to]);
         $stores = $conn->affected_rows;
+
+        // Cau hinh RIENG cua nguoi nay gan voi team cu -> chuyen sang team moi cho khoi treo.
+        // Hom nay options.authors_id toan 0 nen cau nay khong dung gi; de san cho ngay co.
+        $conn->execute_query(
+            'UPDATE options SET team_id = ? WHERE authors_id = ?', [$to, $userId]);
 
         $conn->execute_query('DELETE FROM author_remember_tokens WHERE author_id = ?', [$userId]);
 
