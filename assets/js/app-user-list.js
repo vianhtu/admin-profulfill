@@ -525,6 +525,8 @@ function confirmTeamMove(id, targetTeam) {
             $('#moveUserFrom').text(res.from);
             $('#moveUserTo').text(res.to);
             $('#moveCntProducts').text((res.counts.products || 0).toLocaleString());
+            $('#moveCntAccMoved').text((res.counts.accounts_moved || 0).toLocaleString());
+            $('#moveCntStoreMoved').text((res.counts.stores_moved || 0).toLocaleString());
             $('#moveCntAccounts').text((res.counts.accounts || 0).toLocaleString());
             $('#moveCntStores').text((res.counts.stores || 0).toLocaleString());
 

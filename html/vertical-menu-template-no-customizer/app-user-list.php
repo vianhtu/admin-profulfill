@@ -160,9 +160,20 @@ $can_see_wage  = Users::can_see_salary();
                 </p>
                 <table class="table table-sm mb-4">
                     <tbody>
+                    <!-- Thứ RIÊNG của họ đi theo; thứ còn người ở lại dùng thì giữ lại team cũ -->
                     <tr><td>Products that change team</td><td class="text-end fw-medium" id="moveCntProducts">0</td></tr>
-                    <tr><td>Account links removed</td><td class="text-end fw-medium" id="moveCntAccounts">0</td></tr>
-                    <tr><td>Products unlinked from private stores</td><td class="text-end fw-medium" id="moveCntStores">0</td></tr>
+                    <tr><td>Accounts moved to the new team
+                            <span class="badge bg-label-info ms-2">Moved</span></td>
+                        <td class="text-end fw-medium" id="moveCntAccMoved">0</td></tr>
+                    <tr><td>Stores moved to the new team
+                            <span class="badge bg-label-info ms-2">Moved</span></td>
+                        <td class="text-end fw-medium" id="moveCntStoreMoved">0</td></tr>
+                    <tr><td>Accounts shared with the old team — link removed
+                            <span class="badge bg-label-warning ms-2">Kept behind</span></td>
+                        <td class="text-end fw-medium" id="moveCntAccounts">0</td></tr>
+                    <tr><td>Products unlinked from shared stores
+                            <span class="badge bg-label-warning ms-2">Kept behind</span></td>
+                        <td class="text-end fw-medium" id="moveCntStores">0</td></tr>
                     </tbody>
                 </table>
                 <div class="alert alert-info d-flex mb-0" role="alert">
