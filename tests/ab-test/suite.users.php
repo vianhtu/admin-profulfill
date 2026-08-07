@@ -258,27 +258,68 @@ return function (AbRunner $r): void {
 
     // Chuyển team phải gỡ ràng buộc chỉ đúng với team CŨ, nếu không sản phẩm trỏ store
     // riêng team cũ sẽ không sửa được nữa ("store does not belong to the owner's team")
-    $r->add('Users — chuyển team', 'Gỡ liên kết account + store riêng của team cũ', function ($a, $fx) {
-        $id = $fx->new_user(1);
-        $acc = $fx->new_account(1, $id);
-        $store = $fx->new_store(1);
-        $post = $fx->new_post($id, 'ZZAB-P-MOVE');
-        $fx->conn->query("UPDATE posts SET store_id = $store WHERE ID = $post");
+    // Luật ĐÃ ĐỔI 06/08/2026: tài nguyên CHỈ MÌNH HỌ dùng thì ĐI THEO sang team mới
+    // (trước đây gỡ sạch). Account/store dựng riêng cho user này -> phải thấy team_id đổi,
+    // và liên kết PHẢI CÒN chứ không bị gỡ.
+    $r->add('Users — chuyển team', 'Account + store RIÊNG đi theo sang team mới',
+        function ($a, $fx) {
+            $id = $fx->new_user(1);
+            $acc = $fx->new_account(1, $id);
+            $store = $fx->new_store(1);
+            $post = $fx->new_post($id, 'ZZAB-P-MOVE');
+            $fx->conn->query("UPDATE posts SET store_id = $store WHERE ID = $post");
 
-        $row = $fx->conn->query("SELECT username, email, level FROM authors WHERE ID = $id")->fetch_assoc();
-        $_POST = ['csrf_token' => 'ABTEST', 'id' => $id, 'username' => $row['username'],
-            'email' => $row['email'], 'password' => '', 'level' => (int)$row['level'],
-            'team_id' => 2, 'status' => 2];
-        $res = User::save_user();
-        if (($res['status'] ?? '') === 'error') {
-            return $res;
-        }
-        $links = (int)$fx->conn->query(
-            "SELECT COUNT(*) FROM accounts_authors WHERE author_id = $id AND account_id = $acc")->fetch_row()[0];
-        $storeId = (int)$fx->conn->query("SELECT store_id FROM posts WHERE ID = $post")->fetch_row()[0];
-        return ($links === 0 && $storeId === 0)
-            ? $res : ['status' => 'error', 'message' => "links=$links store_id=$storeId"];
-    })->allow('ADMIN');
+            $row = $fx->conn->query("SELECT username, email, level FROM authors WHERE ID = $id")->fetch_assoc();
+            $_POST = ['csrf_token' => 'ABTEST', 'id' => $id, 'username' => $row['username'],
+                'email' => $row['email'], 'password' => '', 'level' => (int)$row['level'],
+                'team_id' => 2, 'status' => 2];
+            User::save_user();
+            // Đọc lại DB: response trả 'success' cả khi non-admin bị ép về team của họ
+            $teamSau = (int)$fx->conn->query("SELECT team_id FROM authors WHERE ID = $id")->fetch_row()[0];
+            if ($teamSau !== 2) {
+                return false;   // không đổi được team -> DENY
+            }
+            $accTeam   = (int)$fx->conn->query("SELECT team_id FROM accounts WHERE ID = $acc")->fetch_row()[0];
+            $storeTeam = (int)$fx->conn->query("SELECT team_id FROM store WHERE ID = $store")->fetch_row()[0];
+            $links = (int)$fx->conn->query(
+                "SELECT COUNT(*) FROM accounts_authors WHERE author_id = $id AND account_id = $acc")->fetch_row()[0];
+            $storeId = (int)$fx->conn->query("SELECT store_id FROM posts WHERE ID = $post")->fetch_row()[0];
+            return ($accTeam === 2 && $storeTeam === 2 && $links === 1 && $storeId === $store)
+                ? ['status' => 'success']
+                : ['status' => 'error',
+                   'message' => "accTeam=$accTeam storeTeam=$storeTeam links=$links storeId=$storeId"];
+        })->allow('ADMIN', 'SUPER');
+
+    // Vế còn lại: tài nguyên CHIA SẺ với người ở lại thì KHÔNG được kéo đi
+    $r->add('Users — chuyển team', 'Account CHIA SẺ ở lại team cũ, chỉ gỡ liên kết người đi',
+        function ($a, $fx) {
+            $id    = $fx->new_user(1);
+            $oLai  = $fx->new_user(1);          // người ở lại team 1
+            $acc   = $fx->new_account(1, $id);
+            $fx->conn->execute_query(
+                'INSERT IGNORE INTO accounts_authors (account_id, author_id) VALUES (?, ?)',
+                [$acc, $oLai]);
+
+            $row = $fx->conn->query("SELECT username, email, level FROM authors WHERE ID = $id")->fetch_assoc();
+            $_POST = ['csrf_token' => 'ABTEST', 'id' => $id, 'username' => $row['username'],
+                'email' => $row['email'], 'password' => '', 'level' => (int)$row['level'],
+                'team_id' => 2, 'status' => 2];
+            User::save_user();
+            $teamSau = (int)$fx->conn->query("SELECT team_id FROM authors WHERE ID = $id")->fetch_row()[0];
+            if ($teamSau !== 2) {
+                return false;
+            }
+            $accTeam = (int)$fx->conn->query("SELECT team_id FROM accounts WHERE ID = $acc")->fetch_row()[0];
+            $diLink  = (int)$fx->conn->query(
+                "SELECT COUNT(*) FROM accounts_authors WHERE author_id = $id AND account_id = $acc")->fetch_row()[0];
+            $oLaiLink = (int)$fx->conn->query(
+                "SELECT COUNT(*) FROM accounts_authors WHERE author_id = $oLai AND account_id = $acc")->fetch_row()[0];
+            // account phải Ở LẠI team 1, người đi mất liên kết, người ở lại GIỮ NGUYÊN
+            return ($accTeam === 1 && $diLink === 0 && $oLaiLink === 1)
+                ? ['status' => 'success']
+                : ['status' => 'error',
+                   'message' => "accTeam=$accTeam di=$diLink oLai=$oLaiLink"];
+        })->allow('ADMIN', 'SUPER');
 
     // Team đích phải KHÁC team của actor, nếu không "chuyển" là không đổi gì và phép thử
     // tự đạt một cách giả tạo (USR_T3 vốn đã ở team 3).
