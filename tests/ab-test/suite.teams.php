@@ -371,4 +371,28 @@ return function (AbRunner $r): void {
         // ALLOW = sửa được (đổi tên hoặc bật lại Active) -> không ai được phép
         return $sau !== null && ($sau['name'] !== 'ZZABDANGXOA' || (int)$sau['status'] !== 2);
     })->allow();
+
+    // Nut xoa phai KHOA san khi chua du dieu kien — khong de bam roi moi bao loi
+    $r->add('Teams — chốt xóa', 'Nút xóa khóa với team CỦA CHÍNH MÌNH', function ($a, $fx) {
+        $ly = Teams::delete_block_reason((int)$a->team, Teams::STATUS_INACTIVE);
+        // ALLOW = khong co ly do chan -> nut mo -> khong ai duoc phep
+        return $ly === null;
+    })->allow();
+
+    $r->add('Teams — chốt xóa', 'Nút xóa khóa khi team còn Active', function ($a, $fx) {
+        $khac = (int)$a->team === 1 ? 2 : 1;   // team KHAC team cua actor
+        return Teams::delete_block_reason($khac, Teams::STATUS_ACTIVE) === null;
+    })->allow();
+
+    $r->add('Teams — chốt xóa', 'Nút xóa MỞ khi team khác + đã Inactive + có sao lưu',
+        function ($a, $fx) {
+            $khac = (int)$a->team === 1 ? 2 : 1;
+            $ly = Teams::delete_block_reason($khac, Teams::STATUS_INACTIVE);
+            return $ly === null ? ['status' => 'success'] : ['status' => 'error', 'message' => $ly];
+        })->allow('ADMIN', 'SUPER', 'MGR_T1', 'MGR_T1_V', 'MGR_T2', 'USR_T1', 'USR_T1_V',
+                  'USR_T2', 'USR_T3', 'NOROLE');   // hàm thuần, không phụ thuộc vai
+
+    $r->add('Teams — chốt xóa', 'Nút sửa khóa với team đang xóa dở', function ($a, $fx) {
+        return Teams::edit_block_reason(Teams::STATUS_DELETING) === null;
+    })->allow();
 };

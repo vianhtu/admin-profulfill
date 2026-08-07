@@ -93,14 +93,18 @@ function initTable() {
             {
                 targets: -1, title: 'Actions', searchable: false, orderable: false,
                 render: function (d, t, full) {
-                    // Quyền theo từng dòng đúng quy ước chung (trang này admin-only nên luôn true)
+                    // Quyền theo TỪNG DÒNG kèm lý do: team của chính mình / còn Active /
+                    // đang xóa dở đều không xóa được, và mỗi cái có câu giải thích riêng.
                     const viewBtn = `<button type="button" class="btn btn-text-secondary rounded-pill waves-effect btn-icon view-key" data-id="${Number(full['id'])}" data-name="${esc(full['name'])}" data-key="${esc(full['key'])}" title="View key"><i class="icon-base ti tabler-key icon-22px"></i></button>`;
                     const editBtn = full['can_edit']
                         ? `<button type="button" class="btn btn-text-secondary rounded-pill waves-effect btn-icon edit-team" data-id="${full['id']}" data-name="${esc(full['name'])}" data-status="${full['status']}" title="Edit"><i class="icon-base ti tabler-edit icon-22px"></i></button>`
-                        : lockedBtn('tabler-edit', 'You cannot edit this team');
+                        : lockedBtn('tabler-edit',
+                            full['edit_reason'] || 'You cannot edit this team');
                     const deleteBtn = full['can_delete']
                         ? `<button type="button" class="btn btn-text-danger rounded-pill waves-effect btn-icon delete-team" data-id="${full['id']}" data-name="${esc(full['name'])}" title="Delete"><i class="icon-base ti tabler-trash icon-22px"></i></button>`
-                        : lockedBtn('tabler-trash', 'You cannot delete this team');
+                        // Lý do do server tính — nút khóa nói luôn vì sao, khỏi bấm mới biết
+                        : lockedBtn('tabler-trash',
+                            full['delete_reason'] || 'You cannot delete this team');
                     return `<div class="d-inline-block text-nowrap">${viewBtn}${editBtn}${deleteBtn}</div>`;
                 }
             }

@@ -63,6 +63,43 @@ class Teams
     public const STATUS_DELETING = 2;
 
     /**
+     * Vì sao KHÔNG xóa được team này — trả null nếu xóa được.
+     *
+     * Chỉ gồm những điều kiện biết được NGAY Ở TỪNG DÒNG. Ngưỡng khối lượng không nằm ở đây
+     * vì phải đếm dữ liệu của từng team (team lớn nhất hơn 1 triệu dòng) — đếm cho mọi dòng
+     * mỗi lần vẽ bảng là quá đắt, nên chốt đó ở lại trong hộp xác nhận.
+     *
+     * Cùng câu chữ với endpoint để người dùng đọc ở nút khóa và ở thông báo lỗi là một.
+     */
+    public static function delete_block_reason(int $teamId, int $status): ?string
+    {
+        if ($teamId === (int)($_SESSION['auth']['team'] ?? 0)) {
+            return 'You cannot delete the team you belong to.';
+        }
+        if ($status === self::STATUS_ACTIVE) {
+            return 'Deactivate this team first, then delete it. That way its members lose '
+                . 'access before anything is removed.';
+        }
+        $age = self::backup_age_hours();
+        if ($age === null) {
+            return 'No recent database backup was found. Run a backup before deleting a team.';
+        }
+        if ($age > self::BACKUP_MAX_AGE_HOURS) {
+            return 'The latest database backup is ' . round($age)
+                . ' hours old. Run a fresh backup before deleting a team.';
+        }
+        return null;
+    }
+
+    /** Vì sao KHÔNG sửa được team này — trả null nếu sửa được. */
+    public static function edit_block_reason(int $status): ?string
+    {
+        return $status === self::STATUS_DELETING
+            ? 'This team is being deleted. Finish or resume that first.'
+            : null;
+    }
+
+    /**
      * Bản sao lưu gần nhất cách đây bao nhiêu giờ. null = chưa từng sao lưu / không đọc được.
      */
     public static function backup_age_hours(): ?float
@@ -204,10 +241,14 @@ class Teams
                 'key'        => $row['key'],
                 'status'     => (int)$row['status'],
                 'members'    => (int)$row['members'],
-                // Trang admin-only nên quyền mọi dòng như nhau — vẫn trả cờ theo
-                // từng dòng đúng quy ước chung để JS dựng nút từ cờ.
-                'can_edit'   => true,
-                'can_delete' => true,
+                // Cờ theo TỪNG DÒNG: trang này admin-only nhưng điều kiện xóa/sửa khác
+                // nhau giữa các dòng (team của chính mình, team còn Active, team đang xóa
+                // dở). Kèm lý do để nút khóa nói được vì sao, thay vì bấm rồi mới biết.
+                'can_edit'      => ($lyDoSua = self::edit_block_reason((int)$row['status'])) === null,
+                'edit_reason'   => $lyDoSua,
+                'can_delete'    => ($lyDoXoa = self::delete_block_reason(
+                    (int)$row['ID'], (int)$row['status'])) === null,
+                'delete_reason' => $lyDoXoa,
             ];
         }
 
