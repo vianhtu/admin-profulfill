@@ -154,32 +154,10 @@ function initTable() {
                     }
                 }),
                 type: 'column',
-                renderer: function (api, rowIdx, columns) {
-                    const data = columns
-                        .map(function (col) {
-                            return col.title !== ''
-                                ? `<tr data-dt-row="${col.rowIndex}" data-dt-column="${col.columnIndex}">
-                      <td>${col.title}:</td>
-                      <td>${col.data}</td>
-                    </tr>`
-                                : '';
-                        })
-                        .join('');
-
-                    if (data) {
-                        const div = document.createElement('div');
-                        div.classList.add('table-responsive');
-                        const table = document.createElement('table');
-                        div.appendChild(table);
-                        table.classList.add('table');
-                        const tbody = document.createElement('tbody');
-                        tbody.innerHTML = data;
-                        table.appendChild(tbody);
-                        return div;
+                // Bỏ renderer tự viết của template: dưới DataTables 2.1.8 + Responsive 3.0.4 nó
+                    // trả về rỗng, nên bấm '+' chỉ đánh dấu dòng mà không mở ra gì. Bản mặc
+                    // định của Responsive chạy đúng và cũng đã tự bỏ qua cột không có tiêu đề.
                     }
-                    return false;
-                }
-            }
         }
     });
 
