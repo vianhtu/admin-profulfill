@@ -148,6 +148,14 @@ if (!is_admin()) {
                         <i class="icon-base ti tabler-info-circle me-2"></i>
                         <span>Shared data is kept: sites, categories and shared stores stay in place.</span>
                     </div>
+                <!-- Chốt riêng cho XÓA VĨNH VIỄN: quá nhiều dữ liệu, hoặc bản sao lưu đã cũ.
+                     Merge không bị chặn vì nó chuyển dữ liệu chứ không xóa. -->
+                <div class="alert alert-warning d-none" id="deleteTeamPurgeBlock" role="alert">
+                    <div class="d-flex">
+                        <i class="icon-base ti tabler-shield-lock me-2"></i>
+                        <span class="purge-reason"></span>
+                    </div>
+                </div>
 
                     <!-- Sáp nhập: giữ toàn bộ dữ liệu, chỉ đổi chủ sang team khác -->
                     <div id="deleteTeamMergeBox">

@@ -39,6 +39,72 @@ class Teams
     private const PURGE_BUDGET = 20000;
 
     /**
+     * Trần số dòng cho phép xóa VĨNH VIỄN qua giao diện (chốt 07/08/2026).
+     *
+     * Team lớn nhất hiện tại kéo theo ~2,1 triệu dòng: khoảng 107 chặng, trình duyệt phải
+     * mở suốt, và không có undo. Với cỡ đó thì Merge (chuyển sang team khác) hoặc để
+     * Inactive mới là việc đúng — xóa vĩnh viễn chỉ dành cho team rỗng hoặc gần rỗng.
+     */
+    private const PURGE_MAX_ROWS = 50000;
+
+    /** Bản sao lưu phải mới hơn ngần này giờ thì mới cho xóa team. */
+    private const BACKUP_MAX_AGE_HOURS = 24;
+
+    /**
+     * Tệp mốc do `/usr/local/bin/pff-backup.sh` ghi sau mỗi lần sao lưu THÀNH CÔNG.
+     * Không đọc thẳng /var/backups/profulfill vì thư mục đó là 0700 root — cố ý, để dump
+     * không lộ qua PHP. Tệp này chỉ chứa một dấu thời gian.
+     */
+    private const BACKUP_STAMP = '/var/lib/pff/last-backup';
+
+    /** Trạng thái team. `deleting` là trạng thái HỆ THỐNG, không ai chọn tay được. */
+    public const STATUS_INACTIVE = 0;
+    public const STATUS_ACTIVE   = 1;
+    public const STATUS_DELETING = 2;
+
+    /**
+     * Bản sao lưu gần nhất cách đây bao nhiêu giờ. null = chưa từng sao lưu / không đọc được.
+     */
+    public static function backup_age_hours(): ?float
+    {
+        if (!is_readable(self::BACKUP_STAMP)) {
+            return null;
+        }
+        $ts = (int)trim((string)@file_get_contents(self::BACKUP_STAMP));
+        if ($ts <= 0) {
+            return null;
+        }
+        return max(0, time() - $ts) / 3600;
+    }
+
+    /**
+     * Xóa vĩnh viễn có được phép không — dùng CHUNG cho cả lớp UI (hiện lý do, khóa nút)
+     * lẫn endpoint (chặn thật). Hai nơi tự tính riêng là kiểu gì cũng lệch nhau.
+     *
+     * @return array{ok:bool,reason?:string}
+     */
+    public static function purge_allowed(int $total): array
+    {
+        if ($total > self::PURGE_MAX_ROWS) {
+            return ['ok' => false, 'reason' => 'This team still holds '
+                . number_format($total) . ' rows, over the ' . number_format(self::PURGE_MAX_ROWS)
+                . ' limit for deleting from here. Merge it into another team, or leave it '
+                . 'Inactive — its members already lost access.'];
+        }
+        $age = self::backup_age_hours();
+        if ($age === null) {
+            return ['ok' => false, 'reason' => 'No recent database backup was found. '
+                . 'Run a backup before deleting a team — this cannot be undone.'];
+        }
+        if ($age > self::BACKUP_MAX_AGE_HOURS) {
+            return ['ok' => false, 'reason' => 'The latest database backup is '
+                . round($age) . ' hours old. Run a fresh backup before deleting a team — '
+                . 'this cannot be undone.'];
+        }
+        return ['ok' => true];
+    }
+
+    /**
      * Bảng con của ACCOUNT — xóa theo account_id. Bảng/cột không tồn tại sẽ bị bỏ qua
      * (xem col_exists), nên thêm bảng mới vào đây là an toàn kể cả khi chưa có trên DB.
      */
@@ -215,6 +281,7 @@ class Teams
      */
     private static function require_inactive(array $in): ?array
     {
+        // status = 2 (đang xóa dở) KHÔNG bị chặn: phải chạy tiếp được cho xong.
         if (!empty($in['active'])) {
             return ['status' => 'error',
                 'message' => 'Deactivate this team first, then delete it. That way its members lose access '
@@ -224,24 +291,15 @@ class Teams
     }
 
     /**
-     * Đếm trước những gì sẽ bị xóa — dùng để hiện bảng xác nhận và tính tổng cho thanh
-     * tiến trình. Chỉ ĐỌC, không đụng dữ liệu.
+     * Đếm mọi dòng sẽ mất khi xóa team. Dùng CHUNG cho hộp xác nhận và cho chốt chặn ở
+     * endpoint — endpoint đếm lại từ DB chứ không nhận con số client gửi lên.
      *
-     * @return array{status:string,counts?:array,total?:int,name?:string,message?:string}
+     * @return array<string,int>
      */
-    public static function get_purge_preview(): array
+    private static function purge_counts(mysqli $conn, int $id): array
     {
-        $in = self::purge_input();
-        if (isset($in['error'])) {
-            return ['status' => 'error', 'message' => $in['error']];
-        }
-        $id = $in['id'];
-        $conn = db();
-
-        $name = (string)$conn->execute_query('SELECT name FROM team WHERE ID = ?', [$id])->fetch_row()[0];
         $one = fn(string $sql) => (int)$conn->execute_query($sql, [$id])->fetch_row()[0];
-
-        $counts = [
+        return [
             'members'  => $one('SELECT COUNT(*) FROM authors WHERE team_id = ?'),
             'accounts' => $one('SELECT COUNT(*) FROM accounts WHERE team_id = ?'),
             'products' => $one('SELECT COUNT(*) FROM posts p INNER JOIN authors a ON a.ID = p.author_id WHERE a.team_id = ?'),
@@ -262,6 +320,31 @@ class Teams
                 ? $one('SELECT COUNT(*) FROM sms s INNER JOIN phones p ON p.ID = s.phone_id
                         WHERE p.team_id = ?') : 0,
         ];
+    }
+
+    /** Tổng số dòng sẽ mất — dùng cho chốt PURGE_MAX_ROWS. */
+    private static function purge_row_count(mysqli $conn, int $id): int
+    {
+        return array_sum(self::purge_counts($conn, $id));
+    }
+
+    /**
+     * Đếm trước những gì sẽ bị xóa — dùng để hiện bảng xác nhận và tính tổng cho thanh
+     * tiến trình. Chỉ ĐỌC, không đụng dữ liệu.
+     *
+     * @return array{status:string,counts?:array,total?:int,name?:string,message?:string}
+     */
+    public static function get_purge_preview(): array
+    {
+        $in = self::purge_input();
+        if (isset($in['error'])) {
+            return ['status' => 'error', 'message' => $in['error']];
+        }
+        $id = $in['id'];
+        $conn = db();
+
+        $name = (string)$conn->execute_query('SELECT name FROM team WHERE ID = ?', [$id])->fetch_row()[0];
+        $counts = self::purge_counts($conn, $id);
 
         // Team khác để sáp nhập sang (thay vì xóa sạch)
         $targets = [];
@@ -274,10 +357,14 @@ class Teams
             'status'  => 'success',
             'name'    => $name,
             'counts'  => $counts,
-            'total'   => array_sum($counts),
+            'total'   => $tong = array_sum($counts),
             // Team còn Active thì chưa cho xóa/sáp nhập — UI dựa vào cờ này để khóa nút
             'active'  => !empty($in['active']),
             'targets' => $targets,
+            // Chốt xóa vĩnh viễn: khối lượng + tuổi bản sao lưu. UI khóa nút theo đây,
+            // endpoint kiểm LẠI bằng đúng hàm này nên hai nơi không thể lệch.
+            'purge'   => self::purge_allowed($tong),
+            'backup_hours' => self::backup_age_hours(),
         ];
     }
 
@@ -365,6 +452,21 @@ class Teams
         }
         $id = $in['id'];
         $conn = db();
+
+        // Lớp 2: kiểm LẠI khối lượng + bản sao lưu, không tin lớp giao diện.
+        // Đếm lại từ DB chứ không nhận con số client gửi lên.
+        $tong = self::purge_row_count($conn, $id);
+        $cho  = self::purge_allowed($tong);
+        if (!$cho['ok']) {
+            return ['status' => 'error', 'message' => $cho['reason']];
+        }
+
+        // Đánh dấu ĐANG XÓA ngay từ chặng đầu. Không có bước này thì team xóa dở trông y
+        // hệt team Inactive bình thường — không ai biết nó đang nằm giữa chừng. Trạng thái
+        // này cũng khác 1 nên team_is_active() vẫn chặn mọi lối vào như cũ.
+        $conn->execute_query('UPDATE team SET status = ? WHERE ID = ?',
+            [self::STATUS_DELETING, $id]);
+
         $budget = self::PURGE_BUDGET;
         $deleted = 0;
 

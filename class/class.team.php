@@ -43,6 +43,15 @@ class Team
 
         try {
             if ($id > 0) {
+                // Team ĐANG XÓA DỞ (status = 2) thì không cho sửa: câu UPDATE dưới đây ép
+                // status về 0/1, tức là xóa mất dấu "đang dở" — tệ nhất là bật lại Active
+                // giữa chừng, mở cửa cho một team đã mất nửa dữ liệu (chốt 07/08/2026).
+                $dangXoa = $conn->execute_query(
+                    'SELECT status FROM team WHERE ID = ? LIMIT 1', [$id])->fetch_row();
+                if ($dangXoa && (int)$dangXoa[0] === Teams::STATUS_DELETING) {
+                    return ['status' => 'error',
+                        'message' => 'This team is being deleted. Finish or resume that first.'];
+                }
                 // Sửa: chỉ name/status — không đụng tới key
                 $conn->execute_query('UPDATE team SET name = ?, status = ? WHERE ID = ?', [$name, $status, $id]);
                 if ($conn->execute_query('SELECT ID FROM team WHERE ID = ?', [$id])->fetch_row() === null) {

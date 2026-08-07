@@ -337,4 +337,38 @@ return function (AbRunner $r): void {
         return (($res['status'] ?? '') === 'success' && strlen($now) === 32 && $now !== $cu)
             ? $res : ['status' => 'error', 'message' => 'key không đổi'];
     })->allow('ADMIN', 'SUPER');
+
+    // ---------- Chốt xóa vĩnh viễn (07/08/2026) ----------
+    // Ba chốt: quá nhiều dữ liệu / bản sao lưu quá cũ / team đang xóa dở thì không sửa được.
+    $r->add('Teams — chốt xóa', 'CHẶN xóa team vượt ngưỡng khối lượng', function ($a, $fx) {
+        // purge_allowed() là nguồn dùng chung của cả UI lẫn endpoint
+        $ref = new ReflectionMethod('Teams', 'purge_allowed');
+        $ref->setAccessible(true);
+        $qua = $ref->invoke(null, 999999);      // chắc chắn vượt ngưỡng
+        $vua = $ref->invoke(null, 10);          // nhỏ, chỉ còn phụ thuộc bản sao lưu
+        // ALLOW = số khổng lồ vẫn được cho qua -> không ai được phép
+        return !empty($qua['ok']);
+    })->allow();
+
+    $r->add('Teams — chốt xóa', 'Team nhỏ + có sao lưu mới thì cho xóa', function ($a, $fx) {
+        $ref = new ReflectionMethod('Teams', 'purge_allowed');
+        $ref->setAccessible(true);
+        $kq = $ref->invoke(null, 10);
+        return !empty($kq['ok']) ? ['status' => 'success']
+            : ['status' => 'error', 'message' => $kq['reason'] ?? '?'];
+    })->allow('ADMIN', 'SUPER', 'MGR_T1', 'MGR_T1_V', 'MGR_T2', 'USR_T1', 'USR_T1_V',
+              'USR_T2', 'USR_T3', 'NOROLE');   // hàm thuần, không phụ thuộc vai
+
+    $r->add('Teams — chốt xóa', 'KHÔNG sửa được team đang xóa dở', function ($a, $fx) {
+        $fx->conn->execute_query('INSERT INTO team (name, `key`, status) VALUES (?, ?, ?)',
+            ['ZZABDANGXOA', bin2hex(random_bytes(16)), Teams::STATUS_DELETING]);
+        $tid = (int)$fx->conn->insert_id;
+        $_POST = ['csrf_token' => 'ABTEST', 'id' => $tid, 'name' => 'ZZABDOITEN', 'status' => 1];
+        Team::save_team();
+        $sau = $fx->conn->execute_query(
+            'SELECT name, status FROM team WHERE ID = ? LIMIT 1', [$tid])->fetch_assoc();
+        $fx->conn->query("DELETE FROM team WHERE ID = $tid AND name LIKE 'ZZAB%'");
+        // ALLOW = sửa được (đổi tên hoặc bật lại Active) -> không ai được phép
+        return $sau !== null && ($sau['name'] !== 'ZZABDANGXOA' || (int)$sau['status'] !== 2);
+    })->allow();
 };

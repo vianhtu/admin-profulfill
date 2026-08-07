@@ -82,9 +82,13 @@ function initTable() {
             },
             {
                 targets: 3,
+                // status 2 = ĐANG XÓA DỞ. Không có nhãn riêng thì team xóa nửa chừng
+                // trông y hệt team Inactive bình thường, không ai biết nó đang dở.
                 render: (d, t, full) => full['status'] === 1
                     ? '<span class="badge bg-label-success">Active</span>'
-                    : '<span class="badge bg-label-secondary">Inactive</span>'
+                    : (full['status'] === 2
+                        ? '<span class="badge bg-label-danger">Deleting…</span>'
+                        : '<span class="badge bg-label-secondary">Inactive</span>')
             },
             {
                 targets: -1, title: 'Actions', searchable: false, orderable: false,
@@ -411,7 +415,14 @@ function openDeleteTeamModal(id, name) {
             $target.select2({ dropdownParent: $(modalEl), minimumResultsForSearch: Infinity });
         }
         $('#deleteTeamMerge').prop('disabled', !canMerge);
-        $('#deleteTeamConfirm').prop('disabled', false);
+
+        // Xóa VĨNH VIỄN có chốt riêng (khối lượng dữ liệu + tuổi bản sao lưu). Server quyết,
+        // JS chỉ trình bày lại — hai nơi tự tính riêng là kiểu gì cũng lệch. Merge KHÔNG bị
+        // chốt này chặn: nó chuyển dữ liệu chứ không xóa.
+        const purge = res.purge || { ok: true };
+        $('#deleteTeamPurgeBlock').toggleClass('d-none', !!purge.ok)
+            .find('.purge-reason').text(purge.reason || '');
+        $('#deleteTeamConfirm').prop('disabled', !purge.ok);
     }).fail(function () {
         $('#deleteTeamLoading').addClass('d-none');
         $('#deleteTeamProgress').removeClass('d-none');
