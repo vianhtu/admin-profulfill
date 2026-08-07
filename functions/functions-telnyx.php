@@ -188,13 +188,18 @@ function getPhonesTable(): array
         INNER JOIN phone_carrier ON phone_carrier.ID = phones.carrier_id
         LEFT JOIN sms ON sms.phone_id = phones.ID AND sms.status = 'pending'
         LEFT JOIN (
+            -- Tin MỚI NHẤT của mỗi số. Bắt buộc chọn theo MAX(ID) chứ không phải MAX(date):
+            -- hai tin cùng một GIÂY (tin nhắn về theo cụm là chuyện thường) làm bản cũ trả
+            -- NHIỀU dòng cho một số, mà `s_latest.text` lại nằm trong GROUP BY -> số đó hiện
+            -- lặp mấy lần trên bảng, và recordsFiltered đếm một đằng dữ liệu một nẻo.
+            -- ID là khóa chính nên MAX(ID) luôn ra đúng MỘT dòng, và cũng đúng là tin mới nhất.
             SELECT s1.phone_id, s1.text
             FROM sms s1
             INNER JOIN (
-                SELECT phone_id, MAX(date) AS max_date
+                SELECT phone_id, MAX(ID) AS max_id
                 FROM sms
                 GROUP BY phone_id
-            ) m ON m.phone_id = s1.phone_id AND m.max_date = s1.date
+            ) m ON m.phone_id = s1.phone_id AND m.max_id = s1.ID
         ) s_latest ON s_latest.phone_id = phones.ID
     ";
 

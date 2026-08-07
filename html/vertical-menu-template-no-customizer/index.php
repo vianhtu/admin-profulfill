@@ -579,10 +579,33 @@ if (empty($_SESSION['csrf_token'])) {
         }
         dtr.addEventListener('hidden.bs.modal', function () {
           btn.dataset.dtrRelayed = '1';
-          btn.click();
+          // Đợi Bootstrap dọn xong hẳn rồi mới mở lớp phủ tiếp theo. Phát lại NGAY trong
+          // handler 'hidden' làm hai modal chồng lấn: modal mới mở trong lúc Bootstrap còn
+          // đang gỡ `body.modal-open` của modal cũ, nên sổ sách lệch và modal mới ĐÓNG KHÔNG
+          // ĐƯỢC — bấm Delete xong hộp xác nhận kẹt lại, trang khóa cuộn (07/08/2026).
+          setTimeout(function () { btn.click(); }, 200);
         }, { once: true });
         inst.hide();
       }, true);
+
+      /**
+       * Lưới an toàn cho sổ sách modal của Bootstrap.
+       *
+       * Khi hai lớp phủ nối tiếp nhau (modal Details -> form Edit / hộp xác nhận), Bootstrap
+       * có lúc để sót `body.modal-open` và backdrop, làm trang khóa cuộn dù không còn modal
+       * nào hiện. Sau mỗi lần đóng, kiểm lại một lượt: đã sạch thì thôi, còn sót thì dọn.
+       */
+      document.addEventListener('hidden.bs.modal', function () {
+        setTimeout(function () {
+          if (document.querySelector('.modal.show')) {
+            return;   // vẫn còn modal khác đang mở -> để yên
+          }
+          document.querySelectorAll('.modal-backdrop').forEach(function (b) { b.remove(); });
+          document.body.classList.remove('modal-open');
+          document.body.style.removeProperty('overflow');
+          document.body.style.removeProperty('padding-right');
+        }, 250);
+      });
     </script>
 
     <!-- Main JS -->

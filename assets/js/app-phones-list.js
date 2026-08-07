@@ -321,6 +321,13 @@ function initTable(){
             $len.closest('.dt-length').css('min-width', '7rem');
             $len.select2({ minimumResultsForSearch: Infinity, width: '100%' });
         }
+        // Ô Status trong form Edit cũng phải là select2 cho khớp quy ước "mọi select =
+        // select2"; trước đó chỉ ô Team được bọc nên hai ô cạnh nhau trông khác hẳn nhau.
+        const $st = $('#phone-status');
+        if ($st.length && !$st.hasClass('select2-hidden-accessible')) {
+            $st.select2({ dropdownParent: $('#offcanvasPhone'),
+                          minimumResultsForSearch: Infinity, width: '100%' });
+        }
         urlState.bind(dtPhones, PHONE_COLS);
         dtPhones.on('select deselect draw', phonesBulkRefresh);
     }, 100);
