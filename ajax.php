@@ -74,7 +74,12 @@ if (isset($_GET['action']) && isset($_POST['key']) && str_starts_with($_GET['act
 
 // Nếu chưa login hoặc cookie nhớ đăng nhập không hợp lệ → chặn
 if (!is_logged_in() && !attempt_cookie_login()) {
-    if (isset($_GET['action']) && isset($_POST['key'])) {
+    // Key có thể nằm ở POST hoặc QUERY STRING. hookTelnyx() đọc $_GET['key'] (Telnyx gọi
+    // `?action=hook-telnyx&key=<team key>` với thân JSON, nên $_POST luôn rỗng) trong khi
+    // cổng này chỉ nhận $_POST['key'] -> webhook bị 401 và KHÔNG BAO GIỜ chạy. Tin nhắn mới
+    // nhất trong DB là 05/06/2026, đúng khớp với việc đường vào đã chết (phát hiện
+    // 07/08/2026). Nới cổng cho cả hai chỗ; từng handler vẫn tự xác thực key như cũ.
+    if (isset($_GET['action']) && (isset($_POST['key']) || isset($_GET['key']))) {
         ini_set('display_errors', '0');
         ini_set('log_errors', '1');
         ini_set('error_log', __DIR__ . '/php_errors.log');
