@@ -634,6 +634,8 @@ $(document).on('click', '.delete-user', function () {
     $('#deleteUserSummary').addClass('d-none');
     $('#deleteUserTransferBox').addClass('d-none');
     $('#deleteUserOrphanNote').addClass('d-none');
+    $('#deleteUserTransferHint').removeClass('text-danger')
+        .text('Only members of the same team can take them over.');
     $('#deleteUserProgress').addClass('d-none');
     $('#deleteUserBar').css('width', '0%').removeClass('bg-warning');
     $('#deleteUserProgressText').text('');
@@ -660,14 +662,31 @@ $(document).on('click', '.delete-user', function () {
         $(modalEl).data('orphan', !!res.orphan);
         $('#deleteUserSummary').removeClass('d-none');
 
+        $(modalEl).data('accounts', res.accounts || 0);
+        // Ô bàn giao hiện khi có sản phẩm HOẶC có liên kết account — cả hai đều cần người nhận.
         if (res.orphan) {
             $('#deleteUserOrphanNote').removeClass('d-none');
-        } else if (res.products > 0) {
+        } else if (res.products > 0 || res.accounts > 0) {
             const $sel = $('#deleteUserTransfer').empty();
             (res.candidates || []).forEach(c => $sel.append(new Option(c.username, c.id, false, false)));
             // 'none' = không bàn giao, xóa luôn sản phẩm. Để cuối danh sách để không thành
             // lựa chọn mặc định — bàn giao mới là hành vi an toàn.
-            $sel.append(new Option('None — delete their products', 'none', false, false));
+            // KHÔNG có 'none' khi còn liên kết account: một account sàn không còn ai phụ
+            // trách là mất đường vào nó, nên account BẮT BUỘC phải có người nhận thật.
+            if (res.accounts === 0) {
+                $sel.append(new Option('None — delete their products', 'none', false, false));
+            }
+            $('#deleteUserTransferLabel').text(res.products > 0 && res.accounts > 0
+                ? 'Hand their products and account assignments over to'
+                : (res.accounts > 0 ? 'Hand their account assignments over to'
+                                    : 'Hand their products over to'));
+            // Không còn ai cùng team để nhận -> nói thẳng thay vì để select rỗng
+            if (!(res.candidates || []).length) {
+                $('#deleteUserTransferHint').addClass('text-danger')
+                    .text('No one else in this team can take them over. '
+                        + 'Move someone into the team first.');
+                $('#deleteUserConfirm').prop('disabled', true);
+            }
             $('#deleteUserTransferBox').removeClass('d-none');
             if (!$sel.hasClass('select2-hidden-accessible')) {
                 $sel.select2({ dropdownParent: $(modalEl) });
@@ -716,7 +735,8 @@ $(document).on('click', '#deleteUserConfirm', async function () {
     if (!id) {
         return;
     }
-    const transferTo = (products > 0 && !$(modalEl).data('orphan'))
+    const accounts = $(modalEl).data('accounts') || 0;
+    const transferTo = ((products > 0 || accounts > 0) && !$(modalEl).data('orphan'))
         ? ($('#deleteUserTransfer').val() || '') : '';
     const removing = transferTo === 'none';
     const $bar = $('#deleteUserBar');

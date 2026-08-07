@@ -609,6 +609,45 @@ return function (AbRunner $r): void {
         return $fx->conn->query("SELECT ID FROM authors WHERE ID = $id")->fetch_row() === null;
     })->allow('ADMIN', 'MGR_T1', 'MGR_T2', 'USR_T1', 'USR_T2', 'USR_T3');
 
+    // ---------- Lien ket account: BAN GIAO BAT BUOC (chot 06/08/2026) ----------
+    $r->add('Users — xóa', 'CHẶN xóa user còn liên kết ACCOUNT khi chưa bàn giao', function ($a, $fx) {
+        $id  = $fx->new_user((int)$a->team);
+        $acc = $fx->conn->query('SELECT ID FROM accounts LIMIT 1')->fetch_row();
+        if (!$acc) {
+            return false;   // moi truong khong co account nao -> khong do duoc, coi nhu DENY
+        }
+        $fx->conn->execute_query(
+            'INSERT IGNORE INTO accounts_authors (account_id, author_id) VALUES (?, ?)',
+            [(int)$acc[0], $id]);
+        $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$id]];   // co y thieu transfer_to
+        Users::delete_users();
+        $con = $fx->conn->query("SELECT ID FROM authors WHERE ID = $id")->fetch_row() !== null;
+        $fx->conn->execute_query('DELETE FROM accounts_authors WHERE author_id = ?', [$id]);
+        // ALLOW = xoa duoc du con lien ket account va chua ban giao -> khong ai duoc phep
+        return !$con;
+    })->allow();
+
+    $r->add('Users — xóa', 'Bàn giao liên kết ACCOUNT rồi xóa', function ($a, $fx) {
+        $id  = $fx->new_user((int)$a->team);
+        $nhan = $fx->new_user((int)$a->team);
+        $acc = $fx->conn->query('SELECT ID FROM accounts LIMIT 1')->fetch_row();
+        if (!$acc) {
+            return false;
+        }
+        $accId = (int)$acc[0];
+        $fx->conn->execute_query(
+            'INSERT IGNORE INTO accounts_authors (account_id, author_id) VALUES (?, ?)', [$accId, $id]);
+        $_POST = ['csrf_token' => 'ABTEST', 'ids' => [$id], 'transfer_to' => (string)$nhan];
+        Users::delete_users();
+        $daXoa = $fx->conn->query("SELECT ID FROM authors WHERE ID = $id")->fetch_row() === null;
+        // Lien ket phai SANG NGUOI NHAN, khong duoc bien mat
+        $sang = $fx->conn->execute_query(
+            'SELECT 1 FROM accounts_authors WHERE account_id = ? AND author_id = ?',
+            [$accId, $nhan])->fetch_row() !== null;
+        $fx->conn->execute_query('DELETE FROM accounts_authors WHERE author_id IN (?, ?)', [$id, $nhan]);
+        return $daXoa && $sang;
+    })->allow('ADMIN', 'SUPER', 'MGR_T1', 'MGR_T2');
+
     // Customer con san pham van xoa duoc NGAY, khong hoi ban giao - nguoc han voi user
     // thuong (ca 'CHAN xoa user con san pham khi KHONG ban giao' o tren).
     $r->add('Users — cấp customer', 'Xóa CUSTOMER còn sản phẩm mà KHÔNG cần bàn giao',

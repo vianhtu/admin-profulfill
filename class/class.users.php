@@ -563,7 +563,7 @@ class Users
             ['posts', 'Products they own',
                 $dem('SELECT COUNT(*) FROM posts WHERE author_id = ?'), 'choice'],
             ['accounts_authors', 'Account assignments',
-                $dem('SELECT COUNT(*) FROM accounts_authors WHERE author_id = ?'), 'removed'],
+                $dem('SELECT COUNT(*) FROM accounts_authors WHERE author_id = ?'), 'choice'],
             ['author_remember_tokens', 'Remembered devices',
                 $dem('SELECT COUNT(*) FROM author_remember_tokens WHERE author_id = ?'), 'removed'],
             ['files_own', 'Files only they use',
@@ -586,7 +586,7 @@ class Users
 
         $out = [];
         foreach ($rows as [$key, $label, $n, $fate]) {
-            if ($n === 0 && $fate !== 'choice') {
+            if ($n === 0 && $key !== 'posts') {
                 continue;   // khong co gi thi khong lam ron mat nguoi doc
             }
             // Cap customer: xoa thang, moi lien ket deu bo lai (tru phien dang nhap)
@@ -745,6 +745,22 @@ class Users
         $products = $orphan ? 0 : (int)$conn->execute_query(
             'SELECT COUNT(*) FROM posts WHERE author_id = ?', [$id])->fetch_row()[0];
 
+        // Lien ket account: BAN GIAO BAT BUOC (chot 06/08/2026, doi tu 'xoa theo').
+        // Mot account san khong con ai phu trach la mat quyen truy cap vao no, nen phai co
+        // nguoi nhan that — KHONG co lua chon 'none' nhu san pham.
+        $accounts = $orphan ? 0 : (int)$conn->execute_query(
+            'SELECT COUNT(*) FROM accounts_authors WHERE author_id = ?', [$id])->fetch_row()[0];
+        $nguoiNhan = 0;   // >0 khi da chon duoc nguoi nhan hop le
+
+        if ($accounts > 0) {
+            $raw = trim((string)($_POST['transfer_to'] ?? ''));
+            if ($raw === '' || $raw === '0' || $raw === 'none') {
+                return ['status' => 'error',
+                    'message' => 'This user still has ' . number_format($accounts)
+                        . ' account assignment(s). Choose someone in the same team to take them over.'];
+            }
+        }
+
         $transferred = 0;
         $removed = 0;
         if ($products > 0) {
@@ -796,6 +812,7 @@ class Users
                 if (!$dest) {
                     return ['status' => 'error', 'message' => 'The chosen user is not in the same team.'];
                 }
+                $nguoiNhan = $to;   // dung lai cho ca phan giao account ben duoi
 
                 try {
                     $budget = self::TRANSFER_BUDGET;
@@ -829,8 +846,35 @@ class Users
             // ket du lieu — giu lai chi de rac va roi ro, ke ca voi customer.
             $conn->execute_query('DELETE FROM author_remember_tokens WHERE author_id = ?', [$id]);
             if (!$orphan) {
-                // Lien ket account chi la phan cong -> go, khong chan xoa
-                $conn->execute_query('DELETE FROM accounts_authors WHERE author_id = ?', [$id]);
+                if ($accounts > 0) {
+                    // Nguoi nhan chua duoc xac minh o nhanh san pham (user khong co san pham
+                    // nao) -> xac minh o day, van bat buoc CUNG TEAM.
+                    if ($nguoiNhan === 0) {
+                        $nguoiNhan = (int)trim((string)($_POST['transfer_to'] ?? ''));
+                        if ($nguoiNhan === $id || $nguoiNhan <= 0) {
+                            return ['status' => 'error',
+                                'message' => 'Choose a different user to hand over to.'];
+                        }
+                        $ok = $conn->execute_query(
+                            'SELECT ID FROM authors WHERE ID = ? AND team_id = ? LIMIT 1',
+                            [$nguoiNhan, (int)$row['team_id']])->fetch_row();
+                        if (!$ok) {
+                            return ['status' => 'error',
+                                'message' => 'The chosen user is not in the same team.'];
+                        }
+                    }
+                    // PRIMARY KEY la (account_id, author_id): neu nguoi nhan DA phu trach
+                    // dung account do thi UPDATE se dung khoa trung. Bo dong se trung truoc
+                    // (nguoi nhan giu lai ban ghi cua ho), roi moi chuyen phan con lai.
+                    $conn->execute_query(
+                        'DELETE aa FROM accounts_authors aa
+                         JOIN accounts_authors bb
+                           ON bb.account_id = aa.account_id AND bb.author_id = ?
+                         WHERE aa.author_id = ?', [$nguoiNhan, $id]);
+                    $conn->execute_query(
+                        'UPDATE accounts_authors SET author_id = ? WHERE author_id = ?',
+                        [$nguoiNhan, $id]);
+                }
                 self::cleanup_user_refs($conn, $id);
             }
             $conn->execute_query('DELETE FROM authors WHERE ID = ?', [$id]);
