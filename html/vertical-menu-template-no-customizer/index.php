@@ -577,13 +577,25 @@ if (empty($_SESSION['csrf_token'])) {
         if (!inst) {
           return;
         }
+        // Nội dung modal Details là BẢN SAO các ô của dòng; đóng modal xong DataTables tháo
+        // bỏ nó, nên nút vừa bấm LÌA khỏi DOM và click vào nó không nổi lên `document` được
+        // nữa — handler ủy quyền không bao giờ chạy. Vì vậy phải tìm lại nút GỐC trong bảng
+        // (vẫn còn đó, chỉ bị Responsive ẩn đi) rồi bấm nút đó. Bấm phần tử display:none
+        // vẫn kích hoạt handler ủy quyền bình thường.
+        var dauNhan = btn.getAttribute('data-id');
+        var lopNut  = btn.className;
         dtr.addEventListener('hidden.bs.modal', function () {
-          btn.dataset.dtrRelayed = '1';
-          // Đợi Bootstrap dọn xong hẳn rồi mới mở lớp phủ tiếp theo. Phát lại NGAY trong
-          // handler 'hidden' làm hai modal chồng lấn: modal mới mở trong lúc Bootstrap còn
-          // đang gỡ `body.modal-open` của modal cũ, nên sổ sách lệch và modal mới ĐÓNG KHÔNG
-          // ĐƯỢC — bấm Delete xong hộp xác nhận kẹt lại, trang khóa cuộn (07/08/2026).
-          setTimeout(function () { btn.click(); }, 200);
+          setTimeout(function () {
+            var song = null;
+            if (dauNhan) {
+              song = Array.prototype.find.call(
+                document.querySelectorAll('table [data-id="' + dauNhan + '"]'),
+                function (e) { return e.className === lopNut && !e.closest('.dtr-bs-modal'); });
+            }
+            var dich = song || btn;
+            dich.dataset.dtrRelayed = '1';
+            dich.click();
+          }, 200);
         }, { once: true });
         inst.hide();
       }, true);
