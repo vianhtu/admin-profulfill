@@ -229,6 +229,8 @@ $(document).on('click', '.view-key', function () {
     // Nhớ team đang mở để nút tạo key mới biết gửi id nào
     $('#viewKeyModal').data('id', parseInt($(this).data('id'), 10) || 0);
     $('#viewKeyHint').removeClass('text-danger text-success').text(KEY_HINT);
+    $('#newKeyConfirm').addClass('d-none');
+    $('#newKeyYes').prop('disabled', false);
     bootstrap.Modal.getOrCreateInstance(document.getElementById('viewKeyModal')).show();
 });
 
@@ -246,12 +248,22 @@ $(document).on('click', '#copyKeyBtn', function () {
 });
 
 // Tạo key mới: thu hồi key cũ NGAY, extension đang chạy sẽ hỏng tới khi được cập nhật ->
-// phải hỏi trước, và đây là thao tác không lấy lại được.
+// phải hỏi trước. KHÔNG dùng window.confirm — trình duyệt có quyền chặn hộp thoại đó và khi
+// bị chặn nó trả false, làm nút bấm xong không có gì xảy ra và cũng không báo lỗi gì (đã
+// dính đúng vậy 07/08/2026). Hỏi bằng khối cảnh báo ngay trong modal.
 $(document).on('click', '#newKeyBtn', function () {
+    $('#newKeyConfirm').removeClass('d-none');
+});
+
+$(document).on('click', '#newKeyNo', function () {
+    $('#newKeyConfirm').addClass('d-none');
+});
+
+$(document).on('click', '#newKeyYes', function () {
     const id = $('#viewKeyModal').data('id');
-    const ten = $('#viewKeyTeamName').text();
-    if (!id || !window.confirm('Generate a new key for "' + ten + '"? The extension will stop '
-        + 'working with the old key immediately.')) {
+    if (!id) {
+        $('#viewKeyHint').removeClass('text-success').addClass('text-danger')
+            .text('Could not tell which team this is — close the dialog and try again.');
         return;
     }
     const $btn = $(this).prop('disabled', true);
@@ -263,6 +275,7 @@ $(document).on('click', '#newKeyBtn', function () {
     }).done(function (res) {
         if (res?.status === 'success') {
             $('#viewKeyValue').val(res.key);
+            $('#newKeyConfirm').addClass('d-none');
             $('#viewKeyHint').removeClass('text-danger').addClass('text-success').text(res.message);
             // Nút View key của dòng đó vẫn giữ key CŨ trong data-key -> vẽ lại bảng,
             // nếu không lần mở sau sẽ hiện key đã hết hiệu lực.

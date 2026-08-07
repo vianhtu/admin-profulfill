@@ -81,6 +81,24 @@ if (!is_admin()) {
                     The extension authenticates with this key. Generating a new one stops the
                     old key working immediately.
                 </div>
+                <!-- Xác nhận NGAY TRONG modal, không dùng window.confirm: trình duyệt có
+                     quyền chặn hộp thoại đó (người dùng tích "đừng hỏi lại", hoặc trình
+                     duyệt tự chặn) và khi bị chặn nó trả false -> bấm nút không có gì xảy
+                     ra, không báo lỗi gì. Cũng không mở modal thứ hai vì Bootstrap không
+                     xếp chồng modal. -->
+                <div class="alert alert-warning d-none mt-4" id="newKeyConfirm" role="alert">
+                    <div class="d-flex mb-3">
+                        <i class="icon-base ti tabler-alert-triangle me-2"></i>
+                        <span>The old key stops working immediately and cannot be recovered.
+                              Every extension using it must be updated.</span>
+                    </div>
+                    <button type="button" class="btn btn-warning btn-sm me-2" id="newKeyYes">
+                        Generate new key
+                    </button>
+                    <button type="button" class="btn btn-label-secondary btn-sm" id="newKeyNo">
+                        Cancel
+                    </button>
+                </div>
             </div>
         </div>
     </div>

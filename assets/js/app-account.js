@@ -263,17 +263,23 @@ $(document).on('click', '#acc-key-toggle', function () {
     $(this).find('i').attr('class', hien ? 'icon-base ti tabler-eye-off' : 'icon-base ti tabler-eye');
 });
 
-$(document).on('click', '#acc-key-new', async function () {
-    // Đổi key làm extension đang chạy mất hiệu lực -> phải hỏi trước, đây là thao tác
-    // người dùng không lấy lại được (key cũ băm đâu mà khôi phục).
-    if (!window.confirm('Generate a new API key? Your extension will stop working until you '
-        + 'update it with the new key.')) {
-        return;
-    }
+// Đổi key làm extension đang chạy mất hiệu lực -> phải hỏi trước, và đây là thao tác không
+// lấy lại được. KHÔNG dùng window.confirm: trình duyệt được phép chặn hộp thoại đó, khi bị
+// chặn nó trả false nên nút bấm xong im lặng không làm gì.
+$(document).on('click', '#acc-key-new', function () {
+    $('#acc-key-confirm').removeClass('d-none');
+});
+
+$(document).on('click', '#acc-key-no', function () {
+    $('#acc-key-confirm').addClass('d-none');
+});
+
+$(document).on('click', '#acc-key-yes', async function () {
     const $btn = $(this).prop('disabled', true);
     try {
         const res = await post('regenerate-account-key');
         if (res?.status === 'success') {
+            $('#acc-key-confirm').addClass('d-none');
             $('#acc-api-key').val(res.key).attr('type', 'text');
             $('#acc-key-toggle i').attr('class', 'icon-base ti tabler-eye-off');
             danhGiaKey(res.key);

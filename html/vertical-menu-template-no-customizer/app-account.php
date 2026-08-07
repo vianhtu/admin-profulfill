@@ -162,6 +162,22 @@ $acc_xem_luong = $acc_la_toi || Users::can_see_salary();
                     <button type="button" class="btn btn-label-warning btn-sm mt-4" id="acc-key-new">
                         <i class="icon-base ti tabler-refresh icon-xs me-1"></i>Generate new key
                     </button>
+                    <!-- Xác nhận ngay tại chỗ, KHÔNG dùng window.confirm: trình duyệt được
+                         phép chặn hộp thoại đó và khi bị chặn nó trả false -> bấm nút không
+                         có gì xảy ra, cũng không báo lỗi (đã dính ở menu Teams 07/08/2026). -->
+                    <div class="alert alert-warning d-none mt-4" id="acc-key-confirm" role="alert">
+                        <div class="d-flex mb-3">
+                            <i class="icon-base ti tabler-alert-triangle me-2"></i>
+                            <span>Your extension stops working with the old key immediately.
+                                  The old key cannot be recovered.</span>
+                        </div>
+                        <button type="button" class="btn btn-warning btn-sm me-2" id="acc-key-yes">
+                            Generate new key
+                        </button>
+                        <button type="button" class="btn btn-label-secondary btn-sm" id="acc-key-no">
+                            Cancel
+                        </button>
+                    </div>
                 </div>
             </div>
         <?php endif; ?>
