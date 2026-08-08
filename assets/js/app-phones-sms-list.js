@@ -65,11 +65,18 @@ function initTable() {
     urlState = dtUrlState({ SmsPhone: '#SmsPhone', SmsStatus: '#SmsStatus' }, 10);
 
     // Trang Numbers link sang đây bằng `?id=<phone>`. Coi đó là giá trị khởi tạo của ô lọc
-    // rồi bỏ khỏi URL — để sau đó chỉ còn MỘT nguồn sự thật là `SmsPhone`, không thì đổi ô
-    // lọc xong `id` cũ vẫn nằm lại trên URL và mâu thuẫn với thứ đang hiển thị.
+    // rồi BỎ HẲN khỏi URL: `id` nằm trong danh sách tham số dt-url-state luôn giữ lại, nên
+    // để nguyên thì đổi ô lọc xong URL thành `id=2928&SmsPhone=2927` — tự mâu thuẫn, ai
+    // copy đường dẫn đó cũng không đoán được đang xem số nào.
     const seed = new URLSearchParams(window.location.search).get('id');
-    if (seed && !urlState.get('SmsPhone')) {
-        $('#SmsPhone').val(String(Number(seed)));
+    if (seed) {
+        if (!urlState.get('SmsPhone')) {
+            $('#SmsPhone').val(String(Number(seed)));
+        }
+        const con = new URLSearchParams(window.location.search);
+        con.delete('id');
+        const qs = con.toString();
+        history.replaceState(null, '', qs ? '?' + qs : window.location.pathname);
     }
     urlState.applyFilters();
 
