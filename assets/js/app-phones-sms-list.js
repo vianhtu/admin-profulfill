@@ -85,10 +85,15 @@ function dungOLocSo(banDau) {
     $.post(SMS_PHONES_URL, { csrf_token: window.csrfToken, id: banDau }, null, 'json')
         .done(res => {
             const p = ((res && res.results) || [])[0];
-            if (p) {
-                $sel.find('option[value="' + Number(p.id) + '"]').text(p.text);
-                $sel.trigger('change.select2');
+            if (!p) {
+                return;
             }
+            const $opt = $sel.find('option[value="' + Number(p.id) + '"]');
+            // select2 CACHE dữ liệu của từng option (`$.data(option, 'data')`) ngay lần vẽ
+            // đầu. Chỉ đổi text của option thôi thì nó vẫn vẽ lại từ bản cache cũ — ô lọc
+            // đứng nguyên ở nhãn tạm '#123'. Xóa cache rồi mới đổi.
+            $opt.removeData('data').text(p.text);
+            $sel.trigger('change.select2');
         });
 }
 
