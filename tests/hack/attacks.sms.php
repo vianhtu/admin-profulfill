@@ -135,12 +135,12 @@ return function (HackRunner $h) {
         return ['breach' => $now === 'viewed', 'note' => 'Chỉ có role view mà ghi được'];
     }, 'NGHIÊM TRỌNG');
 
-    $h->attack('SMS', 'Không có role nào vẫn đọc được bảng', 'NOROLE', function ($atk, $fx) {
-        $fx->new_sms($fx->new_phone((int)$atk->team));
+    $h->attack('SMS', 'Khách vãng lai đọc được bảng tin nhắn', 'ANON', function ($atk, $fx) {
+        $fx->new_sms($fx->new_phone(1));
         $_POST = ['draw' => 1, 'start' => 0, 'length' => 100];
         $res = getSmsTable();
         return ['breach' => count($res['data'] ?? []) > 0,
-            'note' => 'Trả về ' . count($res['data'] ?? []) . ' dòng'];
+            'note' => 'Trả về ' . count($res['data'] ?? []) . ' dòng cho phiên chưa đăng nhập'];
     }, 'NGHIÊM TRỌNG');
 
     // ---------- XSS ----------
