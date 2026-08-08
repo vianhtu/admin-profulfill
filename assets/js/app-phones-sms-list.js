@@ -55,12 +55,28 @@ function dungOLocSo(banDau) {
     if (!$sel.length) {
         return;
     }
-    // Giá trị dựng từ URL: gắn option TẠM ngay lập tức để `.val()` có giá trị đúng ở lần
-    // vẽ bảng đầu tiên. Chờ nhãn thật rồi mới gắn thì lần draw đầu đọc ra rỗng và bảng
-    // hiện tin của mọi số.
+    // Giá trị dựng từ URL: gắn option ngay lập tức để `.val()` có giá trị đúng ở lần vẽ
+    // bảng đầu tiên. Chờ nhãn thật rồi mới gắn thì lần draw đầu đọc ra rỗng và bảng hiện
+    // tin của mọi số. Nhãn tạm là '#<id>', hỏi server xong mới thay bằng số thật —
+    // và phải thay TRƯỚC khi bọc select2, vì select2 chụp nhãn ngay lần vẽ đầu rồi giữ
+    // luôn, đổi text của <option> sau đó không làm nó vẽ lại.
     if (banDau) {
         $sel.append(new Option('#' + banDau, banDau, true, true));
+        $.post(SMS_PHONES_URL, { csrf_token: window.csrfToken, id: banDau }, null, 'json')
+            .done(res => {
+                const p = ((res && res.results) || [])[0];
+                if (p) {
+                    $sel.find('option[value="' + Number(p.id) + '"]').text(p.text);
+                }
+            })
+            // Hỏi hụt cũng vẫn phải bọc select2, không thì ô lọc trơ ra kiểu select gốc
+            .always(() => bocSelect2($sel));
+        return;
     }
+    bocSelect2($sel);
+}
+
+function bocSelect2($sel) {
     $sel.select2({
         width: '100%',
         placeholder: 'All numbers',
@@ -77,24 +93,6 @@ function dungOLocSo(banDau) {
             cache: true
         }
     });
-    if (!banDau) {
-        return;
-    }
-    // Đổi nhãn tạm '#123' thành số thật khi server trả lời. `change.select2` chỉ đánh thức
-    // phần vẽ của select2, KHÔNG chạm handler `change` của mình -> bảng không nạp lại.
-    $.post(SMS_PHONES_URL, { csrf_token: window.csrfToken, id: banDau }, null, 'json')
-        .done(res => {
-            const p = ((res && res.results) || [])[0];
-            if (!p) {
-                return;
-            }
-            const $opt = $sel.find('option[value="' + Number(p.id) + '"]');
-            // select2 CACHE dữ liệu của từng option (`$.data(option, 'data')`) ngay lần vẽ
-            // đầu. Chỉ đổi text của option thôi thì nó vẫn vẽ lại từ bản cache cũ — ô lọc
-            // đứng nguyên ở nhãn tạm '#123'. Xóa cache rồi mới đổi.
-            $opt.removeData('data').text(p.text);
-            $sel.trigger('change.select2');
-        });
 }
 
 /* ---------------- Bảng ---------------- */
