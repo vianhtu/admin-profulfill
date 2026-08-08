@@ -641,19 +641,39 @@ function deleteSmsBulk(): array
 }
 
 /** Danh sách số điện thoại cho ô lọc — đúng phạm vi team của người gọi. */
-function getSmsFilters(): array
+function getSmsPhones(): array
 {
+    // Trả rỗng chứ không trả lỗi: đây là nguồn dữ liệu của select2, nó chỉ hiểu
+    // results/pagination. Người không có quyền xem cũng không có ô lọc để mà gọi.
     if (!checkRoles('view', 'phones_sms')) {
-        return ['status' => 'error', 'message' => 'You do not have permission to view messages.'];
+        return ['results' => [], 'pagination' => ['more' => false]];
     }
     $conn = db();
-    $w = is_admin() ? '' : ' WHERE team_id = ' . (int)($_SESSION['auth']['team'] ?? 0);
-    $phones = [];
-    $rs = $conn->query("SELECT ID, number FROM phones$w ORDER BY number");
-    while ($r = $rs->fetch_assoc()) {
-        $phones[] = ['id' => (int)$r['ID'], 'number' => (string)$r['number']];
+    $where = [];
+    if (!is_admin()) {
+        $where[] = 'team_id = ' . (int)($_SESSION['auth']['team'] ?? 0);
     }
-    return ['status' => 'success', 'phones' => $phones,
-            'perms' => ['edit' => checkRoles('edit', 'phones_sms'),
-                        'delete' => checkRoles('delete', 'phones_sms')]];
+    // `id` = giải nghĩa MỘT số cho ô lọc dựng sẵn từ URL (`?SmsPhone=` hoặc `?id=`),
+    // không phải tìm kiếm. Vẫn đi qua đúng ràng buộc team ở trên.
+    $id = (int)($_POST['id'] ?? 0);
+    if ($id > 0) {
+        $where[] = 'ID = ' . $id;
+    }
+    $q = trim((string)($_POST['q'] ?? ''));
+    if ($q !== '') {
+        $where[] = "number LIKE '%" . $conn->real_escape_string($q) . "%'";
+    }
+    $w = $where ? ' WHERE ' . implode(' AND ', $where) : '';
+
+    $moi  = 30;
+    $page = max(1, (int)($_POST['page'] ?? 1));
+    $bo   = ($page - 1) * $moi;
+    // Lấy DƯ 1 dòng để biết còn trang sau hay không — rẻ hơn chạy thêm một COUNT(*)
+    $rs = $conn->query("SELECT ID, number FROM phones$w ORDER BY number LIMIT $bo, " . ($moi + 1));
+    $rows = [];
+    while ($r = $rs->fetch_assoc()) {
+        $rows[] = ['id' => (int)$r['ID'], 'text' => (string)$r['number']];
+    }
+    return ['results' => array_slice($rows, 0, $moi),
+            'pagination' => ['more' => count($rows) > $moi]];
 }

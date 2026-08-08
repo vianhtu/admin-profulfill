@@ -53,11 +53,42 @@ return function (HackRunner $h) {
 
     $h->attack('SMS', 'Ô lọc liệt kê số của team khác', 'USR_OUT', function ($atk, $fx) {
         $so = $fx->new_phone(1);
-        $res = getSmsFilters();
-        $ids = array_map('intval', array_column($res['phones'] ?? [], 'id'));
+        $_POST = ['q' => '+1900ZZAB'];
+        $res = getSmsPhones();
+        $ids = array_map('intval', array_column($res['results'] ?? [], 'id'));
         return ['breach' => in_array($so, $ids, true),
             'note' => 'Ô lọc lộ danh sách số của team khác'];
     });
+
+    $h->attack('SMS', 'Đoán ID để moi số của team khác qua ô lọc', 'USR_OUT',
+        function ($atk, $fx) {
+            // Ô lọc dựng sẵn từ URL giải nghĩa nhãn bằng `id=`. Nếu đường này quên ràng
+            // buộc team thì cứ đếm ID là dò ra toàn bộ danh bạ của team khác.
+            $so = $fx->new_phone(1);
+            $_POST = ['id' => $so];
+            $res = getSmsPhones();
+            return ['breach' => count($res['results'] ?? []) > 0,
+                'note' => 'Đọc được số điện thoại của team khác bằng ID'];
+        });
+
+    $h->attack('SMS', 'SQLi qua ô tìm kiếm của ô lọc số', 'USR_VIEW', function ($atk, $fx) {
+        $minh = $fx->new_phone((int)$atk->team);
+        $_POST = ['q' => "%' OR '1'='1", 'page' => '1 UNION SELECT 1'];
+        try {
+            $res = getSmsPhones();
+        } catch (\Throwable $e) {
+            return ['breach' => true, 'note' => 'Truy vấn vỡ vì tham số: ' . $e->getMessage()];
+        }
+        $ngoai = 0;
+        foreach ($res['results'] ?? [] as $p) {
+            $t = (int)$fx->conn->query('SELECT team_id FROM phones WHERE ID = '
+                . (int)$p['id'])->fetch_row()[0];
+            if ($t !== (int)$atk->team) {
+                $ngoai++;
+            }
+        }
+        return ['breach' => $ngoai > 0, 'note' => "$ngoai số ngoài phạm vi lọt ra"];
+    }, 'NGHIÊM TRỌNG');
 
     // ---------- Trộn ID ----------
     $h->attack('SMS', 'Trộn tin team khác vào lệnh xóa hàng loạt', 'MGR_OUT',

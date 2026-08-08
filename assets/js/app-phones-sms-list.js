@@ -35,22 +35,61 @@ function fmtSmsDate(s) {
         { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
-async function init() {
-    await loadFilters();
+const SMS_PHONES_URL = '../../ajax.php?action=get-sms-phones';
+
+function init() {
     initTable();
 }
 
-/* ---------------- Bộ lọc ---------------- */
+/* ---------------- Ô lọc số điện thoại (select2 ajax) ---------------- */
 
-// Danh sách số cho ô lọc lấy từ server (đúng phạm vi team của người đang xem), không dựng từ
-// dữ liệu trang hiện tại — trang 1 chỉ có vài số thì ô lọc sẽ thiếu hầu hết lựa chọn.
-async function loadFilters() {
-    const res = await $.post('../../ajax.php?action=get-sms-filters',
-        { csrf_token: window.csrfToken }, null, 'json').catch(() => null);
+/**
+ * Nạp danh sách số theo yêu cầu thay vì nhét sẵn vào trang.
+ *
+ * Bản đầu `await` một lượt lấy TOÀN BỘ số rồi mới dựng DataTable — bảng phải chờ xong một
+ * vòng mạng cộng một truy vấn quét cả bảng `phones` mới bắt đầu tải, và danh sách đó chỉ
+ * dài thêm theo thời gian. Nay select2 tự gọi khi người dùng mở ô lọc, mỗi lượt 30 dòng.
+ */
+function dungOLocSo(banDau) {
     const $sel = $('#SmsPhone');
-    if (res && Array.isArray(res.phones) && $sel.length) {
-        res.phones.forEach(p => $sel.append(new Option(p.number, p.id, false, false)));
+    if (!$sel.length) {
+        return;
     }
+    // Giá trị dựng từ URL: gắn option TẠM ngay lập tức để `.val()` có giá trị đúng ở lần
+    // vẽ bảng đầu tiên. Chờ nhãn thật rồi mới gắn thì lần draw đầu đọc ra rỗng và bảng
+    // hiện tin của mọi số.
+    if (banDau) {
+        $sel.append(new Option('#' + banDau, banDau, true, true));
+    }
+    $sel.select2({
+        width: '100%',
+        placeholder: 'All numbers',
+        allowClear: true,
+        ajax: {
+            url: SMS_PHONES_URL,
+            type: 'POST',
+            dataType: 'json',
+            delay: 250,   // gõ tới đâu gọi tới đó thì mỗi phím một request
+            data: params => ({ csrf_token: window.csrfToken,
+                               q: params.term || '', page: params.page || 1 }),
+            processResults: data => ({ results: data.results || [],
+                                       pagination: { more: !!(data.pagination || {}).more } }),
+            cache: true
+        }
+    });
+    if (!banDau) {
+        return;
+    }
+    // Đổi nhãn tạm '#123' thành số thật khi server trả lời. `change.select2` chỉ đánh thức
+    // phần vẽ của select2, KHÔNG chạm handler `change` của mình -> bảng không nạp lại.
+    $.post(SMS_PHONES_URL, { csrf_token: window.csrfToken, id: banDau }, null, 'json')
+        .done(res => {
+            const p = ((res && res.results) || [])[0];
+            if (p) {
+                $sel.find('option[value="' + Number(p.id) + '"]').text(p.text);
+                $sel.trigger('change.select2');
+            }
+        });
 }
 
 /* ---------------- Bảng ---------------- */
@@ -70,14 +109,13 @@ function initTable() {
     // copy đường dẫn đó cũng không đoán được đang xem số nào.
     const seed = new URLSearchParams(window.location.search).get('id');
     if (seed) {
-        if (!urlState.get('SmsPhone')) {
-            $('#SmsPhone').val(String(Number(seed)));
-        }
         const con = new URLSearchParams(window.location.search);
         con.delete('id');
         const qs = con.toString();
         history.replaceState(null, '', qs ? '?' + qs : window.location.pathname);
     }
+    // `SmsPhone` trên URL thắng, `id` chỉ là đường vào từ trang Numbers
+    dungOLocSo(Number(urlState.get('SmsPhone') || seed || 0) || 0);
     urlState.applyFilters();
 
     const el = document.querySelector('.datatables-sms');
@@ -298,13 +336,12 @@ function initTable() {
             $len.closest('.dt-length').css('min-width', '7rem');
             $len.select2({ minimumResultsForSearch: Infinity, width: '100%' });
         }
-        // Mọi <select> = select2 (quy ước dự án)
-        ['#SmsPhone', '#SmsStatus'].forEach(sel => {
-            const $s = $(sel);
-            if ($s.length && !$s.hasClass('select2-hidden-accessible')) {
-                $s.select2({ width: '100%' });
-            }
-        });
+        // Mọi <select> = select2 (quy ước dự án). `#SmsPhone` đã bọc trong dungOLocSo()
+        // vì nó cần cấu hình ajax dựng trước lần vẽ bảng đầu tiên.
+        const $st = $('#SmsStatus');
+        if ($st.length && !$st.hasClass('select2-hidden-accessible')) {
+            $st.select2({ minimumResultsForSearch: Infinity, width: '100%' });
+        }
         urlState.bind(dtSms, SMS_COLS);
         dtSms.on('select deselect draw', smsBulkRefresh);
     }, 100);

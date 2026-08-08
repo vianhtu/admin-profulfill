@@ -161,14 +161,32 @@ return function (AbRunner $r) {
     $r->add('SMS — bộ lọc', 'Danh sách số trong ô lọc chỉ có số của team mình',
         function ($a, $fx) {
             $khac = $fx->new_phone((int)$a->team === 1 ? 2 : 1);
-            $res = getSmsFilters();
-            if (($res['status'] ?? '') !== 'success') {
-                return false;   // không có quyền xem -> DENY
-            }
-            $ids = array_map('intval', array_column($res['phones'], 'id'));
+            // Ô lọc nạp theo yêu cầu (select2 ajax) nên phải tìm ĐÚNG số đó, không thể
+            // trông vào việc nó lọt vào 30 dòng đầu
+            $_POST = ['q' => '+1900ZZAB'];
+            $res = getSmsPhones();
+            $ids = array_map('intval', array_column($res['results'] ?? [], 'id'));
             // ALLOW = ô lọc liệt kê cả số của team khác -> chỉ admin
             return in_array($khac, $ids, true);
         })->allow('ADMIN', 'SUPER');
+
+    $r->add('SMS — bộ lọc', 'Giải nghĩa id số của team KHÁC cho ô lọc dựng sẵn',
+        function ($a, $fx) {
+            // Nhãn của ô lọc lấy bằng `id=` — đường này cũng phải chịu ràng buộc team,
+            // không thì đọc được số điện thoại của team khác chỉ bằng cách đoán ID
+            $khac = $fx->new_phone((int)$a->team === 1 ? 2 : 1);
+            $_POST = ['id' => $khac];
+            $res = getSmsPhones();
+            return count($res['results'] ?? []) > 0;
+        })->allow('ADMIN', 'SUPER');
+
+    $r->add('SMS — bộ lọc', 'Ô lọc trả về số của chính team mình', function ($a, $fx) {
+        $minh = $fx->new_phone((int)$a->team);
+        $_POST = ['id' => $minh];
+        $res = getSmsPhones();
+        return count($res['results'] ?? []) === 1;
+    })->allow('ADMIN', 'SUPER', 'MGR_T1', 'MGR_T1_V', 'MGR_T2', 'USR_T1', 'USR_T1_V',
+              'USR_T2', 'USR_T3');
 
     // ---------- Lớp UI ----------
     $r->add('SMS — giao diện', 'Fragment render bảng khi có quyền view', function ($a, $fx) {
