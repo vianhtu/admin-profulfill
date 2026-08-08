@@ -323,6 +323,15 @@ function initTable() {
 const SMS_NHIP_NAP = 30000;
 
 function tuDongNap() {
+    // Quay lại tab thì nạp NGAY, đừng bắt chờ hết nhịp 30 giây — lúc vừa nhìn vào bảng là
+    // lúc dữ liệu cũ nhất (nhịp đã bị bỏ qua suốt thời gian tab ẩn).
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden && dtSms && !document.querySelector('.modal.show')
+            && dtSms.rows({ selected: true }).count() === 0) {
+            dtSms.ajax.reload(null, false);
+        }
+    });
+
     setInterval(function () {
         if (!dtSms) {
             return;
