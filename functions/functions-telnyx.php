@@ -107,46 +107,6 @@ function hookTelnyx(): array
     }
 }
 
-function getSMS(): array
-{
-    $conn = db();
-    $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
-
-    $sql = "SELECT sms.text, sms.from_number, sms.date, p.number, pc.name
-            FROM sms
-            INNER JOIN phones p ON p.ID = sms.phone_id
-            INNER JOIN phone_carrier pc ON pc.ID = p.carrier_id";
-
-    $whereClauses = [];
-    if ($id) {
-        $whereClauses[] = "sms.phone_id = ?";
-    }
-
-    // PHẠM VI THEO TEAM. Bản cũ viết `if($teamId)` nên tài khoản có team_id = 0 rơi vào
-    // nhánh KHÔNG lọc gì -> đọc được tin nhắn của MỌI team. Cùng lỗi đã vá ở getPhonesTable.
-    if (!is_admin()) {
-        $whereClauses[] = 'p.team_id = ' . (int)($_SESSION['auth']['team'] ?? 0);
-    }
-    $where = $whereClauses ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
-    $sql .= "$where ORDER BY sms.date DESC LIMIT 20";
-
-    $stmt = $conn->prepare($sql);
-
-    if ($id) {
-        $stmt->bind_param("i", $id);
-    }
-
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    $smsList = [];
-    while ($row = $result->fetch_assoc()) {
-        $smsList[] = $row;
-    }
-
-    return $smsList;
-}
-
 function getPhonesTable(): array
 {
     // Cột sắp xếp được: khóa DataTables (`data` bên JS) => biểu thức SQL.
@@ -533,4 +493,167 @@ function markSmsRead(): array
             'unread' => (int)$conn->execute_query(
                 "SELECT COUNT(*) FROM sms WHERE phone_id = ? AND status = 'pending'",
                 [$phoneId])->fetch_row()[0]];
+}
+
+
+/**
+ * Bảng SMS cho menu Phones ▸ SMS (DataTables server-side).
+ *
+ * Thay cho getSMS() cũ: hàm đó trả thẳng 20 dòng mới nhất, không phân trang, không tìm kiếm,
+ * và fragment echo nội dung tin nhắn RA THẲNG HTML — mà nội dung đó do người lạ nhắn tới.
+ *
+ * Phạm vi: `sms` bám theo `phones.team_id`, nên non-admin chỉ thấy tin của team mình.
+ *
+ * @return array{draw:int,recordsTotal:int,recordsFiltered:int,data:array}
+ */
+function getSmsTable(): array
+{
+    // Cột sắp xếp được: khóa DataTables => biểu thức SQL. Cột hiển thị TÊN thì sort theo tên.
+    $sortMap = [
+        'ID'     => 'sms.ID',
+        'number' => 'p.number',
+        'from'   => 'sms.from_number',
+        'text'   => 'sms.text',
+        'status' => 'sms.status',
+        'date'   => 'sms.date',
+    ];
+    $params = get_datatable_params(array_keys($sortMap), 'date');
+    if (!checkRoles('view', 'phones_sms')) {
+        return ['draw' => $params['draw'], 'recordsTotal' => 0,
+                'recordsFiltered' => 0, 'data' => []];
+    }
+    $conn = db();
+
+    $where = [];
+    // PHẠM VI THEO TEAM — non-admin luôn bị ràng, kể cả khi team_id = 0
+    if (!is_admin()) {
+        $where[] = 'p.team_id = ' . (int)($_SESSION['auth']['team'] ?? 0);
+    }
+    // Lọc theo một số cụ thể (trang Phones link sang bằng ?id=)
+    $phoneId = (int)($_POST['phone_id'] ?? 0);
+    if ($phoneId > 0) {
+        $where[] = 'sms.phone_id = ' . $phoneId;
+    }
+    // Lọc theo trạng thái đọc
+    $st = (string)($_POST['sms_status'] ?? '');
+    if (in_array($st, ['pending', 'viewed'], true)) {
+        $where[] = "sms.status = '" . $conn->real_escape_string($st) . "'";
+    }
+    if ($params['searchValue'] !== '') {
+        $q = $conn->real_escape_string($params['searchValue']);
+        $where[] = "(sms.text LIKE '%$q%' OR sms.from_number LIKE '%$q%' OR p.number LIKE '%$q%')";
+    }
+    $join  = 'INNER JOIN phones p ON p.ID = sms.phone_id';
+    $wSql  = $where ? ' WHERE ' . implode(' AND ', $where) : '';
+    // recordsTotal đếm theo ĐÚNG phạm vi (bỏ search/filter), không phải toàn bảng
+    $wScope = is_admin() ? '' : ' WHERE p.team_id = ' . (int)($_SESSION['auth']['team'] ?? 0);
+
+    $tong = (int)$conn->query("SELECT COUNT(*) FROM sms $join$wScope")->fetch_row()[0];
+    $loc  = (int)$conn->query("SELECT COUNT(*) FROM sms $join$wSql")->fetch_row()[0];
+
+    $rs = $conn->query(
+        "SELECT sms.ID, sms.phone_id, sms.status, sms.text, sms.from_number, sms.date, p.number
+         FROM sms $join$wSql
+         ORDER BY " . build_order_by($params, $sortMap, 'sms.ID') . "
+         LIMIT {$params['start']}, {$params['length']}");
+    $data = [];
+    while ($r = $rs->fetch_assoc()) {
+        $data[] = [
+            'id'       => (int)$r['ID'],
+            'phone_id' => (int)$r['phone_id'],
+            'number'   => (string)$r['number'],
+            'from'     => (string)$r['from_number'],
+            'text'     => (string)$r['text'],
+            'status'   => (string)$r['status'],
+            'date'     => (string)$r['date'],
+            // Cờ quyền theo TỪNG DÒNG đúng quy ước chung
+            'can_edit'   => checkRoles('edit', 'phones_sms'),
+            'can_delete' => checkRoles('delete', 'phones_sms'),
+        ];
+    }
+    return ['draw' => $params['draw'], 'recordsTotal' => $tong,
+            'recordsFiltered' => $loc, 'data' => $data];
+}
+
+/**
+ * Lọc danh sách ID tin nhắn về đúng những dòng người gọi được phép đụng.
+ * ID gửi lên là dữ liệu người dùng — không tin, lọc một lần rồi mọi thao tác dùng chung.
+ */
+function smsInScope(mysqli $conn, array $ids): array
+{
+    $ids = array_values(array_unique(array_filter(array_map('intval', $ids), fn($v) => $v > 0)));
+    if (!$ids) {
+        return [];
+    }
+    $w = 'sms.ID IN (' . implode(',', $ids) . ')';
+    if (!is_admin()) {
+        $w .= ' AND p.team_id = ' . (int)($_SESSION['auth']['team'] ?? 0);
+    }
+    $ok = [];
+    $rs = $conn->query("SELECT sms.ID FROM sms INNER JOIN phones p ON p.ID = sms.phone_id WHERE $w");
+    while ($r = $rs->fetch_row()) {
+        $ok[] = (int)$r[0];
+    }
+    return $ok;
+}
+
+/** Đánh dấu đã đọc / chưa đọc hàng loạt cho menu SMS. */
+function updateSmsStatusBulk(): array
+{
+    if (!check_csrf()) {
+        return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
+    }
+    if (!checkRoles('edit', 'phones_sms')) {
+        return ['status' => 'error', 'message' => 'You do not have permission to change messages.'];
+    }
+    $st = (string)($_POST['status'] ?? '');
+    if (!in_array($st, ['pending', 'viewed'], true)) {
+        return ['status' => 'error', 'message' => 'Invalid status.'];
+    }
+    $conn = db();
+    $ids = smsInScope($conn, (array)($_POST['ids'] ?? []));
+    if (!$ids) {
+        return ['status' => 'error', 'message' => 'No message you can change was selected.'];
+    }
+    $conn->query("UPDATE sms SET status = '" . $conn->real_escape_string($st)
+        . "' WHERE ID IN (" . implode(',', $ids) . ')');
+    return ['status' => 'success', 'updated' => $conn->affected_rows,
+            'message' => 'Updated ' . number_format(count($ids)) . ' message(s).'];
+}
+
+/** Xóa hàng loạt tin nhắn. Không bảng nào trỏ tới `sms` nên không để lại mồ côi. */
+function deleteSmsBulk(): array
+{
+    if (!check_csrf()) {
+        return ['status' => 'error', 'message' => 'Invalid CSRF token.'];
+    }
+    if (!checkRoles('delete', 'phones_sms')) {
+        return ['status' => 'error', 'message' => 'You do not have permission to delete messages.'];
+    }
+    $conn = db();
+    $ids = smsInScope($conn, (array)($_POST['ids'] ?? []));
+    if (!$ids) {
+        return ['status' => 'error', 'message' => 'No message you can delete was selected.'];
+    }
+    $conn->query('DELETE FROM sms WHERE ID IN (' . implode(',', $ids) . ')');
+    return ['status' => 'success', 'deleted' => $conn->affected_rows,
+            'message' => 'Deleted ' . number_format($conn->affected_rows) . ' message(s).'];
+}
+
+/** Danh sách số điện thoại cho ô lọc — đúng phạm vi team của người gọi. */
+function getSmsFilters(): array
+{
+    if (!checkRoles('view', 'phones_sms')) {
+        return ['status' => 'error', 'message' => 'You do not have permission to view messages.'];
+    }
+    $conn = db();
+    $w = is_admin() ? '' : ' WHERE team_id = ' . (int)($_SESSION['auth']['team'] ?? 0);
+    $phones = [];
+    $rs = $conn->query("SELECT ID, number FROM phones$w ORDER BY number");
+    while ($r = $rs->fetch_assoc()) {
+        $phones[] = ['id' => (int)$r['ID'], 'number' => (string)$r['number']];
+    }
+    return ['status' => 'success', 'phones' => $phones,
+            'perms' => ['edit' => checkRoles('edit', 'phones_sms'),
+                        'delete' => checkRoles('delete', 'phones_sms')]];
 }

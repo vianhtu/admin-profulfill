@@ -64,7 +64,7 @@ final class AbActor
             // mở ra chỉ vì có role (xem suite.teams.php).
             'roles'   => $roles ? array_fill_keys(
                 ['products', 'categories', 'sites', 'store', 'orders', 'teams', 'users', 'roles-permissions',
-                 'phones_numbers'], $roles
+                 'phones_numbers', 'phones_sms'], $roles
             ) : [],
         ];
         $_SESSION['csrf_token'] = 'ABTEST';

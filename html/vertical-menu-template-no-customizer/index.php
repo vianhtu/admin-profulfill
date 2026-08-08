@@ -486,6 +486,9 @@ if (empty($_SESSION['csrf_token'])) {
         case 'phones_numbers': ?>
             <script src="../../assets/js/app-phones-list.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-phones-list.js') ?>"></script>
         <?php break;
+        case 'phones_sms': ?>
+            <script src="../../assets/js/app-phones-sms-list.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-phones-sms-list.js') ?>"></script>
+        <?php break;
         case 'teams': ?>
             <script src="../../assets/js/app-teams-list.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-teams-list.js') ?>"></script>
         <?php break;

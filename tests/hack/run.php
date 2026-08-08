@@ -32,6 +32,7 @@ $suites = [
     'upload'     => ['file' => 'attacks.upload.php',     'menu' => 'sites',      'title' => 'Upload file (logo site)'],
     'account'    => ['file' => 'attacks.account.php',   'menu' => 'account',    'title' => 'Account (hồ sơ cá nhân)'],
     'phones'     => ['file' => 'attacks.phones.php',    'menu' => 'phones_numbers', 'title' => 'Phones ▸ Numbers'],
+    'sms'        => ['file' => 'attacks.sms.php',       'menu' => 'phones_sms',     'title' => 'Phones ▸ SMS'],
 ];
 $alias = ['product' => 'products', 'category' => 'categories', 'danhmuc' => 'categories',
     'site' => 'sites', 'store' => 'stores', 'shop' => 'stores', 'sanpham' => 'products',
@@ -39,7 +40,8 @@ $alias = ['product' => 'products', 'category' => 'categories', 'danhmuc' => 'cat
     'user' => 'users', 'nguoidung' => 'users', 'author' => 'users', 'authors' => 'users',
     'uploadfile' => 'upload', 'file' => 'upload', 'logo' => 'upload',
     'taikhoan' => 'account', 'profile' => 'account', 'hoso' => 'account',
-    'phone' => 'phones', 'numbers' => 'phones', 'sodienthoai' => 'phones'];
+    'phone' => 'phones', 'numbers' => 'phones', 'sodienthoai' => 'phones',
+    'tinnhan' => 'sms', 'message' => 'sms', 'messages' => 'sms', 'phones_sms' => 'sms'];
 
 // Chụp tài khoản thật TRƯỚC khi chạy — xem ab_snapshot_authors() để biết vì sao.
 $abCanary = ab_snapshot_authors();
