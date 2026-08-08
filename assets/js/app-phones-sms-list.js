@@ -156,7 +156,10 @@ function initTable() {
                 targets: 4,
                 render: function (data, type, full) {
                     const t = String(full['text'] ?? '');
-                    return '<div class="text-truncate" style="max-width:420px" title="' +
+                    // Chưa đọc thì in đậm như hộp thư — cho thấy trạng thái ngay ở chỗ mắt
+                    // đang nhìn, không phải liếc sang cột State
+                    const dam = full['status'] === 'pending' ? ' fw-medium text-heading' : '';
+                    return '<div class="text-truncate' + dam + '" style="max-width:420px" title="' +
                         esc(t) + '">' + esc(t) + '</div>';
                 }
             },
@@ -189,9 +192,13 @@ function initTable() {
                     // Xem trọn tin: ai xem được trang là xem được, không gắn quyền riêng
                     const viewBtn = `<button type="button" class="btn btn-text-secondary rounded-pill waves-effect btn-icon view-sms" data-id="${id}" title="View message"><i class="icon-base ti tabler-eye icon-22px"></i></button>`;
                     const doc = full['status'] === 'viewed';
+                    // Phong thư vẽ theo TRẠNG THÁI, không phải theo hành động: đã đọc = thư
+                    // MỞ (và mờ đi), chưa đọc = thư ĐÓNG. Bản đầu vẽ theo hành động nên đọc
+                    // xong phong thư lại đóng vào — nhìn y như thao tác không ăn.
                     const markBtn = full['can_edit']
-                        ? `<button type="button" class="btn btn-text-secondary rounded-pill waves-effect btn-icon mark-sms" data-id="${id}" data-status="${doc ? 'pending' : 'viewed'}" title="${doc ? 'Mark as unread' : 'Mark as read'}"><i class="icon-base ti ${doc ? 'tabler-mail' : 'tabler-mail-opened'} icon-22px"></i></button>`
-                        : lockedBtn('tabler-mail-opened', 'You do not have permission to change messages.');
+                        ? `<button type="button" class="btn ${doc ? 'btn-text-secondary' : 'btn-text-primary'} rounded-pill waves-effect btn-icon mark-sms" data-id="${id}" data-status="${doc ? 'pending' : 'viewed'}" title="${doc ? 'Mark as unread' : 'Mark as read'}"><i class="icon-base ti ${doc ? 'tabler-mail-opened' : 'tabler-mail'} icon-22px"></i></button>`
+                        : lockedBtn(doc ? 'tabler-mail-opened' : 'tabler-mail',
+                                    'You do not have permission to change messages.');
                     const delBtn = full['can_delete']
                         ? `<button type="button" class="btn btn-text-danger rounded-pill waves-effect btn-icon delete-sms" data-id="${id}" title="Delete"><i class="icon-base ti tabler-trash icon-22px"></i></button>`
                         : lockedBtn('tabler-trash', 'You do not have permission to delete messages.');
@@ -305,6 +312,41 @@ function initTable() {
     $('#SmsPhone, #SmsStatus').on('change', function () {
         dtSms.ajax.reload();
     });
+
+    tuDongNap();
+}
+
+/* ---------------- Tự động nạp tin mới ---------------- */
+
+// Tin nhắn về từ webhook Telnyx bất cứ lúc nào; ngồi ở bảng này mà phải F5 mới thấy thì
+// coi như mất tác dụng theo dõi. Cứ 30 giây nạp lại một lượt.
+const SMS_NHIP_NAP = 30000;
+
+function tuDongNap() {
+    setInterval(function () {
+        if (!dtSms) {
+            return;
+        }
+        // Tab đang ẩn: không nạp. Server chỉ có ~955MB RAM, đừng bắt nó phục vụ những
+        // cái tab không ai nhìn.
+        if (document.hidden) {
+            return;
+        }
+        // Đang mở modal (đọc tin / xác nhận xóa): nạp lại sẽ vẽ lại bảng dưới chân người
+        // dùng, và danh sách ID chờ xóa trỏ vào dòng vừa biến mất.
+        if (document.querySelector('.modal.show')) {
+            return;
+        }
+        // Đang tick chọn dòng: reload xóa sạch lựa chọn, người dùng tick giữa chừng sẽ mất.
+        if (dtSms.rows({ selected: true }).count() > 0) {
+            return;
+        }
+        // Đang gõ tìm kiếm cũng để yên
+        if (document.activeElement === document.querySelector('.dt-search input')) {
+            return;
+        }
+        dtSms.ajax.reload(null, false);   // false = giữ nguyên trang đang xem
+    }, SMS_NHIP_NAP);
 }
 
 /* ---------------- Xem trọn một tin ---------------- */
