@@ -53,7 +53,10 @@ return function (HackRunner $h) {
 
     $h->attack('SMS', 'Ô lọc liệt kê số của team khác', 'USR_OUT', function ($atk, $fx) {
         $so = $fx->new_phone(1);
-        $_POST = ['q' => '+1900ZZAB'];
+        // Tìm ĐÚNG số vừa tạo: ô lọc chỉ trả 30 dòng/lượt nên tìm theo tiền tố ZZAB có thể
+        // trượt khỏi trang đầu và biến đòn tấn công thành "chặn" giả
+        $_POST = ['q' => (string)$fx->conn->query("SELECT number FROM phones WHERE ID = $so")
+            ->fetch_row()[0]];
         $res = getSmsPhones();
         $ids = array_map('intval', array_column($res['results'] ?? [], 'id'));
         return ['breach' => in_array($so, $ids, true),

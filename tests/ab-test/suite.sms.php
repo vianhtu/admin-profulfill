@@ -161,9 +161,12 @@ return function (AbRunner $r) {
     $r->add('SMS — bộ lọc', 'Danh sách số trong ô lọc chỉ có số của team mình',
         function ($a, $fx) {
             $khac = $fx->new_phone((int)$a->team === 1 ? 2 : 1);
-            // Ô lọc nạp theo yêu cầu (select2 ajax) nên phải tìm ĐÚNG số đó, không thể
-            // trông vào việc nó lọt vào 30 dòng đầu
-            $_POST = ['q' => '+1900ZZAB'];
+            // Ô lọc nạp theo yêu cầu (select2 ajax, 30 dòng/lượt) nên phải tìm ĐÚNG số vừa
+            // tạo. Tìm theo tiền tố 'ZZAB' thì mỗi vai chạy lại đẻ thêm một số, tới vai sau
+            // là tràn khỏi 30 dòng đầu -> ô sai lúc có lúc không.
+            $so = (string)$fx->conn->query("SELECT number FROM phones WHERE ID = $khac")
+                ->fetch_row()[0];
+            $_POST = ['q' => $so];
             $res = getSmsPhones();
             $ids = array_map('intval', array_column($res['results'] ?? [], 'id'));
             // ALLOW = ô lọc liệt kê cả số của team khác -> chỉ admin
