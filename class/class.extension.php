@@ -336,6 +336,13 @@ class Extensions
             //    lại trước khi lưu. Optional: không có thì lưu NULL.
             $variant_data = isset($data['variants']) ? json_encode($data['variants']) : null;
 
+            // `posts.badge` chỉ varchar(20). Extension gửi nguyên textContent của nhãn
+            // trên trang nguồn — có giao diện trả về nhiều dòng/nhiều nhãn — nên INSERT
+            // văng "Data too long" và sản phẩm KHÔNG vào được (30/07/2026, 7 lần trong
+            // php_errors.log). Cắt ở server để mọi client đều an toàn, không chỉ trông
+            // chờ bản extension mới.
+            $badge = mb_substr(trim(preg_replace('/\s+/u', ' ', (string) ($data['badge'] ?? ''))), 0, 20);
+
             try {
                 $conn->execute_query(
                     "INSERT INTO posts (author_id, date, title, status, sku, images, type_id, site_id, store_id, badge, description, metadata, variantdata)
@@ -348,7 +355,7 @@ class Extensions
                         $type_id,
                         $site_id,
                         $store_id,
-                        $data['badge'] ?? '',
+                        $badge,
                         $data['description'] ?? '',
                         json_encode(['tags' => $data['tags'] ?? []]),
                         $variant_data,
