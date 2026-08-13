@@ -101,6 +101,15 @@ và `ajax.php` (403). **Đừng bỏ một trong hai**, chỉ gác ajax thì ng�
 quyền cũ. Sửa 1 role → mọi user mang role đó bị buộc đăng nhập lại ở request kế tiếp; đổi CẤP
 (`slug`) cũng vậy. Riêng **đổi TÊN role thì KHÔNG đá ai ra** — quyền không đổi, đá ra chỉ làm phiền.
 
+**API EXTENSION CŨNG PHẢI QUA PHÂN QUYỀN** (siết 13/08/2026). Nhóm `extension-*` xác thực bằng
+`key`+`email` chứ không theo session, nhưng KHÔNG vì thế mà được đứng ngoài luật — trước đây key
+hợp lệ là làm được mọi thứ. `Extensions::authenticate()` bắt buộc `authors.status = 2` và team còn
+hoạt động, trả kèm cấp + role; `Extensions::has_permission($auth, $action, $menu)` đòi **từ cấp
+`user` trở lên** (customer là khách, không phải người làm việc) **và ĐÚNG cờ hành động** (`view` để
+đọc, `add` để thêm), chỉ admin bỏ qua role — y như `checkRoles()`. Hệ quả cần nói với người dùng:
+vai nào chỉ có `products.view` thì đọc được nhưng KHÔNG import được, muốn import phải bật cờ `add`
+cho vai đó. Thêm endpoint `extension-*` mới thì gọi đủ hai hàm này, đừng chỉ kiểm key.
+
 **CẤP là trục THỨ BA** (`roles_permissions.slug`): Admin > Manager > User > Customer.
 - **NHÌN**: chỉ thấy người ngang cấp hoặc thấp hơn (manager không thấy admin). Lọc ngay trong
   SQL của danh sách, đừng lọc ở PHP — lọc sau khi lấy về làm sai số đếm phân trang.
@@ -197,6 +206,19 @@ người đang sửa (admin gán sản phẩm cho user team khác thì category/
   Giữ "1 file" bằng cách gỡ file khác theo THAM CHIẾU, không theo chỉ số (mock ảnh cũ làm lệch chỉ số).
 - **nginx**: `uploads/` deny-by-default; riêng `uploads/sites/` chỉ phục vụ tĩnh `.png/.jpg` (`.php`
   → 403, không qua php-fpm). `tests/` → 403. Đừng gỡ các lớp này.
+- **`.git/` và log/tài liệu KHÔNG được lộ qua HTTP** (vá 13/08/2026 — trước đó tải được thật):
+  `.git/config` chứa **GitHub token trong URL remote**, mà deploy lại bằng webhook → lấy được token
+  là đẩy được code độc rồi server tự pull. `.git/index` 5,6 MB cũng tải được nên lộ cả cây file và
+  mọi object trong lịch sử (gồm `config.php`). Nay nginx chặn `location ~ /\.git` và
+  `\.(log|sql|md|bak|old|orig|sh|ini|env)$` → 403. **Đừng nhúng token vào URL remote**, dùng deploy
+  key SSH.
+- **Chống dò key cho `extension-*`**: đếm số lần xác thực hỏng theo IP (file trong thư mục tạm),
+  quá 20 lần/10 phút thì chặn. Nhóm endpoint account trả credential đã giải mã nên ghi thêm log
+  truy cập (`[Extensions::audit]`).
+- **Site nằm sau Cloudflare**: nginx phải `include /etc/nginx/cloudflare-ips.conf`
+  (`set_real_ip_from` + `real_ip_header CF-Connecting-IP`). Thiếu nó thì `REMOTE_ADDR` là IP biên
+  của CF, **đổi theo từng request** — log ghi sai IP và mọi luật chặn theo IP đều vô dụng (đúng lỗi
+  làm bộ đếm chống dò key không cộng dồn, phát hiện 13/08/2026).
 
 ## 8. Kiểm thử — 2 bộ (chạy CLI trên server, chỉ dùng khi được yêu cầu)
 
