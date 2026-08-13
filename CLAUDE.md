@@ -110,6 +110,15 @@ hoạt động, trả kèm cấp + role; `Extensions::has_permission($auth, $act
 vai nào chỉ có `products.view` thì đọc được nhưng KHÔNG import được, muốn import phải bật cờ `add`
 cho vai đó. Thêm endpoint `extension-*` mới thì gọi đủ hai hàm này, đừng chỉ kiểm key.
 
+**TEAM KEY = TOÀN QUYỀN TRONG TEAM ĐÓ** (chốt 13/08/2026). Nhóm endpoint account
+(`extension-get-account-*`, `extension-update-account-*`, `extension-add-account-orders`) xác thực
+bằng `team.key` chứ không phải key người dùng: ai giữ khoá đó thì làm được mọi thứ với account của
+team ấy, **không kiểm role, không kiểm cấp** — đây là thiết kế, đừng "sửa" thành key theo người.
+Ranh giới duy nhất là TEAM: `get_account_by_id()` luôn lọc `accounts.team_id = <team của key>`;
+giữ nguyên điều kiện đó ở mọi endpoint thêm sau. Vì một khoá mở được cả kho account (kèm mật khẩu/
+cookies/2FA giải mã sẵn) nên khoá phải đủ dài (32 hex), thu hồi bằng cách đổi `team.key`, và mọi
+lần truy cập đều được ghi log.
+
 **CẤP là trục THỨ BA** (`roles_permissions.slug`): Admin > Manager > User > Customer.
 - **NHÌN**: chỉ thấy người ngang cấp hoặc thấp hơn (manager không thấy admin). Lọc ngay trong
   SQL của danh sách, đừng lọc ở PHP — lọc sau khi lấy về làm sai số đếm phân trang.

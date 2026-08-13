@@ -668,12 +668,19 @@ class Extensions
     /**
      * Cổng cho nhóm endpoint quản lý ACCOUNT (2FA/cookies/mật khẩu/đơn hàng).
      *
-     * Nhóm này xác thực bằng KEY CỦA TEAM, không phải của người: một khoá dùng
-     * chung cho cả team, không thu hồi được theo từng người và không biết ai đã
-     * gọi. Vì nó trả ra thông tin đăng nhập đã giải mã nên ở đây có thêm:
-     *  - chống dò khoá (đếm số lần hỏng theo IP),
+     * XÁC THỰC BẰNG KEY CỦA TEAM, VÀ ĐÓ LÀ CÓ CHỦ Ý (chốt 13/08/2026): giữ được
+     * `team.key` nghĩa là toàn quyền trong phạm vi team đó — không kiểm role,
+     * không kiểm cấp. Đừng "sửa" thành key theo người.
+     *
+     * Ranh giới duy nhất là TEAM: `get_account_by_id()` luôn lọc
+     * `accounts.team_id = <team của key>`, nên key của team này không chạm được
+     * account của team khác. Giữ nguyên điều kiện đó ở mọi endpoint thêm sau này.
+     *
+     * Đổi lại, khoá này có sức công phá lớn nhất hệ thống (một key = 317 account
+     * của FOX TEAM, kèm mật khẩu/cookies/2FA giải mã sẵn), nên ở đây có thêm:
+     *  - chống dò khoá (đếm số lần hỏng theo IP thật, xem ghi chú Cloudflare),
      *  - ghi log mọi lần truy cập để còn lần ra khi có sự cố.
-     * Về lâu dài nên chuyển sang key theo người như luồng sản phẩm.
+     * Team key phải luôn đủ dài (32 hex) và thu hồi bằng cách đổi `team.key`.
      */
     private static function check_condition(\mysqli $conn): array
     {
