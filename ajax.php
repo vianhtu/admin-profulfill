@@ -68,6 +68,11 @@ if (isset($_GET['action']) && isset($_POST['key']) && str_starts_with($_GET['act
         case 'extension-get-products':
             echo json_encode(Extensions::get_products());
             break;
+        default:
+            // Không có default thì action lạ trả body RỖNG, client chỉ thấy
+            // "Server phản hồi rỗng" và không lần ra được nguyên nhân.
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Unsupported action: ' . $_GET['action']]);
     }
     exit;
 }

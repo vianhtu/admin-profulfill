@@ -2,6 +2,15 @@
 
 class Extensions
 {
+    /** Trần kích thước đầu vào — không có trần thì một request dựng được câu IN
+     *  hàng nghìn placeholder hoặc bắt server chèn hàng nghìn dòng một lượt. */
+    private const MAX_CHECK_IDS = 500;
+    private const MAX_ADD_PRODUCTS = 100;
+
+    /** Chống dò key: quá ngần này lần xác thực hỏng trong cửa sổ thì chặn IP. */
+    private const AUTH_FAIL_LIMIT = 20;
+    private const AUTH_FAIL_WINDOW = 600;
+
     public static function get_account_by_id(array $fields = ['ID']): array
     {
         $conn = db();
@@ -62,6 +71,7 @@ class Extensions
             return ['success' => false, 'message' => 'Không thể giải mã secret key'];
         }
 
+        self::audit_credential_access('2fa');
         return ['success' => true, 'code' => self::getTOTPCode($secret)];
     }
 
@@ -137,6 +147,7 @@ class Extensions
             return ['success' => false, 'message' => 'Không thể giải mã cookies'];
         }
 
+        self::audit_credential_access('cookies');
         return ['success' => true, 'cookies' => $cookies];
     }
 
@@ -158,6 +169,7 @@ class Extensions
             return ['success' => false, 'message' => 'Không thể giải mã password'];
         }
 
+        self::audit_credential_access('login');
         return [
             'success' => true,
             'password' => $password,
@@ -189,7 +201,9 @@ class Extensions
         $values = [];
         foreach ($orders as $order) {
             // Bỏ qua đơn hàng thiếu ID — không có gì để đối chiếu/định danh trong DB.
-            if (empty($order->id)) {
+            // Kiểm is_object trước: mảng chứa chuỗi/số sẽ sinh warning PHP 8
+            // "Attempt to read property on string" nếu đọc thẳng ->id.
+            if (!is_object($order) || empty($order->id)) {
                 continue;
             }
 
@@ -235,9 +249,10 @@ class Extensions
 
     public static function add_products(): array
     {
-        $authors_id = self::check_authors_key(db());
-        if (!$authors_id) {
-            return ['success' => false, 'message' => 'Bạn không có quyền thêm sản phẩm.'];
+        $conn = db();
+        $auth = self::authenticate($conn);
+        if (!$auth || !self::has_permission($auth, 'products')) {
+            return self::denied();
         }
 
         $data = json_decode($_POST['data'] ?? '', true);
@@ -251,10 +266,29 @@ class Extensions
         $is_batch = array_is_list($data);
         $products = $is_batch ? $data : [$data];
 
-        $conn = db();
+        if (count($products) > self::MAX_ADD_PRODUCTS) {
+            return ['success' => false, 'message' => 'Tối đa ' . self::MAX_ADD_PRODUCTS . ' sản phẩm mỗi lần.'];
+        }
+
+        // Ngữ cảnh dùng chung cho cả lô. Bản cũ tra lại team của author, danh
+        // sách type và site_id CHO TỪNG SẢN PHẨM: lô 50 sản phẩm tốn ~250 query
+        // trong khi phần lớn là hỏi đi hỏi lại cùng một câu.
+        $context = [
+            'team_id' => $auth['team_id'],
+            'types' => self::get_types_cached(),
+            'sites' => [],
+            'existing_skus' => array_flip(self::existing_skus(
+                $conn,
+                array_values(array_filter(array_map(
+                    static fn($p) => is_array($p) ? trim((string) ($p['id'] ?? '')) : '',
+                    $products
+                )))
+            )),
+        ];
+
         $results = [];
         foreach ($products as $product) {
-            $results[] = self::add_single_product($conn, $authors_id, is_array($product) ? $product : []);
+            $results[] = self::add_single_product($conn, $auth['id'], is_array($product) ? $product : [], $context);
         }
 
         if (!$is_batch) {
@@ -273,7 +307,7 @@ class Extensions
      * Validate + insert 1 sản phẩm vào `posts`. Dùng chung cho cả luồng thêm
      * 1 sản phẩm và thêm hàng loạt (add_products() gọi lặp lại hàm này).
      */
-    private static function add_single_product(\mysqli $conn, int $authors_id, array $data): array
+    private static function add_single_product(\mysqli $conn, int $authors_id, array $data, array &$context): array
     {
         $sku = trim((string) ($data['id'] ?? ''));
         $title = trim((string) ($data['title'] ?? ''));
@@ -287,23 +321,26 @@ class Extensions
         }
 
         try {
-            // 1. Loại sản phẩm phải khớp bảng `type` (dùng chung cache với check_products_exist).
-            $author_team = self::get_author_team($authors_id);
-            $types = self::get_types_cached();
-            if (!isset($types[$type_id])) {
+            // 1. Loại sản phẩm phải khớp bảng `type`.
+            $author_team = $context['team_id'];
+            if (!isset($context['types'][$type_id])) {
                 return ['success' => false, 'sku' => $sku, 'message' => 'Loại sản phẩm không hợp lệ.'];
             }
 
-            // 2. Site phải tồn tại (etsy.com/amazon.com/ebay.com...).
-            $site_row = $conn->execute_query('SELECT ID FROM site WHERE name = ? LIMIT 1', [$site])->fetch_assoc();
-            if (!$site_row) {
+            // 2. Site phải tồn tại (etsy.com/amazon.com/ebay.com...). Cả lô thường
+            //    cùng một site nên tra một lần rồi dùng lại.
+            if (!array_key_exists($site, $context['sites'])) {
+                $site_row = $conn->execute_query('SELECT ID FROM site WHERE name = ? LIMIT 1', [$site])->fetch_assoc();
+                $context['sites'][$site] = $site_row ? (int) $site_row['ID'] : 0;
+            }
+            $site_id = $context['sites'][$site];
+            if (!$site_id) {
                 return ['success' => false, 'sku' => $sku, 'message' => 'Site không hợp lệ.'];
             }
-            $site_id = (int) $site_row['ID'];
 
-            // 3. Chặn thêm trùng — kiểm tra lại phía server dù extension đã check trước đó.
-            $existing = $conn->execute_query('SELECT ID FROM posts WHERE sku = ? LIMIT 1', [$sku])->fetch_assoc();
-            if ($existing) {
+            // 3. Chặn thêm trùng — đã tra sẵn cả lô bằng MỘT câu IN ở add_products().
+            //    UNIQUE(sku) vẫn là chốt cuối, xem nhánh bắt lỗi 1062 bên dưới.
+            if (isset($context['existing_skus'][$sku])) {
                 return ['success' => false, 'sku' => $sku, 'message' => 'Sản phẩm đã tồn tại.'];
             }
 
@@ -369,6 +406,10 @@ class Extensions
                 }
                 throw $e;
             }
+
+            // Nhớ lại trong phạm vi lô: payload gửi trùng sku hai lần thì lần sau
+            // bị chặn ngay, khỏi đợi UNIQUE ném lỗi.
+            $context['existing_skus'][$sku] = true;
 
             return ['success' => true, 'sku' => $sku, 'data' => ['id' => (int) $conn->insert_id]];
         } catch (\mysqli_sql_exception $e) {
@@ -516,9 +557,9 @@ class Extensions
 
     public static function check_products_exist(): array
     {
-        $authors_id = self::check_authors_key(db());
-        if (!$authors_id) {
-            return ['success' => false, 'message' => 'Bạn không có quyền kiểm tra sản phẩm.'];
+        $auth = self::authenticate(db());
+        if (!$auth || !self::has_permission($auth, 'products')) {
+            return self::denied();
         }
 
         $request_data = json_decode($_POST['data'] ?? '', true);
@@ -527,25 +568,24 @@ class Extensions
         }
 
         $ids = array_values(array_unique(array_map('strval', $request_data['ids'])));
+        if (count($ids) > self::MAX_CHECK_IDS) {
+            return ['success' => false, 'message' => 'Tối đa ' . self::MAX_CHECK_IDS . ' mã sản phẩm mỗi lần.'];
+        }
         if (empty($ids)) {
-            return ['success' => true, 'data' => []];
+            // Luôn trả đúng hình dạng {products:{}} — bản cũ trả mảng rỗng nên
+            // client phải tự đoán, dễ hiểu nhầm là lỗi.
+            return ['success' => true, 'data' => ['products' => new \stdClass()]];
         }
 
         // ID sản phẩm marketplace được lưu ở posts.sku. key/email chỉ dùng để xác minh
-        // quyền gọi API (đã check ở check_authors_key), không lọc theo author_id —
-        // kiểm tra tồn tại trên toàn bộ sản phẩm, không riêng của author này.
-        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        // quyền gọi API (đã check ở authenticate/has_permission), không lọc theo
+        // author_id — kiểm tồn tại trên toàn bộ sản phẩm, không riêng author này.
         try {
-            $result = db()->execute_query(
-                "SELECT sku FROM posts WHERE sku IN ($placeholders)",
-                $ids
-            );
-
             // Key là sku, value là object rỗng — chỗ để sau này gắn thêm dữ liệu
             // (status, title...) mà không phải đổi lại cấu trúc response.
-            $existing = [];
-            foreach ($result->fetch_all(MYSQLI_ASSOC) as $row) {
-                $existing['products'][$row['sku']] = new \stdClass();
+            $existing = ['products' => new \stdClass()];
+            foreach (self::existing_skus(db(), $ids) as $sku) {
+                $existing['products']->{$sku} = new \stdClass();
             }
 
             // Extension tự quyết định khi nào cần đồng bộ lại types (bảng gần như
@@ -567,14 +607,14 @@ class Extensions
      */
     public static function get_products(): array
     {
-        $authors_id = self::check_authors_key(db());
-        if (!$authors_id) {
-            return ['success' => false, 'message' => 'Bạn không có quyền truy vấn sản phẩm.'];
+        $auth = self::authenticate(db());
+        if (!$auth || !self::has_permission($auth, 'products')) {
+            return self::denied();
         }
 
         $conn = db();
         $where = ['author_id = ?'];
-        $params = [$authors_id];
+        $params = [$auth['id']];
 
         try {
             if (!empty($_POST['type_id'])) {
@@ -610,7 +650,11 @@ class Extensions
             $offset_to = (int) ($_POST['offset_to'] ?? 0);
             $limit = $offset_to > $offset_from ? min($offset_to - $offset_from, 500) : 100;
 
-            $sql = 'SELECT * FROM posts WHERE ' . implode(' AND ', $where) . ' ORDER BY ID DESC LIMIT ? OFFSET ?';
+            // Liệt kê cột thay cho `SELECT *`: `metadata`/`variantdata` có dòng
+            // tới 38KB, nhân 100 dòng mỗi lần gọi là kéo vô ích vài MB.
+            $sql = 'SELECT ID, author_id, date, updated_at, title, status, sku, images,
+                           type_id, site_id, store_id, badge, metadata
+                    FROM posts WHERE ' . implode(' AND ', $where) . ' ORDER BY ID DESC LIMIT ? OFFSET ?';
             $params[] = $limit;
             $params[] = $offset_from;
 
@@ -621,6 +665,16 @@ class Extensions
         }
     }
 
+    /**
+     * Cổng cho nhóm endpoint quản lý ACCOUNT (2FA/cookies/mật khẩu/đơn hàng).
+     *
+     * Nhóm này xác thực bằng KEY CỦA TEAM, không phải của người: một khoá dùng
+     * chung cho cả team, không thu hồi được theo từng người và không biết ai đã
+     * gọi. Vì nó trả ra thông tin đăng nhập đã giải mã nên ở đây có thêm:
+     *  - chống dò khoá (đếm số lần hỏng theo IP),
+     *  - ghi log mọi lần truy cập để còn lần ra khi có sự cố.
+     * Về lâu dài nên chuyển sang key theo người như luồng sản phẩm.
+     */
     private static function check_condition(\mysqli $conn): array
     {
         $id = trim($_POST['id'] ?? '');
@@ -631,12 +685,33 @@ class Extensions
             return ['success' => false, 'message' => 'Missing parameters'];
         }
 
+        if (self::is_throttled()) {
+            return ['success' => false, 'message' => 'Too many failed attempts. Try again later.'];
+        }
+
         $team_id = self::check_team_key($conn, $key);
         if (!$team_id) {
+            self::record_auth_failure();
             return ['success' => false, 'message' => 'Invalid team key'];
         }
 
         return ['success' => true, 'id' => $id, 'site' => $site, 'team_id' => $team_id];
+    }
+
+    /**
+     * Vết truy cập thông tin đăng nhập của account. Ghi ra log lỗi PHP (đã bị
+     * nginx chặn không cho tải qua HTTP từ 13/08/2026).
+     */
+    private static function audit_credential_access(string $what): void
+    {
+        error_log(sprintf(
+            '[Extensions::audit] %s account=%s site=%s ip=%s ua=%s',
+            $what,
+            trim((string) ($_POST['id'] ?? '?')),
+            trim((string) ($_POST['site'] ?? '?')),
+            $_SERVER['REMOTE_ADDR'] ?? '-',
+            substr((string) ($_SERVER['HTTP_USER_AGENT'] ?? '-'), 0, 120)
+        ));
     }
 
     private static function check_team_key(\mysqli $conn, string $key): int
@@ -654,62 +729,184 @@ class Extensions
         }
     }
 
-    private static function check_authors_key(\mysqli $conn): int
+    /**
+     * Xác thực người gọi API extension và lấy luôn ngữ cảnh phân quyền.
+     *
+     * Trả về `['id','team_id','level','roles']` hoặc null nếu không hợp lệ.
+     * Ba điều kiện, thiếu một là hỏng cả luật phân quyền:
+     *  - key + email khớp `authors`;
+     *  - `authors.status = 2` (Active). Bản cũ KHÔNG kiểm cột này, nên khoá tài
+     *    khoản của người nghỉ việc mà key vẫn dùng được — quyền API không thu
+     *    hồi được theo tài khoản;
+     *  - team còn hoạt động (`team.status = 1`); team_id = 0 thì không có gì để khoá.
+     */
+    private static function authenticate(\mysqli $conn): ?array
     {
         $email = trim($_POST['email'] ?? '');
         $key = trim($_POST['key'] ?? '');
 
         if ($key === '' || $email === '') {
-            return 0;
+            return null;
+        }
+
+        if (self::is_throttled()) {
+            return null;
         }
 
         try {
-            // Team của author ngừng hoạt động -> key của author cũng hết hiệu lực.
-            // team_id = 0 (chưa gán team) thì không có gì để khóa.
             $result = $conn->execute_query(
-                'SELECT a.ID FROM authors a
+                'SELECT a.ID, a.team_id, r.slug AS level_slug, r.roles
+                 FROM authors a
                  LEFT JOIN team t ON t.ID = a.team_id
-                 WHERE a.`key` = ? AND a.`email` = ? AND (a.team_id = 0 OR t.status = 1)
+                 LEFT JOIN roles_permissions r ON r.ID = a.level
+                 WHERE a.`key` = ? AND a.`email` = ? AND a.status = 2
+                   AND (a.team_id = 0 OR t.status = 1)
                  LIMIT 1',
                 [$key, $email]
             );
-            return (int) ($result->fetch_assoc()['ID'] ?? 0);
+            $row = $result->fetch_assoc();
         } catch (\mysqli_sql_exception) {
-            return 0;
+            return null;
         }
+
+        if (!$row) {
+            self::record_auth_failure();
+            return null;
+        }
+
+        $roles = json_decode((string) ($row['roles'] ?? ''), true);
+
+        return [
+            'id' => (int) $row['ID'],
+            'team_id' => (int) $row['team_id'],
+            'level' => (string) ($row['level_slug'] ?? ''),
+            'roles' => is_array($roles) ? $roles : [],
+        ];
     }
 
     /**
-     * Lấy danh sách type (ID => name) có cache qua APCu (TTL 1 giờ) — bảng `type`
-     * gần như không đổi, tránh query lại mỗi lần extension gọi check-listings.
-     * Server không có extension apcu thì tự fallback về query DB bình thường.
+     * API không được là cửa sau đi vòng qua phân quyền. Hai điều kiện:
+     *
+     *  - CẤP: từ `user` trở lên. `customer` là khách, không phải người làm việc
+     *    trong hệ thống, nên dù có key vẫn bị từ chối (chốt 13/08/2026).
+     *  - ROLE: có quyền trên menu tương ứng là đủ, KHÔNG đòi đúng cờ `add`
+     *    (chốt 13/08/2026). Vai "Data Scraper" của đội nhập liệu chỉ được cấp
+     *    `products.view` nhưng công việc của họ chính là import — đòi cờ `add`
+     *    là chặn nhầm chính người đang làm.
+     *
+     * Chỉ admin bỏ qua role, giống `checkRoles()`; manager vẫn phải có menu.
      */
-    /**
-     * Team của author đang gọi API — dùng để giới hạn danh mục theo team.
-     */
-    private static function get_author_team(int $authors_id): int
+    private static function has_permission(array $auth, string $menu): bool
     {
-        try {
-            $row = db()->execute_query('SELECT team_id FROM authors WHERE ID = ? LIMIT 1', [$authors_id])->fetch_assoc();
-            return (int) ($row['team_id'] ?? 0);
-        } catch (\mysqli_sql_exception) {
-            return 0;
+        $rank = LEVEL_RANK[$auth['level']] ?? 0;
+        if ($rank < LEVEL_RANK['user']) {
+            return false;
         }
+
+        if ($auth['level'] === 'admin') {
+            return true;
+        }
+
+        return !empty($auth['roles'][$menu]);
+    }
+
+    /** Thông báo chung cho mọi trường hợp bị từ chối — không tiết lộ lý do cho bên gọi. */
+    private static function denied(): array
+    {
+        return ['success' => false, 'message' => 'Bạn không có quyền thực hiện thao tác này.'];
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Chống dò key                                                        */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * Đếm số lần xác thực hỏng theo IP. Dữ liệu thật từng có key dài 3–4 ký tự,
+     * mà endpoint thì không giới hạn số lần thử — dò key là chuyện vài phút.
+     * Đếm bằng file trong thư mục tạm của hệ thống: không đụng schema, không
+     * cần APCu (server hiện không có).
+     */
+    private static function throttle_file(): string
+    {
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'cli';
+        return sys_get_temp_dir() . '/pff-ext-auth-' . sha1($ip) . '.json';
+    }
+
+    private static function is_throttled(): bool
+    {
+        $file = self::throttle_file();
+        if (!is_readable($file)) {
+            return false;
+        }
+        $state = json_decode((string) @file_get_contents($file), true);
+        if (!is_array($state)) {
+            return false;
+        }
+        if (($state['at'] ?? 0) < time() - self::AUTH_FAIL_WINDOW) {
+            return false; // hết cửa sổ, tính lại từ đầu
+        }
+        return ($state['fails'] ?? 0) >= self::AUTH_FAIL_LIMIT;
+    }
+
+    private static function record_auth_failure(): void
+    {
+        $file = self::throttle_file();
+        $state = json_decode((string) @file_get_contents($file), true);
+        $fresh = !is_array($state) || ($state['at'] ?? 0) < time() - self::AUTH_FAIL_WINDOW;
+        @file_put_contents($file, json_encode([
+            'fails' => $fresh ? 1 : (int) $state['fails'] + 1,
+            'at' => $fresh ? time() : (int) $state['at'],
+        ]), LOCK_EX);
+    }
+
+    /**
+     * Những sku đã có trong `posts`, tra bằng MỘT câu cho cả danh sách.
+     * `posts.sku` có UNIQUE index nên đây là tra khoá, không quét bảng.
+     *
+     * @param string[] $skus
+     * @return string[]
+     */
+    private static function existing_skus(\mysqli $conn, array $skus): array
+    {
+        $skus = array_values(array_unique(array_filter($skus, static fn($s) => $s !== '')));
+        if (empty($skus)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($skus), '?'));
+        try {
+            $rows = $conn->execute_query("SELECT sku FROM posts WHERE sku IN ($placeholders)", $skus)
+                ->fetch_all(MYSQLI_ASSOC);
+        } catch (\mysqli_sql_exception $e) {
+            error_log('[Extensions::existing_skus] ' . $e->getMessage());
+            return [];
+        }
+
+        return array_column($rows, 'sku');
     }
 
     /**
      * Danh mục cho extension. Category DÙNG CHUNG toàn hệ thống nên mọi author đều
      * nhận cùng một danh sách (xem ghi chú mô hình ở class.categories.php).
+     *
+     * Cache qua APCu nếu có (TTL 1 giờ). Server hiện KHÔNG cài apcu nên phải có
+     * thêm bộ nhớ tạm trong một request: thiếu nó thì nhập lô 100 sản phẩm sẽ
+     * chạy lại đúng câu truy vấn này 100 lần.
      */
     private static function get_types_cached(): array
     {
+        static $memo = null;
+        if ($memo !== null) {
+            return $memo;
+        }
+
         $cache_key = 'pff_types_v3';
         $use_cache = function_exists('apcu_fetch');
 
         if ($use_cache) {
             $cached = apcu_fetch($cache_key, $found);
             if ($found) {
-                return $cached;
+                return $memo = $cached;
             }
         }
 
@@ -727,7 +924,7 @@ class Extensions
             apcu_store($cache_key, $types, 3600);
         }
 
-        return $types;
+        return $memo = $types;
     }
 
     /**
