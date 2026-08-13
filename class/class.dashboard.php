@@ -449,6 +449,18 @@ class Dashboard
      * dọn dữ liệu khi xoá team). Khoá gồm cả phạm vi để số của team này không
      * rơi sang team khác.
      */
+    /** Việc tính lại đang xếp hàng, chạy SAU khi đã trả trang cho người dùng. */
+    private static array $refresh_queue = [];
+
+    /**
+     * Đọc cache, và nếu hết hạn thì TRẢ SỐ CŨ RỒI TÍNH LẠI SAU.
+     *
+     * Tính lại tốn 1–2 giây (gom nhóm trên 1 triệu dòng). Nếu bắt người mở
+     * trang đúng lúc cache hết hạn phải ngồi đợi thì cứ 10 phút lại có một
+     * người lãnh đủ. Trả số cũ (lệch tối đa 10 phút, chấp nhận được với một
+     * bảng thống kê) rồi làm mới ở hậu trường thì không ai phải chờ.
+     * Chỉ lần đầu tiên chưa có gì trong cache mới phải tính đồng bộ.
+     */
     private static function cached(string $key, array $scope, callable $build)
     {
         [$name, $team, $author] = self::cache_slot($key, $scope);
@@ -456,7 +468,12 @@ class Dashboard
         $raw = getOption($name, $team, $author, null);
         if (is_string($raw) && $raw !== '') {
             $cached = json_decode($raw, true);
-            if (is_array($cached) && ($cached['at'] ?? 0) > time() - self::CACHE_TTL) {
+            if (is_array($cached) && array_key_exists('v', $cached)) {
+                if (($cached['at'] ?? 0) > time() - self::CACHE_TTL) {
+                    return $cached['v'];
+                }
+                self::$refresh_queue[] = [$name, $team, $author, $build];
+                self::schedule_refresh();
                 return $cached['v'];
             }
         }
@@ -464,6 +481,30 @@ class Dashboard
         $value = $build();
         self::put_option($name, $team, $author, json_encode(['at' => time(), 'v' => $value]));
         return $value;
+    }
+
+    private static function schedule_refresh(): void
+    {
+        static $registered = false;
+        if ($registered) {
+            return;
+        }
+        $registered = true;
+
+        register_shutdown_function(static function () {
+            // Đẩy phản hồi tới trình duyệt trước, phần nặng chạy sau lưng.
+            if (function_exists('fastcgi_finish_request')) {
+                fastcgi_finish_request();
+            }
+            foreach (self::$refresh_queue as [$name, $team, $author, $build]) {
+                try {
+                    self::put_option($name, $team, $author, json_encode(['at' => time(), 'v' => $build()]));
+                } catch (Throwable $e) {
+                    error_log('[Dashboard::refresh] ' . $e->getMessage());
+                }
+            }
+            self::$refresh_queue = [];
+        });
     }
 
     /**
