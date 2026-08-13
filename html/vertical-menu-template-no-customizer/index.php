@@ -270,6 +270,12 @@ if (empty($_SESSION['csrf_token'])) {
             <div class="container-xxl flex-grow-1 container-p-y">
               <?php
               switch ($currentMenu) {
+                  // `?menu=` rỗng = menu Dashboards (khai `link => ''` trong menuArgs),
+                  // và cũng là trang đáp mặc định sau khi đăng nhập.
+                  case '':
+                  case 'dashboard':
+                      include 'app-dashboard.php';
+                      break;
                   case 'products':
                       if (isset($_GET['form']) && ($_GET['form'] === 'add' || $_GET['form'] === 'edit')) {
                           include 'app-ecommerce-product-add.php';
@@ -430,6 +436,12 @@ if (empty($_SESSION['csrf_token'])) {
     <script src="../../assets/js/dt-url-state.js?v=<?= filemtime(ROOT_DIR . '/assets/js/dt-url-state.js') ?>"></script>
     <?php
     switch ($currentMenu) {
+        case '':
+        case 'dashboard': ?>
+            <script src="../../assets/vendor/libs/apex-charts/apexcharts.js"></script>
+            <script src="../../assets/js/app-dashboard.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-dashboard.js') ?>"></script>
+        <?php
+            break;
         case 'products':
             if (isset($_GET['form']) && ($_GET['form'] === 'add' || $_GET['form'] === 'edit')) { ?>
                 <script src="../../assets/js/app-ecommerce-product-add.js?v=<?= filemtime(ROOT_DIR . '/assets/js/app-ecommerce-product-add.js') ?>"></script>

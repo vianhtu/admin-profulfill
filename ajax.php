@@ -22,6 +22,7 @@ require_once __DIR__ . '/class/class.users.php';
 require_once __DIR__ . '/class/class.user.php';
 require_once __DIR__ . '/class/class.account.php';
 require_once __DIR__ . '/class/class.roles.php';
+require_once __DIR__ . '/class/class.dashboard.php';
 require_once __DIR__ . '/class/class.role.php';
 require __DIR__ . '/model/functions-gemini.php';
 require __DIR__ . '/model/functions-openai.php';
@@ -128,6 +129,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 	error_reporting(E_ALL);
 
 	switch ($_GET['action']) {
+		case 'dashboard-stats':
+			// Trang Dashboards mở cho mọi người đã đăng nhập (giống trang Account) —
+			// từng khối số liệu bên trong tự kiểm role và phạm vi dữ liệu.
+			echo json_encode(Dashboard::stats());
+			break;
 		case 'get-products-table':
 			echo json_encode(Products::get_products());
 			break;

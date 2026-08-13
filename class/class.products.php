@@ -35,7 +35,8 @@ class Products
  * - Mọi level còn lại: chỉ sản phẩm của chính user đó.
  * Trả về [joinSql, whereSql] để gắn vào query.
  */
-    private static function get_base_auth_conditions(string $postsAlias = 'posts'): array {
+    /** public để Dashboard dùng lại đúng một luật phạm vi, không chép ra bản thứ hai. */
+    public static function get_base_auth_conditions(string $postsAlias = 'posts'): array {
     if (is_admin()) {
         return ['', ''];
     }
