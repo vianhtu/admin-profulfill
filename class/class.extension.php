@@ -251,7 +251,7 @@ class Extensions
     {
         $conn = db();
         $auth = self::authenticate($conn);
-        if (!$auth || !self::has_permission($auth, 'products')) {
+        if (!$auth || !self::has_permission($auth, 'add', 'products')) {
             return self::denied();
         }
 
@@ -558,7 +558,7 @@ class Extensions
     public static function check_products_exist(): array
     {
         $auth = self::authenticate(db());
-        if (!$auth || !self::has_permission($auth, 'products')) {
+        if (!$auth || !self::has_permission($auth, 'view', 'products')) {
             return self::denied();
         }
 
@@ -608,7 +608,7 @@ class Extensions
     public static function get_products(): array
     {
         $auth = self::authenticate(db());
-        if (!$auth || !self::has_permission($auth, 'products')) {
+        if (!$auth || !self::has_permission($auth, 'view', 'products')) {
             return self::denied();
         }
 
@@ -789,14 +789,15 @@ class Extensions
      *
      *  - CẤP: từ `user` trở lên. `customer` là khách, không phải người làm việc
      *    trong hệ thống, nên dù có key vẫn bị từ chối (chốt 13/08/2026).
-     *  - ROLE: có quyền trên menu tương ứng là đủ, KHÔNG đòi đúng cờ `add`
-     *    (chốt 13/08/2026). Vai "Data Scraper" của đội nhập liệu chỉ được cấp
-     *    `products.view` nhưng công việc của họ chính là import — đòi cờ `add`
-     *    là chặn nhầm chính người đang làm.
+     *  - ROLE: phải có ĐÚNG cờ hành động trên menu tương ứng — `view` để đọc,
+     *    `add` để thêm (chốt 13/08/2026), đúng như `checkRoles()` bên giao diện.
+     *    Hệ quả: vai nào chỉ được cấp `products.view` thì đọc được nhưng KHÔNG
+     *    import được; muốn import phải bật cờ `add` cho vai đó trong menu
+     *    Roles & Permissions.
      *
-     * Chỉ admin bỏ qua role, giống `checkRoles()`; manager vẫn phải có menu.
+     * Chỉ admin bỏ qua role, giống `checkRoles()`; manager vẫn phải có quyền.
      */
-    private static function has_permission(array $auth, string $menu): bool
+    private static function has_permission(array $auth, string $action, string $menu): bool
     {
         $rank = LEVEL_RANK[$auth['level']] ?? 0;
         if ($rank < LEVEL_RANK['user']) {
@@ -807,7 +808,7 @@ class Extensions
             return true;
         }
 
-        return !empty($auth['roles'][$menu]);
+        return !empty($auth['roles'][$menu][$action]);
     }
 
     /** Thông báo chung cho mọi trường hợp bị từ chối — không tiết lộ lý do cho bên gọi. */
