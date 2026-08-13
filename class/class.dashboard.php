@@ -105,28 +105,39 @@ class Dashboard
     private static function products_block(array $scope): array
     {
         [$join, $where] = self::posts_scope();
+        $pipeline = self::pipeline($scope);
 
-        // Một câu cho cả 4 mốc thời gian — rẻ hơn 4 lần quét riêng.
-        $sql = "SELECT
-                    COUNT(*) AS total,
-                    SUM(posts.date >= CURDATE()) AS today,
-                    SUM(posts.date >= DATE_SUB(CURDATE(), INTERVAL 1 DAY) AND posts.date < CURDATE()) AS yesterday,
-                    SUM(posts.date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)) AS d7,
-                    SUM(posts.date >= DATE_SUB(CURDATE(), INTERVAL 14 DAY) AND posts.date < DATE_SUB(CURDATE(), INTERVAL 7 DAY)) AS d7_prev,
-                    SUM(posts.date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)) AS d30
-                FROM posts $join WHERE 1 = 1 $where";
+        /* KPI phải BÓ TRONG 30 NGÀY.
+           Bản đầu tính `SUM(date >= …)` trên toàn bộ tập dòng: MySQL không dùng
+           được index cho biểu thức trong SUM nên nó quét sạch 1 triệu dòng —
+           đo thật là 1,2–2,7 giây cho một trang mà ai đăng nhập cũng đáp xuống.
+           Bó điều kiện vào WHERE thì index `date` chỉ đọc ~30 ngày dữ liệu.
+           Còn `total` lấy từ tổng pipeline (đã cache), khỏi đếm lại lần nữa.
 
-        $kpi = self::row($sql);
+           Mốc ngày dùng INTERVAL 6/29 chứ không phải 7/30: "7 ngày" nghĩa là hôm
+           nay cộng 6 ngày trước đó, đúng bằng 7 cột cuối của biểu đồ. Dùng 7 thì
+           KPI ôm thêm một ngày và lệch hẳn so với biểu đồ ngay bên cạnh. */
+        $kpi = self::row(
+            "SELECT
+                 SUM(posts.date >= CURDATE()) AS today,
+                 SUM(posts.date >= DATE_SUB(CURDATE(), INTERVAL 1 DAY) AND posts.date < CURDATE()) AS yesterday,
+                 SUM(posts.date >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)) AS d7,
+                 SUM(posts.date >= DATE_SUB(CURDATE(), INTERVAL 13 DAY)
+                     AND posts.date < DATE_SUB(CURDATE(), INTERVAL 6 DAY)) AS d7_prev,
+                 COUNT(*) AS d30
+             FROM posts $join
+             WHERE posts.date >= DATE_SUB(CURDATE(), INTERVAL 29 DAY) $where"
+        );
 
         return [
-            'total' => (int) ($kpi['total'] ?? 0),
+            'total' => array_sum(array_column($pipeline, 'count')),
             'today' => (int) ($kpi['today'] ?? 0),
             'yesterday' => (int) ($kpi['yesterday'] ?? 0),
             'd7' => (int) ($kpi['d7'] ?? 0),
             'd7_prev' => (int) ($kpi['d7_prev'] ?? 0),
             'd30' => (int) ($kpi['d30'] ?? 0),
             'series' => self::daily_series(),
-            'pipeline' => self::pipeline($scope),
+            'pipeline' => $pipeline,
             'stale_pending' => self::stale_pending($scope),
         ];
     }
@@ -172,10 +183,9 @@ class Dashboard
             return array_map(fn($r) => ['status' => $r['s'], 'count' => (int) $r['n']], $rows);
         };
 
-        // Người thường chỉ đếm trên dòng của mình nên rẻ, tính thẳng cho tươi.
-        return $scope['is_admin'] || $scope['is_manager']
-            ? self::cached('dash_pipeline', $scope, $build)
-            : $build();
+        // Cache cho MỌI vai: dòng của riêng một người cũng có thể hơn 100.000
+        // (daohoa 136.862), gom nhóm trên chừng đó vẫn tốn hàng trăm ms.
+        return self::cached('dash_pipeline', $scope, $build);
     }
 
     private static function stale_pending(array $scope): int
@@ -190,9 +200,7 @@ class Dashboard
             return (int) ($row['n'] ?? 0);
         };
 
-        return $scope['is_admin'] || $scope['is_manager']
-            ? (int) self::cached('dash_stale', $scope, $build)
-            : $build();
+        return (int) self::cached('dash_stale', $scope, $build);
     }
 
     /* ------------------------------------------------------------------ */
@@ -294,7 +302,7 @@ class Dashboard
 
     private static function teams_block(): array
     {
-        return self::cached('dash_teams', ['team' => 0, 'uid' => 0], function () {
+        return self::cached('dash_teams', ['is_admin' => true, 'team' => 0, 'uid' => 0], function () {
             $rows = self::rows(
                 "SELECT t.ID, t.name, t.status,
                         (SELECT COUNT(*) FROM authors a WHERE a.team_id = t.ID) AS members,
@@ -434,11 +442,9 @@ class Dashboard
      */
     private static function cached(string $key, array $scope, callable $build)
     {
-        $team = (int) ($scope['team'] ?? 0);
-        $owner = ($scope['is_admin'] ?? false) ? 0 : $team;
-        $name = $key . '_' . (($scope['is_admin'] ?? false) ? 'all' : "t$team");
+        [$name, $team, $author] = self::cache_slot($key, $scope);
 
-        $raw = getOption($name, $owner, 0, null);
+        $raw = getOption($name, $team, $author, null);
         if (is_string($raw) && $raw !== '') {
             $cached = json_decode($raw, true);
             if (is_array($cached) && ($cached['at'] ?? 0) > time() - self::CACHE_TTL) {
@@ -447,22 +453,41 @@ class Dashboard
         }
 
         $value = $build();
-        self::put_option($name, $owner, json_encode(['at' => time(), 'v' => $value]));
+        self::put_option($name, $team, $author, json_encode(['at' => time(), 'v' => $value]));
         return $value;
     }
 
-    private static function put_option(string $name, int $team, string $value): void
+    /**
+     * Khoá cache PHẢI mang đúng phạm vi đã sinh ra số liệu, nếu không số của
+     * manager (cả team) sẽ được trả lại cho một user thường (chỉ dòng của họ).
+     * Người thường lưu theo `authors_id` để xoá user là cache đi theo.
+     */
+    private static function cache_slot(string $key, array $scope): array
+    {
+        $team = (int) ($scope['team'] ?? 0);
+        $uid = (int) ($scope['uid'] ?? 0);
+
+        if (!empty($scope['is_admin'])) {
+            return [$key . '_all', 0, 0];
+        }
+        if (!empty($scope['is_manager'])) {
+            return [$key . "_t$team", $team, 0];
+        }
+        return [$key . "_u$uid", $team, $uid];
+    }
+
+    private static function put_option(string $name, int $team, int $author, string $value): void
     {
         try {
             $conn = db();
             $conn->execute_query(
-                'UPDATE options SET value = ? WHERE name = ? AND team_id = ? AND authors_id = 0',
-                [$value, $name, $team]
+                'UPDATE options SET value = ? WHERE name = ? AND team_id = ? AND authors_id = ?',
+                [$value, $name, $team, $author]
             );
             if ($conn->affected_rows === 0) {
                 $conn->execute_query(
-                    'INSERT INTO options (team_id, authors_id, name, value) VALUES (?, 0, ?, ?)',
-                    [$team, $name, $value]
+                    'INSERT INTO options (team_id, authors_id, name, value) VALUES (?, ?, ?, ?)',
+                    [$team, $author, $name, $value]
                 );
             }
         } catch (mysqli_sql_exception $e) {
