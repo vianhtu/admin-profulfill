@@ -78,11 +78,20 @@ class Dashboard
         ];
     }
 
-    /** Mệnh đề WHERE/JOIN giới hạn `posts` theo đúng phạm vi người đang xem. */
+    /**
+     * Mệnh đề giới hạn `posts` theo phạm vi người đang xem.
+     *
+     * Lọc bằng `author_id IN (...)` chứ KHÔNG bằng `INNER JOIN authors`: cùng
+     * một luật (lấy từ Products) nhưng join làm MySQL bỏ index `posts.date` và
+     * quét cả bảng — riêng vai manager là 528ms mỗi lần mở trang dù cache đã ấm.
+     */
     private static function posts_scope(): array
     {
-        [$join, $where] = Products::get_base_auth_conditions('posts');
-        return [$join, $where !== '' ? " AND $where" : ''];
+        $ids = Products::scope_author_ids();
+        if ($ids === null) {
+            return ['', ''];
+        }
+        return ['', ' AND posts.author_id IN (' . implode(',', array_map('intval', $ids)) . ')'];
     }
 
     private static function team_name(int $team_id): string
