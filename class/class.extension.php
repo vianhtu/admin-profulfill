@@ -650,10 +650,14 @@ class Extensions
             $offset_to = (int) ($_POST['offset_to'] ?? 0);
             $limit = $offset_to > $offset_from ? min($offset_to - $offset_from, 500) : 100;
 
-            // Liệt kê cột thay cho `SELECT *`: `metadata`/`variantdata` có dòng
-            // tới 38KB, nhân 100 dòng mỗi lần gọi là kéo vô ích vài MB.
-            $sql = 'SELECT ID, author_id, date, updated_at, title, status, sku, images,
-                           type_id, site_id, store_id, badge, metadata
+            // Liệt kê cột thay cho `SELECT *` để biết chính xác API trả những gì
+            // (thêm cột mới vào bảng không tự động lọt ra ngoài). `description`
+            // và `variantdata` nằm trong hợp đồng — bên gọi cần cả hai.
+            // Lưu ý dung lượng: `variantdata` có dòng tới 38KB, nhân 100 dòng
+            // mặc định là vài MB mỗi lần gọi, nên hãy dùng offset_from/offset_to
+            // để lấy từng khoảng nhỏ thay vì kéo hết một lượt.
+            $sql = 'SELECT ID, author_id, date, updated_at, title, description, status, sku, images,
+                           type_id, site_id, store_id, badge, metadata, variantdata
                     FROM posts WHERE ' . implode(' AND ', $where) . ' ORDER BY ID DESC LIMIT ? OFFSET ?';
             $params[] = $limit;
             $params[] = $offset_from;
