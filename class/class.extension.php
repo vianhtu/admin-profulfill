@@ -948,4 +948,143 @@ class Extensions
         error_log("[Extensions::$context] " . $e->getMessage());
         return ['success' => false, 'message' => 'Đã xảy ra lỗi hệ thống, vui lòng thử lại sau.'];
     }
+
+    // ------------------------------------------------------------------ //
+    // Làm giàu tín hiệu listing Etsy (in carts / views / bought / badge…)  //
+    //                                                                      //
+    // App ngoài (GPM Profile Runner) quét trang Etsy rồi đẩy tín hiệu về.  //
+    // Tín hiệu là SỰ THẬT về listing trên Etsy, dùng chung cho MỌI bản sao //
+    // của listing đó (nhiều store/user cùng một sku) — nên hai endpoint    //
+    // này chỉ cho ADMIN, và cập nhật mọi dòng cùng sku, không theo phạm vi //
+    // sở hữu như các endpoint khác.                                        //
+    // ------------------------------------------------------------------ //
+
+    private const MAX_PICK_SIGNALS = 500;
+    private const MAX_SAVE_SIGNALS = 1000;
+    /** Khóa tín hiệu scanner được phép ghi vào metadata (whitelist). */
+    private const SIGNAL_KEYS = ['in_carts', 'bought_24', 'views_24', 'reviews', 'rating', 'in_demand'];
+    /** Giá trị badge hợp lệ (khớp dữ liệu extension đang có). */
+    private const BADGE_WHITELIST = ['', 'Etsy’s Pick', 'Bestseller'];
+
+    /**
+     * Trả về tối đa N sku Etsy CHƯA quét tín hiệu (metadata chưa có "signals_at").
+     *
+     * "Chưa quét" gồm cả listing đã có badge (do extension gắn) nhưng chưa có
+     * tín hiệu số — vì badge không phải dấu đã-quét. Chỉ đánh dấu bằng signals_at.
+     */
+    public static function pick_unscanned_signals(): array
+    {
+        $conn = db();
+        $auth = self::authenticate($conn);
+        if (!$auth || $auth['level'] !== 'admin') {
+            return self::denied();
+        }
+
+        $limit = (int) ($_POST['limit'] ?? 100);
+        $limit = max(1, min(self::MAX_PICK_SIGNALS, $limit));
+
+        try {
+            $res = $conn->query(
+                "SELECT DISTINCT sku FROM posts
+                 WHERE site_id = 1 AND sku REGEXP '^[0-9]{9,11}$'
+                   AND (metadata IS NULL OR metadata = ''
+                        OR metadata NOT LIKE '%\"signals_at\"%')
+                 LIMIT $limit"
+            );
+            $skus = [];
+            foreach ($res as $row) {
+                $skus[] = $row['sku'];
+            }
+        } catch (\mysqli_sql_exception $e) {
+            return self::db_error('pick_unscanned_signals', $e);
+        }
+        return ['success' => true, 'skus' => $skus, 'count' => count($skus)];
+    }
+
+    /**
+     * Ghi tín hiệu đã quét vào posts: cột badge + MERGE metadata (giữ tags…).
+     *
+     * $_POST['data'] = JSON list [{sku, badge, meta:{in_carts,…}} …]. Cập nhật
+     * MỌI dòng cùng sku, merge riêng metadata từng dòng, đóng dấu signals_at để
+     * lần sau khỏi quét lại. Chỉ nhận khóa tín hiệu trong whitelist và badge
+     * hợp lệ — không cho bên gọi nhét khóa/badge tùy ý vào metadata.
+     */
+    public static function save_signals(): array
+    {
+        $conn = db();
+        $auth = self::authenticate($conn);
+        if (!$auth || $auth['level'] !== 'admin') {
+            return self::denied();
+        }
+
+        $rows = json_decode($_POST['data'] ?? '', true);
+        if (!is_array($rows)) {
+            return ['success' => false, 'message' => 'Dữ liệu không đúng định dạng.'];
+        }
+        if (count($rows) > self::MAX_SAVE_SIGNALS) {
+            return ['success' => false, 'message' => 'Tối đa ' . self::MAX_SAVE_SIGNALS . ' listing mỗi lần.'];
+        }
+
+        $now = date('Y-m-d H:i:s');
+        try {
+            $sel = $conn->prepare('SELECT ID, metadata FROM posts WHERE site_id = 1 AND sku = ?');
+            $upd = $conn->prepare('UPDATE posts SET badge = ?, metadata = ? WHERE ID = ?');
+        } catch (\mysqli_sql_exception $e) {
+            return self::db_error('save_signals.prepare', $e);
+        }
+
+        $skus = 0;
+        $updated = 0;
+        foreach ($rows as $rec) {
+            if (!is_array($rec)) {
+                continue;
+            }
+            $sku = (string) ($rec['sku'] ?? '');
+            if (!preg_match('/^[0-9]{9,11}$/', $sku)) {
+                continue;
+            }
+            $badge = (string) ($rec['badge'] ?? '');
+            if (!in_array($badge, self::BADGE_WHITELIST, true)) {
+                $badge = '';
+            }
+            $meta_in = is_array($rec['meta'] ?? null) ? $rec['meta'] : [];
+
+            try {
+                $sel->bind_param('s', $sku);
+                $sel->execute();
+                $found = $sel->get_result();
+                $skus++;
+                while ($row = $found->fetch_assoc()) {
+                    $meta = json_decode((string) ($row['metadata'] ?? ''), true);
+                    if (!is_array($meta)) {
+                        $meta = [];
+                    }
+                    // xoá tín hiệu cũ rồi nạp lại từ whitelist (item hết carts/
+                    // hết badge thì phản ánh đúng), các khóa khác (tags…) giữ nguyên
+                    foreach (self::SIGNAL_KEYS as $k) {
+                        unset($meta[$k]);
+                    }
+                    foreach ($meta_in as $k => $v) {
+                        if (in_array($k, self::SIGNAL_KEYS, true) && (is_scalar($v) || $v === null)) {
+                            $meta[$k] = $v;
+                        }
+                    }
+                    $meta['signals_at'] = $now;
+
+                    $json = json_encode($meta, JSON_UNESCAPED_UNICODE);
+                    $id = (int) $row['ID'];
+                    $upd->bind_param('ssi', $badge, $json, $id);
+                    $upd->execute();
+                    if ($upd->affected_rows > 0) {
+                        $updated++;
+                    }
+                }
+            } catch (\mysqli_sql_exception $e) {
+                error_log('[Extensions::save_signals] sku=' . $sku . ' ' . $e->getMessage());
+            }
+        }
+
+        error_log(sprintf('[Extensions::signals] admin=%d saved sku=%d rows=%d', $auth['id'], $skus, $updated));
+        return ['success' => true, 'skus' => $skus, 'rows' => $updated];
+    }
 }

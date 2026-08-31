@@ -69,6 +69,12 @@ if (isset($_GET['action']) && isset($_POST['key']) && str_starts_with($_GET['act
         case 'extension-get-products':
             echo json_encode(Extensions::get_products());
             break;
+        case 'extension-pick-signals':
+            echo json_encode(Extensions::pick_unscanned_signals());
+            break;
+        case 'extension-save-signals':
+            echo json_encode(Extensions::save_signals());
+            break;
         default:
             // Không có default thì action lạ trả body RỖNG, client chỉ thấy
             // "Server phản hồi rỗng" và không lần ra được nguyên nhân.
