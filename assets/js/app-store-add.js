@@ -30,6 +30,108 @@ function init(){
 
     ajaxSelectV2('account_author', 'account_team', 'authors', true);
     ajaxSelectV2('link_accounts', 'account_team', 'accounts', true);
+
+    init2faLive();
+}
+
+/**
+ * Hiện mã TOTP 6 số cạnh label "2FA Code", đếm ngược 30s, click để copy.
+ * Secret Base32 đã được render sẵn trong #account_2fa (giải mã phía server).
+ * Thuật toán khớp Extensions::getTOTPCode() trong class/class.extension.php.
+ */
+function base32ToBytes(secret) {
+    secret = (secret || '').replace(/\s+/g, '').replace(/=+$/, '').toUpperCase();
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    let bits = '';
+    for (const c of secret) {
+        const i = chars.indexOf(c);
+        if (i < 0) continue;
+        bits += i.toString(2).padStart(5, '0');
+    }
+    const bytes = [];
+    for (let i = 0; i + 8 <= bits.length; i += 8) {
+        bytes.push(parseInt(bits.slice(i, i + 8), 2));
+    }
+    return new Uint8Array(bytes);
+}
+
+async function totpCode(secret) {
+    const key = base32ToBytes(secret);
+    if (!key.length || !(window.crypto && window.crypto.subtle)) return null;
+
+    const step = Math.floor(Date.now() / 1000 / 30);
+    const msg = new Uint8Array(8);
+    let v = step;
+    for (let i = 7; i >= 4; i--) { msg[i] = v & 0xff; v = Math.floor(v / 256); }
+
+    const ck = await window.crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
+    const sig = new Uint8Array(await window.crypto.subtle.sign('HMAC', ck, msg));
+    const off = sig[19] & 0xf;
+    const otp = ((sig[off] & 0x7f) << 24 | (sig[off + 1] & 0xff) << 16 | (sig[off + 2] & 0xff) << 8 | (sig[off + 3] & 0xff)) >>> 0;
+    return String(otp % 1000000).padStart(6, '0');
+}
+
+function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text).catch(() => fallbackCopyText(text));
+    }
+    return Promise.resolve(fallbackCopyText(text));
+}
+
+function fallbackCopyText(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) { /* ignore */ }
+    document.body.removeChild(ta);
+}
+
+function init2faLive() {
+    const input = document.getElementById('account_2fa');
+    const badge = document.getElementById('account_2fa_live');
+    if (!input || !badge) return;
+
+    const codeEl = document.getElementById('account_2fa_live_code');
+    const ttlEl = document.getElementById('account_2fa_live_ttl');
+    let lastStep = -1;
+    let lastCode = '';
+
+    async function tick() {
+        const secret = (input.value || '').replace(/\s+/g, '');
+        if (!secret) { badge.classList.add('d-none'); lastStep = -1; lastCode = ''; return; }
+
+        const now = Date.now() / 1000;
+        const step = Math.floor(now / 30);
+        const remain = 30 - Math.floor(now % 30);
+
+        if (step !== lastStep) {
+            let code;
+            try { code = await totpCode(secret); } catch (e) { code = null; }
+            if (!code) { badge.classList.add('d-none'); return; }
+            lastCode = code;
+            lastStep = step;
+        }
+
+        codeEl.textContent = lastCode;
+        ttlEl.textContent = remain + 's';
+        badge.classList.remove('d-none');
+    }
+
+    badge.addEventListener('click', function () {
+        if (!lastCode) return;
+        copyText(lastCode).then(function () {
+            codeEl.textContent = 'Copied';
+            setTimeout(function () { codeEl.textContent = lastCode; }, 900);
+        });
+    });
+
+    input.addEventListener('input', function () { lastStep = -1; tick(); });
+
+    tick();
+    setInterval(tick, 1000);
 }
 
 function repeaterOptions() {

@@ -222,7 +222,12 @@ if (empty($custom_fields)) {
                         </div>
                         <div class="col">
                             <div class="form-password-toggle">
-                                <label class="form-label" for="account_2fa">2FA Code</label>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label class="form-label mb-0" for="account_2fa">2FA Code</label>
+                                    <span id="account_2fa_live" class="badge bg-label-primary cursor-pointer d-none" role="button" tabindex="0" title="Click to copy">
+                                        <i class="icon-base ti tabler-copy icon-xs me-1"></i><span id="account_2fa_live_code" class="fw-medium">------</span><span id="account_2fa_live_ttl" class="opacity-75 ms-1"></span>
+                                    </span>
+                                </div>
                                 <div class="input-group input-group-merge">
                                     <input
                                             type="password"
