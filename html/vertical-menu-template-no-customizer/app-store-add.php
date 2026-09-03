@@ -204,26 +204,38 @@ if (empty($custom_fields)) {
                     </div>
                     <div class="row mb-6">
                         <div class="col">
-                            <label class="form-label" for="account_password">Password</label>
-                            <input
-                                    type="password"
-                                    class="form-control"
-                                    id="account_password"
-                                    placeholder="*********"
-                                    name="account_password"
-                                    value="<?= htmlspecialchars($d['password']) ?>"
-                                    aria-label="Account Password" />
+                            <div class="form-password-toggle">
+                                <label class="form-label" for="account_password">Password</label>
+                                <div class="input-group input-group-merge">
+                                    <input
+                                            type="password"
+                                            class="form-control"
+                                            id="account_password"
+                                            placeholder="*********"
+                                            name="account_password"
+                                            value="<?= htmlspecialchars($d['password']) ?>"
+                                            aria-label="Account Password"
+                                            aria-describedby="account_password_toggle" />
+                                    <span class="input-group-text cursor-pointer" id="account_password_toggle"><i class="icon-base ti tabler-eye-off"></i></span>
+                                </div>
+                            </div>
                         </div>
                         <div class="col">
-                            <label class="form-label" for="account_2fa">2FA Code</label>
-                            <input
-                                    type="password"
-                                    class="form-control"
-                                    id="account_2fa"
-                                    name="account_2fa"
-                                    value="<?= htmlspecialchars($d['2fa']) ?>"
-                                    placeholder="***************************"
-                                    aria-label="Account 2FA" />
+                            <div class="form-password-toggle">
+                                <label class="form-label" for="account_2fa">2FA Code</label>
+                                <div class="input-group input-group-merge">
+                                    <input
+                                            type="password"
+                                            class="form-control"
+                                            id="account_2fa"
+                                            name="account_2fa"
+                                            value="<?= htmlspecialchars($d['2fa']) ?>"
+                                            placeholder="***************************"
+                                            aria-label="Account 2FA"
+                                            aria-describedby="account_2fa_toggle" />
+                                    <span class="input-group-text cursor-pointer" id="account_2fa_toggle"><i class="icon-base ti tabler-eye-off"></i></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
