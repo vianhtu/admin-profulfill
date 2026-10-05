@@ -999,19 +999,19 @@ class Extensions
         // Con trỏ phân trang của app (gpm-profile-runner work_queue): sku lớn
         // nhất lô trước, so kiểu CHUỖI — khớp max() bên Python. Rỗng = từ đầu.
         $after = (string) ($_POST['after'] ?? '');
+        [$where, $params] = self::signal_scope();
 
         try {
             // Đi theo index UNIQUE(sku) rồi dừng khi đủ $limit dòng. Bản cũ (không
             // ORDER BY, DISTINCT) quét ~960k dòng soi JSON mỗi lượt: 10,7 s/lượt;
             // bản này 0,15–0,4 s (đo 05/10/2026). sku đã UNIQUE nên khỏi DISTINCT.
+            // Lọc thêm danh mục vẫn đi index sku: 59–642 ms/lượt (đo cùng ngày).
             $res = $conn->execute_query(
                 "SELECT sku FROM posts
-                 WHERE sku > ? AND site_id = 1 AND sku REGEXP '^[0-9]{9,11}$'
-                   AND (metadata IS NULL OR metadata = ''
-                        OR metadata NOT LIKE '%\"signals_at\"%')
+                 WHERE sku > ? AND $where
                  ORDER BY sku
                  LIMIT $limit",
-                [$after]
+                array_merge([$after], $params)
             );
             $skus = [];
             foreach ($res as $row) {
@@ -1021,6 +1021,80 @@ class Extensions
             return self::db_error('pick_unscanned_signals', $e);
         }
         return ['success' => true, 'skus' => $skus, 'count' => count($skus)];
+    }
+
+    /**
+     * Điều kiện "cần quét" dùng chung cho pick + đếm theo danh mục.
+     *
+     * Tham số POST (đều tuỳ chọn, mặc định = hành vi cũ):
+     *  - type_ids          : "4,7,12" — chỉ các danh mục này (posts.type_id).
+     *  - older_than_days   : 0 = chỉ item CHƯA quét (mặc định); N > 0 = thêm cả
+     *                        item đã quét mà signals_at cũ hơn N ngày (quét lại để
+     *                        làm mới chỉ số). save_signals đóng dấu signals_at mới
+     *                        nên item vừa quét tự rơi khỏi điều kiện — con trỏ
+     *                        `after` đi tiếp không lặp.
+     *
+     * @return array{0: string, 1: array} [mệnh đề WHERE, tham số bind]
+     */
+    private static function signal_scope(): array
+    {
+        $where = "site_id = 1 AND sku REGEXP '^[0-9]{9,11}$'";
+        $params = [];
+
+        $ids = array_values(array_unique(array_filter(
+            array_map('intval', explode(',', (string) ($_POST['type_ids'] ?? ''))),
+            static fn($v) => $v > 0
+        )));
+        if ($ids) {
+            $ids = array_slice($ids, 0, 100);
+            $where .= ' AND type_id IN (' . implode(',', $ids) . ')';   // đã ép int
+        }
+
+        $chua_quet = "(metadata IS NULL OR metadata = '' OR metadata NOT LIKE '%\"signals_at\"%')";
+        $days = max(0, min(3650, (int) ($_POST['older_than_days'] ?? 0)));
+        if ($days > 0) {
+            $where .= " AND ($chua_quet OR JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.signals_at')) < ?)";
+            $params[] = date('Y-m-d H:i:s', time() - $days * 86400);
+        } else {
+            $where .= " AND $chua_quet";
+        }
+        return [$where, $params];
+    }
+
+    /**
+     * Danh mục để app chọn quét: [{id, name, total, pending}] — total = số listing
+     * Etsy của danh mục, pending = số cần quét theo older_than_days hiện tại.
+     * Câu đếm phải soi metadata cả bảng (~11 s, đo 05/10/2026) nên app chỉ gọi
+     * khi người dùng bấm "Tải danh mục", không gọi định kỳ. Chỉ admin.
+     */
+    public static function signal_types(): array
+    {
+        $conn = db();
+        $auth = self::authenticate($conn);
+        if (!$auth || $auth['level'] !== 'admin') {
+            return self::denied();
+        }
+        $_POST['type_ids'] = '';                  // đếm mọi danh mục
+        [$where, $params] = self::signal_scope();
+        try {
+            $total = [];
+            foreach ($conn->query("SELECT type_id, COUNT(*) n FROM posts WHERE site_id = 1 GROUP BY type_id") as $r) {
+                $total[(int) $r['type_id']] = (int) $r['n'];
+            }
+            $pending = [];
+            foreach ($conn->execute_query("SELECT type_id, COUNT(*) n FROM posts WHERE $where GROUP BY type_id", $params) as $r) {
+                $pending[(int) $r['type_id']] = (int) $r['n'];
+            }
+            $types = [];
+            foreach ($conn->query('SELECT ID, name FROM type ORDER BY name') as $r) {
+                $id = (int) $r['ID'];
+                $types[] = ['id' => $id, 'name' => $r['name'],
+                            'total' => $total[$id] ?? 0, 'pending' => $pending[$id] ?? 0];
+            }
+        } catch (\mysqli_sql_exception $e) {
+            return self::db_error('signal_types', $e);
+        }
+        return ['success' => true, 'types' => $types];
     }
 
     /**

@@ -72,6 +72,9 @@ if (isset($_GET['action']) && isset($_POST['key']) && str_starts_with($_GET['act
         case 'extension-pick-signals':
             echo json_encode(Extensions::pick_unscanned_signals());
             break;
+        case 'extension-signal-types':
+            echo json_encode(Extensions::signal_types());
+            break;
         case 'extension-save-signals':
             echo json_encode(Extensions::save_signals());
             break;
