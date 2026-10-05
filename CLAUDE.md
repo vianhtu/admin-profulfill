@@ -109,6 +109,10 @@ hoạt động, trả kèm cấp + role; `Extensions::has_permission($auth, $act
 đọc, `add` để thêm), chỉ admin bỏ qua role — y như `checkRoles()`. Hệ quả cần nói với người dùng:
 vai nào chỉ có `products.view` thì đọc được nhưng KHÔNG import được, muốn import phải bật cờ `add`
 cho vai đó. Thêm endpoint `extension-*` mới thì gọi đủ hai hàm này, đừng chỉ kiểm key.
+`extension-save-signals` (ghi chỉ số Etsy vào `posts.metadata`/`badge`) cho admin **hoặc** ai có
+`products.add` (chốt 05/10/2026 — extension Scan cập nhật item đã có); ghi vào MỌI dòng cùng sku kể
+cả của người khác, nên chỉ nhận khoá `SIGNAL_KEYS` + badge whitelist. `extension-pick-signals` vẫn
+chỉ admin.
 
 **TEAM KEY = TOÀN QUYỀN TRONG TEAM ĐÓ** (chốt 13/08/2026). Nhóm endpoint account
 (`extension-get-account-*`, `extension-update-account-*`, `extension-add-account-orders`) xác thực

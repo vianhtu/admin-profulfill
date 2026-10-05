@@ -1035,7 +1035,12 @@ class Extensions
     {
         $conn = db();
         $auth = self::authenticate($conn);
-        if (!$auth || $auth['level'] !== 'admin') {
+        // Admin (app quét) HOẶC người được import (products.add) — extension Scan
+        // cập nhật lại chỉ số item đã có (người dùng chốt 05/10/2026). Chỉ ghi khoá
+        // trong SIGNAL_KEYS + badge whitelist, vào mọi dòng cùng sku kể cả dòng
+        // của người khác (chỉ số là sự thật công khai trên Etsy).
+        // pick_unscanned_signals vẫn chỉ admin.
+        if (!$auth || !self::has_permission($auth, 'add', 'products')) {
             return self::denied();
         }
 
