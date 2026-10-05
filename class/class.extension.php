@@ -421,6 +421,12 @@ class Extensions
                 throw $e;
             }
 
+            // Cột posts.signals_at (05/10/2026) — ghi kèm khi extension gửi tín hiệu.
+            if (isset($metadata['signals_at']) && self::signals_col()) {
+                $conn->execute_query('UPDATE posts SET signals_at = ? WHERE ID = ?',
+                    [$metadata['signals_at'], (int) $conn->insert_id]);
+            }
+
             // Nhớ lại trong phạm vi lô: payload gửi trùng sku hai lần thì lần sau
             // bị chặn ngay, khỏi đợi UNIQUE ném lỗi.
             $context['existing_skus'][$sku] = true;
@@ -1050,15 +1056,40 @@ class Extensions
             $where .= ' AND type_id IN (' . implode(',', $ids) . ')';   // đã ép int
         }
 
-        $chua_quet = "(metadata IS NULL OR metadata = '' OR metadata NOT LIKE '%\"signals_at\"%')";
         $days = max(0, min(3650, (int) ($_POST['older_than_days'] ?? 0)));
+        if (self::signals_col_ready()) {
+            // Cột posts.signals_at có index: không phải soi JSON từng dòng.
+            $chua_quet = 'signals_at IS NULL';
+            $cu_hon = 'signals_at < ?';
+        } else {
+            $chua_quet = "(metadata IS NULL OR metadata = '' OR metadata NOT LIKE '%\"signals_at\"%')";
+            $cu_hon = "JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.signals_at')) < ?";
+        }
         if ($days > 0) {
-            $where .= " AND ($chua_quet OR JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.signals_at')) < ?)";
+            $where .= " AND ($chua_quet OR $cu_hon)";
             $params[] = date('Y-m-d H:i:s', time() - $days * 86400);
         } else {
             $where .= " AND $chua_quet";
         }
         return [$where, $params];
+    }
+
+    /**
+     * Cột posts.signals_at (thêm 05/10/2026) — mốc quét tín hiệu, có index.
+     *
+     * GHI vào cột ngay khi cột tồn tại; ĐỌC từ cột chỉ khi đã đổ xong dữ liệu
+     * cũ từ metadata (cờ `signals_at_ready` trong options). Trước mốc đó cột còn
+     * NULL ở hơn một triệu dòng đã quét — đọc sớm là app quét lại từ đầu.
+     */
+    private static function signals_col(): bool
+    {
+        return Teams::col_exists(db(), 'posts', 'signals_at');
+    }
+
+    private static function signals_col_ready(): bool
+    {
+        static $ready = null;
+        return $ready ??= self::signals_col() && getOption('signals_at_ready', 0, 0, '0') === '1';
     }
 
     /**
@@ -1101,7 +1132,8 @@ class Extensions
         // số lệch tối đa 10 phút. Điều kiện "cần quét" đổi chỗ thành SUM(...).
         $pending_expr = substr($where, strlen("site_id = 1 AND "));
         try {
-            $data = Dashboard::cached("signal_types_d$days", ['is_admin' => true], static function () use ($conn, $pending_expr, $params) {
+            $mode = self::signals_col_ready() ? 'c' : 'm';      // đổi cách đếm = khoá mới
+            $data = Dashboard::cached("signal_types_{$mode}_d$days", ['is_admin' => true], static function () use ($conn, $pending_expr, $params) {
                 $rows = $conn->execute_query(
                     "SELECT type_id, COUNT(*) total, SUM($pending_expr) pending
                      FROM posts WHERE site_id = 1 GROUP BY type_id",
@@ -1162,7 +1194,12 @@ class Extensions
         $now = date('Y-m-d H:i:s');
         try {
             $sel = $conn->prepare('SELECT ID, metadata FROM posts WHERE site_id = 1 AND sku = ?');
-            $upd = $conn->prepare('UPDATE posts SET badge = ?, metadata = ? WHERE ID = ?');
+            // Có cột signals_at thì ghi cả cột (đọc nhanh bằng index), không thì
+            // chỉ metadata như cũ — code chạy được với cả schema cũ lẫn mới.
+            $has_col = self::signals_col();
+            $upd = $conn->prepare($has_col
+                ? 'UPDATE posts SET badge = ?, metadata = ?, signals_at = ? WHERE ID = ?'
+                : 'UPDATE posts SET badge = ?, metadata = ? WHERE ID = ?');
         } catch (\mysqli_sql_exception $e) {
             return self::db_error('save_signals.prepare', $e);
         }
@@ -1207,7 +1244,11 @@ class Extensions
 
                     $json = json_encode($meta, JSON_UNESCAPED_UNICODE);
                     $id = (int) $row['ID'];
-                    $upd->bind_param('ssi', $badge, $json, $id);
+                    if ($has_col) {
+                        $upd->bind_param('sssi', $badge, $json, $now, $id);
+                    } else {
+                        $upd->bind_param('ssi', $badge, $json, $id);
+                    }
                     $upd->execute();
                     if ($upd->affected_rows > 0) {
                         $updated++;

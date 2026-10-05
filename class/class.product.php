@@ -209,7 +209,17 @@ class Product
     $stmt->close();
 
     $imagesJson = json_encode(['main' => $images[0], 'images' => array_slice($images, 1)]);
-    $metaJson   = json_encode(['tags' => $tags]);
+    // Sửa thì chỉ thay `tags`, GIỮ NGUYÊN phần còn lại của metadata (chỉ số Etsy
+    // bought/carts/reviews/rating + signals_at do extension/app quét ghi). Trước
+    // 05/10/2026 chỗ này ghi đè cả cục bằng {tags} -> mở form Save là mất hết chỉ số.
+    $meta = [];
+    if ($isEdit) {
+        $old = $conn->query("SELECT metadata FROM posts WHERE ID = " . (int)$id . " LIMIT 1")->fetch_row();
+        $meta = json_decode((string)($old[0] ?? ''), true);
+        $meta = is_array($meta) ? $meta : [];
+    }
+    $meta['tags'] = $tags;
+    $metaJson   = json_encode($meta, JSON_UNESCAPED_UNICODE);
     $badgeVal   = $badge !== '' ? $badge : null;
 
     if ($isEdit) {

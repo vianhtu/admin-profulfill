@@ -190,8 +190,9 @@ class Teams
     /**
      * Cặp bảng.cột có tồn tại không — dùng trước MỌI câu xóa để tiến trình không văng
      * khi schema thiếu bảng phụ (đã dính vụ store_teams bị khai tử).
+     * Public để chỗ khác dùng chung (Extensions — cột posts.signals_at).
      */
-    private static function col_exists(mysqli $conn, string $table, string $col): bool
+    public static function col_exists(mysqli $conn, string $table, string $col): bool
     {
         static $cache = [];
         $k = "$table.$col";
