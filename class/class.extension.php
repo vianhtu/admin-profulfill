@@ -1151,7 +1151,9 @@ class Extensions
                         $params
                     )->fetch_all(MYSQLI_ASSOC);
                     $bad = [];
-                    foreach ($conn->query("SELECT type_id, COUNT(*) n FROM posts
+                    // FORCE: tự chọn thì MariaDB đi idx_type_date đọc hết 1 triệu dòng
+                    // (5,2 s); theo idx_site_type_signals chỉ lọc trong index (0,2 s).
+                    foreach ($conn->query("SELECT type_id, COUNT(*) n FROM posts FORCE INDEX (idx_site_type_signals)
                             WHERE site_id = 1 AND signals_at IS NULL AND sku NOT REGEXP '^[0-9]{9,11}$'
                             GROUP BY type_id") as $r) {
                         $bad[(int) $r['type_id']] = (int) $r['n'];
