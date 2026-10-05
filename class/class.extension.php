@@ -1117,12 +1117,14 @@ class Extensions
                     $types[] = ['id' => $id, 'name' => $r['name'],
                                 'total' => $by[$id][0] ?? 0, 'pending' => $by[$id][1] ?? 0];
                 }
-                return ['types' => $types, 'at' => date('Y-m-d H:i:s')];
+                return ['types' => $types, 'at' => time()];
             });
         } catch (\mysqli_sql_exception $e) {
             return self::db_error('signal_types', $e);
         }
-        return ['success' => true, 'types' => $data['types'] ?? [], 'counted_at' => $data['at'] ?? null];
+        // Tuổi số liệu (giây) thay vì mốc giờ — server chạy UTC, app thì giờ máy.
+        return ['success' => true, 'types' => $data['types'] ?? [],
+                'counted_ago' => max(0, time() - (int) ($data['at'] ?? time()))];
     }
 
     /**
