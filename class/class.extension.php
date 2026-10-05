@@ -996,14 +996,22 @@ class Extensions
 
         $limit = (int) ($_POST['limit'] ?? 100);
         $limit = max(1, min(self::MAX_PICK_SIGNALS, $limit));
+        // Con trỏ phân trang của app (gpm-profile-runner work_queue): sku lớn
+        // nhất lô trước, so kiểu CHUỖI — khớp max() bên Python. Rỗng = từ đầu.
+        $after = (string) ($_POST['after'] ?? '');
 
         try {
-            $res = $conn->query(
-                "SELECT DISTINCT sku FROM posts
-                 WHERE site_id = 1 AND sku REGEXP '^[0-9]{9,11}$'
+            // Đi theo index UNIQUE(sku) rồi dừng khi đủ $limit dòng. Bản cũ (không
+            // ORDER BY, DISTINCT) quét ~960k dòng soi JSON mỗi lượt: 10,7 s/lượt;
+            // bản này 0,15–0,4 s (đo 05/10/2026). sku đã UNIQUE nên khỏi DISTINCT.
+            $res = $conn->execute_query(
+                "SELECT sku FROM posts
+                 WHERE sku > ? AND site_id = 1 AND sku REGEXP '^[0-9]{9,11}$'
                    AND (metadata IS NULL OR metadata = ''
                         OR metadata NOT LIKE '%\"signals_at\"%')
-                 LIMIT $limit"
+                 ORDER BY sku
+                 LIMIT $limit",
+                [$after]
             );
             $skus = [];
             foreach ($res as $row) {
