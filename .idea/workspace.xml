@@ -5,10 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dd67acd4-b783-43b8-b6ae-ced4c44e1a52" name="Changes" comment="ok">
-      <change beforePath="$PROJECT_DIR$/assets/js/app-xlsx-add.js" beforeDir="false" afterPath="$PROJECT_DIR$/assets/js/app-xlsx-add.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../profulfill-products-data/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../profulfill-products-data/.idea/php.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../profulfill-products-data/.idea/profulfill-products-data.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../profulfill-products-data/.idea/profulfill-products-data.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../profulfill-products-data/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../profulfill-products-data/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$USER_HOME$/PhpstormProjects/gelato-clone-design/.idea/workspace.xml" beforeDir="false" afterPath="$USER_HOME$/PhpstormProjects/gelato-clone-design/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,7 +20,19 @@
   </component>
   <component name="ComposerSettings" synchronizationState="SYNCHRONIZE">
     <pharConfigPath>$PROJECT_DIR$/composer.json</pharConfigPath>
-    <execution />
+    <execution>
+      <execution>
+        <execution>
+          <execution>
+            <execution>
+              <execution>
+                <execution />
+              </execution>
+            </execution>
+          </execution>
+        </execution>
+      </execution>
+    </execution>
   </component>
   <component name="EmbeddingIndexingInfo">
     <option name="cachedIndexableFilesCount" value="1829" />
@@ -101,6 +111,7 @@
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
     &quot;SHELLCHECK.PATH&quot;: &quot;C:\\Users\\thien\\AppData\\Roaming\\JetBrains\\PhpStorm2025.2\\plugins\\Shell Script\\shellcheck.exe&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
     &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
     &quot;disable.download.node.interpreter.editor.notification&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
@@ -143,8 +154,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-PS-253.31033.138" />
-        <option value="bundled-php-predefined-a98d8de5180a-0e0d91225499-com.jetbrains.php.sharedIndexes-PS-253.31033.138" />
+        <option value="bundled-js-predefined-d6986cc7102b-4abd2a77f808-JavaScript-PS-262.9437.196" />
+        <option value="bundled-php-predefined-a98d8de5180a-9522f28f0b20-com.jetbrains.php.sharedIndexes-PS-262.9437.196" />
       </set>
     </attachedChunks>
   </component>
@@ -232,6 +243,12 @@
       <workItem from="1772764824835" duration="18000" />
       <workItem from="1772764903152" duration="166000" />
       <workItem from="1772765077730" duration="48000" />
+      <workItem from="1788167757632" duration="40000" />
+      <workItem from="1788167806873" duration="23000" />
+      <workItem from="1788167833993" duration="4000" />
+      <workItem from="1788419182880" duration="2000" />
+      <workItem from="1788419194416" duration="310000" />
+      <workItem from="1788420506239" duration="10000" />
     </task>
     <task id="LOCAL-00001" summary="ok">
       <option name="closed" value="true" />

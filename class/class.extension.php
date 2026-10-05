@@ -1007,7 +1007,7 @@ class Extensions
             // bản này 0,15–0,4 s (đo 05/10/2026). sku đã UNIQUE nên khỏi DISTINCT.
             // Lọc thêm danh mục vẫn đi index sku: 59–642 ms/lượt (đo cùng ngày).
             $res = $conn->execute_query(
-                "SELECT sku FROM posts
+                "SELECT sku FROM posts " . self::signal_index_hint($conn) . "
                  WHERE sku > ? AND $where
                  ORDER BY sku
                  LIMIT $limit",
@@ -1059,6 +1059,22 @@ class Extensions
             $where .= " AND $chua_quet";
         }
         return [$where, $params];
+    }
+
+    /**
+     * Danh mục NHỎ thì đi index danh mục thay vì index sku. Đi index sku phải
+     * duyệt gần hết 1,2 triệu dòng mới gom đủ lô khi danh mục chọn thưa (đo
+     * 05/10/2026: danh mục hết việc mất 12–16 s chỉ để trả về rỗng); đi
+     * idx_type_date rồi sắp theo sku thì danh mục ≤ 21k dòng chỉ 0–180 ms. Danh mục
+     * lớn và dày việc (T-shirts 42k: 61 ms theo sku vs 1,5 s theo type) thì giữ sku.
+     */
+    private static function signal_index_hint(\mysqli $conn): string
+    {
+        if (!preg_match('/type_id IN \(([\d,]+)\)/', self::signal_scope()[0], $m)) {
+            return '';
+        }
+        $n = (int) $conn->query("SELECT COUNT(*) n FROM posts WHERE type_id IN ({$m[1]})")->fetch_assoc()['n'];
+        return $n <= 25000 ? 'FORCE INDEX (idx_type_date)' : '';
     }
 
     /**
