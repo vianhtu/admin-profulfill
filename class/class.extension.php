@@ -1101,6 +1101,11 @@ class Extensions
      */
     private static function signal_index_hint(\mysqli $conn): string
     {
+        // Đọc từ cột signals_at thì MariaDB tự chọn đúng index (1-243 ms mọi
+        // kiểu lọc, đo 05/10/2026) — ép idx_type_date lúc đó chỉ làm chậm đi.
+        if (self::signals_col_ready()) {
+            return '';
+        }
         if (!preg_match('/type_id IN \(([\d,]+)\)/', self::signal_scope()[0], $m)) {
             return '';
         }
@@ -1133,12 +1138,35 @@ class Extensions
         $pending_expr = substr($where, strlen("site_id = 1 AND "));
         try {
             $mode = self::signals_col_ready() ? 'c' : 'm';      // đổi cách đếm = khoá mới
-            $data = Dashboard::cached("signal_types_{$mode}_d$days", ['is_admin' => true], static function () use ($conn, $pending_expr, $params) {
-                $rows = $conn->execute_query(
-                    "SELECT type_id, COUNT(*) total, SUM($pending_expr) pending
-                     FROM posts WHERE site_id = 1 GROUP BY type_id",
-                    $params
-                )->fetch_all(MYSQLI_ASSOC);
+            $data = Dashboard::cached("signal_types_{$mode}_d$days", ['is_admin' => true], static function () use ($conn, $pending_expr, $params, $mode, $days) {
+                if ($mode === 'c') {
+                    // Chỉ đọc index idx_site_type_signals: 0,8 s thay vì quét bảng
+                    // 12-14 s (đo 05/10/2026). Bỏ `sku REGEXP` khỏi phép đếm (nó bắt
+                    // đọc từng dòng) rồi trừ riêng những dòng sku không phải số —
+                    // chúng luôn NULL vì pick không bao giờ phát ra (201 dòng).
+                    $cond = $days > 0 ? 'signals_at IS NULL OR signals_at < ?' : 'signals_at IS NULL';
+                    $rows = $conn->execute_query(
+                        "SELECT type_id, COUNT(*) total, SUM($cond) pending
+                         FROM posts WHERE site_id = 1 GROUP BY type_id",
+                        $params
+                    )->fetch_all(MYSQLI_ASSOC);
+                    $bad = [];
+                    foreach ($conn->query("SELECT type_id, COUNT(*) n FROM posts
+                            WHERE site_id = 1 AND signals_at IS NULL AND sku NOT REGEXP '^[0-9]{9,11}$'
+                            GROUP BY type_id") as $r) {
+                        $bad[(int) $r['type_id']] = (int) $r['n'];
+                    }
+                    foreach ($rows as &$r) {
+                        $r['pending'] = max(0, (int) $r['pending'] - ($bad[(int) $r['type_id']] ?? 0));
+                    }
+                    unset($r);
+                } else {
+                    $rows = $conn->execute_query(
+                        "SELECT type_id, COUNT(*) total, SUM($pending_expr) pending
+                         FROM posts WHERE site_id = 1 GROUP BY type_id",
+                        $params
+                    )->fetch_all(MYSQLI_ASSOC);
+                }
                 $by = [];
                 foreach ($rows as $r) {
                     $by[(int) $r['type_id']] = [(int) $r['total'], (int) $r['pending']];
