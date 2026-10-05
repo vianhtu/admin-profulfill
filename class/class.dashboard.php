@@ -460,8 +460,11 @@ class Dashboard
      * người lãnh đủ. Trả số cũ (lệch tối đa 10 phút, chấp nhận được với một
      * bảng thống kê) rồi làm mới ở hậu trường thì không ai phải chờ.
      * Chỉ lần đầu tiên chưa có gì trong cache mới phải tính đồng bộ.
+     *
+     * Public để chỗ khác cũng dùng (Extensions::signal_types — đếm theo danh mục
+     * cho app quét, ~12 s). $ttl mặc định = CACHE_TTL của Dashboard.
      */
-    private static function cached(string $key, array $scope, callable $build)
+    public static function cached(string $key, array $scope, callable $build, ?int $ttl = null)
     {
         [$name, $team, $author] = self::cache_slot($key, $scope);
 
@@ -469,7 +472,7 @@ class Dashboard
         if (is_string($raw) && $raw !== '') {
             $cached = json_decode($raw, true);
             if (is_array($cached) && array_key_exists('v', $cached)) {
-                if (($cached['at'] ?? 0) > time() - self::CACHE_TTL) {
+                if (($cached['at'] ?? 0) > time() - ($ttl ?? self::CACHE_TTL)) {
                     return $cached['v'];
                 }
                 self::$refresh_queue[] = [$name, $team, $author, $build];

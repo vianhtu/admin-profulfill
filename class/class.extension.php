@@ -1092,25 +1092,37 @@ class Extensions
         }
         $_POST['type_ids'] = '';                  // đếm mọi danh mục
         [$where, $params] = self::signal_scope();
+        $days = max(0, min(3650, (int) ($_POST['older_than_days'] ?? 0)));
+
+        // MỘT lần quét bảng cho cả tổng lẫn số cần quét (trước: hai GROUP BY,
+        // 9 s + 12 s). Soi metadata thì không tránh được quét cả bảng 1,36 GB,
+        // nên kết quả đi qua cache "trả số cũ, tính lại sau lưng" của Dashboard:
+        // chỉ lần đầu (mỗi giá trị older_than_days) phải đợi, sau đó tức thì,
+        // số lệch tối đa 10 phút. Điều kiện "cần quét" đổi chỗ thành SUM(...).
+        $pending_expr = substr($where, strlen("site_id = 1 AND "));
         try {
-            $total = [];
-            foreach ($conn->query("SELECT type_id, COUNT(*) n FROM posts WHERE site_id = 1 GROUP BY type_id") as $r) {
-                $total[(int) $r['type_id']] = (int) $r['n'];
-            }
-            $pending = [];
-            foreach ($conn->execute_query("SELECT type_id, COUNT(*) n FROM posts WHERE $where GROUP BY type_id", $params) as $r) {
-                $pending[(int) $r['type_id']] = (int) $r['n'];
-            }
-            $types = [];
-            foreach ($conn->query('SELECT ID, name FROM type ORDER BY name') as $r) {
-                $id = (int) $r['ID'];
-                $types[] = ['id' => $id, 'name' => $r['name'],
-                            'total' => $total[$id] ?? 0, 'pending' => $pending[$id] ?? 0];
-            }
+            $data = Dashboard::cached("signal_types_d$days", ['is_admin' => true], static function () use ($conn, $pending_expr, $params) {
+                $rows = $conn->execute_query(
+                    "SELECT type_id, COUNT(*) total, SUM($pending_expr) pending
+                     FROM posts WHERE site_id = 1 GROUP BY type_id",
+                    $params
+                )->fetch_all(MYSQLI_ASSOC);
+                $by = [];
+                foreach ($rows as $r) {
+                    $by[(int) $r['type_id']] = [(int) $r['total'], (int) $r['pending']];
+                }
+                $types = [];
+                foreach ($conn->query('SELECT ID, name FROM type ORDER BY name') as $r) {
+                    $id = (int) $r['ID'];
+                    $types[] = ['id' => $id, 'name' => $r['name'],
+                                'total' => $by[$id][0] ?? 0, 'pending' => $by[$id][1] ?? 0];
+                }
+                return ['types' => $types, 'at' => date('Y-m-d H:i:s')];
+            });
         } catch (\mysqli_sql_exception $e) {
             return self::db_error('signal_types', $e);
         }
-        return ['success' => true, 'types' => $types];
+        return ['success' => true, 'types' => $data['types'] ?? [], 'counted_at' => $data['at'] ?? null];
     }
 
     /**
