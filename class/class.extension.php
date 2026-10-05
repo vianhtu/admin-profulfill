@@ -380,6 +380,20 @@ class Extensions
             // chờ bản extension mới.
             $badge = mb_substr(trim(preg_replace('/\s+/u', ' ', (string) ($data['badge'] ?? ''))), 0, 20);
 
+            // Tín hiệu bán hàng (extension >= 4.1.0 bóc y như app quét) — cùng
+            // whitelist với save_signals(). Có gửi `signals` = đã đọc trang rồi,
+            // đóng dấu signals_at để app quét khỏi lặp lại listing này. Extension
+            // cũ không gửi thì để trống, app quét sẽ nhặt như trước.
+            $metadata = ['tags' => $data['tags'] ?? []];
+            if (isset($data['signals']) && is_array($data['signals'])) {
+                foreach ($data['signals'] as $k => $v) {
+                    if (in_array($k, self::SIGNAL_KEYS, true) && is_scalar($v)) {
+                        $metadata[$k] = $v;
+                    }
+                }
+                $metadata['signals_at'] = date('Y-m-d H:i:s');
+            }
+
             try {
                 $conn->execute_query(
                     "INSERT INTO posts (author_id, date, title, status, sku, images, type_id, site_id, store_id, badge, description, metadata, variantdata)
@@ -394,7 +408,7 @@ class Extensions
                         $store_id,
                         $badge,
                         $data['description'] ?? '',
-                        json_encode(['tags' => $data['tags'] ?? []]),
+                        json_encode($metadata, JSON_UNESCAPED_UNICODE),
                         $variant_data,
                     ]
                 );
