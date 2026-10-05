@@ -21,7 +21,7 @@ theo session admin).
 - **Deploy = git push.** Webhook trên server tự pull. Sau `git push`, **chờ ~10s** rồi kiểm:
   `ssh ... "git -c safe.directory=<path> -C <path> log --oneline -1"` khớp commit vừa push mới
   chạy/kiểm thử — webhook trễ vài giây, chạy sớm ra kết quả code cũ.
-- **Server**: `45.76.185.106`, code tại `/var/www/html/admin-profulfill`. SSH key + DB cred do
+- **Server**: `51.79.166.22` (OVH, đổi 31/08/2026), code tại `/var/www/html/admin-profulfill`. SSH key + DB cred do
   người dùng cấu hình cục bộ — **hỏi người dùng**, đừng ghi vào repo.
 - **PHP chạy dưới `www-data`.** Thao tác file `uploads/` qua SSH bằng root rồi để nguyên sẽ làm
   PHP không ghi được → luôn `chown www-data:www-data` sau, hoặc `sudo -u www-data`.
