@@ -1123,8 +1123,11 @@ class Extensions
             return self::db_error('signal_types', $e);
         }
         // Tuổi số liệu (giây) thay vì mốc giờ — server chạy UTC, app thì giờ máy.
+        // Cache cũ lưu 'at' dạng chuỗi giờ (bản đầu) — đọc được cả hai dạng.
+        $at = $data['at'] ?? time();
+        $at = is_numeric($at) ? (int) $at : (strtotime((string) $at) ?: time());
         return ['success' => true, 'types' => $data['types'] ?? [],
-                'counted_ago' => max(0, time() - (int) ($data['at'] ?? time()))];
+                'counted_ago' => max(0, time() - $at)];
     }
 
     /**
