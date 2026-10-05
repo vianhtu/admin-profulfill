@@ -113,6 +113,11 @@ cho vai đó. Thêm endpoint `extension-*` mới thì gọi đủ hai hàm này,
 `products.add` (chốt 05/10/2026 — extension Scan cập nhật item đã có); ghi vào MỌI dòng cùng sku kể
 cả của người khác, nên chỉ nhận khoá `SIGNAL_KEYS` + badge whitelist. `extension-pick-signals` vẫn
 chỉ admin.
+**Cột `posts.signals_at`** (DATETIME, index `idx_site_type_signals (site_id, type_id, signals_at)`,
+thêm 05/10/2026) = bản sao `metadata.signals_at` để đếm/pick theo index thay vì soi JSON (12 s →
+<1 s). Mọi chỗ ghi `metadata.signals_at` PHẢI ghi cả cột (`save_signals`, `add_single_product`).
+Đọc từ cột chỉ khi `options.signals_at_ready = 1` (team 0, author 0). Bảng `posts` có FULLTEXT nên
+ALTER phải dựng lại bảng với `LOCK=SHARED` (~48 s chặn ghi), không làm online được.
 
 **TEAM KEY = TOÀN QUYỀN TRONG TEAM ĐÓ** (chốt 13/08/2026). Nhóm endpoint account
 (`extension-get-account-*`, `extension-update-account-*`, `extension-add-account-orders`) xác thực
