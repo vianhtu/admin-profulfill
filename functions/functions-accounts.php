@@ -550,7 +550,7 @@ function getAccountsTable(): array
     // Lọc theo search
     if ($params['searchValue'] !== '') {
         $searchEsc = $conn->real_escape_string($params['searchValue']);
-        $whereClauses[] = "accounts.email LIKE '%$searchEsc%' OR accounts.name LIKE '%$searchEsc%' OR accounts.user_id LIKE '%$searchEsc%' OR accounts.sku LIKE '%$searchEsc%'";
+        $whereClauses[] = "(accounts.email LIKE '%$searchEsc%' OR accounts.name LIKE '%$searchEsc%' OR accounts.user_id LIKE '%$searchEsc%' OR accounts.sku LIKE '%$searchEsc%' OR accounts.address LIKE '%$searchEsc%')";
     }
 
     // Lọc theo type (int)
