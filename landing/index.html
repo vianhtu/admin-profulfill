@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ProFulfill — Tools for Marketplace Sellers</title>
+<meta name="description" content="ProFulfill is a workspace for Etsy and marketplace sellers: product research signals, one-click listing import, store, order and team management in one place.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff; --bg-soft:#f6f7fb; --text:#141824; --muted:#5b6275; --line:#e6e8ef;
+  --brand:#5b4cf0; --brand-2:#8f6bff; --brand-soft:#eeebff; --card:#ffffff;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --bg:#0e1017; --bg-soft:#151824; --text:#eef0f6; --muted:#a2a8ba; --line:#262a38;
+         --brand:#8b7dff; --brand-2:#b29bff; --brand-soft:#221f3d; --card:#151824; }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+header{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav{display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.02em}
+.logo i{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--brand-2));display:grid;place-items:center;color:#fff;font-style:normal;font-size:16px}
+.links{display:flex;gap:28px;align-items:center;font-size:15px;color:var(--muted)}
+.links a:hover{color:var(--text)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:10px;font-weight:600;font-size:15px;transition:.15s}
+.btn-primary{background:var(--brand);color:#fff}
+.btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.btn-ghost{border:1px solid var(--line);color:var(--text)}
+.btn-ghost:hover{background:var(--bg-soft)}
+.hero{padding:96px 0 72px;text-align:center;background:radial-gradient(900px 400px at 50% -10%,var(--brand-soft),transparent 70%)}
+.pill{display:inline-block;padding:6px 14px;border-radius:99px;background:var(--brand-soft);color:var(--brand);font-weight:600;font-size:13px;margin-bottom:22px}
+h1{font-size:clamp(34px,6vw,60px);line-height:1.08;letter-spacing:-.035em;font-weight:800;max-width:860px;margin:0 auto}
+h1 span{background:linear-gradient(90deg,var(--brand),var(--brand-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{font-size:clamp(16px,2vw,19px);color:var(--muted);max-width:640px;margin:22px auto 34px}
+.cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+section{padding:80px 0}
+.alt{background:var(--bg-soft)}
+.head{text-align:center;max-width:640px;margin:0 auto 48px}
+.head h2{font-size:clamp(26px,4vw,38px);letter-spacing:-.025em;line-height:1.15;margin-bottom:12px}
+.head p{color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px}
+.ico{width:44px;height:44px;border-radius:12px;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;margin-bottom:18px}
+.ico svg{width:22px;height:22px}
+.card h3{font-size:18px;margin-bottom:8px;letter-spacing:-.01em}
+.card p{color:var(--muted);font-size:15px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;counter-reset:s}
+.step{padding:28px;border-radius:16px;border:1px dashed var(--line);background:var(--card)}
+.step::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--brand);color:#fff;font-weight:700;margin-bottom:16px}
+.step h3{font-size:17px;margin-bottom:6px}
+.step p{color:var(--muted);font-size:15px}
+.band{border-radius:22px;padding:56px 32px;text-align:center;background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff}
+.band h2{font-size:clamp(24px,4vw,34px);letter-spacing:-.02em;margin-bottom:10px}
+.band p{opacity:.9;margin-bottom:26px}
+.band .btn{background:#fff;color:#2a1f8f}
+footer{border-top:1px solid var(--line);padding:32px 0;color:var(--muted);font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer a:hover{color:var(--text)}
+@media (max-width:860px){
+  .grid,.steps{grid-template-columns:1fr}
+  .links a:not(.btn){display:none}
+  .hero{padding:72px 0 56px}
+  section{padding:60px 0}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <nav>
+      <a href="/" class="logo"><i>P</i>ProFulfill</a>
+      <div class="links">
+        <a href="#features">Features</a>
+        <a href="#how">How it works</a>
+        <a href="#contact">Contact</a>
+        <a href="/admin-profulfill/" class="btn btn-primary">Sign in</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <span class="pill">Built for Etsy &amp; marketplace sellers</span>
+      <h1>Run your print-on-demand business <span>from one workspace</span></h1>
+      <p class="lead">ProFulfill brings product research, listing import, stores, orders and your team together — so you spend less time switching tabs and more time selling.</p>
+      <div class="cta">
+        <a href="/admin-profulfill/" class="btn btn-primary">Sign in to dashboard →</a>
+        <a href="mailto:support@profulfill.io" class="btn btn-ghost">Talk to us</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="features" class="alt">
+    <div class="wrap">
+      <div class="head">
+        <h2>Everything a seller team needs</h2>
+        <p>One platform instead of spreadsheets, scattered logins and copy-paste.</p>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg></div>
+          <h3>Product research signals</h3>
+          <p>Track in-cart counts, views, recent sales, badges and reviews to spot listings that are trending before everyone else does.</p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg></div>
+          <h3>One-click listing import</h3>
+          <p>Our Chrome extension saves Etsy listings — titles, images, tags and variants — straight into your product library.</p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/></svg></div>
+          <h3>Product &amp; category library</h3>
+          <p>Organize products by store, site and category, with variants, bulk actions and fast search across thousands of items.</p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9 5 4h14l2 5"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></svg></div>
+          <h3>Multi-store management</h3>
+          <p>Manage many shops across Etsy, Amazon, eBay and more from a single dashboard, with shared and private stores per team.</p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12l2 6H4z"/><path d="M4 8v13h16V8"/><path d="M9 13h6"/></svg></div>
+          <h3>Order tracking</h3>
+          <p>Collect orders from your stores in one list and follow every order from purchase to fulfillment.</p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 4a3 3 0 0 1 0 6"/><path d="M21 20a6 6 0 0 0-4-5.6"/></svg></div>
+          <h3>Teams &amp; permissions</h3>
+          <p>Invite managers and staff, give each role exactly the menus and actions it needs, and keep every team's data separate.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="wrap">
+      <div class="head">
+        <h2>How it works</h2>
+        <p>Get your team running in minutes.</p>
+      </div>
+      <div class="steps">
+        <div class="step"><h3>Create your team</h3><p>We set up your workspace and you invite members with the roles they need.</p></div>
+        <div class="step"><h3>Connect stores &amp; extension</h3><p>Add your shops and install the Chrome extension to start importing listings.</p></div>
+        <div class="step"><h3>Research, list, sell</h3><p>Find winning products with live signals, build listings and track orders in one place.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="alt">
+    <div class="wrap">
+      <div class="band">
+        <h2>Ready to grow your shop?</h2>
+        <p>Questions, onboarding or a demo — our team replies quickly.</p>
+        <a href="mailto:support@profulfill.io" class="btn">support@profulfill.io</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© <span id="y">2026</span> ProFulfill. All rights reserved.</span>
+    <span><a href="mailto:support@profulfill.io">support@profulfill.io</a> · <a href="/admin-profulfill/">Sign in</a></span>
+  </div>
+</footer>
+<script>document.getElementById('y').textContent=new Date().getFullYear()</script>
+</body>
+</html>
